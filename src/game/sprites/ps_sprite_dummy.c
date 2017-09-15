@@ -1,0 +1,73 @@
+#include "ps.h"
+#include "game/ps_sprite.h"
+
+/* Private sprite object.
+ */
+
+struct ps_sprite_dummy {
+  struct ps_sprite hdr;
+};
+
+#define SPR ((struct ps_sprite_dummy*)spr)
+
+/* Delete.
+ */
+
+static void _ps_dummy_del(struct ps_sprite *spr) {
+}
+
+/* Initialize.
+ */
+
+static int _ps_dummy_init(struct ps_sprite *spr) {
+  return 0;
+}
+
+/* Configure.
+ */
+
+static int _ps_dummy_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+  return 0;
+}
+
+/* Update.
+ */
+
+static int _ps_dummy_update(struct ps_sprite *spr,struct ps_game *game) {
+  return 0;
+}
+
+/* Draw.
+ */
+
+static int _ps_dummy_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr) {
+  return 0;
+}
+
+/* Hurt.
+ */
+
+static int _ps_dummy_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant) {
+  return 0;
+}
+
+/* Type definition.
+ */
+
+const struct ps_sprtype ps_sprtype_dummy={
+  .name="dummy",
+  .objlen=sizeof(struct ps_sprite_dummy),
+
+  .radius=PS_TILESIZE>>1,
+  .shape=PS_SPRITE_SHAPE_CIRCLE,
+  .layer=100,
+
+  .init=_ps_dummy_init,
+  .del=_ps_dummy_del,
+  .configure=_ps_dummy_configure,
+  .update=_ps_dummy_update,
+  //.draw=_ps_dummy_draw,
+  
+  //.hurt=_ps_dummy_hurt,
+
+};

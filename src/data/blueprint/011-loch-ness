@@ -1,0 +1,19 @@
+
+# Sea monsters.
+poi  6 3 SPRITE 10 0 0
+poi 17 4 SPRITE 10 0 0
+poi 10 5 SPRITE 10 0 0
+poi 12 7 SPRITE 10 0 0
+
+===============================================================================
+
+, , , , , , , , , , , , , , , , , , , , , 
+, , , , , OoOoOoOoOoOoOoOoOoOoOo, , , , , 
+, , , OoOoOoOoOoOoOoOoOoOoOoOoOoOoOo, , , 
+, , OoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOo, , 
+, , OoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOo, , 
+, , OoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOo, , 
+, , OoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOo, , 
+, , , OoOoOoOoOoOoOoOoOoOoOoOoOoOoOo, , , 
+, , , , , OoOoOoOoOoOoOoOoOoOoOo, , , , , 
+, , , , , , , , , , , , , , , , , , , , , 

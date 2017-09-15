@@ -1,0 +1,41 @@
+# Swordsman can kill a monster and bat its heart across the river.
+# This is much easier if you can send the healer across first.
+solution 1 1 7 10 SWORD
+solution 1 8 8 10 SWORD
+solution 2 8 5 10 SWORD HEAL
+
+# Similar to swordsman, archer can kill monsters on the other side, then cross as a ghost.
+# Again, I rate it easier if there's a healer you can send first.
+solution 1 8 6 10 ARROW
+solution 2 8 5 10 ARROW HEAL
+
+# Gadgeteer can cross the river easily, and potentially gather hearts there.
+# This is super easy when working alone, a little harder with others.
+solution 1 1 1 10 HOOKSHOT
+solution 2 8 3 10 HOOKSHOT
+
+# Vampire can fly across as a bat, no problem. But he can only do it alone.
+solution 1 1 1 10 FLY
+
+poi 4 4 SPRITE 0 0 0 # TODO monster spawner
+poi 19 8 SPRITE 0 0 0 # TODO monster spawner
+
+poi 4 5 SPRITE 2 0 0
+poi 18 8 SPRITE 2 0 0
+
+# Sea monsters.
+poi 17 3 SPRITE 10 0 0
+#poi  4 7 SPRITE 10 0 0
+
+===============================================================================
+
+, , , , , , , , , , , , , , , , , , OoOoOo
+, , , , , , , , LlLl, , , , , , , OoOoOoOo
+, , ,M, , HH, , LlLl, , , , , , OoOoOoOoOo
+, , , , , , , , , , , , , , OoOoOoOoOoOo, 
+, , , , , , , , , , , OoOoOoOoOoOoOo, , , 
+, , , , , OoOoOoOoOoOoOoOoOoOoOo, , , , , 
+, , , OoOoOoOoOoOoOoOoOoOoOo, , , ,M, , , 
+, OoOoOoOoOoOoOoOo, , , , , , , , , , , , 
+OoOoOoOoOo, , , , , , , , LlLl, , , , , , 
+OoOoOoOo, , , , , , , , , LlLl, , , , , , 

@@ -1,0 +1,4 @@
+type hero
+tileid 0x0300
+grpmask visible update physics hero fragile latch solid
+shape circle

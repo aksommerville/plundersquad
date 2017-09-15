@@ -1,0 +1,5 @@
+type bug
+tileid 0x0450
+grpmask visible update herohazard fragile physics solid latch
+shape circle
+radius 7

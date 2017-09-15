@@ -1,0 +1,3 @@
+type healmissile
+tileid 0x03af
+grpmask visible update

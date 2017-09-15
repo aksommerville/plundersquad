@@ -1,0 +1,4 @@
+type switch
+tileid 0x0404
+grpmask visible update
+layer 10

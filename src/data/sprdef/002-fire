@@ -1,0 +1,4 @@
+type anim2
+tileid 0x0402
+grpmask visible update hazard
+shape circle

@@ -1,0 +1,22 @@
+
+
+#poi 13 5 SPRITE 2 0 0
+poi 5 4 BARRIER 55 0 0
+poi 3 5 SPRITE 8 55 0
+poi 3 3 SPRITE 0 0 0
+poi 3 2 SPRITE 0 0 0
+poi 3 1 SPRITE 3 0 0
+poi 14 6 SPRITE 9 0 0
+
+===============================================================================
+
+Xx, , , , , , , , , , , , , , , , , , , Xx
+, , Xx, , Xx, , Xx, , , Xx, , Xx, , Xx, , 
+, , , , , , , , , , , , , , , , , , , , , 
+, , Xx, , Xx, , , OoOoOo, , , Xx, , Xx, , 
+, , , , , Xx, , OoOoOoOoOo, , , , , , , , 
+, , , , , Xx, , OoOoOoOoOo, , , , , , , , 
+, , XxXxXxXx, , , OoOoOo, , , Xx, , Xx, , 
+, , , , , , , , , , , , , , , , , , , , , 
+, , Xx, , Xx, , Xx, , , Xx, , Xx, , Xx, , 
+Xx, , , , , , , , , , , , , , , , , , , Xx

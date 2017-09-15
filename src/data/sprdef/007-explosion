@@ -1,0 +1,5 @@
+type explosion
+tileid 0x0425
+grpmask visible update hazard
+radius 24
+shape circle

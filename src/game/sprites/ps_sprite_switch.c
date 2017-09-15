@@ -1,0 +1,92 @@
+#include "ps.h"
+#include "game/ps_sprite.h"
+#include "game/ps_game.h"
+#include "scenario/ps_grid.h"
+
+/* Private sprite object.
+ */
+
+struct ps_sprite_switch {
+  struct ps_sprite hdr;
+  int barrierid;
+  int state;
+};
+
+#define SPR ((struct ps_sprite_switch*)spr)
+
+/* Configure.
+ */
+
+static int _ps_switch_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+  if (argc>=1) {
+    SPR->barrierid=argv[0];
+  }
+  return 0;
+}
+
+/* Poll for desired state.
+ */
+
+static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game) {
+  double left=spr->x-spr->radius;
+  double right=spr->x+spr->radius;
+  double top=spr->y-spr->radius;
+  double bottom=spr->y+spr->radius;
+  int i; for (i=0;i<game->grpv[PS_SPRGRP_PHYSICS].sprc;i++) {
+    struct ps_sprite *hero=game->grpv[PS_SPRGRP_PHYSICS].sprv[i];
+    if (!hero->collide_hole) continue; // Feet not touching ground.
+    if (hero->x<=left) continue;
+    if (hero->x>=right) continue;
+    if (hero->y<=top) continue;
+    if (hero->y>=bottom) continue;
+    return 1;
+  }
+  return 0;
+}
+
+/* Toggle.
+ */
+
+static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game) {
+  if (SPR->state) return 0;
+  SPR->state=1;
+  spr->tileid++;
+  if (ps_grid_open_barrier(game->grid,SPR->barrierid)<0) return -1;
+  return 0;
+}
+
+static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
+  if (!SPR->state) return 0;
+  SPR->state=0;
+  spr->tileid--;
+  if (ps_grid_close_barrier(game->grid,SPR->barrierid)<0) return -1;
+  return 0;
+}
+
+/* Update.
+ */
+
+static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
+  if (ps_switch_poll_state(spr,game)) {
+    return ps_switch_engage(spr,game);
+  } else {
+    return ps_switch_disengage(spr,game);
+  }
+  return 0;
+}
+
+/* Type definition.
+ */
+
+const struct ps_sprtype ps_sprtype_switch={
+  .name="switch",
+  .objlen=sizeof(struct ps_sprite_switch),
+
+  .radius=PS_TILESIZE>>1,
+  .shape=PS_SPRITE_SHAPE_CIRCLE,
+  .layer=100,
+
+  .configure=_ps_switch_configure,
+  .update=_ps_switch_update,
+
+};

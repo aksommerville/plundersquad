@@ -1,0 +1,12 @@
+type seamonster
+
+# 00,01:head up, 02:breathe fire, 03,04:head down
+# 10,11:tentacle
+tileid 0x0460
+
+# Groups for type 'seamonster' are highly volatile, declare only the permanent ones here.
+grpmask visible update
+
+shape circle
+radius 7
+layer 90

@@ -429,6 +429,73 @@ int ps_str_repr(char *dst,int dsta,const char *src,int srcc) {
   return dstc;
 }
 
+/* Match pattern.
+ */
+ 
+int ps_pattern_match(const char *pat,int patc,const char *src,int srcc) {
+  if (!pat) patc=0; else if (patc<0) { patc=0; while (pat[patc]) patc++; }
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+
+  /* Leading and trailing whitespace. */
+  while (patc&&((unsigned char)pat[patc-1]<=0x20)) patc--;
+  while (patc&&((unsigned char)pat[0]<=0x20)) { pat++; patc--; }
+  while (srcc&&((unsigned char)src[srcc-1]<=0x20)) srcc--;
+  while (srcc&&((unsigned char)src[0]<=0x20)) { src++; srcc--; }
+  
+  int patp=0,srcp=0,score=1;
+  while (1) {
+
+    /* End of pattern: terminate. */
+    if (patp>=patc) {
+      if (srcp>=srcc) return score;
+      return 0;
+    }
+
+    /* Wildcard. */
+    if (pat[patp]=='*') {
+      patp++;
+      if (patp>=patc) return score;
+      while (srcp<srcc) {
+        int subscore=ps_pattern_match(pat+patp,patc-patp,src+srcp,srcc-srcp);
+        if (subscore>0) {
+          if (score>INT_MAX-subscore) return INT_MAX;
+          return score+subscore;
+        }
+      }
+      return 0;
+    }
+
+    /* End of input: failure. */
+    if (srcp>=srcc) return 0;
+
+    /* Literal character. */
+    if (pat[patp]=='\\') {
+      if (++patp>=patc) return 0; // Malformed pattern.
+      if (pat[patp]!=src[srcp]) return 0;
+      patp++;
+      srcp++;
+      if (score<INT_MAX) score++;
+      continue;
+    }
+
+    /* Whitespace. */
+    if ((unsigned char)pat[patp]<=0x20) {
+      if ((unsigned char)src[srcp]>0x20) return 0;
+      patp++; while ((patp<patc)&&((unsigned char)pat[patp]<=0x20)) patp++;
+      srcp++; while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
+      continue;
+    }
+
+    /* Regular characters. */
+    char a=pat[patp++]; if ((a>=0x41)&&(a<=0x5a)) a+=0x20;
+    char b=src[srcp++]; if ((b>=0x41)&&(b<=0x5a)) b+=0x20;
+    if (a!=b) return 0;
+    if (score<INT_MAX) score++;
+
+  }
+  return 0;
+}
+
 /* Initialize line reader.
  */
 

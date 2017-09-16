@@ -48,6 +48,15 @@ int ps_str_measure(const char *src,int srcc);
 int ps_str_eval(char *dst,int dsta,const char *src,int srcc);
 int ps_str_repr(char *dst,int dsta,const char *src,int srcc);
 
+/* Match a string against a wildcard pattern.
+ * Letters are case-insensitive.
+ * Whitespace condenses; leading and trailing is trimmed.
+ * '*' matches any amount of anything.
+ * '\' escapes one character, forcing precise (case-sensitive) comparison.
+ * The score of a match is one plus the count of non-whitespace characters matched without wildcard.
+ */
+int ps_pattern_match(const char *pat,int patc,const char *src,int srcc);
+
 struct ps_line_reader {
   const char *src;
   int srcc;

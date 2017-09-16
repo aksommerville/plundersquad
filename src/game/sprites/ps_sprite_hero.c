@@ -145,7 +145,7 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
   } else if (!(input&PS_PLRBTN_B)&&(SPR->input&PS_PLRBTN_B)) {
     if (ps_hero_auxaction_end(spr,game)<0) return -1;
   }
-  if ((input&PS_PLRBTN_PAUSE)&&!(SPR->input&PS_PLRBTN_PAUSE)) {
+  if ((input&PS_PLRBTN_START)&&!(SPR->input&PS_PLRBTN_START)) {
     if (ps_game_toggle_pause(game)<0) return -1;
   }
 

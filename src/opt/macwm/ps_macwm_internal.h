@@ -4,6 +4,9 @@
 #include "ps.h"
 #include "ps_macwm.h"
 #include "input/ps_input.h"
+#include "input/ps_input_provider.h"
+#include "input/ps_input_device.h"
+#include "input/ps_input_button.h"
 #include "video/ps_video.h"
 #include <Cocoa/Cocoa.h>
 #include <OpenGL/gl.h>
@@ -43,6 +46,10 @@
 
 extern struct ps_macwm {
   PsWindow *window;
+  struct ps_input_provider *input_provider;
+  struct ps_input_device *device_wm;
+  struct ps_input_device *device_keyboard;
+  struct ps_input_device *device_mouse;
 } ps_macwm;
 
 /* Miscellaneous.
@@ -54,5 +61,11 @@ int ps_macwm_decode_utf8(int *dst,const void *src,int srcc);
 int ps_macwm_translate_codepoint(int src);
 int ps_macwm_translate_keysym(int src);
 int ps_macwm_translate_mbtn(int src);
+
+int ps_macwm_btnid_repr(char *dst,int dsta,int btnid);
+int ps_macwm_btnid_eval(int *btnid,const char *src,int srcc);
+int ps_macwm_report_buttons_wm(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
+int ps_macwm_report_buttons_keyboard(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
+int ps_macwm_report_buttons_mouse(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
 
 #endif

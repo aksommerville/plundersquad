@@ -86,6 +86,41 @@ void ps_macioc_call_quit() {
   }
 }
 
+/* Create system input device.
+ */
+
+static int ps_macioc_input_report_buttons(
+  struct ps_input_device *device,
+  void *userdata,
+  int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)
+) {
+  if (!cb) return -1;
+  struct ps_input_btncfg btncfg={
+    .srcbtnid=1,
+    .lo=0,
+    .hi=1,
+  };
+  return cb(device,&btncfg,userdata);
+}
+
+int ps_macioc_connect_input() {
+  if (!ps_macioc.init) return -1;
+  if (ps_macioc.device_system) return 0;
+  if (ps_macioc.provider_system) return 0;
+
+  if (!(ps_macioc.provider_system=ps_input_provider_new(0))) return -1;
+  if (!(ps_macioc.device_system=ps_input_device_new(0))) return -1;
+
+  ps_macioc.provider_system->providerid=PS_INPUT_PROVIDER_macioc;
+  ps_macioc.provider_system->report_buttons=ps_macioc_input_report_buttons;
+
+  if (ps_input_install_provider(ps_macioc.provider_system)<0) return -1;
+  if (ps_input_provider_install_device(ps_macioc.provider_system,ps_macioc.device_system)<0) return -1;
+  if (ps_input_event_connect(ps_macioc.device_system)<0) return -1;
+
+  return 0;
+}
+
 @implementation AKAppDelegate
 
 /* Main loop.
@@ -182,16 +217,20 @@ void ps_macioc_call_quit() {
 -(void)applicationDidBecomeActive:(NSNotification*)notification {
   if (ps_macioc.focus) return;
   ps_macioc.focus=1;
-  if (ps_input_rcvevt_focus(1)<0) {
-    ps_macioc_abort("Error in application focus callback.");
+  if (ps_macioc.device_system) {
+    if (ps_input_event_button(ps_macioc.device_system,1,1)<0) {
+      ps_macioc_abort("Error in application focus callback.");
+    }
   }
 }
 
 -(void)applicationDidResignActive:(NSNotification*)notification {
   if (!ps_macioc.focus) return;
   ps_macioc.focus=0;
-  if (ps_input_rcvevt_focus(0)<0) {
-    ps_macioc_abort("Error in application focus callback.");
+  if (ps_macioc.device_system) {
+    if (ps_input_event_button(ps_macioc.device_system,1,0)<0) {
+      ps_macioc_abort("Error in application focus callback.");
+    }
   }
 }
 

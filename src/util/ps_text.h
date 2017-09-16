@@ -43,7 +43,12 @@ int ps_int_eval(int *dst,const char *src,int srcc);
 int ps_int_eval_interactive(int *dst,const char *src,int srcc,int lo,int hi,const char *name);
 
 int ps_decsint_repr(char *dst,int dsta,int src);
+int ps_hexuint_repr(char *dst,int dsta,int src);
 
+/* Nothing too shocking in our string format, it's like C.
+ * There are no octal escapes.
+ * '#' is escaped as '\H', since we often use it as a line comment.
+ */
 int ps_str_measure(const char *src,int srcc);
 int ps_str_eval(char *dst,int dsta,const char *src,int srcc);
 int ps_str_repr(char *dst,int dsta,const char *src,int srcc);

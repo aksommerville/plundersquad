@@ -12,6 +12,8 @@ int ps_macwm_init(
   const char *title
 );
 
+int ps_macwm_connect_input();
+
 void ps_macwm_quit();
 
 int ps_macwm_show_cursor(int show);

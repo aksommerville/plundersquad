@@ -190,3 +190,154 @@ int ps_macwm_translate_mbtn(int src) {
   if (src==3) return 2;
   return src;
 }
+
+/* Represent button id.
+ */
+
+int ps_macwm_btnid_repr(char *dst,int dsta,int btnid) {
+  //TODO macwm btnid
+  return ps_input_hid_usage_repr(dst,dsta,btnid);
+}
+
+/* Evaluate button id.
+ */
+ 
+int ps_macwm_btnid_eval(int *btnid,const char *src,int srcc) {
+  if (!btnid) return -1;
+  //TODO macwm btnid
+  return ps_input_hid_usage_eval(btnid,src,srcc);
+}
+
+/* Report buttons.
+ */
+
+static inline int ps_macwm_rptbtn(
+  struct ps_input_device *device,void *userdata,
+  int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata),
+  int btnid,int lo,int hi
+) {
+  struct ps_input_btncfg btncfg={
+    .srcbtnid=btnid,
+    .lo=lo,
+    .hi=hi,
+  };
+  return cb(device,&btncfg,userdata);
+}
+ 
+int ps_macwm_report_buttons_wm(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)) {
+  if (!cb) return -1;
+  return 0;
+}
+
+int ps_macwm_report_buttons_keyboard(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)) {
+  if (!cb) return -1;
+  #define _(tag,loword) if (ps_macwm_rptbtn(device,userdata,cb,0x0007##loword,0,1)<0) return -1;
+    _(ANSI_A,0004)
+    _(ANSI_B,0005)
+    _(ANSI_C,0006)
+    _(ANSI_D,0007)
+    _(ANSI_E,0008)
+    _(ANSI_F,0009)
+    _(ANSI_G,000a)
+    _(ANSI_H,000b)
+    _(ANSI_I,000c)
+    _(ANSI_J,000d)
+    _(ANSI_K,000e)
+    _(ANSI_L,000f)
+    _(ANSI_M,0010)
+    _(ANSI_N,0011)
+    _(ANSI_O,0012)
+    _(ANSI_P,0013)
+    _(ANSI_Q,0014)
+    _(ANSI_R,0015)
+    _(ANSI_S,0016)
+    _(ANSI_T,0017)
+    _(ANSI_U,0018)
+    _(ANSI_V,0019)
+    _(ANSI_W,001a)
+    _(ANSI_X,001b)
+    _(ANSI_Y,001c)
+    _(ANSI_Z,001d)
+    _(ANSI_0,0027)
+    _(ANSI_1,001e)
+    _(ANSI_2,001f)
+    _(ANSI_3,0020)
+    _(ANSI_4,0021)
+    _(ANSI_5,0022)
+    _(ANSI_6,0023)
+    _(ANSI_7,0024)
+    _(ANSI_8,0025)
+    _(ANSI_9,0026)
+    _(Return,0028)
+    _(Escape,0029)
+    _(Delete,002a)
+    _(Tab,002b)
+    _(Space,002c)
+    _(ANSI_Minus,002d)
+    _(ANSI_Equal,002e)
+    _(ANSI_LeftBracket,002f)
+    _(ANSI_RightBracket,0030)
+    _(ANSI_Backslash,0031)
+    _(ANSI_Semicolon,0033)
+    _(ANSI_Quote,0034)
+    _(ANSI_Grave,0035)
+    _(ANSI_Comma,0036)
+    _(ANSI_Period,0037)
+    _(ANSI_Slash,0038)
+    _(CapsLock,0039)
+    _(F1,003a)
+    _(F2,003b)
+    _(F3,003c)
+    _(F4,003d)
+    _(F5,003e)
+    _(F6,003f)
+    _(F7,0040)
+    _(F8,0041)
+    _(F9,0042)
+    _(F10,0043)
+    _(F11,0044)
+    _(F12,0045)
+    _(Home,004a)
+    _(PageUp,004b)
+    _(ForwardDelete,004c)
+    _(End,004d)
+    _(PageDown,004e)
+    _(RightArrow,004f)
+    _(LeftArrow,0050)
+    _(DownArrow,0051)
+    _(UpArrow,0052)
+    _(ANSI_KeypadDivide,0054)
+    _(ANSI_KeypadMultiply,0055)
+    _(ANSI_KeypadMinus,0056)
+    _(ANSI_KeypadPlus,0057)
+    _(ANSI_KeypadEnter,0058)
+    _(ANSI_Keypad1,0059)
+    _(ANSI_Keypad2,005a)
+    _(ANSI_Keypad3,005b)
+    _(ANSI_Keypad4,005c)
+    _(ANSI_Keypad5,005d)
+    _(ANSI_Keypad6,005e)
+    _(ANSI_Keypad7,005f)
+    _(ANSI_Keypad8,0060)
+    _(ANSI_Keypad9,0061)
+    _(ANSI_Keypad0,0062)
+    _(ANSI_KeypadDecimal,0063)
+    _(ANSI_KeypadEquals,0067)
+    _(F13,0068)
+    _(F14,0069)
+    _(F15,006a)
+    _(Control,00e0)
+    _(Shift,00e1)
+    _(Option,00e2)
+    _(Command,00e3)
+    _(RightControl,00e4)
+    _(RightShift,00e5)
+    _(RightOption,00e6)
+  #undef _
+  return 0;
+}
+
+int ps_macwm_report_buttons_mouse(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)) {
+  if (!cb) return -1;
+  return 0;
+}

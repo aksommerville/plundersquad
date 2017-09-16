@@ -322,6 +322,22 @@ int ps_decsint_repr(char *dst,int dsta,int src) {
   return dstc;
 }
 
+/* Represent hexadecimal unsigned integer.
+ */
+ 
+int ps_hexuint_repr(char *dst,int dsta,int src) {
+  if (!dst||(dsta<0)) dsta=0;
+  int dstc=3;
+  unsigned int limit=0x10;
+  while ((unsigned int)src>=limit) { dstc++; if (src&~(UINT_MAX>>4)) break; limit<<=4; }
+  if (dstc>dsta) return dstc;
+  dst[0]='0';
+  dst[1]='x';
+  int i; for (i=dstc;i-->2;src>>=4) dst[i]=ps_hexdigit_repr(src);
+  if (dstc<dsta) dst[dstc]=0;
+  return dstc;
+}
+
 /* Measure string token.
  */
 
@@ -358,6 +374,7 @@ int ps_str_eval(char *dst,int dsta,const char *src,int srcc) {
         case 't': if (dstc<dsta) dst[dstc]=0x09; dstc++; break;
         case 'n': if (dstc<dsta) dst[dstc]=0x0a; dstc++; break;
         case 'r': if (dstc<dsta) dst[dstc]=0x0d; dstc++; break;
+        case 'H': if (dstc<dsta) dst[dstc]='#'; dstc++; break;
         case 'x': {
             if (srcp>srcc-2) return -1;
             int hi=ps_hexdigit_eval(src[srcp++]);
@@ -408,6 +425,7 @@ int ps_str_repr(char *dst,int dsta,const char *src,int srcc) {
       case 0x09: if (dstc<=dsta-2) { dst[dstc]='\\'; dst[dstc+1]='t'; } dstc+=2; srcp++; break;
       case 0x0a: if (dstc<=dsta-2) { dst[dstc]='\\'; dst[dstc+1]='n'; } dstc+=2; srcp++; break;
       case 0x0d: if (dstc<=dsta-2) { dst[dstc]='\\'; dst[dstc+1]='r'; } dstc+=2; srcp++; break;
+      case '#': if (dstc<=dsta-2) { dst[dstc]='\\'; dst[dstc+1]='H'; } dstc+=2; srcp++; break;
       default: if ((src[srcp]>=0x20)&&(src[srcp]<=0x7e)) {
           if (dstc<dsta) dst[dstc]=src[srcp];
           dstc++;

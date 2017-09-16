@@ -142,6 +142,8 @@
     return;
   }
 
+  if (!ps_macwm.device_keyboard) return;
+
   int codepoint=0;
   const char *src=event.characters.UTF8String;
   if (src&&src[0]) {
@@ -153,15 +155,17 @@
   int key=ps_macwm_translate_keysym(event.keyCode);
   if (!codepoint&&!key) return;
 
-  if (ps_input_rcvevt_key(key,codepoint,state)<0) {
+  if (ps_input_event_button(ps_macwm.device_keyboard,key,state)<0) {
     ps_macwm_abort("Failure in key event handler.");
   }
+  //TODO how to report text?
 }
 
 -(void)keyUp:(NSEvent*)event {
+  if (!ps_macwm.device_keyboard) return;
   int key=ps_macwm_translate_keysym(event.keyCode);
   if (!key) return;
-  if (ps_input_rcvevt_key(key,0,0)<0) {
+  if (ps_input_event_button(ps_macwm.device_keyboard,key,0)<0) {
     ps_macwm_abort("Failure in key event handler.");
   }
 }
@@ -172,9 +176,11 @@
 static void ps_macwm_event_mouse_motion(NSPoint loc) {
   ps_macwm.window->mousex=loc.x;
   ps_macwm.window->mousey=ps_macwm.window->h-loc.y;
+  /*TODO mouse events
   if (ps_input_rcvevt_mmotion(ps_macwm.window->mousex,ps_macwm.window->mousey)<0) {
     ps_macwm_abort("Failure in mouse motion event handler.");
   }
+  */
 }
 
 -(void)mouseMoved:(NSEvent*)event { ps_macwm_event_mouse_motion(event.locationInWindow); }
@@ -186,9 +192,11 @@ static void ps_macwm_event_mouse_motion(NSPoint loc) {
   int dx=-event.deltaX;
   int dy=-event.deltaY;
   if (!dx&&!dy) return;
+  /*TODO mouse events
   if (ps_input_rcvevt_mwheel(dx,dy)<0) {
     ps_macwm_abort("Failure in mouse wheel event handler.");
   }
+  */
 }
 
 static void ps_macwm_event_mouse_button(int btnid,int value) {
@@ -203,9 +211,11 @@ static void ps_macwm_event_mouse_button(int btnid,int value) {
   }
 
   if (!(btnid=ps_macwm_translate_mbtn(btnid))) return;
+  /*TODO mouse events
   if (ps_input_rcvevt_mbutton(btnid,value)<0) {
     ps_macwm_abort("Failure in mouse button event handler.");
   }
+  */
 }
 
 -(void)mouseDown:(NSEvent*)event { ps_macwm_event_mouse_button(1,1); }

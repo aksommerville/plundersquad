@@ -7,6 +7,13 @@
 #include "game/ps_game.h"
 #include <time.h>
 
+#if PS_USE_macioc
+  #include "opt/macioc/ps_macioc.h"
+#endif
+#if PS_USE_macwm
+  #include "opt/macwm/ps_macwm.h"
+#endif
+
 /* Globals.
  */
 
@@ -23,8 +30,16 @@ static int ps_main_init() {
   srand(randseed);
 
   if (ps_video_init()<0) return -1;
+
   if (ps_input_init()<0) return -1;
-  if (ps_input_set_default_keyboard_mapping()<0) return -1;
+  #if PS_USE_macioc
+    if (ps_macioc_connect_input()<0) return -1;
+  #endif
+  #if PS_USE_macwm
+    if (ps_macwm_connect_input()<0) return -1;
+  #endif
+  if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
+
   if (ps_resmgr_init("src/data",0)<0) return -1; //TODO resource path
 
   if (!(ps_game=ps_game_new())) return -1;

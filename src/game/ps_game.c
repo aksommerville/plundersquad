@@ -12,6 +12,7 @@
 #include "res/ps_resmgr.h"
 #include "video/ps_video.h"
 #include "video/ps_video_layer.h"
+#include "input/ps_input.h"
 
 /* Game layer.
  */
@@ -113,6 +114,8 @@ int ps_game_set_player_count(struct ps_game *game,int playerc) {
     game->playerv[game->playerc]->playerid=game->playerc+1;
     game->playerc++;
   }
+
+  if (ps_input_set_player_count(playerc)<0) return -1;
 
   return 0;
 }

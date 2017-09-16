@@ -19,6 +19,7 @@ extern struct ps_input {
   int preconfig; // If set, don't bother trying to connect devices. They'll try again after configuration loads.
 
   uint16_t plrbtnv[1+PS_PLAYER_LIMIT];
+  int playerc;
   
 } ps_input;
 

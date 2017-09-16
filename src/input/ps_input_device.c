@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "ps_input_device.h"
 #include "ps_input_map.h"
+#include "ps_input_button.h"
 
 /* Object lifecycle.
  */
@@ -60,5 +61,54 @@ int ps_input_device_set_map(struct ps_input_device *device,struct ps_input_map *
   if (map&&(ps_input_map_ref(map)<0)) return -1;
   ps_input_map_del(device->map);
   device->map=map;
+  return 0;
+}
+
+/* What kind of device?
+ */
+
+static int ps_input_device_has_maps_in_0007xxxx(const struct ps_input_device *device) {
+  if (!device) return 0;
+  if (!device->map) return 0;
+  const struct ps_input_map_fld *fld=device->map->fldv;
+  int i=device->map->fldc;
+  for (;i-->0;fld++) {
+    if ((fld->srcbtnid>=0x00070000)&&(fld->srcbtnid<=0x0007ffff)) return 1;
+  }
+  return 0;
+}
+ 
+int ps_input_device_is_joystick(const struct ps_input_device *device) {
+  if (!device) return 0;
+  switch (device->providerid) {
+    // Lots of providers will never give us a joystick.
+    case PS_INPUT_PROVIDER_macioc:
+    case PS_INPUT_PROVIDER_macwm:
+    case PS_INPUT_PROVIDER_x11:
+    case PS_INPUT_PROVIDER_mswm:
+      return 0;
+  }
+  if (!device->map) return 0;
+  return ps_input_device_has_maps_in_0007xxxx(device)?0:1;
+}
+
+int ps_input_device_is_keyboard(const struct ps_input_device *device) {
+  if (!device) return 0;
+  switch (device->providerid) {
+    case PS_INPUT_PROVIDER_macioc: return 0;
+    case PS_INPUT_PROVIDER_macwm: return device->map?1:0;
+    case PS_INPUT_PROVIDER_machid: return 0;
+    case PS_INPUT_PROVIDER_evdev:
+      #if PS_ARCH==PS_ARCH_x11
+        return 0;
+      #elif PS_ARCH==PS_ARCH_raspi
+        return ps_input_device_has_maps_in_0007xxxx(device);
+      #else
+        return 0;
+      #endif
+    case PS_INPUT_PROVIDER_x11: return device->map?1:0;
+    case PS_INPUT_PROVIDER_mswm: return device->map?1:0;
+    case PS_INPUT_PROVIDER_mshid: return 0;
+  }
   return 0;
 }

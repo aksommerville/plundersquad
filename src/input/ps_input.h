@@ -36,6 +36,9 @@ int ps_input_load_configuration(const char *path);
 
 int ps_input_update();
 
+int ps_input_set_player_count(int playerc);
+int ps_input_reassign_devices();
+
 /* State for the public to read.
  *****************************************************************************/
 

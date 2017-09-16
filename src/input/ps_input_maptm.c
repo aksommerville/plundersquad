@@ -191,7 +191,7 @@ struct ps_input_maptm_apply_from_reported_buttons {
 
 static int ps_input_maptm_apply_from_reported_buttons_cb(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata) {
   struct ps_input_maptm_apply_from_reported_buttons *ctx=userdata;
-  ps_log(INPUT,TRACE,"Device '%.*s' reports button %d (%d..%d) =>%d",device->namec,device->name,btncfg->srcbtnid,btncfg->lo,btncfg->hi,btncfg->default_usage);
+  ps_log(INPUT,TRACE,"Device '%.*s' reports button 0x%08x (%d..%d) =>%d",device->namec,device->name,btncfg->srcbtnid,btncfg->lo,btncfg->hi,btncfg->default_usage);
   int srcp=ps_input_maptm_fld_search(ctx->maptm,btncfg->srcbtnid);
   
   if (srcp<0) {
@@ -208,6 +208,7 @@ static int ps_input_maptm_apply_from_reported_buttons_cb(struct ps_input_device 
     dstfld->dstbtnid=srcfld->dstbtnid;
     ps_input_maptm_set_range(dstfld,srcfld,btncfg->lo,btncfg->hi);
     dstfld->srcv=btncfg->value; // We don't care if it's inside the range, dstv is always zero initially.
+    ps_log(INPUT,TRACE,"Mapping button 0x%08x to 0x%08x",dstfld->srcbtnid,dstfld->dstbtnid);
     srcp++;
     srcfld++;
   }
@@ -305,7 +306,7 @@ struct ps_input_maptm_fld *ps_input_maptm_fld_insert(struct ps_input_maptm *mapt
   struct ps_input_maptm_fld *fld=maptm->fldv+p;
   memmove(fld+1,fld,sizeof(struct ps_input_maptm_fld)*(maptm->fldc-p));
   maptm->fldc++;
-  memset(fld,0,sizeof(struct ps_input_maptm));
+  memset(fld,0,sizeof(struct ps_input_maptm_fld));
   fld->srcbtnid=srcbtnid;
   return fld;
 }

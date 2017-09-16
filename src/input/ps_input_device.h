@@ -43,4 +43,8 @@ int ps_input_device_ref(struct ps_input_device *device);
 int ps_input_device_set_name(struct ps_input_device *device,const char *src,int srcc);
 int ps_input_device_set_map(struct ps_input_device *device,struct ps_input_map *map);
 
+// Use some black magic to guess what kind of physical device this is.
+int ps_input_device_is_joystick(const struct ps_input_device *device);
+int ps_input_device_is_keyboard(const struct ps_input_device *device);
+
 #endif

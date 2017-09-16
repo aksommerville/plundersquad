@@ -91,7 +91,9 @@ int ps_input_provider_install_device(struct ps_input_provider *provider,struct p
   provider->devv[p]=device;
   
   device->providerid=provider->providerid;
-  device->report_buttons=provider->report_buttons;
+  if (!device->report_buttons) {
+    device->report_buttons=provider->report_buttons;
+  }
 
   return 0;
 }

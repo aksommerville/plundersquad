@@ -43,4 +43,7 @@ int ps_input_map_set_button(
 int ps_input_map_search(const struct ps_input_map *map,int srcbtnid);
 struct ps_input_map_fld *ps_input_map_insert(struct ps_input_map *map,int p,int srcbtnid);
 
+// Check the outputs of this map and return nonzero if it's valid for assigning to player.
+int ps_input_map_can_support_player(const struct ps_input_map *map);
+
 #endif

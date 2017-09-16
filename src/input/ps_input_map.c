@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "ps_input_map.h"
+#include "ps_input_button.h"
 
 /* Object lifecycle.
  */
@@ -59,6 +60,8 @@ int ps_input_map_set_button(
         if (err<0) return err;
       }
     }
+    p++;
+    fld++;
   }
   return 0;
 }
@@ -108,4 +111,21 @@ struct ps_input_map_fld *ps_input_map_insert(struct ps_input_map *map,int p,int 
   fld->srcbtnid=srcbtnid;
 
   return fld;
+}
+
+/* Assignable to player?
+ */
+ 
+int ps_input_map_can_support_player(const struct ps_input_map *map) {
+  if (!map) return 0;
+  uint16_t buttons=0;
+  const struct ps_input_map_fld *fld=map->fldv;
+  int i=map->fldc; for (;i-->0;fld++) {
+    if (fld->dstbtnid&~0xffff) continue;
+    buttons|=fld->dstbtnid;
+  }
+  // We require the D-pad and A. B and START are optional.
+  uint16_t required=(PS_PLRBTN_UP|PS_PLRBTN_DOWN|PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT|PS_PLRBTN_A);
+  if ((buttons&required)!=required) return 0;
+  return 1;
 }

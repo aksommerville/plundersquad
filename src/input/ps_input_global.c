@@ -19,6 +19,7 @@ int ps_input_init() {
     return -1;
   }
   ps_input.preconfig=1;
+  ps_input.playerc=PS_PLAYER_LIMIT;
 
   return 0;
 }
@@ -52,7 +53,7 @@ int ps_input_update() {
   }
 
   if (ps_input.mapped_devices_changed) {
-    ps_log(INPUT,DEBUG,"TODO: Assign devices to players.");//TODO
+    if (ps_input_reassign_devices()<0) return -1;
     ps_input.mapped_devices_changed=0;
   }
   

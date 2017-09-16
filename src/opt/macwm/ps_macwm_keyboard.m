@@ -231,7 +231,7 @@ int ps_macwm_report_buttons_wm(struct ps_input_device *device,void *userdata,int
 
 int ps_macwm_report_buttons_keyboard(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)) {
   if (!cb) return -1;
-  #define _(tag,loword) if (ps_macwm_rptbtn(device,userdata,cb,0x0007##loword,0,1)<0) return -1;
+  #define _(tag,loword) if (ps_macwm_rptbtn(device,userdata,cb,0x0007##loword,0,2)<0) return -1;
     _(ANSI_A,0004)
     _(ANSI_B,0005)
     _(ANSI_C,0006)

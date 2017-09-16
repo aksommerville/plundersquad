@@ -143,6 +143,7 @@ int ps_input_config_decode(struct ps_input_config *config,const char *src,int sr
       ps_input_maptm_del(maptm);
       return -1;
     }
+    srcp+=err;
     if (maptm->invalid_provider) {
       ps_input_maptm_del(maptm);
     } else {

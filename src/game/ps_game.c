@@ -533,6 +533,13 @@ static int ps_game_check_physics_for_damage(struct ps_game *game) {
  */
 
 static int ps_game_check_completion(struct ps_game *game) {
+
+  if (!game->treasurec) {
+    // This is a special case that can only happen when we generated a "test" grid.
+    // Just carry on; the game is unwinnable.
+    return 0;
+  }
+
   int i; for (i=0;i<game->treasurec;i++) {
     if (!game->treasurev[i]) return 0;
   }

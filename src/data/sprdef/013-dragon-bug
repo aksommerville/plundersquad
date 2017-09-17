@@ -1,0 +1,5 @@
+type dragonbug
+tileid 0x0480
+grpmask visible update herohazard physics solid fragile latch
+shape circle
+radius 8

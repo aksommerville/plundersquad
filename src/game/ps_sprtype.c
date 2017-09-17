@@ -21,6 +21,7 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==10)&&!memcmp(name,"seamonster",10)) return &ps_sprtype_seamonster;
   if ((namec==7)&&!memcmp(name,"missile",7)) return &ps_sprtype_missile;
   if ((namec==13)&&!memcmp(name,"treasurechest",13)) return &ps_sprtype_treasurechest;
+  if ((namec==9)&&!memcmp(name,"dragonbug",9)) return &ps_sprtype_dragonbug;
 
   return 0;
 }

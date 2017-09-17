@@ -55,6 +55,7 @@ static int ps_input_gather_assignable_devices(struct ps_input_reassign_devices *
       if (!device->map) continue;
       if (!ps_input_map_can_support_player(device->map)) continue;
       if (ps_input_reassign_devices_add_device(ctx,device)<0) return -1;
+      ps_log(INPUT,DEBUG,"Assignable device %p id=%d name='%.*s'",device,device->devid,device->namec,device->name);
     }
   }
   return 0;
@@ -172,6 +173,25 @@ static int ps_input_assign_devices_to_players(struct ps_input_reassign_devices *
   return 0;
 }
 
+/* Log the full state of input assignment.
+ */
+
+static void ps_input_report_reassignments() {
+  int pi=0; for (;pi<ps_input.providerc;pi++) {
+    struct ps_input_provider *provider=ps_input.providerv[pi];
+    char providername[32];
+    int providernamec=ps_input_provider_repr(providername,sizeof(providername),provider->providerid);
+    if ((providernamec<0)||(providernamec>(int)sizeof(providername))) providernamec=0;
+    ps_log(INPUT,INFO,"Provider %p %d '%.*s':",provider,provider->providerid,providernamec,providername);
+    int di=0; for (;di<provider->devc;di++) {
+      struct ps_input_device *device=provider->devv[di];
+      int plrid=-1;
+      if (device->map) plrid=device->map->plrid;
+      ps_log(INPUT,INFO,"  Device %p devid=%d '%.*s' plrid=%d",device,device->devid,device->namec,device->name,plrid);
+    }
+  }
+}
+
 /* Reassign devices to players.
  * The basic rules:
  *  - Devices without a map are ignored.
@@ -187,11 +207,14 @@ static int ps_input_assign_devices_to_players(struct ps_input_reassign_devices *
  
 int ps_input_reassign_devices() {
   struct ps_input_reassign_devices ctx={0};
+  ps_log(INPUT,INFO,"Reassigning input devices...");
 
   if (ps_input_gather_assignable_devices(&ctx)<0) goto _error_;
   if (ps_input_drop_invalid_player_assignments(&ctx)<0) goto _error_;
   if (ps_input_drop_duplicate_assignments_if_needed(&ctx)<0) goto _error_;
   if (ps_input_assign_devices_to_players(&ctx)<0) goto _error_;
+
+  ps_input_report_reassignments();
 
   ps_input_reassign_devices_cleanup(&ctx);
   return 0;

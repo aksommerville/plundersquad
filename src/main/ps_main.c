@@ -13,6 +13,9 @@
 #if PS_USE_macwm
   #include "opt/macwm/ps_macwm.h"
 #endif
+#if PS_USE_machid
+  #include "opt/machid/ps_machid.h"
+#endif
 
 /* Globals.
  */
@@ -37,6 +40,13 @@ static int ps_main_init() {
   #endif
   #if PS_USE_macwm
     if (ps_macwm_connect_input()<0) return -1;
+  #endif
+  #if PS_USE_machid
+    {
+      if (ps_machid_init(&ps_machid_default_delegate)<0) return -1;
+      struct ps_input_provider *provider=ps_machid_new_provider();
+      if (ps_input_install_provider(provider)<0) return -1;
+    }
   #endif
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
 
@@ -94,6 +104,11 @@ static void ps_main_quit() {
   ps_resmgr_quit();
   ps_input_quit();
   ps_video_quit();
+
+  #if PS_USE_machid
+    ps_machid_destroy_global_provider();
+    ps_machid_quit();
+  #endif
   
 }
 

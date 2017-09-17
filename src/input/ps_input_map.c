@@ -124,6 +124,7 @@ int ps_input_map_can_support_player(const struct ps_input_map *map) {
     if (fld->dstbtnid&~0xffff) continue;
     buttons|=fld->dstbtnid;
   }
+  ps_log(INPUT,DEBUG,"map buttons 0x%04x",buttons);
   // We require the D-pad and A. B and START are optional.
   uint16_t required=(PS_PLRBTN_UP|PS_PLRBTN_DOWN|PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT|PS_PLRBTN_A);
   if ((buttons&required)!=required) return 0;

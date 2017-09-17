@@ -12,7 +12,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(AUDIO         ,TRACE)
   _(VIDEO         ,TRACE)
   _(GENERATOR     ,TRACE)
-  _(INPUT         ,TRACE)
+  _(INPUT         ,DEBUG)
   _(MAIN          ,TRACE)
   _(EDIT          ,TRACE)
   _(MACWM         ,TRACE)
@@ -21,6 +21,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(GAME          ,TRACE)
   _(TEXT          ,TRACE)
   _(PHYSICS       ,TRACE)
+  _(MACHID        ,DEBUG)
 #undef _
 };
 

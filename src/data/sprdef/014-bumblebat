@@ -1,0 +1,6 @@
+type bumblebat
+tileid 0x0472
+grpmask visible update herohazard fragile
+shape circle
+radius 4
+layer 200

@@ -136,6 +136,7 @@ extern const struct ps_sprtype ps_sprtype_seamonster;
 extern const struct ps_sprtype ps_sprtype_missile;
 extern const struct ps_sprtype ps_sprtype_treasurechest;
 extern const struct ps_sprtype ps_sprtype_dragonbug;
+extern const struct ps_sprtype ps_sprtype_bumblebat;
 
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.

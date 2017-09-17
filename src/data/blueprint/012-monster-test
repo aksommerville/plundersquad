@@ -9,14 +9,15 @@ poi 11 3 HERO 8 0 0
 
 # A fire and a couple blocks.
 poi 18 8 SPRITE 2 0 0
-poi 7 6 SPRITE 3 0 0
-poi 8 4 SPRITE 0 0 0
+poi  7 6 SPRITE 3 0 0
+poi  8 4 SPRITE 0 0 0
 
-poi 3 7 SPRITE 13 0 0
+poi 3 7 SPRITE 14 0 0
 
 #   9 purple spider
 #  10 sea monster
 #  13 dragon bug
+#  14 bumblebat
 
 ===============================================================================
 

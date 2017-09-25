@@ -1,0 +1,5 @@
+type blueberry
+tileid 0x04a0
+grpmask visible update herohazard fragile physics solid latch
+shape circle
+radius 7

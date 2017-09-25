@@ -85,6 +85,7 @@ int ps_sprgrp_remove_sprite(struct ps_sprgrp *grp,struct ps_sprite *spr);
 int ps_sprite_kill(struct ps_sprite *spr); // Remove all groups.
 int ps_sprgrp_clear(struct ps_sprgrp *grp); // Remove all sprites.
 int ps_sprgrp_kill(struct ps_sprgrp *grp); // Remove all groups from all sprites.
+int ps_sprite_join_all(struct ps_sprite *spr,struct ps_sprite *ref); // Add (spr) to every group that (ref) is in.
 
 /* Largely a convenience: Add (spr) to DEATHROW group and otherwise leave it untouched.
  * When the update cycle completes, the sprite will be killed.
@@ -137,6 +138,7 @@ extern const struct ps_sprtype ps_sprtype_missile;
 extern const struct ps_sprtype ps_sprtype_treasurechest;
 extern const struct ps_sprtype ps_sprtype_dragonbug;
 extern const struct ps_sprtype ps_sprtype_bumblebat;
+extern const struct ps_sprtype ps_sprtype_blueberry;
 
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.

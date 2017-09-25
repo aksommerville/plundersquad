@@ -229,6 +229,18 @@ int ps_sprgrp_kill(struct ps_sprgrp *grp) {
   return 0;
 }
 
+/* Join all groups matching reference.
+ */
+ 
+int ps_sprite_join_all(struct ps_sprite *spr,struct ps_sprite *ref) {
+  if (!spr||!ref) return -1;
+  if (spr==ref) return 0;
+  int i=ref->grpc; while (i-->0) {
+    if (ps_sprgrp_add_sprite(ref->grpv[i],spr)<0) return -1;
+  }
+  return 0;
+}
+
 /* Add to DEATHROW list.
  */
  

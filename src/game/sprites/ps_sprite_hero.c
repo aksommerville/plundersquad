@@ -202,6 +202,7 @@ static int ps_hero_walk_inhibited_by_actions(struct ps_sprite *spr) {
 
 static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
 
+
   if (!SPR->indx&&!SPR->indy) {
     SPR->walk_in_progress=0;
     return 0;
@@ -214,6 +215,7 @@ static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
   SPR->walk_in_progress=1;
   spr->x+=SPR->indx;
   spr->y+=SPR->indy;
+
   
   return 0;
 }

@@ -65,8 +65,8 @@ static int ps_physics_search_event(const struct ps_physics *physics,const struct
     int ck=(lo+hi)>>1;
          if (a<physics->eventv[ck].a) hi=ck;
     else if (a>physics->eventv[ck].a) lo=ck+1;
-    else if (b>physics->eventv[ck].b) hi=ck;
-    else if (b<physics->eventv[ck].b) lo=ck+1;
+    else if (b<physics->eventv[ck].b) hi=ck;
+    else if (b>physics->eventv[ck].b) lo=ck+1;
     else return ck;
   }
   return -lo-1;
@@ -120,6 +120,7 @@ static struct ps_coll *ps_physics_add_coll(struct ps_physics *physics) {
   }
   struct ps_coll *coll=physics->collv+physics->collc;
   physics->collc++;
+  memset(coll,0,sizeof(struct ps_coll));
   return coll;
 }
 

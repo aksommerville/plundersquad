@@ -311,8 +311,10 @@ int ps_fbox_collide_circle(struct ps_overlap *overlap,struct ps_fbox a,struct ps
 
   if (overlap) {
     overlap->penetration=penetration;
+    if (!distance) distance=1.0;
     overlap->axis.dx=(b.x-cornerx)/distance;
     overlap->axis.dy=(b.y-cornery)/distance;
+    if (!overlap->axis.dx&&!overlap->axis.dy) overlap->axis.dy=1.0;
   }
   
   return 1;
@@ -346,11 +348,15 @@ int ps_circle_collide_circle(struct ps_overlap *overlap,struct ps_circle a,struc
   double penetration=radiussum-distance;
   if (penetration<=0.0) return 0;
 
-  /* Calculate unit vector if requested. */
+  /* Calculate unit vector if requested.
+   * The zero-checks here are hugely important: If two circles are directly upon each other, we must not fail.
+   */
   if (overlap) {
     overlap->penetration=penetration;
+    if (!distance) distance=1.0;
     overlap->axis.dx=(b.x-a.x)/distance;
     overlap->axis.dy=(b.y-a.y)/distance;
+    if (!overlap->axis.dx&&!overlap->axis.dy) overlap->axis.dy=1.0;
   }
 
   return 1;

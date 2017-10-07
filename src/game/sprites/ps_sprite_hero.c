@@ -450,7 +450,8 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   vtx_body->tileid=spr->tileid+0x80;
 
   /* Select variant for head. */
-  if (SPR->blinktime<=PS_HERO_BLINKTIME_SHUT) vtx_head->tileid+=0x10;
+  if (SPR->hurttime>0) vtx_head->tileid+=0x20;
+  else if (SPR->blinktime<=PS_HERO_BLINKTIME_SHUT) vtx_head->tileid+=0x10;
 
   /* Select variant for body. */
   if (SPR->walk_in_progress) switch (SPR->walktime/PS_HERO_WALK_FRAME_DURATION) {

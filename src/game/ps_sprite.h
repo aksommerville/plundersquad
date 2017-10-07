@@ -12,6 +12,8 @@ struct ps_sprtype;
 struct ps_sprdef;
 struct akgl_vtx_maxtile;
 struct ps_game;
+struct ps_fbox;
+struct ps_circle;
 
 #define PS_SPRITE_SHAPE_SQUARE      0
 #define PS_SPRITE_SHAPE_CIRCLE      1
@@ -54,6 +56,8 @@ int ps_sprite_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr)
 int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struct ps_sprite *assailant);
 
 int ps_sprites_collide(const struct ps_sprite *a,const struct ps_sprite *b);
+int ps_sprite_collide_fbox(const struct ps_sprite *spr,const struct ps_fbox *fbox);
+int ps_sprite_collide_circle(const struct ps_sprite *spr,const struct ps_circle *circle);
 
 /* ps_sprgrp: Mutual collection of sprites.
  *****************************************************************************/
@@ -139,6 +143,7 @@ extern const struct ps_sprtype ps_sprtype_treasurechest;
 extern const struct ps_sprtype ps_sprtype_dragonbug;
 extern const struct ps_sprtype ps_sprtype_bumblebat;
 extern const struct ps_sprtype ps_sprtype_blueberry;
+extern const struct ps_sprtype ps_sprtype_rabbit;
 
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.

@@ -492,3 +492,21 @@ int ps_sprites_collide(const struct ps_sprite *a,const struct ps_sprite *b) {
   }
   return 0;
 }
+
+int ps_sprite_collide_fbox(const struct ps_sprite *spr,const struct ps_fbox *fbox) {
+  if (!spr||!fbox) return 0;
+  switch (spr->shape) {
+    case PS_SPRITE_SHAPE_SQUARE: return ps_fbox_collide_fbox(0,ps_sprite_fbox(spr),*fbox);
+    case PS_SPRITE_SHAPE_CIRCLE: return ps_circle_collide_fbox(0,ps_sprite_circle(spr),*fbox);
+  }
+  return 0;
+}
+
+int ps_sprite_collide_circle(const struct ps_sprite *spr,const struct ps_circle *circle) {
+  if (!spr||!circle) return 0;
+  switch (spr->shape) {
+    case PS_SPRITE_SHAPE_SQUARE: return ps_fbox_collide_circle(0,ps_sprite_fbox(spr),*circle);
+    case PS_SPRITE_SHAPE_CIRCLE: return ps_circle_collide_circle(0,ps_sprite_circle(spr),*circle);
+  }
+  return 0;
+}

@@ -1,0 +1,7 @@
+type rabbit
+tileid 0x0446
+
+grpmask visible update fragile physics solid latch herohazard
+
+shape circle
+radius 12

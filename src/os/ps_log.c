@@ -8,7 +8,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(              ,TRACE)
   _(MACIOC        ,TRACE)
   _(CLOCK         ,TRACE)
-  _(RES           ,TRACE)
+  _(RES           ,INFO)
   _(AUDIO         ,TRACE)
   _(VIDEO         ,TRACE)
   _(GENERATOR     ,TRACE)

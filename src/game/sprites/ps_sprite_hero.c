@@ -2,6 +2,7 @@
 #include "ps_sprite_hero.h"
 #include "game/ps_sprite.h"
 #include "game/ps_player.h"
+#include "game/ps_plrdef.h"
 #include "game/ps_game.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
@@ -46,10 +47,6 @@ static void _ps_hero_del(struct ps_sprite *spr) {
 static int _ps_hero_init(struct ps_sprite *spr) {
 
   SPR->input=0;
-
-  SPR->rgba_body=0xff8000ff;
-  SPR->rgba_body=rand()<<1;
-  SPR->rgba_head=0x806020ff;
 
   SPR->facedir=PS_DIRECTION_SOUTH;
 
@@ -289,9 +286,15 @@ static int ps_hero_draw_ghost(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_s
   vtxv->size=PS_TILESIZE;
   vtxv->tileid=0x5f;
   vtxv->ta=0;
-  vtxv->pr=SPR->rgba_body>>24;
-  vtxv->pg=SPR->rgba_body>>16;
-  vtxv->pb=SPR->rgba_body>>8;
+  
+  uint32_t rgba=0x808080ff;
+  if (SPR->player&&SPR->player->plrdef) {
+    rgba=SPR->player->plrdef->palettev[SPR->player->palette].rgba_body;
+  }
+  vtxv->pr=rgba>>24;
+  vtxv->pg=rgba>>16;
+  vtxv->pb=rgba>>8;
+  
   vtxv->a=0xff;
   vtxv->t=0;
   vtxv->xform=AKGL_XFORM_NONE;
@@ -305,9 +308,15 @@ static int ps_hero_draw_fly(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spr
   vtxv->y=spr->y;
   vtxv->size=PS_TILESIZE;
   vtxv->ta=0;
-  vtxv->pr=SPR->rgba_body>>24;
-  vtxv->pg=SPR->rgba_body>>16;
-  vtxv->pb=SPR->rgba_body>>8;
+  
+  uint32_t rgba=0x808080ff;
+  if (SPR->player&&SPR->player->plrdef) {
+    rgba=SPR->player->plrdef->palettev[SPR->player->palette].rgba_body;
+  }
+  vtxv->pr=rgba>>24;
+  vtxv->pg=rgba>>16;
+  vtxv->pb=rgba>>8;
+  
   vtxv->a=0xff;
   vtxv->xform=AKGL_XFORM_NONE;
 
@@ -384,6 +393,9 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   if (!SPR->hp) return ps_hero_draw_ghost(vtxv,vtxa,spr);
   if (SPR->fly_in_progress) return ps_hero_draw_fly(vtxv,vtxa,spr);
 
+  /* For normal rendering, an attached player is required. */
+  if (!SPR->player||!SPR->player->plrdef) return 0;
+
   /* Required vertex count depends on the actions in flight.
    */
   int vtxc=2;
@@ -423,12 +435,14 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   vtx_head->t=0;
 
   /* Principal colors. */
-  vtx_body->pr=SPR->rgba_body>>24;
-  vtx_body->pg=SPR->rgba_body>>16;
-  vtx_body->pb=SPR->rgba_body>>8;
-  vtx_head->pr=SPR->rgba_head>>24;
-  vtx_head->pg=SPR->rgba_head>>16;
-  vtx_head->pb=SPR->rgba_head>>8;
+  uint32_t rgba_head=SPR->player->plrdef->palettev[SPR->player->palette].rgba_head;
+  uint32_t rgba_body=SPR->player->plrdef->palettev[SPR->player->palette].rgba_body;
+  vtx_body->pr=rgba_body>>24;
+  vtx_body->pg=rgba_body>>16;
+  vtx_body->pb=rgba_body>>8;
+  vtx_head->pr=rgba_head>>24;
+  vtx_head->pg=rgba_head>>16;
+  vtx_head->pb=rgba_head>>8;
 
   /* Tint. */
   vtx_body->ta=0;
@@ -445,9 +459,9 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
     vtx_body->ta=vtx_head->ta=(SPR->hurttime*0xff)/PS_HERO_HURT_TIME;
   }
 
-  /* Set undirectioned vertex tiles. (spr->tileid) is the head's base. Body base is 0x80 beyond. */
-  vtx_head->tileid=spr->tileid+0x06;
-  vtx_body->tileid=spr->tileid+0x83;
+  /* Set undirectioned vertex tiles. (spr->tileid) is ignored; we use player properties instead. */
+  vtx_head->tileid=SPR->player->plrdef->tileid_head;
+  vtx_body->tileid=SPR->player->plrdef->tileid_body;
 
   /* Select variant for head. */
   if (SPR->hurttime>0) vtx_head->tileid+=0x20;

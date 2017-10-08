@@ -23,7 +23,8 @@ int ps_resmgr_clear();
 #define PS_RESTYPE_BLUEPRINT      4
 #define PS_RESTYPE_SPRDEF         5
 #define PS_RESTYPE_REGION         6
-#define PS_RESTYPE_COUNT          7
+#define PS_RESTYPE_PLRDEF         7
+#define PS_RESTYPE_COUNT          8
 
 struct ps_restype *ps_resmgr_get_type_by_id(int tid);
 #define PS_RESTYPE(tag) ps_resmgr_get_type_by_id(PS_RESTYPE_##tag)

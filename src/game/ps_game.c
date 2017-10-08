@@ -3,6 +3,7 @@
 #include "ps_player.h"
 #include "ps_sprite.h"
 #include "ps_physics.h"
+#include "ps_plrdef.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -10,6 +11,7 @@
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "res/ps_resmgr.h"
+#include "res/ps_restype.h"
 #include "video/ps_video.h"
 #include "video/ps_video_layer.h"
 #include "input/ps_input.h"
@@ -97,7 +99,7 @@ void ps_game_del(struct ps_game *game) {
   free(game);
 }
 
-/* Configure.
+/* Configure player list.
  */
  
 int ps_game_set_player_count(struct ps_game *game,int playerc) {
@@ -120,12 +122,49 @@ int ps_game_set_player_count(struct ps_game *game,int playerc) {
   return 0;
 }
 
-int ps_game_set_player_skills(struct ps_game *game,int playerid,uint16_t skills) {
+int ps_game_set_player_definition(struct ps_game *game,int playerid,int plrdefid) {
   if (!game) return -1;
   if ((playerid<1)||(playerid>game->playerc)) return -1;
-  game->playerv[playerid-1]->skills=skills;
+  struct ps_plrdef *plrdef=ps_res_get(PS_RESTYPE_PLRDEF,plrdefid);
+  if (!plrdef) return -1;
+  struct ps_player *player=game->playerv[playerid-1];
+  player->plrdef=plrdef;
+  player->palette=0;
   return 0;
 }
+
+int ps_game_adjust_player_definition(struct ps_game *game,int playerid,int d) {
+  if (!game) return -1;
+  if ((playerid<1)||(playerid>game->playerc)) return -1;
+  const struct ps_restype *restype=PS_RESTYPE(PLRDEF);
+  if (!restype||(restype->resc<1)) return -1;
+  struct ps_player *player=game->playerv[playerid-1];
+  int p;
+  if (player->plrdef) {
+    if ((p=ps_restype_index_by_object(restype,player->plrdef))<0) p=0;
+    else p+=d;
+  } else p=0;
+  if (p<0) p=restype->resc-1;
+  else if (p>=restype->resc) p=0;
+  player->plrdef=restype->resv[p].obj;
+  player->palette=0;
+  return 0;
+}
+
+int ps_game_adjust_player_palette(struct ps_game *game,int playerid,int d) {
+  if (!game) return -1;
+  if ((playerid<1)||(playerid>game->playerc)) return -1;
+  struct ps_player *player=game->playerv[playerid-1];
+  if (!player->plrdef) return -1;
+  int p=player->palette+d;
+  if (p<0) p=player->plrdef->palettec-1;
+  else if (p>=player->plrdef->palettec) p=0;
+  player->palette=0;
+  return 0;
+}
+
+/* Configure generator.
+ */
   
 int ps_game_set_difficulty(struct ps_game *game,int difficulty) {
   if (!game) return -1;
@@ -141,11 +180,33 @@ int ps_game_set_length(struct ps_game *game,int length) {
   return 0;
 }
 
+/* Are we configured adequately to generate the scenario?
+ */
+
+static int ps_game_ready_to_generate(const struct ps_game *game) {
+  if (!game) return 0;
+
+  if ((game->playerc<1)||(game->playerc>PS_PLAYER_LIMIT)) return 0;
+  int i; for (i=0;i<game->playerc;i++) {
+    struct ps_player *player=game->playerv[i];
+    if (!player->plrdef) return 0;
+  }
+
+  if ((game->difficulty<PS_DIFFICULTY_MIN)||(game->difficulty>PS_DIFFICULTY_MAX)) return 0;
+  if ((game->length<PS_LENGTH_MIN)||(game->length>PS_LENGTH_MAX)) return 0;
+  
+  return 1;
+}
+
 /* Generate scenario.
  */
  
 int ps_game_generate(struct ps_game *game) {
   if (!game) return -1;
+  if (!ps_game_ready_to_generate(game)) {
+    ps_log(RES,ERROR,"%s before ready",__func__);
+    return -1;
+  }
 
   if (game->scenario) {
     ps_scenario_del(game->scenario);
@@ -160,7 +221,7 @@ int ps_game_generate(struct ps_game *game) {
   scgen->length=game->length;
 
   scgen->skills=0;
-  int i; for (i=0;i<game->playerc;i++) scgen->skills|=game->playerv[i]->skills;
+  int i; for (i=0;i<game->playerc;i++) scgen->skills|=game->playerv[i]->plrdef->skills;
 
   if (ps_scgen_generate(scgen)<0) {
     ps_log(GENERATOR,ERROR,"Failed to generate scenario: %.*s",scgen->msgc,scgen->msg);
@@ -180,6 +241,10 @@ int ps_game_generate(struct ps_game *game) {
  
 int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...) {
   if (!game) return -1;
+  if (!ps_game_ready_to_generate(game)) {
+    ps_log(RES,ERROR,"%s before ready",__func__);
+    return -1;
+  }
 
   if (game->scenario) {
     ps_scenario_del(game->scenario);
@@ -194,7 +259,7 @@ int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...
   scgen->length=game->length;
 
   scgen->skills=0;
-  int i; for (i=0;i<game->playerc;i++) scgen->skills|=game->playerv[i]->skills;
+  int i; for (i=0;i<game->playerc;i++) scgen->skills|=game->playerv[i]->plrdef->skills;
 
   if (ps_scgen_test_require_region(scgen,regionid)<0) {
     ps_scgen_del(scgen);

@@ -4,10 +4,13 @@
 #ifndef PS_PLAYER_H
 #define PS_PLAYER_H
 
+struct ps_plrdef;
+
 struct ps_player {
   int refc;
   int playerid; // 1..8
-  uint16_t skills;
+  const struct ps_plrdef *plrdef; // WEAK, owned by resource manager
+  int palette; // index into (plrdef->palettev)
 };
 
 struct ps_player *ps_player_new();

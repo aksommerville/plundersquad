@@ -55,32 +55,32 @@ static int ps_main_init() {
   if (!(ps_game=ps_game_new())) return -1;
 
   // TODO The process of game initialization will happen interactively, via GUI.
-  switch (2) { // <-- very temporary. Set desired player count here.
+  switch (1) { // <-- very temporary. Set desired player count here.
     case 1: {
         if (ps_game_set_player_count(ps_game,1)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,1,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,1,4)<0) return -1;
       } break;
     case 2: {
         if (ps_game_set_player_count(ps_game,2)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,1,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,2,PS_SKILL_HOOKSHOT|PS_SKILL_COMBAT)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,1,1)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,2,2)<0) return -1;
       } break;
     case 3: {
         if (ps_game_set_player_count(ps_game,3)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,1,PS_SKILL_HOOKSHOT|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,2,PS_SKILL_SWORD|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,3,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,1,1)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,2,2)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,3,3)<0) return -1;
       } break;
     case 8: {
         if (ps_game_set_player_count(ps_game,8)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,1,PS_SKILL_HOOKSHOT|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,2,PS_SKILL_SWORD|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,3,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,4,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,5,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,6,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,7,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
-        if (ps_game_set_player_skills(ps_game,8,PS_SKILL_ARROW|PS_SKILL_COMBAT)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,1,1)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,2,2)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,3,3)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,4,4)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,5,5)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,6,6)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,7,7)<0) return -1;
+        if (ps_game_set_player_definition(ps_game,8,1)<0) return -1;
       } break;
     default: return -1;
   }

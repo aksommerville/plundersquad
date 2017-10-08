@@ -40,6 +40,7 @@ int ps_restype_setup_SONG(struct ps_restype *type);
 int ps_restype_setup_BLUEPRINT(struct ps_restype *type);
 int ps_restype_setup_SPRDEF(struct ps_restype *type);
 int ps_restype_setup_REGION(struct ps_restype *type);
+int ps_restype_setup_PLRDEF(struct ps_restype *type);
 
 int ps_restype_clear(struct ps_restype *type);
 
@@ -49,6 +50,7 @@ int ps_restype_clear(struct ps_restype *type);
 int ps_restype_decode(struct ps_restype *type,int rid,const void *src,int srcc,const char *refpath);
 
 int ps_restype_res_search(const struct ps_restype *type,int id);
+int ps_restype_index_by_object(const struct ps_restype *type,const void *obj);
 int ps_restype_res_insert(struct ps_restype *type,int p,int id,void *obj_HANDOFF);
 
 int ps_restype_link(struct ps_restype *restype);
@@ -84,5 +86,8 @@ struct ps_sprdef;
 
 // Defined in <scenario/ps_region.h>
 struct ps_region;
+
+// Defined in <game/ps_plrdef.h>
+struct ps_res_plrdef;
 
 #endif

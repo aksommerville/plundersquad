@@ -12,8 +12,6 @@ struct ps_sprite_hero {
   struct ps_sprite hdr;
 
   /* Superficial appearance properties. */
-  uint32_t rgba_body; // Clothing
-  uint32_t rgba_head; // Hair
   int blinktime; // Counts down
   int walktime; // Counts up, reset to zero when walk status changes
   int hurttime; // Counts down, impervious while nonzero.

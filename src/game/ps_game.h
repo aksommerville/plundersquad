@@ -57,7 +57,9 @@ void ps_game_del(struct ps_game *game);
  * Finally, ps_game_generate() to commit config and generate the scenario.
  */
 int ps_game_set_player_count(struct ps_game *game,int playerc);
-int ps_game_set_player_skills(struct ps_game *game,int playerid,uint16_t skills);
+int ps_game_set_player_definition(struct ps_game *game,int playerid,int plrdefid);
+int ps_game_adjust_player_definition(struct ps_game *game,int playerid,int d);
+int ps_game_adjust_player_palette(struct ps_game *game,int playerid,int d);
 int ps_game_set_difficulty(struct ps_game *game,int difficulty);
 int ps_game_set_length(struct ps_game *game,int length);
 int ps_game_generate(struct ps_game *game);

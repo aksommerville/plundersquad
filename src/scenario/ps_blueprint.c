@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "ps_blueprint.h"
 #include "util/ps_text.h"
+#include "util/ps_enums.h"
 
 /* New.
  */
@@ -313,34 +314,7 @@ static int ps_blueprint_decode_solution(uint16_t *dst,const char *src,int srcc,i
   while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)) { srcp++; subc++; }
   while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
 
-  *dst=0;
-  switch (subc) {
-    case 3: {
-        if (!memcmp(sub,"FLY",3)) { *dst=PS_SKILL_FLY; break; }
-      } break;
-    case 4: {
-        if (!memcmp(sub,"HEAL",4)) { *dst=PS_SKILL_HEAL; break; }
-        if (!memcmp(sub,"FROG",4)) { *dst=PS_SKILL_FROG; break; }
-      } break;
-    case 5: {
-        if (!memcmp(sub,"SWORD",5)) { *dst=PS_SKILL_SWORD; break; }
-        if (!memcmp(sub,"ARROW",5)) { *dst=PS_SKILL_ARROW; break; }
-        if (!memcmp(sub,"FLAME",5)) { *dst=PS_SKILL_FLAME; break; }
-        if (!memcmp(sub,"CARRY",5)) { *dst=PS_SKILL_CARRY; break; }
-        if (!memcmp(sub,"SPEED",5)) { *dst=PS_SKILL_SPEED; break; }
-      } break;
-    case 6: {
-        if (!memcmp(sub,"MARTYR",6)) { *dst=PS_SKILL_MARTYR; break; }
-        if (!memcmp(sub,"WEIGHT",6)) { *dst=PS_SKILL_WEIGHT; break; }
-        if (!memcmp(sub,"COMBAT",6)) { *dst=PS_SKILL_COMBAT; break; }
-      } break;
-    case 8: {
-        if (!memcmp(sub,"HOOKSHOT",8)) { *dst=PS_SKILL_HOOKSHOT; break; }
-        if (!memcmp(sub,"IMMORTAL",8)) { *dst=PS_SKILL_IMMORTAL; break; }
-      } break;
-  }
-  
-  if (!*dst) {
+  if ((*dst=ps_skill_eval(sub,subc))<0) {
     ps_log(RES,ERROR,"%d: '%.*s' is not a skill. (FLY,HEAL,FROG,SWORD,ARROW,FLAME,CARRY,SPEED,MARTYR,WEIGHT,HOOKSHOT,IMMORTAL)",lineno,subc,sub);
     return -1;
   }

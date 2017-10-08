@@ -92,6 +92,15 @@ int ps_restype_res_search(const struct ps_restype *type,int id) {
   return -lo-1;
 }
 
+int ps_restype_index_by_object(const struct ps_restype *type,const void *obj) {
+  if (!type) return -1;
+  const struct ps_res *res=type->resv;
+  int i=0; for (;i<type->resc;i++,res++) {
+    if (res->obj==obj) return i;
+  }
+  return -1;
+}
+
 /* Insert resource.
  */
 

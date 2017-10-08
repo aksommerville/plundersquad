@@ -4,6 +4,7 @@
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
 #include "game/ps_player.h"
+#include "game/ps_plrdef.h"
 #include "util/ps_geometry.h"
 #include "input/ps_input_button.h"
 #include "res/ps_resmgr.h"
@@ -329,7 +330,7 @@ int ps_hero_auxaction_continue(struct ps_sprite *spr,struct ps_game *game) {
 int ps_hero_get_principal_action(const struct ps_sprite *spr) {
   if (!spr||(spr->type!=&ps_sprtype_hero)) return PS_HERO_ACTION_NONE;
   if (!SPR->player) return PS_HERO_ACTION_NONE;
-  switch (SPR->player->skills&PS_HERO_SKILL_MASK) {
+  switch (SPR->player->plrdef->skills&PS_HERO_SKILL_MASK) {
     case PS_SKILL_SWORD: return PS_HERO_ACTION_SWORD;
     case PS_SKILL_ARROW: return PS_HERO_ACTION_ARROW;
     case PS_SKILL_HOOKSHOT: return PS_HERO_ACTION_HOOKSHOT;
@@ -346,7 +347,7 @@ int ps_hero_get_principal_action(const struct ps_sprite *spr) {
 int ps_hero_get_auxiliary_action(const struct ps_sprite *spr) {
   if (!spr||(spr->type!=&ps_sprtype_hero)) return PS_HERO_ACTION_NONE;
   if (!SPR->player) return PS_HERO_ACTION_NONE;
-  switch (SPR->player->skills&PS_HERO_SKILL_MASK) {
+  switch (SPR->player->plrdef->skills&PS_HERO_SKILL_MASK) {
     case PS_SKILL_SWORD: return PS_HERO_ACTION_SWORD;
     case PS_SKILL_ARROW: return PS_HERO_ACTION_ARROW;
     case PS_SKILL_HOOKSHOT: return PS_HERO_ACTION_HOOKSHOT;

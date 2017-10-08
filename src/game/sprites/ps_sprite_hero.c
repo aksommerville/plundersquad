@@ -446,8 +446,8 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   }
 
   /* Set undirectioned vertex tiles. (spr->tileid) is the head's base. Body base is 0x80 beyond. */
-  vtx_head->tileid=spr->tileid;
-  vtx_body->tileid=spr->tileid+0x80;
+  vtx_head->tileid=spr->tileid+0x06;
+  vtx_body->tileid=spr->tileid+0x83;
 
   /* Select variant for head. */
   if (SPR->hurttime>0) vtx_head->tileid+=0x20;

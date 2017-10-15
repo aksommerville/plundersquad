@@ -553,6 +553,10 @@ static int _ps_rabbit_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_
 
   SPR->hp--;
   if (!SPR->hp) {
+  
+    /* IMPORTANT! If we have something in the belly at the moment of death, spit it out. */
+    if (SPR->belly->sprc) ps_rabbit_begin_SPIT(spr,game);
+    
     return ps_sprite_kill_later(spr,game);
   }
 

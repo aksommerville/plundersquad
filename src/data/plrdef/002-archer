@@ -1,4 +1,4 @@
-head 0x00
+head 0x03
 body 0x80
 skill arrow
 skill combat

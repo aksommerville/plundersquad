@@ -115,6 +115,8 @@ struct ps_sprite *ps_sprdef_instantiate(struct ps_game *game,struct ps_sprdef *s
   return spr;
 }
 
+//TODO the text stuff below, lots should be moved into util/ps_enums.c
+
 /* Evaluate field key.
  */
 
@@ -148,6 +150,7 @@ static int ps_sprite_grpmask_eval_1(int *dst,const char *src,int srcc) {
   _(TREASURE)
   _(LATCH)
   _(SOLID)
+  _(PRIZE)
   #undef _
   return ps_int_eval(dst,src,srcc);
 }

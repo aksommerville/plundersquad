@@ -1,0 +1,6 @@
+type prize
+tileid 0x03df
+shape circle
+radius 6
+grpmask visible update prize physics
+layer 80

@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "ps_sprite.h"
 #include "akgl/akgl.h"
+#include "ps_game.h"
 
 /* New.
  */
@@ -19,6 +20,7 @@ struct ps_sprite *ps_sprite_new(const struct ps_sprtype *type) {
   spr->shape=PS_SPRITE_SHAPE_SQUARE;
   spr->collide_hole=1;
   spr->collide_sprites=1;
+  spr->opacity=0xff;
 
   if (type->init) {
     if (type->init(spr)<0) {
@@ -99,7 +101,7 @@ int ps_sprite_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr)
     vtxv[0].pr=0x80;
     vtxv[0].pg=0x80;
     vtxv[0].pb=0x80;
-    vtxv[0].a=0xff;
+    vtxv[0].a=spr->opacity;
     vtxv[0].t=0;
     vtxv[0].xform=0;
     return 1;
@@ -114,11 +116,15 @@ int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struc
   if (!victim) return -1;
   //ps_log(GAME,DEBUG,"Sprite %p(%s) damaged by %p(%s).",victim,victim->type->name,assailant,assailant?assailant->type->name:"null");
 
+  /* Sprite controllers may completely override this. */
   if (victim->type->hurt) {
     return victim->type->hurt(game,victim,assailant);
   }
 
   /* Default action for fragile sprites. */
+  if (ps_game_create_fireworks(game,victim->x,victim->y)<0) return -1;
+  if (ps_game_create_prize(game,victim->x,victim->y)<0) return -1;
+  ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,victim);
   if (ps_sprite_kill_later(victim,game)<0) return -1;
 
   return 0;

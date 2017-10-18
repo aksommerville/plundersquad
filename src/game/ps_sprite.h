@@ -39,6 +39,7 @@ struct ps_sprite {
 
   // Rendering source; used only if (type->draw) not implemented.
   uint8_t tileid;
+  uint8_t opacity;
 
   int phreconsider; // For transient use by physics.
   
@@ -144,6 +145,12 @@ extern const struct ps_sprtype ps_sprtype_dragonbug;
 extern const struct ps_sprtype ps_sprtype_bumblebat;
 extern const struct ps_sprtype ps_sprtype_blueberry;
 extern const struct ps_sprtype ps_sprtype_rabbit;
+extern const struct ps_sprtype ps_sprtype_prize;
+
+/* API for sprite types too trivial to warrant their own headers.
+ */
+
+int ps_prize_fling(struct ps_sprite *spr,int dir);
 
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.

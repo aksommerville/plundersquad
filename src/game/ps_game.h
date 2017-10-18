@@ -26,7 +26,8 @@ struct ps_physics;
 #define PS_SPRGRP_TREASURE         9 /* Anything the heroes can pick up. */
 #define PS_SPRGRP_LATCH           10 /* Can be picked up by hookshot. */
 #define PS_SPRGRP_SOLID           11 /* Sprites that PHYSICS sprites can't pass through. */
-#define PS_SPRGRP_COUNT           12
+#define PS_SPRGRP_PRIZE           12 /* Hearts for the heroes to pick up. */
+#define PS_SPRGRP_COUNT           13
 
 struct ps_game {
 
@@ -87,5 +88,8 @@ int ps_game_get_treasure_state(const struct ps_game *game,int treasureid); // 0=
 struct ps_screen *ps_game_get_screen_for_current_grid(const struct ps_game *game);
 int ps_game_get_current_blueprint_id(const struct ps_game *game);
 int ps_game_force_next_screen(struct ps_game *game,int dx,int dy);
+
+int ps_game_create_fireworks(struct ps_game *game,int x,int y);
+int ps_game_create_prize(struct ps_game *game,int x,int y);
 
 #endif

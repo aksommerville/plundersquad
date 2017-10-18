@@ -201,6 +201,6 @@ const struct ps_sprtype ps_sprtype_bug={
   .update=_ps_bug_update,
   .draw=_ps_bug_draw,
   
-  .hurt=_ps_bug_hurt,
+  //.hurt=_ps_bug_hurt,
 
 };

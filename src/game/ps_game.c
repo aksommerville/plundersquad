@@ -16,6 +16,8 @@
 #include "video/ps_video_layer.h"
 #include "input/ps_input.h"
 
+#define PS_PRIZE_SPRDEF_ID 17
+
 /* Game layer.
  */
 
@@ -696,4 +698,25 @@ int ps_game_get_treasure_state(const struct ps_game *game,int treasureid) {
   if (!game) return 0;
   if ((treasureid<0)||(treasureid>=game->treasurec)) return 0;
   return game->treasurev[treasureid];
+}
+
+/* Create fireworks when something dies.
+ */
+ 
+int ps_game_create_fireworks(struct ps_game *game,int x,int y) {
+  if (!game) return -1;
+  //TODO fireworks
+  return 0;
+}
+
+/* Create prize when something dies.
+ */
+ 
+int ps_game_create_prize(struct ps_game *game,int x,int y) {
+  if (!game) return -1;
+  struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_PRIZE_SPRDEF_ID);
+  if (!sprdef) return -1;
+  struct ps_sprite *prize=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
+  if (!prize) return -1;
+  return 0;
 }

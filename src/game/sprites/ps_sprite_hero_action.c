@@ -77,7 +77,20 @@ static int ps_hero_sword_end(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_sword_continue(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
   if (!SPR->sword_in_progress) return 0;
-  if (ps_hero_assess_damage_to_others(spr,game,ps_hero_get_sword_bounds(spr))<0) return -1;
+  struct ps_fbox bounds=ps_hero_get_sword_bounds(spr);
+
+  /* Hurt fragile things. */
+  if (ps_hero_assess_damage_to_others(spr,game,bounds)<0) return -1;
+
+  /* Fling prizes. */
+  struct ps_sprgrp *prizes=game->grpv+PS_SPRGRP_PRIZE;
+  int i=prizes->sprc; while (i-->0) {
+    struct ps_sprite *prize=prizes->sprv[i];
+    if (ps_sprite_collide_fbox(prize,&bounds)) {
+      if (ps_prize_fling(prize,SPR->facedir)<0) return -1;
+    }
+  }
+  
   return 0;
 }
 

@@ -5,6 +5,7 @@
 #include "input/ps_input_button.h"
 #include "res/ps_resmgr.h"
 #include "game/ps_game.h"
+#include "gui/ps_gui.h"
 #include <time.h>
 
 #if PS_USE_macioc
@@ -21,6 +22,7 @@
  */
 
 static struct ps_game *ps_game=0;
+static struct ps_gui *ps_gui=0;
 
 /* Init.
  */
@@ -89,6 +91,9 @@ static int ps_main_init() {
   //if (ps_game_generate_test(ps_game,1,2)<0) return -1;
   if (ps_game_generate(ps_game)<0) return -1;
   if (ps_game_restart(ps_game)<0) return -1;
+
+  if (!(ps_gui=ps_gui_new())) return -1;
+  if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   
   return 0;
 }
@@ -99,6 +104,7 @@ static int ps_main_init() {
 static void ps_main_quit() {
   ps_log(MAIN,TRACE,"%s",__func__);
 
+  ps_gui_del(ps_gui);
   ps_game_del(ps_game);
 
   ps_resmgr_quit();
@@ -118,8 +124,9 @@ static void ps_main_quit() {
 static int ps_main_update() {
   if (ps_input_update()<0) return -1;
 
-  //TODO Insert GUI here.
-  if (ps_game) {
+  if (ps_gui) {
+    if (ps_gui_update(ps_gui)<0) return -1;
+  } else if (ps_game) {
     if (ps_game_update(ps_game)<0) return -1;
   }
   

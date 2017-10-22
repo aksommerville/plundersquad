@@ -13,6 +13,14 @@
 #define PS_DIRECTION_WEST    3
 #define PS_DIRECTION_EAST    4
 
+#define PS_AXIS_HORZ 1
+#define PS_AXIS_VERT 2
+
+#define PS_ALIGN_START   -1
+#define PS_ALIGN_CENTER   0
+#define PS_ALIGN_END      1
+#define PS_ALIGN_FILL     2
+
 struct ps_vector {
   int dx;
   int dy;

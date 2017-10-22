@@ -28,6 +28,10 @@ struct ps_video_layer *ps_video_get_layer(int p);
 /* Helpers for drawing.
  *****************************************************************************/
 
+int ps_video_draw_rect(int x,int y,int w,int h,uint32_t rgba);
+int ps_video_draw_horz_gradient(int x,int y,int w,int h,uint32_t rgba_left,uint32_t rgba_right);
+int ps_video_draw_vert_gradient(int x,int y,int w,int h,uint32_t rgba_top,uint32_t rgba_bottom);
+
 int ps_video_text_begin();
 int ps_video_text_add(int size,uint32_t rgba,int x,int y,const char *src,int srcc);
 int ps_video_text_addf(int size,uint32_t rgba,int x,int y,const char *fmt,...);

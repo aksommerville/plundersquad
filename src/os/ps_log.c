@@ -22,6 +22,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(TEXT          ,TRACE)
   _(PHYSICS       ,TRACE)
   _(MACHID        ,DEBUG)
+  _(GUI           ,TRACE)
 #undef _
 };
 

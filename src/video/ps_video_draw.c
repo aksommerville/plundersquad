@@ -4,6 +4,44 @@
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
 
+/* Draw rectangle.
+ */
+ 
+int ps_video_draw_rect(int x,int y,int w,int h,uint32_t rgba) {
+  uint8_t r=rgba>>24,g=rgba>>16,b=rgba>>8,a=rgba;
+  struct akgl_vtx_raw vtxv[4]={
+    {x  ,y  ,r,g,b,a},
+    {x+w,y  ,r,g,b,a},
+    {x  ,y+h,r,g,b,a},
+    {x+w,y+h,r,g,b,a},
+  };
+  return akgl_program_raw_draw_triangle_strip(ps_video.program_raw,vtxv,4);
+}
+
+int ps_video_draw_horz_gradient(int x,int y,int w,int h,uint32_t rgba_left,uint32_t rgba_right) {
+  uint8_t r1=rgba_left>>24,g1=rgba_left>>16,b1=rgba_left>>8,a1=rgba_left;
+  uint8_t r2=rgba_right>>24,g2=rgba_right>>16,b2=rgba_right>>8,a2=rgba_right;
+  struct akgl_vtx_raw vtxv[4]={
+    {x  ,y  ,r1,g1,b1,a1},
+    {x+w,y  ,r2,g2,b2,a2},
+    {x  ,y+h,r1,g1,b1,a1},
+    {x+w,y+h,r2,g2,b2,a2},
+  };
+  return akgl_program_raw_draw_triangle_strip(ps_video.program_raw,vtxv,4);
+}
+
+int ps_video_draw_vert_gradient(int x,int y,int w,int h,uint32_t rgba_top,uint32_t rgba_bottom) {
+  uint8_t r1=rgba_top>>24,g1=rgba_top>>16,b1=rgba_top>>8,a1=rgba_top;
+  uint8_t r2=rgba_bottom>>24,g2=rgba_bottom>>16,b2=rgba_bottom>>8,a2=rgba_bottom;
+  struct akgl_vtx_raw vtxv[4]={
+    {x  ,y  ,r1,g1,b1,a1},
+    {x+w,y  ,r1,g1,b1,a1},
+    {x  ,y+h,r2,g2,b2,a2},
+    {x+w,y+h,r2,g2,b2,a2},
+  };
+  return akgl_program_raw_draw_triangle_strip(ps_video.program_raw,vtxv,4);
+}
+
 /* Draw text.
  */
  

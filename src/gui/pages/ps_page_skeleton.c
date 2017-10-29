@@ -23,6 +23,25 @@ static int _ps_skeleton_init(struct ps_page *page) {
   return 0;
 }
 
+/* Unified input events.
+ */
+
+static int _ps_skeleton_move_cursor(struct ps_page *page,int dx,int dy) {
+  return 0;
+}
+
+static int _ps_skeleton_activate(struct ps_page *page) {
+  return 0;
+}
+
+static int _ps_skeleton_submit(struct ps_page *page) {
+  return 0;
+}
+
+static int _ps_skeleton_cancel(struct ps_page *page) {
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -31,4 +50,9 @@ const struct ps_page_type ps_page_type_skeleton={
   .objlen=sizeof(struct ps_page_skeleton),
   .init=_ps_skeleton_init,
   .del=_ps_skeleton_del,
+
+  .move_cursor=_ps_skeleton_move_cursor,
+  .activate=_ps_skeleton_activate,
+  .submit=_ps_skeleton_submit,
+  .cancel=_ps_skeleton_cancel,
 };

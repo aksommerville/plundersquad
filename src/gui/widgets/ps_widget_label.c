@@ -11,6 +11,7 @@ struct ps_widget_label {
   int textc;
   int size;
   int xalign,yalign; // -1,0,1
+  int font;
 };
 
 #define WIDGET ((struct ps_widget_label*)widget)
@@ -26,6 +27,7 @@ static void _ps_label_del(struct ps_widget *widget) {
  */
 
 static int _ps_label_init(struct ps_widget *widget) {
+  WIDGET->font=7;
   WIDGET->size=12;
   widget->fgrgba=0xffffffff;
   return 0;
@@ -69,7 +71,7 @@ static int _ps_label_draw(struct ps_widget *widget,int x0,int y0) {
     y+=y0;
     if (ps_video_text_begin()<0) return -1;
     if (ps_video_text_add(WIDGET->size,widget->fgrgba,x,y,WIDGET->text,WIDGET->textc)<0) return -1;
-    if (ps_video_text_end()<0) return -1;
+    if (ps_video_text_end(WIDGET->font)<0) return -1;
   }
   // Label must not have children.
   return 0;

@@ -20,6 +20,8 @@ extern struct ps_input {
 
   uint16_t plrbtnv[1+PS_PLAYER_LIMIT];
   int playerc;
+
+  int termination_requested;
   
 } ps_input;
 

@@ -17,6 +17,10 @@ struct ps_page *ps_page_new(const struct ps_page_type *type) {
     ps_page_del(page);
     return 0;
   }
+  if (ps_widget_root_set_page(page->root,page)<0) {
+    ps_page_del(page);
+    return 0;
+  }
 
   if (type->init) {
     if (type->init(page)<0) {
@@ -43,4 +47,13 @@ int ps_page_ref(struct ps_page *page) {
   if (page->refc==INT_MAX) return -1;
   page->refc++;
   return 0;
+}
+
+/* Get game.
+ */
+ 
+struct ps_game *ps_page_get_game(const struct ps_page *page) {
+  if (!page) return 0;
+  if (!page->gui) return 0;
+  return page->gui->game;
 }

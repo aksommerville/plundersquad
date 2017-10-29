@@ -39,6 +39,9 @@ int ps_input_update();
 int ps_input_set_player_count(int playerc);
 int ps_input_reassign_devices();
 
+int ps_input_request_termination();
+int ps_input_termination_requested();
+
 /* State for the public to read.
  *****************************************************************************/
 

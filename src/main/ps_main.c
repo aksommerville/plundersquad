@@ -93,6 +93,7 @@ static int ps_main_init() {
   if (ps_game_restart(ps_game)<0) return -1;
 
   if (!(ps_gui=ps_gui_new())) return -1;
+  if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
   if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   
   return 0;
@@ -124,7 +125,11 @@ static void ps_main_quit() {
 static int ps_main_update() {
   if (ps_input_update()<0) return -1;
 
-  if (ps_gui) {
+  if (ps_input_termination_requested()) {
+    ps_ioc_quit(0);
+  }
+
+  if (ps_gui_is_active(ps_gui)) {
     if (ps_gui_update(ps_gui)<0) return -1;
   } else if (ps_game) {
     if (ps_game_update(ps_game)<0) return -1;

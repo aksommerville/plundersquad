@@ -63,4 +63,11 @@ int ps_widget_measure(int *w,int *h,struct ps_widget *widget,int maxw,int maxh);
  */
 int ps_widget_pack(struct ps_widget *widget);
 
+/* Generic properties, PS_GUI_PROPERTY_*
+ */
+int ps_widget_set_property(struct ps_widget *widget,int k,int v);
+int ps_widget_get_property(const struct ps_widget *widget,int k);
+
+struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget);
+
 #endif

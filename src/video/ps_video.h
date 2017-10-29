@@ -36,7 +36,7 @@ int ps_video_text_begin();
 int ps_video_text_add(int size,uint32_t rgba,int x,int y,const char *src,int srcc);
 int ps_video_text_addf(int size,uint32_t rgba,int x,int y,const char *fmt,...);
 int ps_video_text_addfv(int size,uint32_t rgba,int x,int y,const char *fmt,va_list vargs);
-int ps_video_text_end(); // TODO Let caller specify the font?
+int ps_video_text_end(int resid);
 
 int ps_video_draw_grid(const struct ps_grid *grid);
 int ps_video_draw_sprites(const struct ps_sprgrp *grp);

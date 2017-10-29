@@ -200,3 +200,45 @@ int ps_widget_pack(struct ps_widget *widget) {
   }
   return 0;
 }
+
+/* Generic properties.
+ */
+ 
+int ps_widget_set_property(struct ps_widget *widget,int k,int v) {
+  if (!widget) return -1;
+  switch (k) {
+    case PS_GUI_PROPERTY_bgrgba: widget->bgrgba=v; return 0;
+    case PS_GUI_PROPERTY_fgrgba: widget->fgrgba=v; return 0;
+    case PS_GUI_PROPERTY_x: widget->x=v; return 0;
+    case PS_GUI_PROPERTY_y: widget->y=v; return 0;
+    case PS_GUI_PROPERTY_w: widget->w=v; return 0;
+    case PS_GUI_PROPERTY_h: widget->h=v; return 0;
+  }
+  return -1;
+}
+
+int ps_widget_get_property(const struct ps_widget *widget,int k) {
+  if (!widget) return -1;
+  switch (k) {
+    case PS_GUI_PROPERTY_bgrgba: return widget->bgrgba;
+    case PS_GUI_PROPERTY_fgrgba: return widget->fgrgba;
+    case PS_GUI_PROPERTY_x: return widget->x;
+    case PS_GUI_PROPERTY_y: return widget->y;
+    case PS_GUI_PROPERTY_w: return widget->w;
+    case PS_GUI_PROPERTY_h: return widget->h;
+  }
+  return -1;
+}
+
+/* Get containing GUI for widget.
+ */
+ 
+struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget) {
+  if (!widget) return 0;
+  while (widget->parent) {
+    widget=widget->parent;
+  }
+  struct ps_page *page=ps_widget_root_get_page(widget);
+  if (!page) return 0;
+  return page->gui;
+}

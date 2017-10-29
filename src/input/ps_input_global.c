@@ -60,6 +60,20 @@ int ps_input_update() {
   return 0;
 }
 
+/* Termination flag.
+ */
+ 
+int ps_input_request_termination() {
+  ps_input.termination_requested=1;
+  return 0;
+}
+
+int ps_input_termination_requested() {
+  int result=ps_input.termination_requested;
+  ps_input.termination_requested=0;
+  return result;
+}
+
 /* Provider list public accesors.
  */
  

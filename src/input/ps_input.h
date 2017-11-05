@@ -42,6 +42,18 @@ int ps_input_reassign_devices();
 int ps_input_request_termination();
 int ps_input_termination_requested();
 
+
+/* Register your interest to receive device connect and disconnect events.
+ * When you register, we immediately fire callbacks for all existing devices.
+ * Watching returns a 'watchid' which you must use later to unwatch.
+ */
+int ps_input_watch_devices(
+  int (*cb_connect)(struct ps_input_device *device,void *userdata),
+  int (*cb_disconnect)(struct ps_input_device *device,void *userdata),
+  void *userdata
+);
+int ps_input_unwatch_devices(int watchid);
+
 /* State for the public to read.
  *****************************************************************************/
 

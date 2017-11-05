@@ -25,6 +25,8 @@ struct ps_page_type {
   int (*submit)(struct ps_page *page);
   int (*cancel)(struct ps_page *page);
 
+  int (*update)(struct ps_page *page);
+
 };
 
 struct ps_page {
@@ -37,6 +39,8 @@ struct ps_page {
 struct ps_page *ps_page_new(const struct ps_page_type *type);
 void ps_page_del(struct ps_page *page);
 int ps_page_ref(struct ps_page *page);
+
+int ps_page_update(struct ps_page *page);
 
 struct ps_game *ps_page_get_game(const struct ps_page *page);
 

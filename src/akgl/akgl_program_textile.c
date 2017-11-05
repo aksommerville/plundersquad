@@ -32,7 +32,7 @@ static const char akgl_fsrc_textile[]=
     "if (texcoord.x<0.0) discard;\n"
     "if (texcoord.x>1.0) discard;\n"
     "texcoord=texcoord/16.0+vtexoffset;\n"
-    "gl_FragColor=vec4(vcolor.rgb,texture2D(sampler,texcoord));\n"
+    "gl_FragColor=vec4(vcolor.rgb,texture2D(sampler,texcoord)*vcolor.a);\n"
   "}\n"
 "";
 

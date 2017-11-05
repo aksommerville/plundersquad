@@ -58,6 +58,7 @@ void ps_game_del(struct ps_game *game);
  * Finally, ps_game_generate() to commit config and generate the scenario.
  */
 int ps_game_set_player_count(struct ps_game *game,int playerc);
+int ps_game_eliminate_player(struct ps_game *game,int playerid); // Removes a player and drops the playerid of any above it; IDs must be contiguous
 int ps_game_set_player_definition(struct ps_game *game,int playerid,int plrdefid);
 int ps_game_adjust_player_definition(struct ps_game *game,int playerid,int d);
 int ps_game_adjust_player_palette(struct ps_game *game,int playerid,int d);

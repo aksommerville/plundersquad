@@ -93,6 +93,11 @@ int ps_gui_set_game(struct ps_gui *gui,struct ps_game *game) {
   return 0;
 }
 
+struct ps_game *ps_gui_get_game(const struct ps_gui *gui) {
+  if (!gui) return 0;
+  return gui->game;
+}
+
 /* Test active.
  */
  
@@ -128,6 +133,10 @@ int ps_gui_update(struct ps_gui *gui) {
   }
 
   if (ps_gui_update_transitions(gui)<0) return -1;
+
+  if (gui->page) {
+    if (ps_page_update(gui->page)<0) return -1;
+  }
   
   return 0;
 }
@@ -248,7 +257,7 @@ int ps_gui_unload_page(struct ps_gui *gui) {
 #define STUBLOADER(tag) int ps_gui_load_page_##tag(struct ps_gui *gui) { return -1; }
 
 LOADER(assemble)
-STUBLOADER(sconfig)
+LOADER(sconfig)
 STUBLOADER(pconfig)
 STUBLOADER(pause)
 STUBLOADER(debug)

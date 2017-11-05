@@ -124,6 +124,22 @@ int ps_game_set_player_count(struct ps_game *game,int playerc) {
   return 0;
 }
 
+int ps_game_eliminate_player(struct ps_game *game,int playerid) {
+  if (!game) return -1;
+  if ((playerid<1)||(playerid>game->playerc)) return 0;
+
+  int p=playerid-1;
+  ps_player_del(game->playerv[p]);
+  game->playerc--;
+  memmove(game->playerv+p,game->playerv+p+1,sizeof(void*)*(game->playerc-p));
+
+  int i; for (i=p;i<game->playerc;i++) {
+    game->playerv[i]->playerid=i+1;
+  }
+
+  return 0;
+}
+
 int ps_game_set_player_definition(struct ps_game *game,int playerid,int plrdefid) {
   if (!game) return -1;
   if ((playerid<1)||(playerid>game->playerc)) return -1;
@@ -161,7 +177,7 @@ int ps_game_adjust_player_palette(struct ps_game *game,int playerid,int d) {
   int p=player->palette+d;
   if (p<0) p=player->plrdef->palettec-1;
   else if (p>=player->plrdef->palettec) p=0;
-  player->palette=0;
+  player->palette=p;
   return 0;
 }
 

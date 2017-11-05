@@ -4,6 +4,13 @@
 #include "ps.h"
 #include "ps_input.h"
 
+struct ps_input_watch {
+  int watchid;
+  int (*cb_connect)(struct ps_input_device *device,void *userdata);
+  int (*cb_disconnect)(struct ps_input_device *device,void *userdata);
+  void *userdata;
+};
+
 /* Global state.
  *****************************************************************************/
 
@@ -22,6 +29,9 @@ extern struct ps_input {
   int playerc;
 
   int termination_requested;
+
+  struct ps_input_watch *watchv;
+  int watchc,watcha;
   
 } ps_input;
 

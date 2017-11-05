@@ -38,6 +38,7 @@ int ps_widget_ref(struct ps_widget *widget);
 int ps_widget_is_ancestor(const struct ps_widget *ancestor,const struct ps_widget *descendant);
 int ps_widget_add_child(struct ps_widget *parent,struct ps_widget *child);
 int ps_widget_remove_child(struct ps_widget *parent,struct ps_widget *child);
+int ps_widget_remove_all_children(struct ps_widget *widget);
 
 /* Create a widget, add to parent, and return WEAK reference.
  */
@@ -64,6 +65,7 @@ int ps_widget_measure(int *w,int *h,struct ps_widget *widget,int maxw,int maxh);
 int ps_widget_pack(struct ps_widget *widget);
 
 /* Generic properties, PS_GUI_PROPERTY_*
+ * Setting property returns >0 if actually changed.
  */
 int ps_widget_set_property(struct ps_widget *widget,int k,int v);
 int ps_widget_get_property(const struct ps_widget *widget,int k);

@@ -3,6 +3,15 @@
 #include "ps_input_map.h"
 #include "ps_input_button.h"
 
+/* Clean up button watcher.
+ */
+
+static void ps_input_btnwatch_cleanup(struct ps_input_btnwatch *watch) {
+  if (!watch) return;
+  if (watch->userdata_del) watch->userdata_del(watch);
+  memset(watch,0,sizeof(struct ps_input_btnwatch));
+}
+
 /* Object lifecycle.
  */
 
@@ -14,6 +23,7 @@ struct ps_input_device *ps_input_device_new(int size) {
   if (!device) return 0;
 
   device->refc=1;
+  device->btnwatchid_next=1;
 
   return device;
 }
@@ -24,6 +34,13 @@ void ps_input_device_del(struct ps_input_device *device) {
 
   if (device->name) free(device->name);
   if (device->map) ps_input_map_del(device->map);
+
+  if (device->btnwatchv) {
+    while (device->btnwatchc-->0) {
+      ps_input_btnwatch_cleanup(device->btnwatchv+device->btnwatchc);
+    }
+    free(device->btnwatchv);
+  }
 
   free(device);
 }
@@ -109,6 +126,78 @@ int ps_input_device_is_keyboard(const struct ps_input_device *device) {
     case PS_INPUT_PROVIDER_x11: return device->map?1:0;
     case PS_INPUT_PROVIDER_mswm: return device->map?1:0;
     case PS_INPUT_PROVIDER_mshid: return 0;
+  }
+  return 0;
+}
+
+/* Usable?
+ */
+ 
+int ps_input_device_is_usable(const struct ps_input_device *device) {
+  if (!device) return 0;
+  return ps_input_map_can_support_player(device->map);
+}
+
+/* Grow button watcher list.
+ */
+
+static int ps_input_device_btnwatch_require(struct ps_input_device *device) {
+  if (device->btnwatchc<device->btnwatcha) return 0;
+  int na=device->btnwatcha+8;
+  if (na>INT_MAX/sizeof(struct ps_input_btnwatch)) return -1;
+  void *nv=realloc(device->btnwatchv,sizeof(struct ps_input_btnwatch)*na);
+  if (!nv) return -1;
+  device->btnwatchv=nv;
+  device->btnwatcha=na;
+  return 0;
+}
+
+/* Button watchers.
+ */
+ 
+int ps_input_device_watch_buttons(
+  struct ps_input_device *device,
+  int (*cb)(struct ps_input_device *device,int btnid,int value,int mapped,void *userdata),
+  void (*userdata_del)(void *userdata),
+  void *userdata
+) {
+  if (!device||!cb) return -1;
+
+  if (ps_input_device_btnwatch_require(device)<0) return -1;
+
+  struct ps_input_btnwatch *watch=device->btnwatchv+device->btnwatchc;
+  memset(watch,0,sizeof(struct ps_input_btnwatch));
+
+  watch->watchid=device->btnwatchid_next++;
+  if (device->btnwatchid_next<1) device->btnwatchid_next=1;
+  watch->cb=cb;
+  watch->userdata_del=userdata_del;
+  watch->userdata=userdata;
+
+  device->btnwatchc++;
+  return watch->watchid;
+}
+
+int ps_input_device_unwatch_buttons(struct ps_input_device *device,int watchid) {
+  if (!device) return -1;
+  struct ps_input_btnwatch *watch=device->btnwatchv;
+  int i=0; for (;i<device->btnwatchc;i++,watch++) {
+    if (watch->watchid==watchid) {
+      ps_input_btnwatch_cleanup(watch);
+      device->btnwatchc--;
+      memmove(watch,watch+1,sizeof(struct ps_input_btnwatch)*(device->btnwatchc-i));
+      return 0;
+    }
+  }
+  return -1;
+}
+
+int ps_input_device_call_button_watchers(struct ps_input_device *device,int btnid,int value,int mapped) {
+  if (!device) return -1;
+  int i; for (i=0;i<device->btnwatchc;i++) {
+    struct ps_input_btnwatch *watch=device->btnwatchv+i;
+    int err=watch->cb(device,btnid,value,mapped,watch->userdata);
+    if (err<0) return err;
   }
   return 0;
 }

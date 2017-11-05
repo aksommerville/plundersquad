@@ -7,11 +7,18 @@
 #include "ps_widget.h"
 #include "video/ps_video_layer.h"
 
+#define PS_TRANSITION_MODE_ONCE     0
+#define PS_TRANSITION_MODE_REPEAT   1
+
+/* Transitions and ongoing animations are all lumped together.
+ * At first I thought they should be separate, but it turns out they are basically the same thing.
+ */
 struct ps_transition {
   struct ps_widget *widget; // STRONG, widget being modified.
   int k; // Property to modify.
   int va,vz; // Start and end values.
   int p,c; // Position and duration.
+  int mode; // PS_TRANSITION_MODE_*
 };
 
 struct ps_gui {

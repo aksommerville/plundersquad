@@ -123,3 +123,17 @@ int ps_widget_label_set_text(struct ps_widget *widget,const char *src,int srcc) 
   WIDGET->textc=srcc;
   return 0;
 }
+
+/* Spawn from parent.
+ */
+ 
+struct ps_widget *ps_widget_spawn_label(struct ps_widget *parent,const char *src,int srcc,uint32_t rgba) {
+  struct ps_widget *widget=ps_widget_spawn(parent,&ps_widget_type_label);
+  if (!widget) return 0;
+  if (ps_widget_label_set_text(widget,src,srcc)<0) {
+    ps_widget_remove_child(parent,widget);
+    return 0;
+  }
+  widget->fgrgba=rgba;
+  return widget;
+}

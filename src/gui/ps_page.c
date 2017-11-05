@@ -37,6 +37,7 @@ void ps_page_del(struct ps_page *page) {
   if (page->refc-->1) return;
 
   ps_widget_del(page->root);
+  if (page->type->del) page->type->del(page);
 
   free(page);
 }
@@ -47,6 +48,15 @@ int ps_page_ref(struct ps_page *page) {
   if (page->refc==INT_MAX) return -1;
   page->refc++;
   return 0;
+}
+
+/* Update.
+ */
+
+int ps_page_update(struct ps_page *page) {
+  if (!page) return -1;
+  if (!page->type->update) return 0;
+  return page->type->update(page);
 }
 
 /* Get game.

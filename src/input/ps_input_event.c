@@ -42,6 +42,14 @@ int ps_input_event_connect(struct ps_input_device *device) {
     }
     ps_input.mapped_devices_changed=1;
   }
+
+  /* Call watchers. */
+  int i=0; for (;i<ps_input.watchc;i++) {
+    struct ps_input_watch *watch=ps_input.watchv+i;
+    if (!watch->cb_connect) continue;
+    int err=watch->cb_connect(device,watch->userdata);
+    if (err<0) return err;
+  }
   
   return 0;
 }
@@ -59,6 +67,14 @@ int ps_input_event_disconnect(struct ps_input_device *device) {
     device->map=0;
     ps_input.mapped_devices_changed=1;
   }
+
+  /* Call watchers. */
+  int i=0; for (;i<ps_input.watchc;i++) {
+    struct ps_input_watch *watch=ps_input.watchv+i;
+    if (!watch->cb_disconnect) continue;
+    int err=watch->cb_disconnect(device,watch->userdata);
+    if (err<0) return err;
+  }
   
   return 0;
 }
@@ -69,6 +85,8 @@ int ps_input_event_disconnect(struct ps_input_device *device) {
 static int ps_input_event_button_cb(int plrid,int btnid,int value,void *userdata) {
   struct ps_input_device *device=userdata;
   ps_log(INPUT,TRACE,"%s plrid=%d btnid=%d value=%d device='%.*s'",__func__,plrid,btnid,value,device->namec,device->name);
+
+  if (ps_input_device_call_button_watchers(device,btnid,value,1)<0) return -1;
 
   if (btnid&~0xffff) {
     if (value) {
@@ -95,6 +113,7 @@ static int ps_input_event_button_cb(int plrid,int btnid,int value,void *userdata
 int ps_input_event_button(struct ps_input_device *device,int btnid,int value) {
   if (!device) return -1;
   if (!device->map) return 0;
+  if (ps_input_device_call_button_watchers(device,btnid,value,0)<0) return -1;
   if (ps_input_map_set_button(device->map,btnid,value,device,ps_input_event_button_cb)<0) return -1;
   return 0;
 }

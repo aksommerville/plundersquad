@@ -108,6 +108,19 @@ int ps_widget_remove_child(struct ps_widget *parent,struct ps_widget *child) {
   return -1;
 }
 
+/* Remove all children.
+ */
+ 
+int ps_widget_remove_all_children(struct ps_widget *widget) {
+  if (!widget) return -1;
+  while (widget->childc>0) {
+    struct ps_widget *child=widget->childv[--(widget->childc)];
+    child->parent=0;
+    ps_widget_del(child);
+  }
+  return 0;
+}
+
 /* Spawn child.
  */
  
@@ -207,12 +220,12 @@ int ps_widget_pack(struct ps_widget *widget) {
 int ps_widget_set_property(struct ps_widget *widget,int k,int v) {
   if (!widget) return -1;
   switch (k) {
-    case PS_GUI_PROPERTY_bgrgba: widget->bgrgba=v; return 0;
-    case PS_GUI_PROPERTY_fgrgba: widget->fgrgba=v; return 0;
-    case PS_GUI_PROPERTY_x: widget->x=v; return 0;
-    case PS_GUI_PROPERTY_y: widget->y=v; return 0;
-    case PS_GUI_PROPERTY_w: widget->w=v; return 0;
-    case PS_GUI_PROPERTY_h: widget->h=v; return 0;
+    case PS_GUI_PROPERTY_bgrgba: if (v==widget->bgrgba) return 0; widget->bgrgba=v; return 1;
+    case PS_GUI_PROPERTY_fgrgba: if (v==widget->fgrgba) return 0; widget->fgrgba=v; return 1;
+    case PS_GUI_PROPERTY_x: if (v==widget->x) return 0; widget->x=v; return 1;
+    case PS_GUI_PROPERTY_y: if (v==widget->y) return 0; widget->y=v; return 1;
+    case PS_GUI_PROPERTY_w: if (v==widget->w) return 0; widget->w=v; return 1;
+    case PS_GUI_PROPERTY_h: if (v==widget->h) return 0; widget->h=v; return 1;
   }
   return -1;
 }

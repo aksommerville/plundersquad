@@ -35,6 +35,10 @@ void ps_input_quit() {
   }
 
   ps_input_config_del(ps_input.config);
+
+  if (ps_input.watchv) {
+    free(ps_input.watchv);
+  }
   
   memset(&ps_input,0,sizeof(struct ps_input));
 }
@@ -166,4 +170,109 @@ int ps_input_load_configuration(const char *path) {
 uint16_t ps_get_player_buttons(int plrid) {
   if ((plrid<0)||(plrid>PS_PLAYER_LIMIT)) return 0;
   return ps_input.plrbtnv[plrid];
+}
+
+/* Call function for each connected device.
+ */
+
+static int ps_input_identify_connected_devices(
+  int (*cb_connect)(struct ps_input_device *device,void *userdata),
+  void *userdata
+) {
+  int pi=ps_input.providerc; while (pi-->0) {
+    struct ps_input_provider *provider=ps_input.providerv[pi];
+    int di=provider->devc; while (di-->0) {
+      struct ps_input_device *device=provider->devv[di];
+      int err=cb_connect(device,userdata);
+      if (err<0) return err;
+    }
+  }
+  return 0;
+}
+
+/* Watch list primitives.
+ */
+
+static int ps_input_watch_require() {
+  if (ps_input.watchc<ps_input.watcha) return 0;
+  int na=ps_input.watcha+8;
+  if (na>INT_MAX/sizeof(struct ps_input_watch)) return -1;
+  void *nv=realloc(ps_input.watchv,sizeof(struct ps_input_watch)*na);
+  if (!nv) return -1;
+  ps_input.watchv=nv;
+  ps_input.watcha=na;
+  return 0;
+}
+
+static int ps_input_watch_select_id(int *watchid) {
+  if (ps_input.watchc<1) {
+    *watchid=1;
+    return 0;
+  }
+  *watchid=ps_input.watchv[ps_input.watchc-1].watchid;
+  if (*watchid<INT_MAX) {
+    (*watchid)++;
+    return ps_input.watchc;
+  }
+  int p=0;
+  *watchid=1;
+  while (1) {
+    if (*watchid!=ps_input.watchv[p].watchid) return p;
+    (*watchid)++;
+    p++;
+  }
+}
+
+static int ps_input_watch_search(int watchid) {
+  int lo=0,hi=ps_input.watchc;
+  while (lo<hi) {
+    int ck=(lo+hi)>>1;
+         if (watchid<ps_input.watchv[ck].watchid) hi=ck;
+    else if (watchid>ps_input.watchv[ck].watchid) lo=ck+1;
+    else return ck;
+  }
+  return -lo-1;
+}
+
+/* Register or unregister watchers.
+ */
+ 
+int ps_input_watch_devices(
+  int (*cb_connect)(struct ps_input_device *device,void *userdata),
+  int (*cb_disconnect)(struct ps_input_device *device,void *userdata),
+  void *userdata
+) {
+
+  if (ps_input_watch_require()<0) return -1;
+  int watchid,p;
+  p=ps_input_watch_select_id(&watchid);
+  if ((p<0)||(watchid<1)) return -1;
+
+  struct ps_input_watch *watch=ps_input.watchv+p;
+  memmove(watch+1,watch,sizeof(struct ps_input_watch)*(ps_input.watchc-p));
+  ps_input.watchc++;
+  memset(watch,0,sizeof(struct ps_input_watch));
+  watch->watchid=watchid;
+  watch->cb_connect=cb_connect;
+  watch->cb_disconnect=cb_disconnect;
+  watch->userdata=userdata;
+
+  if (cb_connect) {
+    int err=ps_input_identify_connected_devices(cb_connect,userdata);
+    if (err<0) {
+      ps_input_unwatch_devices(watchid);
+      return err;
+    }
+  }
+
+  return watchid;
+}
+
+int ps_input_unwatch_devices(int watchid) {
+  if (watchid<1) return -1;
+  int p=ps_input_watch_search(watchid);
+  if (p<0) return -1;
+  ps_input.watchc--;
+  memmove(ps_input.watchv+p,ps_input.watchv+p+1,sizeof(struct ps_input_watch)*(ps_input.watchc-p));
+  return 0;
 }

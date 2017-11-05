@@ -42,6 +42,13 @@ static int _ps_skeleton_cancel(struct ps_page *page) {
   return 0;
 }
 
+/* Update.
+ */
+
+static int _ps_skeleton_update(struct ps_page *page) {
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -55,4 +62,6 @@ const struct ps_page_type ps_page_type_skeleton={
   .activate=_ps_skeleton_activate,
   .submit=_ps_skeleton_submit,
   .cancel=_ps_skeleton_cancel,
+
+  .update=_ps_skeleton_update,
 };

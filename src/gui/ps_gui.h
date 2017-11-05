@@ -29,6 +29,7 @@ int ps_gui_load_page(struct ps_gui *gui,struct ps_page *page);
 int ps_gui_unload_page(struct ps_gui *gui);
 
 int ps_gui_set_game(struct ps_gui *gui,struct ps_game *game);
+struct ps_game *ps_gui_get_game(const struct ps_gui *gui);
 
 /* Conveniences to instantiate a new page and load it.
  */
@@ -59,6 +60,7 @@ int ps_gui_submit_page(struct ps_gui *gui);
 #define PS_GUI_PROPERTY_h         6
 
 int ps_gui_transition_property(struct ps_gui *gui,struct ps_widget *widget,int k,int v,int duration);
+int ps_gui_animate_property(struct ps_gui *gui,struct ps_widget *widget,int k,int va,int vz,int duration);
 int ps_gui_finish_transitions(struct ps_gui *gui);
 
 #endif

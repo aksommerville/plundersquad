@@ -106,7 +106,7 @@ void ps_game_del(struct ps_game *game) {
  
 int ps_game_set_player_count(struct ps_game *game,int playerc) {
   if (!game) return -1;
-  if ((playerc<1)||(playerc>PS_PLAYER_LIMIT)) return -1;
+  if ((playerc<0)||(playerc>PS_PLAYER_LIMIT)) return -1;
 
   while (game->playerc>0) {
     game->playerc--;
@@ -204,9 +204,12 @@ int ps_game_set_length(struct ps_game *game,int length) {
 static int ps_game_ready_to_generate(const struct ps_game *game) {
   if (!game) return 0;
 
+  ps_log(GAME,DEBUG,"%s playerc=%d difficulty=%d length=%d",__func__,game->playerc,game->difficulty,game->length);
+
   if ((game->playerc<1)||(game->playerc>PS_PLAYER_LIMIT)) return 0;
   int i; for (i=0;i<game->playerc;i++) {
     struct ps_player *player=game->playerv[i];
+    ps_log(GAME,DEBUG,"  %d: plrdef=%p",i+1,player->plrdef);
     if (!player->plrdef) return 0;
   }
 
@@ -393,6 +396,8 @@ int ps_game_restart(struct ps_game *game) {
   ps_log(GAME,DEBUG,"Restarting game at home screen (%d,%d) of (%d,%d).",
     game->scenario->homex,game->scenario->homey,game->scenario->world->w,game->scenario->world->h
   );
+
+  game->finished=0;
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;
@@ -626,9 +631,10 @@ static int ps_game_check_completion(struct ps_game *game) {
   int i; for (i=0;i<game->treasurec;i++) {
     if (!game->treasurev[i]) return 0;
   }
-  //TODO What to do when game complete?
+
   ps_log(GAME,INFO,"Game complete!");
-  return ps_game_restart(game);
+  game->finished=1;
+  return 0;
 }
 
 /* Update.
@@ -636,6 +642,8 @@ static int ps_game_check_completion(struct ps_game *game) {
 
 int ps_game_update(struct ps_game *game) {
   if (!game) return -1;
+
+  if (game->finished) return 0;
 
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;

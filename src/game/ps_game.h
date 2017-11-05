@@ -45,6 +45,8 @@ struct ps_game {
   struct ps_physics *physics;
 
   struct ps_video_layer *layer_scene;
+
+  int finished; // Signal to owner that you should drop this and return to the menus.
   
 };
 

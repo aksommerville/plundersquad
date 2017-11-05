@@ -112,13 +112,25 @@ const struct ps_widget_type ps_widget_type_menu={
 /* Add option.
  */
  
-int ps_widget_menu_add_option(struct ps_widget *widget,const char *text,int textc) {
-  if (!widget||(widget->type!=&ps_widget_type_menu)) return -1;
-  if (widget->childc!=2) return -1;
+struct ps_widget *ps_widget_menu_add_option(struct ps_widget *widget,const char *text,int textc) {
+  if (!widget||(widget->type!=&ps_widget_type_menu)) return 0;
+  if (widget->childc!=2) return 0;
   struct ps_widget *label=ps_widget_spawn(widget->childv[1],&ps_widget_type_label);
-  if (!label) return -1;
-  if (ps_widget_label_set_text(label,text,textc)<0) return -1;
-  return 0;
+  if (!label) return 0;
+  if (ps_widget_label_set_text(label,text,textc)<0) return 0;
+  return label;
+}
+
+/* Add slider.
+ */
+ 
+struct ps_widget *ps_widget_menu_add_slider(struct ps_widget *widget,const char *text,int textc,int lo,int hi) {
+  if (!widget||(widget->type!=&ps_widget_type_menu)) return 0;
+  if (widget->childc!=2) return 0;
+  struct ps_widget *slider=ps_widget_spawn(widget->childv[1],&ps_widget_type_slider);
+  if (!slider) return 0;
+  if (ps_widget_slider_setup(slider,text,textc,lo,hi)<0) return 0;
+  return slider;
 }
 
 /* Move cursor.
@@ -142,10 +154,38 @@ int ps_widget_menu_move_cursor(struct ps_widget *widget,int d) {
   return 0;
 }
 
+/* Adjust selected value.
+ */
+
+int ps_widget_menu_adjust_selection(struct ps_widget *widget,int d) {
+  if (!widget||(widget->type!=&ps_widget_type_menu)) return -1;
+  if (widget->childc!=2) return -1;
+  if ((WIDGET->cursorp<0)||(WIDGET->cursorp>=widget->childv[1]->childc)) return 0;
+  struct ps_widget *selection=widget->childv[1]->childv[WIDGET->cursorp];
+  
+  if (selection->type==&ps_widget_type_slider) {
+    if (ps_widget_slider_adjust(selection,d)<0) return -1;
+    return 0;
+  }
+
+  return 0;
+}
+
 /* Get cursor.
  */
  
 int ps_widget_menu_get_cursor(const struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_menu)) return -1;
   return WIDGET->cursorp;
+}
+
+/* Get slider value.
+ */
+ 
+int ps_widget_menu_get_slider(const struct ps_widget *widget,int p) {
+  if (!widget||(widget->type!=&ps_widget_type_menu)) return 0;
+  if (widget->childc!=2) return 0;
+  if ((p<0)||(p>=widget->childv[1]->childc)) return 0;
+  struct ps_widget *slider=widget->childv[1]->childv[p];
+  return ps_widget_slider_get_value(slider);
 }

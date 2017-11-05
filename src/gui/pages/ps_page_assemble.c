@@ -72,6 +72,7 @@ static int _ps_assemble_update(struct ps_page *page) {
 
   /* Enabling input on the heroselect widget is deferred until GUI construction complete. */
   if (!PAGE->input_enabled) {
+    if (ps_game_set_player_count(ps_gui_get_game(page->gui),0)<0) return -1;
     if (ps_widget_heroselect_enable_input(PAGE->heroselect)<0) return -1;
     PAGE->input_enabled=1;
   }

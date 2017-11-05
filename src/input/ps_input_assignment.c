@@ -147,6 +147,7 @@ static int ps_input_select_plrid_for_device(struct ps_input_reassign_devices *ct
       candidatev[candidatec++]=plrid;
     }
   }
+  if (!candidatec) return 0; // Possible, eg if playerc==0
   // If we are a keyboard, look for a candidate that already has a joystick.
   if (ps_input_device_is_keyboard(device)) {
     int plrid=ps_input_select_player_candidate_with_joystick(ctx,candidatev,candidatec);
@@ -182,12 +183,12 @@ static void ps_input_report_reassignments() {
     char providername[32];
     int providernamec=ps_input_provider_repr(providername,sizeof(providername),provider->providerid);
     if ((providernamec<0)||(providernamec>(int)sizeof(providername))) providernamec=0;
-    ps_log(INPUT,INFO,"Provider %p %d '%.*s':",provider,provider->providerid,providernamec,providername);
+    ps_log(INPUT,DEBUG,"Provider %p %d '%.*s':",provider,provider->providerid,providernamec,providername);
     int di=0; for (;di<provider->devc;di++) {
       struct ps_input_device *device=provider->devv[di];
       int plrid=-1;
       if (device->map) plrid=device->map->plrid;
-      ps_log(INPUT,INFO,"  Device %p devid=%d '%.*s' plrid=%d",device,device->devid,device->namec,device->name,plrid);
+      ps_log(INPUT,DEBUG,"  Device %p devid=%d '%.*s' plrid=%d",device,device->devid,device->namec,device->name,plrid);
     }
   }
 }
@@ -213,6 +214,9 @@ int ps_input_reassign_devices() {
   if (ps_input_drop_invalid_player_assignments(&ctx)<0) goto _error_;
   if (ps_input_drop_duplicate_assignments_if_needed(&ctx)<0) goto _error_;
   if (ps_input_assign_devices_to_players(&ctx)<0) goto _error_;
+
+  /* Drop input state. We might be able to do this more selectively, but I'm tired... */
+  memset(ps_input.plrbtnv,0,sizeof(ps_input.plrbtnv));
 
   ps_input_report_reassignments();
 

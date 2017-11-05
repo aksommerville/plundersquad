@@ -57,6 +57,7 @@ static int ps_main_init() {
   if (!(ps_game=ps_game_new())) return -1;
 
   // TODO The process of game initialization will happen interactively, via GUI.
+  #if 0
   switch (1) { // <-- very temporary. Set desired player count here.
     case 1: {
         if (ps_game_set_player_count(ps_game,1)<0) return -1;
@@ -91,6 +92,7 @@ static int ps_main_init() {
   //if (ps_game_generate_test(ps_game,1,2)<0) return -1;
   if (ps_game_generate(ps_game)<0) return -1;
   if (ps_game_restart(ps_game)<0) return -1;
+  #endif
 
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
@@ -133,6 +135,9 @@ static int ps_main_update() {
     if (ps_gui_update(ps_gui)<0) return -1;
   } else if (ps_game) {
     if (ps_game_update(ps_game)<0) return -1;
+    if (ps_game->finished) {
+      if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+    }
   }
   
   if (ps_video_update()<0) return -1;

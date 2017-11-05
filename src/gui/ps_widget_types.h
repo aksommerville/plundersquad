@@ -14,6 +14,7 @@ extern const struct ps_widget_type ps_widget_type_packer; // Single column or ro
 extern const struct ps_widget_type ps_widget_type_menu; // Vertical packer of labels with selection.
 extern const struct ps_widget_type ps_widget_type_heroselect; // Container and controller for multiple herosetup widgets.
 extern const struct ps_widget_type ps_widget_type_herosetup; // Panel for one input device, to click in and set up.
+extern const struct ps_widget_type ps_widget_type_slider; // Label and horiztonal indicator, for use in menus.
 
 /* Root.
  *****************************************************************************/
@@ -44,9 +45,13 @@ int ps_widget_packer_setup(
 /* Menu.
  *****************************************************************************/
 
-int ps_widget_menu_add_option(struct ps_widget *widget,const char *text,int textc);
+struct ps_widget *ps_widget_menu_add_option(struct ps_widget *widget,const char *text,int textc);
+struct ps_widget *ps_widget_menu_add_slider(struct ps_widget *widget,const char *label,int labelc,int lo,int hi);
+
 int ps_widget_menu_move_cursor(struct ps_widget *widget,int d);
+int ps_widget_menu_adjust_selection(struct ps_widget *widget,int d);
 int ps_widget_menu_get_cursor(const struct ps_widget *widget);
+int ps_widget_menu_get_slider(const struct ps_widget *widget,int p);
 
 /* Heroselect.
  *****************************************************************************/
@@ -78,5 +83,14 @@ int ps_widget_herosetup_retreat_phase(struct ps_widget *widget);
 int ps_widget_herosetup_get_phase(const struct ps_widget *widget);
 
 int ps_widget_herosetup_refresh_player(struct ps_widget *widget,struct ps_player *player);
+
+/* Slider.
+ *****************************************************************************/
+
+int ps_widget_slider_setup(struct ps_widget *widget,const char *text,int textc,int lo,int hi);
+int ps_widget_slider_adjust(struct ps_widget *widget,int d);
+
+int ps_widget_slider_set_value(struct ps_widget *widget,int v);
+int ps_widget_slider_get_value(const struct ps_widget *widget);
 
 #endif

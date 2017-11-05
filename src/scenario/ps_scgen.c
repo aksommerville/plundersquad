@@ -175,7 +175,7 @@ static int ps_scgen_validate(struct ps_scgen *scgen) {
 
 static int ps_scgen_calculate_world_size(int *w,int *h,int *treasurec,struct ps_scgen *scgen) {
   switch (scgen->length) {
-    case  1: *w= 4; *h= 4; *treasurec= 1; return 0; // 4*4=16, 2*5=10
+    case  1: *w= 3; *h= 4; *treasurec= 1; return 0; // 3*4=12, 2*5=10
     case  2: *w= 4; *h= 4; *treasurec= 2; return 0; // 4*4=16, 3*5=15
     case  3: *w= 5; *h= 4; *treasurec= 3; return 0; // 5*4=20, 4*5=20
     case  4: *w= 6; *h= 5; *treasurec= 5; return 0; // 6*5=30, 6*5=30

@@ -39,8 +39,10 @@
 // Loose advisory parameters for scenario construction.
 #define PS_DIFFICULTY_MIN 1
 #define PS_DIFFICULTY_MAX 9
+#define PS_DIFFICULTY_DEFAULT 4
 #define PS_LENGTH_MIN 1
 #define PS_LENGTH_MAX 9
+#define PS_LENGTH_DEFAULT 4
 
 // Maximum count of treasures the generator will place in one world.
 #define PS_TREASURE_LIMIT 16

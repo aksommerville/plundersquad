@@ -59,11 +59,6 @@ struct ps_gui *ps_gui_new() {
 
   gui->use_unified_input=1;
 
-  if (ps_gui_init_layer(gui)<0) {
-    ps_gui_del(gui);
-    return 0;
-  }
-
   return gui;
 }
 

@@ -24,6 +24,33 @@
 static struct ps_game *ps_game=0;
 static struct ps_gui *ps_gui=0;
 
+/* Setup for quick testing during development.
+ */
+
+static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scgen) {
+  int i;
+  
+  if (ps_game_set_player_count(ps_game,playerc)<0) return -1;
+  for (i=1;i<=playerc;i++) {
+    if (ps_game_set_player_definition(ps_game,i,i)<0) return -1;
+  }
+  
+  if (ps_game_set_difficulty(ps_game,difficulty)<0) return -1;
+  if (ps_game_set_length(ps_game,length)<0) return -1;
+
+  if (test_scgen) {
+    if (ps_game_generate_test(ps_game,1, // regionid
+      // blueprintids:
+      2
+    )<0) return -1;
+  } else {
+    if (ps_game_generate(ps_game)<0) return -1;
+  }
+
+  if (ps_game_restart(ps_game)<0) return -1;
+  return 0;
+}
+
 /* Init.
  */
 
@@ -56,47 +83,19 @@ static int ps_main_init() {
 
   if (!(ps_game=ps_game_new())) return -1;
 
-  // TODO The process of game initialization will happen interactively, via GUI.
-  #if 0
-  switch (1) { // <-- very temporary. Set desired player count here.
-    case 1: {
-        if (ps_game_set_player_count(ps_game,1)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,1,1)<0) return -1;
-      } break;
-    case 2: {
-        if (ps_game_set_player_count(ps_game,2)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,1,1)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,2,2)<0) return -1;
-      } break;
-    case 3: {
-        if (ps_game_set_player_count(ps_game,3)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,1,1)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,2,2)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,3,3)<0) return -1;
-      } break;
-    case 8: {
-        if (ps_game_set_player_count(ps_game,8)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,1,1)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,2,2)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,3,3)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,4,4)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,5,5)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,6,6)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,7,7)<0) return -1;
-        if (ps_game_set_player_definition(ps_game,8,1)<0) return -1;
-      } break;
-    default: return -1;
-  }
-  if (ps_game_set_difficulty(ps_game,9)<0) return -1;
-  if (ps_game_set_length(ps_game,4)<0) return -1;
-  //if (ps_game_generate_test(ps_game,1,2)<0) return -1;
-  if (ps_game_generate(ps_game)<0) return -1;
-  if (ps_game_restart(ps_game)<0) return -1;
-  #endif
-
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
-  if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+
+  if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
+    if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+  } else {
+    if (ps_setup_test_game(
+      1, // playerc: 1..8
+      1, // difficulty: 1..9
+      1, // length: 1..9
+      1  // Nonzero for fake scenario (configure above).
+    )<0) return -1;
+  }
   
   return 0;
 }

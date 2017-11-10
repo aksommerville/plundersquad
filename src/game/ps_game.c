@@ -10,6 +10,7 @@
 #include "scenario/ps_world.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
+#include "scenario/ps_region.h"
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
 #include "video/ps_video.h"
@@ -310,6 +311,85 @@ int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...
   return 0;
 }
 
+/* About to spawn a random sprite, select a position for it.
+ * Failures here are not fatal.
+ */
+
+static int ps_game_sprite_position_conflicts_with_others(const struct ps_game *game,int x,int y) {
+  // We'll use all sprites for this test. Maybe we should restrict to PHYSICS?
+  const struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_KEEPALIVE;
+  int i=grp->sprc; while (i-->0) {
+    const struct ps_sprite *spr=grp->sprv[i];
+    int dx=x-spr->x;
+    if (dx>=PS_TILESIZE) continue;
+    if (dx<=-PS_TILESIZE) continue;
+    int dy=y-spr->y;
+    if (dy>=PS_TILESIZE) continue;
+    if (dy<=PS_TILESIZE) continue;
+  }
+  return 0;
+}
+
+static int ps_game_select_position_for_random_sprite(int *x,int *y,const struct ps_game *game,const struct ps_sprdef *sprdef) {
+  const int margin=2; // Don't spawn on the edges.
+  int attemptc=20;
+  while (attemptc-->0) {
+    int col=margin+(rand()%(PS_GRID_COLC-(margin<<1)));
+    int row=margin+(rand()%(PS_GRID_ROWC-(margin<<1)));
+    uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
+    if (physics!=PS_BLUEPRINT_CELL_VACANT) continue; // Only spawn on vacant cells.
+    *x=col*PS_TILESIZE+(PS_TILESIZE>>1);
+    *y=row*PS_TILESIZE+(PS_TILESIZE>>1);
+    if (ps_game_sprite_position_conflicts_with_others(game,*x,*y)) continue; // Don't crowd other sprites.
+    return 0;
+  }
+  return -1;
+}
+
+/* Spawn sprites from the region's monster menu, if present.
+ */
+
+static int ps_game_spawn_random_sprites(struct ps_game *game) {
+  if (!game) return -1;
+  if (!game->grid) return -1;
+  if (!game->grid->region) return 0; // Grids are allowed to not have a region (but they always will)
+
+  int defc=ps_region_count_monsters(game->grid->region);
+  if (defc<1) return 0; // Perfectly fine if the region doesn't want random monsters.
+
+  //TODO How to decide the monster count? Should the blueprint have a say in this?
+  int monsterc_min=2;
+  int monsterc_max=5;
+  int monsterc=monsterc_min+rand()%(monsterc_max-monsterc_min+1);
+  if (monsterc<1) return 0;
+
+  int i=monsterc; while (i-->0) {
+    int defp=rand()%defc;
+    int sprdefid=ps_region_get_monster(game->grid->region,defp);
+    if (sprdefid<1) {
+      ps_log(GAME,ERROR,"Unexpected error: ps_region_count_monsters()==%d, ps_region_get_monster(%d)==%d",defc,defp,sprdefid);
+      return -1;
+    }
+    struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,sprdefid);
+    if (!sprdef) {
+      ps_log(GAME,ERROR,"sprdef:%d not found",sprdefid);
+      return -1;
+    }
+    int x,y;
+    if (ps_game_select_position_for_random_sprite(&x,&y,game,sprdef)<0) {
+      // It could be that the screen is overpopulated. In this case, skip it.
+      continue;
+    }
+    struct ps_sprite *sprite=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
+    if (!sprite) {
+      ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d",sprdefid);
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
 /* Spawn one sprite from a HERO, SPRITE, or TREASURE POI.
  */
 
@@ -371,7 +451,8 @@ static int ps_game_spawn_hero_sprites(struct ps_game *game) {
 
 static int ps_game_spawn_sprites(struct ps_game *game) {
   if (!game) return -1;
-  
+
+  /* Spawn from POI records. */
   const struct ps_blueprint_poi *poi=game->grid->poiv;
   int i=game->grid->poic;
   for (;i-->0;poi++) {
@@ -383,6 +464,9 @@ static int ps_game_spawn_sprites(struct ps_game *game) {
       if (!sprite) return -1;
     }
   }
+
+  /* Spawn randomly if configured to. */
+  if (ps_game_spawn_random_sprites(game)<0) return -1;
 
   return 0;
 }

@@ -1,5 +1,5 @@
-
-poi 10 5 SPRITE 2 0 0
+# Blank blueprint to fill in gaps. Give the generator some wiggle room.
+#TODO: Consider whether this is actually necessary. Every screen should be worth using, right?
 
 ===============================================================================
 

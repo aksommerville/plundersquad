@@ -120,6 +120,61 @@ static int ps_region_text_count_shapes(const char *src,int srcc) {
   return shapec;
 }
 
+/* Count valid monster IDs.
+ */
+ 
+int ps_region_count_monsters(const struct ps_region *region) {
+  if (!region) return 0;
+  int i=PS_REGION_MONSTER_LIMIT,c=0;
+  while (i-->0) if (region->monster_sprdefidv[i]) c++;
+  return c;
+}
+
+/* Get a monster ID by its index.
+ */
+ 
+int ps_region_get_monster(const struct ps_region *region,int p) {
+  if (!region) return -1;
+  if (p<0) return -1;
+  int i=PS_REGION_MONSTER_LIMIT;
+  while (i-->0) {
+    if (region->monster_sprdefidv[i]) {
+      if (!p--) return region->monster_sprdefidv[i];
+    }
+  }
+  return -1;
+}
+
+/* Test presence of a monster ID.
+ */
+
+int ps_region_has_monster(const struct ps_region *region,int sprdefid) {
+  if (!region) return 0;
+  if (sprdefid<=0) return 0;
+  int i=PS_REGION_MONSTER_LIMIT;
+  while (i-->0) {
+    if (region->monster_sprdefidv[i]==sprdefid) return 1;
+  }
+  return 0;
+}
+
+/* Add a monster ID.
+ */
+ 
+int ps_region_add_monster(struct ps_region *region,int sprdefid) {
+  if (!region) return -1;
+  if (sprdefid<=0) return -1;
+  if (ps_region_has_monster(region,sprdefid)) return 0; // Redundant is OK.
+  int i=PS_REGION_MONSTER_LIMIT;
+  while (i-->0) {
+    if (!region->monster_sprdefidv[i]) {
+      region->monster_sprdefidv[i]=sprdefid;
+      return 0;
+    }
+  }
+  return -1;
+}
+
 /* Decode shape declaration.
  */
 
@@ -207,6 +262,14 @@ static int ps_region_decode_inner(struct ps_region *region,const char *src,int s
       }
       if (ps_int_eval_interactive(&region->songid,arg,argc,0,255,"song")<0) return -1;
       songc++;
+
+    } else if ((kwc==7)&&!memcmp(kw,"monster",7)) {
+      int sprdefid;
+      if (ps_int_eval_interactive(&sprdefid,arg,argc,1,INT_MAX,"monster")<0) return -1;
+      if (ps_region_add_monster(region,sprdefid)<0) {
+        ps_log(RES,ERROR,"%d: Failed to add monster (over limit of %d?)",reader.lineno,PS_REGION_MONSTER_LIMIT);
+        return -1;
+      }
       
     } else {
       ps_log(RES,ERROR,"%d: Unexpected keyword '%.*s' in region.",reader.lineno,kwc,kw);

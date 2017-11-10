@@ -4,6 +4,10 @@
 tilesheet 5
 song 0
 
+monster  9 # purple spider
+monster 13 # dragon bug
+monster 14 # bumblebat
+
 # Only one VACANT shape. VACANT is a special case for gridgen.
 shape VACANT 100 0x00 ALT16
 

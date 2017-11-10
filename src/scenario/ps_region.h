@@ -17,6 +17,8 @@
 #define PS_REGION_SHAPE_STYLE_3X3       0x06 /* 3x3 exactly. */
 #define PS_REGION_SHAPE_STYLE_ALT16     0x07 /* 4x4 singletons with heavy randomization, intended for VACANT mostly. */
 
+#define PS_REGION_MONSTER_LIMIT 8
+
 struct ps_region_shape {
   uint8_t physics; // Matches cell in blueprint. 
   uint8_t weight;  // Higher are more likely to be selected. Zero to disable.
@@ -27,6 +29,7 @@ struct ps_region_shape {
 struct ps_region {
   int tsid;
   int songid;
+  int monster_sprdefidv[PS_REGION_MONSTER_LIMIT];
   int shapec;
   struct ps_region_shape shapev[];
 };
@@ -51,6 +54,11 @@ int ps_region_get_shapes(const struct ps_region_shape **dst,const struct ps_regi
 int ps_region_shapes_calculate_weight(const struct ps_region_shape *shapev,int shapec);
 const struct ps_region_shape *ps_region_shapes_get_by_weight(const struct ps_region_shape *shapev,int shapec,int selection);
 
+int ps_region_count_monsters(const struct ps_region *region);
+int ps_region_get_monster(const struct ps_region *region,int p); // (p) in (0..count-1), sparseness managed for you.
+int ps_region_has_monster(const struct ps_region *region,int sprdefid);
+int ps_region_add_monster(struct ps_region *region,int sprdefid); // Fallible, as there is a constant limit.
+
 /* Region resource is line-oriented text.
  * '#' begins a line comment.
  * Words are separated by whitespace.
@@ -63,6 +71,7 @@ const struct ps_region_shape *ps_region_shapes_get_by_weight(const struct ps_reg
  *     WEIGHT: integer
  *     TILEID: integer
  *     STYLE: ps_region_shape_style_eval() (SINGLE,ALT4,ALT8,EVEN4,SKINNY,FAT)
+ *   monster SPRDEFID                  # 0..8
  */
 struct ps_region *ps_region_decode(const char *src,int srcc);
 

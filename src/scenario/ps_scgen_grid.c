@@ -12,12 +12,16 @@
  */
 
 static int ps_gridgen_initialize(struct ps_scgen *scgen,struct ps_screen *screen) {
+
+  screen->grid->region=screen->region;
+
   int cellc=PS_GRID_SIZE;
   struct ps_grid_cell *cell=screen->grid->cellv;
   for (;cellc-->0;cell++) {
     cell->tsid=screen->region->tsid;
     cell->shape=0;
   }
+  
   return 0;
 }
 

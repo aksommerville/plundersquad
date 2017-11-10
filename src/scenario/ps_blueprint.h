@@ -11,6 +11,9 @@
  * Blueprints are 4 cells smaller than grids on each axis.
  * Every blueprint must have at least one passable cell on each edge.
  * Grid generator will compose the two outer rings as needed to match neighbors.
+ *
+ * TODO Blueprint can explicitly define a sprite's spawn point, but typical monsters are added randomly at runtime.
+ *      Do we want blueprints to influence the random monster process, or is that all up to region and game?
  */
 
 #ifndef PS_BLUEPRINT_H

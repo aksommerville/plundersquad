@@ -39,8 +39,9 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
   if (ps_game_set_length(ps_game,length)<0) return -1;
 
   if (test_scgen) {
-    if (ps_game_generate_test(ps_game,1, // regionid
-      // blueprintids:
+    if (ps_game_generate_test(ps_game,
+      1, // regionid
+      // blueprintids. You must provide at least one with a HERO POI.
       2
     )<0) return -1;
   } else {
@@ -86,7 +87,7 @@ static int ps_main_init() {
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
 
-  if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
+  if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

@@ -6,6 +6,7 @@
 #define PS_GRID_H
 
 struct ps_blueprint_poi;
+struct ps_region;
 
 #define PS_GRID_CELL_SHAPE_RNW    0x01
 #define PS_GRID_CELL_SHAPE_RNE    0x02
@@ -24,6 +25,7 @@ struct ps_grid {
   int refc;
   struct ps_blueprint_poi *poiv;
   int poic;
+  struct ps_region *region; // WEAK, optional
   struct ps_grid_cell cellv[PS_GRID_SIZE];
 };
 

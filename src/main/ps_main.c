@@ -94,7 +94,7 @@ static int ps_main_init() {
       1, // playerc: 1..8
       1, // difficulty: 1..9
       1, // length: 1..9
-      1  // Nonzero for fake scenario (configure above).
+      0  // Nonzero for fake scenario (configure above).
     )<0) return -1;
   }
   

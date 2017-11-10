@@ -1,12 +1,12 @@
 tilesheet 2
 song 0
      
-monster  9 # purple spider
+#monster  9 # purple spider
 #monster 10 # sea monster -- Can't place this randomly because it requires HOLE cells.
-monster 13 # dragon bug
+#monster 13 # dragon bug
 monster 14 # bumblebat
-monster 15 # blueberry
-monster 16 # rabbit
+#monster 15 # blueberry
+#monster 16 # rabbit
 
 # Only one VACANT shape. VACANT is a special case for gridgen.
 shape VACANT 100 0x00 ALT16

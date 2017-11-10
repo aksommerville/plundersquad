@@ -12,8 +12,6 @@
  * Every blueprint must have at least one passable cell on each edge.
  * Grid generator will compose the two outer rings as needed to match neighbors.
  *
- * TODO Blueprint can explicitly define a sprite's spawn point, but typical monsters are added randomly at runtime.
- *      Do we want blueprints to influence the random monster process, or is that all up to region and game?
  */
 
 #ifndef PS_BLUEPRINT_H
@@ -57,6 +55,7 @@ struct ps_blueprint {
   int poic,poia;
   struct ps_blueprint_solution *solutionv;
   int solutionc,solutiona;
+  uint8_t monsterc_min,monsterc_max;
   uint8_t cellv[PS_BLUEPRINT_SIZE];
 };
 
@@ -136,7 +135,9 @@ int ps_blueprint_add_solution(
  *   0001   2 cellc, for validation only. must be PS_BLUEPRINT_SIZE. (21*10==210)
  *   0002   1 solutionc
  *   0003   1 poic
- *   0004  12 reserved
+ *   0004   1 monsterc_min
+ *   0005   1 monsterc_max
+ *   0006  10 reserved
  *   0010 ... cells
  *   .... ... solutions:
  *              0000   1 plo
@@ -162,6 +163,7 @@ int ps_blueprint_add_solution(
  * Header lines are:
  *   solution PLO PHI DIFFICULTY PREFERENCE [SKILL...]
  *   poi X Y TYPE INTEGER INTEGER INTEGER
+ *   monsters MIN MAX
  * Body is a 25x14 image, two characters per cell. Blank lines are ignored.
  * Only the first character of each body cell is examined:
  *   , VACANT

@@ -1,3 +1,5 @@
+monsters 2 6
+
 # Swordsman can kill a monster and bat its heart across the river.
 # This is much easier if you can send the healer across first.
 solution 1 1 7 10 SWORD

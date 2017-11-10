@@ -14,6 +14,8 @@
 static int ps_gridgen_initialize(struct ps_scgen *scgen,struct ps_screen *screen) {
 
   screen->grid->region=screen->region;
+  screen->grid->monsterc_min=screen->blueprint->monsterc_min;
+  screen->grid->monsterc_max=screen->blueprint->monsterc_max;
 
   int cellc=PS_GRID_SIZE;
   struct ps_grid_cell *cell=screen->grid->cellv;

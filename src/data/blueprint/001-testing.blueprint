@@ -3,6 +3,8 @@
 #solution 1 8 1 1 ARROW HOOKSHOT
 #solution 1 8 1 1 HEAL
 
+monsters 0 10
+
 poi 5 4 SPRITE 3 0 0
 poi 6 4 SPRITE 3 0 0
 poi 5 5 SPRITE 3 0 0

@@ -354,12 +354,15 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
   if (!game->grid) return -1;
   if (!game->grid->region) return 0; // Grids are allowed to not have a region (but they always will)
 
+  if (!game->grid->monsterc_max) return 0; // No monsters here please.
+  if (game->grid->monsterc_min>game->grid->monsterc_max) return -1;
+
   int defc=ps_region_count_monsters(game->grid->region);
   if (defc<1) return 0; // Perfectly fine if the region doesn't want random monsters.
 
-  //TODO How to decide the monster count? Should the blueprint have a say in this?
-  int monsterc_min=2;
-  int monsterc_max=5;
+  //TODO Adjust limits based on difficulty or other live things? Hmm, I guess difficulty isn't actually live.
+  int monsterc_min=game->grid->monsterc_min;
+  int monsterc_max=game->grid->monsterc_max;
   int monsterc=monsterc_min+rand()%(monsterc_max-monsterc_min+1);
   if (monsterc<1) return 0;
 

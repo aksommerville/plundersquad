@@ -26,6 +26,7 @@ struct ps_grid {
   struct ps_blueprint_poi *poiv;
   int poic;
   struct ps_region *region; // WEAK, optional
+  uint8_t monsterc_min,monsterc_max; // Copied from blueprint.
   struct ps_grid_cell cellv[PS_GRID_SIZE];
 };
 

@@ -236,7 +236,9 @@ int ps_blueprint_encode(void *dst,int dsta,const struct ps_blueprint *blueprint)
     DST[1]=PS_BLUEPRINT_SIZE;
     DST[2]=blueprint->solutionc;
     DST[3]=blueprint->poic;
-    memset(DST+4,0,12);
+    DST[4]=blueprint->monsterc_min;
+    DST[5]=blueprint->monsterc_max;
+    memset(DST+6,0,10);
   }
   int dstc=16;
 
@@ -408,6 +410,19 @@ static int ps_blueprint_decode_line_header(struct ps_blueprint *blueprint,const 
     poi->argv[0]=arg0;
     poi->argv[1]=arg1;
     poi->argv[2]=arg2;
+    FINISH
+  }
+
+  if ((kwc==8)&&!memcmp(kw,"monsters",8)) {
+    int lo,hi;
+    if ((err=ps_blueprint_decode_int(&lo,src+srcp,srcc-srcp,lineno,0,255))<0) return -1; srcp+=err;
+    if ((err=ps_blueprint_decode_int(&hi,src+srcp,srcc-srcp,lineno,0,255))<0) return -1; srcp+=err;
+    if (lo>hi) {
+      ps_log(RES,ERROR,"%d: Monster counts (%d,%d) don't make sense.",lineno,lo,hi);
+      return -1;
+    }
+    blueprint->monsterc_min=lo;
+    blueprint->monsterc_max=hi;
     FINISH
   }
 

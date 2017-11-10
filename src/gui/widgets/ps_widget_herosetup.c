@@ -292,6 +292,7 @@ static int ps_herosetup_enter_edit(struct ps_widget *widget) {
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
   if (!game) return -1;
   struct ps_player *player=game->playerv[WIDGET->playerid-1];
+  //if (ps_game_set_player_definition(game,WIDGET->playerid,1)<0) return -1;
   if (ps_widget_herosetup_refresh_player(widget,player)<0) return -1;
   
   return 0;
@@ -301,7 +302,7 @@ static int ps_herosetup_enter_edit(struct ps_widget *widget) {
  */
 
 static int ps_herosetup_enter_ready(struct ps_widget *widget) {
-  ps_log(GUI,TRACE,"%s %p",__func__,widget);
+  ps_log(GUI,TRACE,"%s %p %d",__func__,widget,WIDGET->playerid);
   
   if (ps_herosetup_drop_phase_children(widget)<0) return -1;
   WIDGET->phase=PS_HEROSETUP_PHASE_READY;

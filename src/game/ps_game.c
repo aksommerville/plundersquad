@@ -109,7 +109,7 @@ int ps_game_set_player_count(struct ps_game *game,int playerc) {
   if (!game) return -1;
   if ((playerc<0)||(playerc>PS_PLAYER_LIMIT)) return -1;
 
-  while (game->playerc>0) {
+  while (game->playerc>playerc) {
     game->playerc--;
     ps_player_del(game->playerv[game->playerc]);
   }

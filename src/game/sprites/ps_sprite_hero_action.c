@@ -42,6 +42,26 @@ static int ps_hero_assess_damage_to_others(struct ps_sprite *spr,struct ps_game 
   return 0;
 }
 
+/* Look for a swordswitch and activate it if warranted.
+ */
+
+static int ps_hero_check_swordswitch(struct ps_sprite *spr,struct ps_game *game,struct ps_fbox hazardbox,int force) {
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
+  int i=0; for (;i<grp->sprc;i++) {
+    struct ps_sprite *fragile=grp->sprv[i];
+    if (fragile->type!=&ps_sprtype_swordswitch) continue;
+    
+    struct ps_fbox fragilebox=ps_fbox(fragile->x-fragile->radius,fragile->x+fragile->radius,fragile->y-fragile->radius,fragile->y+fragile->radius);
+    if (hazardbox.s<=fragilebox.n) return 0;
+    if (hazardbox.n>=fragilebox.s) return 0;
+    if (hazardbox.e<=fragilebox.w) return 0;
+    if (hazardbox.w>=fragilebox.e) return 0;
+
+    if (ps_swordswitch_activate(fragile,game,spr,force)<0) return -1;
+  }
+  return 0;
+}
+
 /* Sword.
  */
 
@@ -63,7 +83,9 @@ static int ps_hero_sword_begin(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
   if (SPR->sword_in_progress) return 0;
   SPR->sword_in_progress=1;
-  if (ps_hero_assess_damage_to_others(spr,game,ps_hero_get_sword_bounds(spr))<0) return -1;
+  struct ps_fbox swordbounds=ps_hero_get_sword_bounds(spr);
+  if (ps_hero_assess_damage_to_others(spr,game,swordbounds)<0) return -1;
+  if (ps_hero_check_swordswitch(spr,game,swordbounds,1)<0) return -1;
   return 0;
 }
 
@@ -81,6 +103,7 @@ static int ps_hero_sword_continue(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Hurt fragile things. */
   if (ps_hero_assess_damage_to_others(spr,game,bounds)<0) return -1;
+  if (ps_hero_check_swordswitch(spr,game,bounds,0)<0) return -1;
 
   /* Fling prizes. */
   struct ps_sprgrp *prizes=game->grpv+PS_SPRGRP_PRIZE;

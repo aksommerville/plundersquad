@@ -25,6 +25,8 @@ fi
 
 sed -E s/dummy/$NAME/g $SRCPATH > $DSTPATH
 
+echo "OK. Remember to add to src/game/ps_sprite.h and src/game/ps_sprtype.c"
+
 if [ -n "$EDITOR" ] ; then
   $EDITOR $DSTPATH
 fi

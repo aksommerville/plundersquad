@@ -109,7 +109,7 @@ void *ps_res_get(int tid,int rid) {
 /* Reverse lookup by type and object.
  */
 
-int ps_res_get_id_by_obj(int tid,void *obj) {
+int ps_res_get_id_by_obj(int tid,const void *obj) {
   if ((tid<0)||(tid>=PS_RESTYPE_COUNT)) return -1;
   const struct ps_restype *type=ps_resmgr.typev+tid;
   int i=type->resc;

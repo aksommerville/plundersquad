@@ -9,7 +9,9 @@
 struct ps_sprite_switch {
   struct ps_sprite hdr;
   int barrierid;
-  int state;
+  int state; // Final answer: Am I on or off?
+  int stompbox; // Permanent role: Am I a stompbox or a treadle plate?
+  int press; // Is someone standing on me right now?
 };
 
 #define SPR ((struct ps_sprite_switch*)spr)
@@ -20,6 +22,9 @@ struct ps_sprite_switch {
 static int _ps_switch_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
   if (argc>=1) {
     SPR->barrierid=argv[0];
+    if (argc>=2) {
+      SPR->stompbox=argv[1];
+    }
   }
   return 0;
 }
@@ -50,7 +55,7 @@ static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->state) return 0;
   SPR->state=1;
-  spr->tileid++;
+//  spr->tileid++;
   if (ps_grid_open_barrier(game->grid,SPR->barrierid)<0) return -1;
   return 0;
 }
@@ -58,7 +63,7 @@ static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->state) return 0;
   SPR->state=0;
-  spr->tileid--;
+//  spr->tileid--;
   if (ps_grid_close_barrier(game->grid,SPR->barrierid)<0) return -1;
   return 0;
 }
@@ -67,11 +72,32 @@ static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
-  if (ps_switch_poll_state(spr,game)) {
-    return ps_switch_engage(spr,game);
+
+  /* Terminate if weight upon me hasn't changed. */
+  int state=ps_switch_poll_state(spr,game);
+  if (state==SPR->press) return 0;
+
+  /* Newly pressed. */
+  if (SPR->press=state) {
+    spr->tileid++;
+    if (SPR->stompbox) {
+      if (SPR->state) {
+        if (ps_switch_disengage(spr,game)<0) return -1;
+      } else {
+        if (ps_switch_engage(spr,game)<0) return -1;
+      }
+    } else {
+      if (ps_switch_engage(spr,game)<0) return -1;
+    }
+
+  /* Newly released. */
   } else {
-    return ps_switch_disengage(spr,game);
+    spr->tileid--;
+    if (!SPR->stompbox) {
+      if (ps_switch_disengage(spr,game)<0) return -1;
+    }
   }
+  
   return 0;
 }
 

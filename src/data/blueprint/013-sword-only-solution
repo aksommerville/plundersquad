@@ -1,0 +1,22 @@
+monsters 2 5
+
+poi 10 4 BARRIER 1 0 0
+poi 10 5 BARRIER 1 0 0
+
+poi  7 1 SPRITE 18 1 0 # swordswitch
+poi 10 8 SPRITE  0 0 0 # cork
+
+solution 1 8 1 10 SWORD
+
+==============================================
+
+, , , , , , XxXxXxXxXxXxXxXxXxXxXxXxXxXxXx
+, , , , , , XxXxXxXxXxXxXxXxXxXxXxXxXxXxXx
+, , , , , , , , , XxXxXx, , , , , , , , , 
+, , , , , , , , , XxXxXx, , , , , , , , , 
+, , , , , , , , , , X!, , , , , , , , , , 
+, , , , , , , , , , X!, , , , , , , , , , 
+, , , , , , , , , XxXxXx, , , , , , , , , 
+, , , , , , , , , XxXxXx, , , , , , , , , 
+XxXxXxXxXxXxXx, , , , , , Xx, , , , , , , 
+XxXxXxXxXxXxXxXxXxXxXxXxXxXx, , , , , , , 

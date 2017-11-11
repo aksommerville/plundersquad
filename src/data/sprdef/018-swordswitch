@@ -1,0 +1,6 @@
+type swordswitch
+tileid 0x0406
+shape circle
+radius 6
+grpmask visible update
+layer 70

@@ -207,7 +207,11 @@ static int _ps_blueberry_hurt(struct ps_game *game,struct ps_sprite *spr,struct 
   if (SPR->invincible) return 0;
 
   if ((SPR->nodec<=1)||!spr->grpc) {
-    return ps_sprite_kill_later(spr,game);
+    if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
+    if (ps_game_create_prize(game,spr->x,spr->y)<0) return -1;
+    if (ps_sprite_kill_later(spr,game)<0) return -1;
+    if (ps_game_check_deathgate(game)<0) return -1;
+    return 0;
   }
 
   struct ps_sprite *other=ps_sprite_new(&ps_sprtype_blueberry);

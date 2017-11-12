@@ -557,7 +557,12 @@ static int _ps_rabbit_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_
     /* IMPORTANT! If we have something in the belly at the moment of death, spit it out. */
     if (SPR->belly->sprc) ps_rabbit_begin_SPIT(spr,game);
     
-    return ps_sprite_kill_later(spr,game);
+    if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
+    if (ps_game_create_prize(game,spr->x,spr->y)<0) return -1;
+    if (ps_sprite_kill_later(spr,game)<0) return -1;
+    if (ps_game_check_deathgate(game)<0) return -1;
+
+    return 0;
   }
 
   SPR->invincible=PS_RABBIT_INVINCIBLE_TIME;

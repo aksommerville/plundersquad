@@ -94,5 +94,6 @@ int ps_game_force_next_screen(struct ps_game *game,int dx,int dy);
 
 int ps_game_create_fireworks(struct ps_game *game,int x,int y);
 int ps_game_create_prize(struct ps_game *game,int x,int y);
+int ps_game_check_deathgate(struct ps_game *game);
 
 #endif

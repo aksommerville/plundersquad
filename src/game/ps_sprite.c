@@ -126,6 +126,7 @@ int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struc
   if (ps_game_create_prize(game,victim->x,victim->y)<0) return -1;
   ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,victim);
   if (ps_sprite_kill_later(victim,game)<0) return -1;
+  if (ps_game_check_deathgate(game)<0) return -1;
 
   return 0;
 }

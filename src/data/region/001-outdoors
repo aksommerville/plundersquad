@@ -3,7 +3,7 @@ song 0
      
 monster  9 # purple spider
 #monster 10 # sea monster -- Can't place this randomly because it requires HOLE cells.
-monster 13 # dragon bug
+#monster 13 # dragon bug
 monster 14 # bumblebat
 monster 15 # blueberry
 monster 16 # rabbit

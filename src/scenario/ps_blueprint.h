@@ -30,6 +30,7 @@
 #define PS_BLUEPRINT_POI_TREASURE      0x02
 #define PS_BLUEPRINT_POI_HERO          0x03 /* [0]=sprdefid, [1,2]=argv */
 #define PS_BLUEPRINT_POI_BARRIER       0x04 /* [0]=barrierid. Toggles between selected cell and zero. */
+#define PS_BLUEPRINT_POI_DEATHGATE     0x05 /* [0]=blocked tile, [1]=open tile */
 
 #define PS_BLUEPRINT_XFORM_NONE        0x00
 #define PS_BLUEPRINT_XFORM_HORZ        0x01

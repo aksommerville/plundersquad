@@ -347,10 +347,13 @@ static int ps_blueprint_decode_poi_type(int *dst,const char *src,int srcc,int li
     case 8: {
         if (!memcmp(sub,"TREASURE",8)) { *dst=PS_BLUEPRINT_POI_TREASURE; break; }
       } break;
+    case 9: {
+        if (!memcmp(sub,"DEATHGATE",9)) { *dst=PS_BLUEPRINT_POI_DEATHGATE; break; }
+      } break;
   }
   
   if (*dst<0) {
-    ps_log(RES,ERROR,"%d: '%.*s' is not a POI type. (NOOP,HERO,SPRITE,TREASURE)",lineno,subc,sub);
+    ps_log(RES,ERROR,"%d: '%.*s' is not a POI type. (NOOP,HERO,SPRITE,BARRIER,TREASURE,DEATHGATE)",lineno,subc,sub);
     return -1;
   }
 

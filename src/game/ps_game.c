@@ -474,6 +474,39 @@ static int ps_game_spawn_sprites(struct ps_game *game) {
   return 0;
 }
 
+/* Death gates.
+ */
+
+static int ps_game_monsters_present(const struct ps_game *game) {
+  int i=game->grpv[PS_SPRGRP_HEROHAZARD].sprc;
+  while (i-->0) {
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HEROHAZARD].sprv[i];
+    if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) return 1;
+  }
+  return 0;
+}
+
+static int ps_game_setup_deathgate(struct ps_game *game) {
+  if (!game||!game->grid) return -1;
+  int i=game->grid->poic;
+  const struct ps_blueprint_poi *poi=game->grid->poiv;
+  int monsters_present=0; // -1=no, 1=yes, 0=unset
+  for (;i-->0;poi++) {
+    if (poi->type==PS_BLUEPRINT_POI_DEATHGATE) {
+      if (!monsters_present) monsters_present=(ps_game_monsters_present(game)?1:-1);
+      struct ps_grid_cell *cell=game->grid->cellv+poi->y*PS_GRID_COLC+poi->x;
+      if (monsters_present>0) {
+        cell->tileid=poi->argv[0];
+        cell->physics=PS_BLUEPRINT_CELL_SOLID;
+      } else {
+        cell->tileid=poi->argv[1];
+        cell->physics=PS_BLUEPRINT_CELL_VACANT;
+      }
+    }
+  }
+  return 0;
+}
+
 /* Restart.
  */
 
@@ -499,6 +532,7 @@ int ps_game_restart(struct ps_game *game) {
 
   if (ps_game_spawn_hero_sprites(game)<0) return -1;
   if (ps_game_spawn_sprites(game)<0) return -1;
+  if (ps_game_setup_deathgate(game)<0) return -1;
 
   return 0;
 }
@@ -538,6 +572,9 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
 
   /* Create sprites for new grid. */
   if (ps_game_spawn_sprites(game)<0) return -1;
+
+  /* Check death gates. */
+  if (ps_game_setup_deathgate(game)<0) return -1;
 
   ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
   
@@ -829,5 +866,37 @@ int ps_game_create_prize(struct ps_game *game,int x,int y) {
   if (!sprdef) return -1;
   struct ps_sprite *prize=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
   if (!prize) return -1;
+  return 0;
+}
+
+/* Check whether all monsters are dead and remove DEATHGATE cells if so.
+ */
+
+static int ps_game_remove_deathgate(struct ps_game *game) {
+  if (!game) return -1;
+  if (!game->grid) return -1;
+  ps_log(GAME,DEBUG,"%s...",__func__);
+  int removec=0;
+  int i=game->grid->poic;
+  const struct ps_blueprint_poi *poi=game->grid->poiv;
+  for (;i-->0;poi++) {
+    if (poi->type==PS_BLUEPRINT_POI_DEATHGATE) {
+      struct ps_grid_cell *cell=game->grid->cellv+poi->y*PS_GRID_COLC+poi->x;
+      cell->physics=PS_BLUEPRINT_CELL_VACANT;
+      cell->tileid=poi->argv[1];
+      removec++;
+    }
+  }
+  if (removec) {
+    //TODO Death gate removed -- play a sound effect or something?
+  }
+  return 0;
+}
+
+int ps_game_check_deathgate(struct ps_game *game) {
+  if (!game) return -1;
+  if (!ps_game_monsters_present(game)) {
+    if (ps_game_remove_deathgate(game)<0) return -1;
+  }
   return 0;
 }

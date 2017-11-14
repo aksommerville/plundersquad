@@ -36,7 +36,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
   }
 
   /* Optionally override plrdef selection. */
-  if (ps_game_set_player_definition(ps_game,1,2)<0) return -1;
+  if (ps_game_set_player_definition(ps_game,1,3)<0) return -1;
   
   if (ps_game_set_difficulty(ps_game,difficulty)<0) return -1;
   if (ps_game_set_length(ps_game,length)<0) return -1;
@@ -45,7 +45,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
     if (ps_game_generate_test(ps_game,
       1, // regionid
       // blueprintids. You must provide at least one with a HERO POI.
-      14
+      15
     )<0) return -1;
   } else {
     if (ps_game_generate(ps_game)<0) return -1;

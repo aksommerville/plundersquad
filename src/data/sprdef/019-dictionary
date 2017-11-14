@@ -1,0 +1,4 @@
+type dummy
+tileid 0x0408
+shape square
+grpmask visible physics solid latch

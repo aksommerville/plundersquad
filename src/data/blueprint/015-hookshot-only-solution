@@ -1,0 +1,24 @@
+monsters 2 3
+
+poi 0 0 HERO 1 0 0
+
+poi  4 6 SPRITE 19 0 0 # dictionary
+poi 16 1 SPRITE  8 1 0 # treadle plate
+poi 19 6 SPRITE  8 1 1 # stompbox
+
+poi 14 6 BARRIER 1 0 0
+
+solution 1 8 1 10 ARROW
+
+==============================================
+
+LlLl, , , , , , OoOoOoOoOoXxXxXxXxXxXxXxXx
+LlLlLl, , , , , OoOoOoOoOo--------LlLlLlXx
+LlLlLl, , , , , OoOoOoOoOo--------LlLlLlXx
+LlLl, , , , , , OoOoOoOoOoOo--------LlLlXx
+, , , , , , , , , OoOoOoOoOoOoOoXxXxXxXxXx
+, , , , , , , , , , , OoOoOoOoOoXxXxXxXxXx
+, , , , , , , , , , , , , , Xx------------
+, , , , , , , , , , , , OoOoOoOo----------
+, , , , , XxXxXxXxXxXxXxOoOoOoOo------XxXx
+XxXxXxXxXxXxXxXxXxXxXxXx--------------XxXx

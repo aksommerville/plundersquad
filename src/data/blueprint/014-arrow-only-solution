@@ -1,7 +1,5 @@
 monsters 0 0
 
-poi 0 0 HERO 1 0 0
-
 poi 18 6 SPRITE 16 0 0 # rabbit
 poi 10 5 DEATHGATE 0x75 0x00 0
 

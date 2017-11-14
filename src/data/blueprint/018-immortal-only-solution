@@ -1,0 +1,28 @@
+monsters 2 5
+
+poi 0 0 HERO 1 0 0
+
+poi 16 4 SPRITE 8 1 1 # upper switch
+poi 16 8 SPRITE 8 1 1 # lower switch
+poi 14 2 SPRITE 2 0 0 # fire
+poi 15 2 SPRITE 2 0 0 # fire
+poi 16 2 SPRITE 2 0 0 # fire
+poi 17 2 SPRITE 2 0 0 # fire
+poi 18 2 SPRITE 2 0 0 # fire
+
+poi 13 7 BARRIER 1 0 0
+
+solution 1 8 1 10 IMMORTAL
+
+==============================================
+
+, , , , , , , , , , XxXxXxXxXxXxXxXxXxXxXx
+, , , , OoOo, , , , XxXxXxXxXxXxXxXxXxXxXx
+, , , OoOoOoOo, , , , XxXxXx, , , , , XxXx
+, , , OoOoOoOo, , , , , XxXx, XxXxXx, XxXx
+, , , , OoOo, , , , , , , , , Xx,sXx, XxXx
+, , , , , , , , , , , , , , , Xx, , , XxXx
+, , , , , , , , XxXxXxXxXx, XxXxXxXxXxXxXx
+, , , , , , XxXxXxXxXxXxXxX?XxXxXxXxXxXxXx
+, , XxXxXxXxXxXxXxXxXxXxXx, , , ,s, , , , 
+XxXxXxXxXxXxXxXxXxXxXxXxXx, , , , , , , , 

@@ -169,7 +169,6 @@ static void write_grid_to_image(uint8_t *dst,const struct ps_grid_cell *src,int 
         case PS_BLUEPRINT_CELL_HEROONLY: subdst[0]=0xff; subdst[1]=0xff; subdst[2]=0x00; subdst[3]=0xff; break;
         case PS_BLUEPRINT_CELL_HAZARD:   subdst[0]=0xff; subdst[1]=0x00; subdst[2]=0x00; subdst[3]=0xff; break;
         case PS_BLUEPRINT_CELL_HEAL:     subdst[0]=0x00; subdst[1]=0xff; subdst[2]=0xff; subdst[3]=0xff; break;
-        case PS_BLUEPRINT_CELL_DEATHGATE:subdst[0]=0x80; subdst[1]=0x00; subdst[2]=0x00; subdst[3]=0xff; break;
         default:                         subdst[0]=0xff; subdst[1]=0xff; subdst[2]=0xff; subdst[3]=0xff; break;
       }
     }

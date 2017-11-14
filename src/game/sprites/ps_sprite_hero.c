@@ -57,6 +57,13 @@ static int _ps_hero_init(struct ps_sprite *spr) {
   return 0;
 }
 
+/* Configure.
+ */
+
+static int _ps_hero_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+  return 0;
+}
+
 /* Setup walk animation.
  */
 
@@ -606,6 +613,12 @@ static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sp
   if (SPR->healtime) return 0;
   if (!SPR->hp) return 0; // Ghost.
 
+  /* If we have the IMMORTAL skill, forget about it. */
+  if (SPR->player&&SPR->player->plrdef&&(SPR->player->plrdef->skills&PS_SKILL_IMMORTAL)) {
+    SPR->hurttime=PS_HERO_HURT_TIME; // Fake pain as a way of mocking pathetic mortals.
+    return 0;
+  }
+
   SPR->hp--;
   if (SPR->hp<=0) {
     SPR->hp=0;
@@ -630,6 +643,7 @@ const struct ps_sprtype ps_sprtype_hero={
 
   .init=_ps_hero_init,
   .del=_ps_hero_del,
+  .configure=_ps_hero_configure,
   .update=_ps_hero_update,
   .draw=_ps_hero_draw,
 

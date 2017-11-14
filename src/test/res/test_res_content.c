@@ -150,9 +150,8 @@ static int count_blueprint_solutions_by_skill() {
     for (res=restype->resv,i=restype->resc,blueprint=res->obj;i-->0;res++,blueprint=res->obj) \
       for (solution=blueprint->solutionv,ii=blueprint->solutionc;ii-->0;solution++)
 
-  //TODO Eventually this should be an assertion but for now I want the whole report.
   #define REQUIRE(var) \
-    if (!var) ps_log(RES,ERROR,"Blueprint solution condition not met: %s",#var);
+    PS_ASSERT(var,"Blueprint solution condition not met: %s",#var)
 
   /* There must be at least one blueprint for some player count where only this skill can solve it. */
   #define MUST_HAVE_LONE_SOLUTION(tag) { \

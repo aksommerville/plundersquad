@@ -1,0 +1,22 @@
+monsters 0 0
+
+poi 11 3 SPRITE 16 0 0 # rabbit
+poi 16 6 SPRITE  8 1 1 # switch
+
+poi 12 5 BARRIER 1 0 0 # return door
+poi  6 5 DEATHGATE 0x75 0 0 # victory door
+
+solution 1 8 1 10 COMBAT
+
+==============================================
+
+, , , , , , , , , , , , , , , , , , , XxXx
+, , , , , , , , , , , , , , , , , , , XxXx
+, , , , , , , , , , , , , , , , , XxXxXxXx
+, , , , , , , , , , , ,M, , , XxXxXxXxXxXx 
+, , , , , , , , , , , , , XxXxXxXxXxXx, , 
+, , , XxXxXx,!XxXxXxXxXxX!XxXxXxXx, , , , 
+, , XxXxXxXx, XxXxXxXxXx, , XxXx,s, , , , 
+, XxXxXxXx, , , , , , , , , , , , , , , , 
+XxXxXxXx, , , , , , , , , , , , , , , , , 
+XxXxXx, , , , , , , , , , , , , , , , , , 

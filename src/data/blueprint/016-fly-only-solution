@@ -1,0 +1,23 @@
+monsters 1 3
+
+poi 0 0 HERO 1 0 0
+
+poi 16 1 SPRITE  8 1 1 # tricky stompbox
+poi 19 6 SPRITE  8 1 1 # return stompbox
+
+poi 14 6 BARRIER 1 0 0
+
+solution 1 8 1 10 FLY
+
+==============================================
+
+, , , , , , , , OoOoOoOoOoXxXxXxXxXxXxXxXx
+, , , , , , , , OoOoOoOoOo------------XxXx
+, , , , , , , , OoOoOoOoOo------------XxXx
+, , XxXx, , , , OoOoOoXxXxXx----------XxXx
+, , XxXxXx, , , , OoOoXxXxXxXxXxXxXxXxXxXx
+, , XxXxXx, , , , , , , XxXxXxXxXxXxXxXxXx
+, , , XxXx, , , , , , , , , Xx------------
+, , , , , , , , , , XxXxXxXxXxXx----------
+, , , , , XxXxXxXxXxXxXxXxXxXxXx------XxXx
+XxXxXxXxXxXxXxXxXxXxXxXx--------------XxXx

@@ -1,7 +1,6 @@
 head 0x00
 body 0x80
 skill martyr
-skill combat
 colors 604020 ff0000
 colors 604020 00c000
 colors 604020 0000ff

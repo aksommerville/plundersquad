@@ -1,0 +1,21 @@
+monsters 2 4
+
+poi 0 0 HERO 1 0 0
+poi 1 0 HERO 2 0 0
+
+poi 14 6 SPRITE 0 0 0
+
+solution 2 8 1 10 HEAL
+
+==============================================
+
+, , , , , , , , , , , , , , , , , , , XxXx
+, , , , , , XxXxXx, , XxXx, , , , , , XxXx
+, , , , , , XxXxXx, , XxXx, , , , , , XxXx
+, , XxXx, , , XxXx, , XxXx, XxXxXx, , XxXx
+, , XxXxXx, , , , , , , , , XxXxXxXxXxXxXx
+, , XxXxXx, , , , , , XxXx, , XxXxXxXxXxXx
+, , , XxXx, , , , , , XxXx, ,!, , XxXx, , 
+, , , , , , , , , , XxXxXxXxXxXx, , , , , 
+, , , , , XxXxXxXxXxXxXxXxXxXxXx, , , XxXx
+XxXxXxXxXxXxXxXxXxXxXxXx, , , , , , , XxXx

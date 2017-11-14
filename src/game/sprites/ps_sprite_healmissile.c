@@ -31,7 +31,7 @@ static int ps_healmissile_heal_mortals(struct ps_sprite *spr,struct ps_game *gam
   double top=spr->y-PS_HEALMISSILE_RADIUS;
   double bottom=spr->y+PS_HEALMISSILE_RADIUS;
   int i; for (i=0;i<game->grpv[PS_SPRGRP_HERO].sprc;i++) {
-    struct ps_sprite *victim=game->grpv[PS_SPRGRP_FRAGILE].sprv[i];
+    struct ps_sprite *victim=game->grpv[PS_SPRGRP_HERO].sprv[i];
     if (victim->type!=&ps_sprtype_hero) continue;
     if (victim->x+victim->radius<=left) continue;
     if (victim->x-victim->radius>=right) continue;

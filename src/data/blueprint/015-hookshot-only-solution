@@ -1,7 +1,5 @@
 monsters 2 3
 
-poi 0 0 HERO 1 0 0
-
 poi  4 6 SPRITE 19 0 0 # dictionary
 poi 16 1 SPRITE  8 1 0 # treadle plate
 poi 19 6 SPRITE  8 1 1 # stompbox

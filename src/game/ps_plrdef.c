@@ -142,6 +142,7 @@ static int ps_plrdef_decode_line(struct ps_plrdef *plrdef,const char *src,int sr
   if ((kwc==4)&&!memcmp(src,"body",4)) return ps_plrdef_decode_body(plrdef,arg,argc,lineno);
   if ((kwc==5)&&!memcmp(src,"skill",5)) return ps_plrdef_decode_skill(plrdef,arg,argc,lineno);
   if ((kwc==6)&&!memcmp(src,"colors",6)) return ps_plrdef_decode_colors(plrdef,arg,argc,lineno);
+  if ((kwc==18)&&!memcmp(src,"head_on_top_always",18)) { plrdef->head_on_top_always=1; return 0; }
 
   ps_log(RES,ERROR,"%d: Unexpected keyword '%.*s' (head,body,skill,colors)",lineno,kwc,src);
   return -1;

@@ -17,6 +17,7 @@ struct ps_plrdef {
   uint16_t skills;
   struct ps_plrdef_palette *palettev;
   int palettec,palettea;
+  int head_on_top_always;
 };
 
 struct ps_plrdef *ps_plrdef_new();
@@ -29,6 +30,7 @@ void ps_plrdef_del(struct ps_plrdef *plrdef);
  *   body TILEID
  *   skill STRING
  *   colors HEAD BODY
+ *   head_on_top_always
  * "skill" and "colors" may appear more than once.
  */
 int ps_plrdef_decode(struct ps_plrdef *plrdef,const void *src,int srcc);

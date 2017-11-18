@@ -1,12 +1,10 @@
-head 0x00
-body 0x80
+head 0x46
+body 0xc3
+head_on_top_always
 skill immortal
-colors 604020 ff0000
-colors 604020 00c000
-colors 604020 0000ff
-colors 604020 ffff00
-colors 604020 ff00ff
-colors 604020 00ffff
-colors 604020 808080
-colors 604020 404040
-colors 604020 c0c0c0
+colors 808080 808080
+colors a0a0a0 a0a0a0
+colors c0c0c0 c0c0c0
+colors 505050 505050
+colors c0d0e0 c0d0e0
+colors ffc0c8 ffc0c8

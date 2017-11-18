@@ -426,6 +426,14 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
     vtx_head=vtxv+0;
     vtx_body=vtxv+1;
   }
+  // Extra: If (head_on_top_always) and not so, swap body and head.
+  if (SPR->player&&SPR->player->plrdef&&SPR->player->plrdef->head_on_top_always) {
+    if (vtx_head<vtx_body) {
+      void *tmp=vtx_body;
+      vtx_body=vtx_head;
+      vtx_head=tmp;
+    }
+  }
 
   /* Position vertices. Body is the sprite's (x,y), head is a little north. */
   vtx_body->x=spr->x;

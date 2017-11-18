@@ -1,14 +1,7 @@
-head 0x00
-body 0x80
+head 0x0c
+body 0x89
 skill hookshot
-skill combat
-colors 604020 ff0000
-colors 604020 00c000
-colors 604020 0000ff
-colors 604020 ffff00
-colors 604020 ff00ff
-colors 604020 00ffff
-colors 604020 808080
-colors 604020 404040
-colors 604020 c0c0c0
-#TODO graphics
+colors f0e0a0 808080
+colors 604020 a0a0a0
+colors 402010 606060
+colors a06010 8080c0

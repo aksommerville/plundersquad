@@ -1,3 +1,4 @@
 type hookshot
 tileid 0x032f
 grpmask visible update
+layer 99

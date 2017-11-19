@@ -19,6 +19,7 @@ struct ps_sprite_hero {
 
   struct ps_player *player;
   uint16_t input;
+  int input_ready; // Zero until the incoming buttons all go zero -- prevent unintended keystrokes on init.
   int reexamine_dpad; // Set during input processing to force dpad state to zero, to reexamine next time.
   int indx,indy; // Requested movement, ie joystick position. (-1,0,1)
   int facedir; // PS_DIRECTION_*, which direction to render

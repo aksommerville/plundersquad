@@ -129,6 +129,8 @@ static int ps_hero_rcvinput_dpad(struct ps_sprite *spr,uint16_t input) {
  */
 
 static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game *game) {
+  if (!input) SPR->input_ready=1;
+  if (!SPR->input_ready) return 0; // Not receiving input yet.
   if (SPR->input==input) return 0; // No change.
 
   if (SPR->hookshot_in_progress) {

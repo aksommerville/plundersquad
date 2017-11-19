@@ -1,3 +1,2 @@
 - More projectile-throwing monsters.
-- Suppress firing action on game start.
 - Hero-on-hero collision when leaving screen, caused push into wall.

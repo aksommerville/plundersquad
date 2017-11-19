@@ -43,12 +43,12 @@ static int _ps_sconfig_init(struct ps_page *page) {
   if (ps_widget_ref(PAGE->menu)<0) return -1;
 
   struct ps_widget *option;
-  if (!(option=ps_widget_menu_add_option(PAGE->menu,"Return to player setup",-1))) return -1;
+  if (!(option=ps_widget_menu_add_option(PAGE->menu,"Begin",-1))) return -1;
   if (!(option=ps_widget_menu_add_slider(PAGE->menu,"Difficulty ",-1,PS_DIFFICULTY_MIN,PS_DIFFICULTY_MAX))) return -1;
   if (ps_widget_slider_set_value(option,PS_DIFFICULTY_DEFAULT)<0) return -1;
   if (!(option=ps_widget_menu_add_slider(PAGE->menu,"    Length ",-1,PS_LENGTH_MIN,PS_LENGTH_MAX))) return -1;
   if (ps_widget_slider_set_value(option,PS_LENGTH_DEFAULT)<0) return -1;
-  if (!(option=ps_widget_menu_add_option(PAGE->menu,"Begin",-1))) return -1;
+  if (!(option=ps_widget_menu_add_option(PAGE->menu,"Return to player setup",-1))) return -1;
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"Quit",-1))) return -1;
 
   return 0;
@@ -69,12 +69,12 @@ static int _ps_sconfig_move_cursor(struct ps_page *page,int dx,int dy) {
 
 static int _ps_sconfig_activate(struct ps_page *page) {
   switch (ps_widget_menu_get_cursor(PAGE->menu)) {
-    case 0: { // Back
-        if (ps_gui_load_page_assemble(page->gui)<0) return -1;
-      } break;
-    case 3: { // Begin
+    case 0: { // Begin
         if (ps_sconfig_generate_scenario(page)<0) return -1;
         if (ps_gui_unload_page(page->gui)<0) return -1;
+      } break;
+    case 3: { // Back
+        if (ps_gui_load_page_assemble(page->gui)<0) return -1;
       } break;
     case 4: { // Quit
         if (ps_input_request_termination()<0) return -1;

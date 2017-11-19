@@ -316,10 +316,12 @@ static int ps_blueprint_decode_solution(uint16_t *dst,const char *src,int srcc,i
   while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)) { srcp++; subc++; }
   while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
 
-  if ((*dst=ps_skill_eval(sub,subc))<0) {
+  int skill=ps_skill_eval(sub,subc);
+  if (skill<0) {
     ps_log(RES,ERROR,"%d: '%.*s' is not a skill. (FLY,HEAL,FROG,SWORD,ARROW,FLAME,CARRY,SPEED,MARTYR,WEIGHT,HOOKSHOT,IMMORTAL)",lineno,subc,sub);
     return -1;
   }
+  *dst=skill;
 
   return srcp;
 }

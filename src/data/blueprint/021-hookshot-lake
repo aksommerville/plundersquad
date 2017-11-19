@@ -11,7 +11,7 @@ solution 1 8 7 10 SWORD
 solution 1 8 6 10 ARROW
 
 # Healer plus combatant can do a similar move. Or two healers, but we can't express that.
-solution 2 8 6 10 HEALER COMBAT
+solution 2 8 6 10 HEAL COMBAT
 
 ==============================================
 

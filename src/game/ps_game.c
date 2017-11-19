@@ -585,10 +585,10 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
  */
 
 static int ps_game_get_sprite_grid_change(const struct ps_sprite *spr) {
-  if (spr->x+spr->radius<=0.0) return PS_DIRECTION_WEST;
-  if (spr->y+spr->radius<=0.0) return PS_DIRECTION_NORTH;
-  if (spr->x-spr->radius>=PS_SCREENW) return PS_DIRECTION_EAST;
-  if (spr->y-spr->radius>=PS_SCREENH) return PS_DIRECTION_SOUTH;
+  if (spr->x<=0.0) return PS_DIRECTION_WEST;
+  if (spr->y<=0.0) return PS_DIRECTION_NORTH;
+  if (spr->x>=PS_SCREENW) return PS_DIRECTION_EAST;
+  if (spr->y>=PS_SCREENH) return PS_DIRECTION_SOUTH;
   return 0;
 }
 

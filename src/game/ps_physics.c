@@ -8,7 +8,7 @@
 #define PS_PHYSICS_EPSILON       0.001 /* Penetrations smaller than this are discarded. */
 #define PS_PHYSICS_ACTION_BIAS   1.010 /* Any time we move a sprite, fudge the movement outward just a little. */
 #define PS_PHYSICS_REPC 10 /* Repeat each update so many times or until the world is stable. */
-#define PS_PHYSICS_GRID_OOBW 2 /* Copy grid's nearest neighbor to so many cells offscreen, then treat them all as solid. */
+#define PS_PHYSICS_GRID_OOBW 1 /* Copy grid's nearest neighbor to so many cells offscreen, then treat them all as solid. */
 
 /* Object lifecycle.
  */

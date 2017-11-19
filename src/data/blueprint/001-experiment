@@ -8,14 +8,6 @@ poi 0 0 HERO 1 0 0
 poi 1 0 HERO 2 0 0
 poi 2 1 HERO 3 0 0
 
-poi 10 5 SPRITE 20 0 0 # lobster
-poi 10 8 SPRITE 0 0 0 # cork
-
-poi 18 3 DEATHGATE 0x75 0x00 0
-
-solution 1 8 4 10 COMBAT # The obvious solution
-solution 2 8 5 10 HEAL # Healer and anyone else can circumvent the cork
-
 ==============================================
 
 , , , , , , , , , , , , , , , , , , , , Xx
@@ -25,6 +17,6 @@ solution 2 8 5 10 HEAL # Healer and anyone else can circumvent the cork
 , , , , , , , , , , , , , , , XxXxXx, , , 
 , , , , , , , , , , , , , XxXxXx, , , , , 
 , , , , , , , , , , , XxXxXx, , , , , , , 
-, , , , , , , , , , XxXx, , , , , , , , , 
-, , , , , , , , , , ,!, , Xx, , , , , , , 
+, , , , , , , , , , , , , , , , , , , , , 
+, , , , , , , , , , , , , , , , , , , , , 
 XxXxXxXxXxXxXxXxXxXxXxXxXxXx, , , , , , , 

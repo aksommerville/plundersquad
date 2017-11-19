@@ -1,0 +1,27 @@
+monsters 2 4
+
+# The obvious solution is to send the gadgeteer across, then have him carry everyone else.
+solution 1 8 1 10 HOOKSHOT
+
+# The vampire can cross on his own, it's easy.
+solution 1 1 1 10 FLY
+
+# Swordsman or archer can pull a heal-on-the-other-side maneuver.
+solution 1 8 7 10 SWORD
+solution 1 8 6 10 ARROW
+
+# Healer plus combatant can do a similar move. Or two healers, but we can't express that.
+solution 2 8 6 10 HEALER COMBAT
+
+==============================================
+
+, , , , , , , , , , XxXxXxXxXxXxXxXxXxXxXx
+, , , , , , , , , , XxXxXxXxXxXxXxXxXxXxXx
+, , , , , , OoOoOoOoOoOoOoOoOo, , , , , , 
+, , Ll, , , OoOoOoOoOoOoOoOoOo, , , Ll, , 
+, , , , , , OoOoOoOoOoOoOoOoOo, , , , , , 
+, , , , , , OoOoOoOoOoOoOoOoOo, , , , , , 
+, , , , , , OoOoOoOoOoOoOoOoOo, , , , , , 
+, , , , , , OoOoOoOoOoOoOoOoOo, , , , , , 
+XxXxXxXxXxXxXxXxXxXxXxXxXxXxXx, , , , , , 
+XxXxXxXxXxXxXxXxXxXxXxXxXxXxXx, , , , , , 

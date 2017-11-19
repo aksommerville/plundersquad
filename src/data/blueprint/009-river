@@ -19,12 +19,6 @@ solution 2 8 3 10 HOOKSHOT
 # Vampire can fly across as a bat, no problem. But he can only do it alone.
 solution 1 1 1 10 FLY
 
-poi 4 4 SPRITE 0 0 0 # TODO monster spawner
-poi 19 8 SPRITE 0 0 0 # TODO monster spawner
-
-poi 4 5 SPRITE 2 0 0
-poi 18 8 SPRITE 2 0 0
-
 # Sea monsters.
 poi 17 3 SPRITE 10 0 0
 #poi  4 7 SPRITE 10 0 0
@@ -33,7 +27,7 @@ poi 17 3 SPRITE 10 0 0
 
 , , , , , , , , , , , , , , , , , , OoOoOo
 , , , , , , , , LlLl, , , , , , , OoOoOoOo
-, , ,M, , HH, , LlLl, , , , , , OoOoOoOoOo
+, , ,M, , , , , LlLl, , , , , , OoOoOoOoOo
 , , , , , , , , , , , , , , OoOoOoOoOoOo, 
 , , , , , , , , , , , OoOoOoOoOoOoOo, , , 
 , , , , , OoOoOoOoOoOoOoOoOoOoOo, , , , , 

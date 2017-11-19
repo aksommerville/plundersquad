@@ -1,0 +1,37 @@
+# This blueprint is for playing around during development.
+# When you've got something nice here, copy it to a new blueprint.
+
+monsters 0 0
+
+#XXX TEMP
+poi 0 0 HERO 1 0 0
+poi 1 0 HERO 2 0 0
+poi 2 1 HERO 3 0 0
+poi 1 7 SPRITE 0 0 0
+poi 2 7 SPRITE 0 0 0
+
+poi 18 2 SPRITE  9 0 0
+poi  9 1 SPRITE 18 1 0
+poi  4 7 SPRITE  2 0 0
+poi  5 7 SPRITE  2 0 0
+poi  6 7 SPRITE  8 2 0
+
+poi 10 2 BARRIER 1 0 0
+poi 15 2 BARRIER 2 0 0
+poi 12 5 DEATHGATE 0x75 0x00 0
+
+solution 3 8 3 10 SWORD ARROW IMMORTAL
+solution 3 8 3 10 SWORD HOOKSHOT IMMORTAL
+
+==============================================
+
+, , , , , , , , XxXxXxXxXxXxXxXxXxXxXxXxXx
+, , , , , , , , XxXSXxXxXxXxXxXxXxXxXxXxXx
+, , , , , , , , , , X!OoOoOoOoX!, , , XxXx
+, , , , , , , , , , XxXxXxXxXxXxOoOoOoXxXx
+, , , , , , , , , , XxXxXxXxXxXxOoOoOoXxXx
+, , , , XxXxXxXxXx, , , ,g, , , , , , , , 
+, , , , XxXxXxXxXxXxXxXxXxXxXx, , , , , , 
+, , , , ,f,f,SXxXxXxXxXxXxXxXx, , , , , , 
+XxXxXxXxXxXxXxXxXxXxXxXxXxXxXx, , , , , , 
+XxXxXxXxXxXxXxXxXxXxXxXxXxXxXx, , , , , , 

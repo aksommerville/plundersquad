@@ -1,16 +1,14 @@
 monsters 0 4
 
-poi 6 5 SPRITE 2 0 0
-
 ===============================================================================
 
-XxXxXxXxXx, , , , , , , , XxXxXxXxXxXxXxXx
 XxXxXx, , , , , , , , , , , , , XxXxXxXxXx
-XxXx, , , , , , , , , , , , , , XxXx, , Xx
+XxXxXx, , , , , , , , , , , , , XxXxXxXxXx
+XxXx, , , , , , , , , , , , , , XxXxXx, , 
 , , , , , , , , XxXxXx, , , , XxXxXx, , , 
 , , , , , , , XxXxXxXxXx, , , XxXxXx, , ,
 , , , , , , , XxXxXxXxXxXx, , XxXx, , , , 
 , , , , , , , XxXxXxXxXxXx, , XxXx, , , , 
-Xx, , , , , , , XxXxXxXx, , , , , , , , , 
+, , , , , , , , XxXxXxXx, , , , , , , , , 
 XxXx, , , , , , , , , , , , , , , , , , Xx
-XxXxXx, , , , , , , , , , , , , , , , XxXx
+XxXx, , , , , , , , , , , , , , , , , XxXx

@@ -10,7 +10,8 @@ poi 11 3 HERO 8 0 0
 # XXX These are temporary. Used for quick testing of new sprite types.
 #poi 8 4 SPRITE 0 0 0
 
-monsters 0 5
+# TODO Do we want monsters on the start screen?
+#monsters 0 5
 
 ===============================================================================
 

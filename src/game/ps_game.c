@@ -27,10 +27,22 @@ struct ps_game_layer {
   struct ps_game *game; // WEAK
 };
 
+static int ps_game_draw_hud(struct ps_game *game) {
+  if (ps_video_text_begin()<0) return -1;
+  if (ps_video_text_addf(12,0x000000ff,6,7,
+    "%d/%d  %02d:%02d",
+    ps_game_count_collected_treasures(game),game->treasurec,
+    game->playtime/3600,(game->playtime/60)%60
+  )<0) return -1;
+  if (ps_video_text_end(0)<0) return -1;
+  return 0;
+}
+
 static int ps_game_layer_draw(struct ps_video_layer *layer) {
   struct ps_game *game=((struct ps_game_layer*)layer)->game;
   if (ps_video_draw_grid(game->grid)<0) return -1;
   if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE)<0) return -1;
+  if (ps_game_draw_hud(game)<0) return -1;
   return 0;
 }
 
@@ -518,6 +530,7 @@ int ps_game_restart(struct ps_game *game) {
   );
 
   game->finished=0;
+  game->playtime=0;
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;
@@ -769,6 +782,8 @@ int ps_game_update(struct ps_game *game) {
 
   if (game->finished) return 0;
 
+  game->playtime++;
+
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
   int i=0; for (i=0;i<grp->sprc;i++) {
@@ -846,6 +861,13 @@ int ps_game_get_treasure_state(const struct ps_game *game,int treasureid) {
   if (!game) return 0;
   if ((treasureid<0)||(treasureid>=game->treasurec)) return 0;
   return game->treasurev[treasureid];
+}
+
+int ps_game_count_collected_treasures(const struct ps_game *game) {
+  if (!game) return 0;
+  int c=0,i=game->treasurec;
+  while (i-->0) if (game->treasurev[i]) c++;
+  return c;
 }
 
 /* Create fireworks when something dies.

@@ -38,6 +38,7 @@ struct ps_game {
   int length;
   int treasurev[PS_TREASURE_LIMIT];
   int treasurec;
+  int playtime; // Count of updates since reset.
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];
   struct ps_grid *grid; // WEAK
@@ -84,6 +85,7 @@ int ps_game_toggle_pause(struct ps_game *game);
 
 int ps_game_collect_treasure(struct ps_game *game,struct ps_sprite *collector,int treasureid);
 int ps_game_get_treasure_state(const struct ps_game *game,int treasureid); // 0=uncollected, 1=collected
+int ps_game_count_collected_treasures(const struct ps_game *game);
 
 /* These can be nice for troubleshooting.
  * In particular, I'm adding them because I want to see the blueprint id for the current grid.

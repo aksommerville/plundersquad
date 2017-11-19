@@ -91,7 +91,7 @@ static int ps_main_init() {
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
 
-  if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
+  if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

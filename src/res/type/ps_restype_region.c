@@ -15,10 +15,36 @@ static int ps_REGION_decode(void *dstpp,const void *src,int srcc,int id,const ch
 }
 
 /* Link.
- * TODO: Assert existence of tilesheet and song.
  */
 
 static int ps_REGION_link(void *obj) {
+  struct ps_region *region=obj;
+
+  struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,region->tsid);
+  if (!tilesheet) {
+    ps_log(RES,ERROR,"tilesheet:%d not found",region->tsid);
+    return -1;
+  }
+
+  if (region->songid) {
+    struct ps_res_SONG *song=ps_res_get(PS_RESTYPE_SONG,region->songid);
+    if (!song) {
+      ps_log(RES,ERROR,"song:%d not found",region->songid);
+      return -1;
+    }
+  }
+
+  int i=PS_REGION_MONSTER_LIMIT;
+  while (i-->0) {
+    int sprdefid=region->monster_sprdefidv[i];
+    if (!sprdefid) continue;
+    struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,sprdefid);
+    if (!sprdef) {
+      ps_log(RES,ERROR,"sprdef:%d not found",sprdefid);
+      return -1;
+    }
+  }
+  
   return 0;
 }
 

@@ -393,7 +393,7 @@ static int ps_physics_detect_collisions(struct ps_physics *physics) {
 /* Resolve one collision.
  */
 
-static int ps_physics_resolve_collision(struct ps_physics *physics,struct ps_coll *coll,int update_velocities) {
+static int ps_physics_resolve_collision(struct ps_physics *physics,struct ps_coll *coll) {
 
   //ps_log(PHYSICS,TRACE,"Bump! pen=%f v=(%+f,%+f)",coll->pen,coll->vx,coll->vy);
 
@@ -431,15 +431,13 @@ static int ps_physics_resolve_collision(struct ps_physics *physics,struct ps_col
 }
 
 /* Resolve collisions.
- * (update_velocities) should be nonzero on the first call per cycle, zero on subsequent passes.
- * Doesn't matter right now because sprites don't have velocity yet (TODO), and we're only doing one pass.
  */
 
-static int ps_physics_resolve_collisions(struct ps_physics *physics,int update_velocities) {
+static int ps_physics_resolve_collisions(struct ps_physics *physics) {
   struct ps_coll *coll=physics->collv;
   int i=physics->collc;
   for (;i-->0;coll++) {
-    if (ps_physics_resolve_collision(physics,coll,update_velocities)<0) return -1;
+    if (ps_physics_resolve_collision(physics,coll)<0) return -1;
   }
   return 0;
 }
@@ -452,7 +450,7 @@ int ps_physics_update(struct ps_physics *physics) {
 
   physics->eventc=0;
 
-  int repp=PS_PHYSICS_REPC,update_velocities=1;
+  int repp=PS_PHYSICS_REPC;
   while (repp-->0) {
 
     /* Clear our transient state and terminate if there's nothing to do. */
@@ -465,8 +463,7 @@ int ps_physics_update(struct ps_physics *physics) {
     if (!physics->collc) return 0;
 
     /* Resolve collisions. */
-    if (ps_physics_resolve_collisions(physics,update_velocities)<0) return -1;
-    update_velocities=0;
+    if (ps_physics_resolve_collisions(physics)<0) return -1;
 
   }
   

@@ -105,7 +105,6 @@ const char *ps_direction_repr(int direction) {
 
 struct ps_fvector ps_fvector_from_polcoord(struct ps_polcoord polcoord) {
   struct ps_fvector fvector;
-  // TODO sin/cos, and which is negative? Check these.
   fvector.dx=cos(polcoord.angle)*polcoord.magnitude;
   fvector.dy=-sin(polcoord.angle)*polcoord.magnitude;
   return fvector;

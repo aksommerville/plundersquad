@@ -123,8 +123,6 @@ struct ps_sprtype {
 
   int (*hurt)(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant);
 
-  //TODO Many more sprtype hooks will be needed.
-
 };
 
 const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec);

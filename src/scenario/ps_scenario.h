@@ -10,7 +10,6 @@ struct ps_screen;
 
 struct ps_scenario {
   int refc;
-  //XXX struct ps_world *world;
   int homex,homey;
   int treasurec;
   int w,h; // World size in screens.

@@ -362,7 +362,7 @@ int ps_widget_herosetup_refresh_player(struct ps_widget *widget,struct ps_player
   struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,1);
   if (!sprdef) return -1;
   int argv[]={WIDGET->playerid};
-  struct ps_sprite *sprite=ps_sprdef_instantiate(game,sprdef,argv,1,100,100);//TODO position
+  struct ps_sprite *sprite=ps_sprdef_instantiate(game,sprdef,argv,1,0,0);
   if (!sprite) return -1;
   if (ps_hero_set_player(sprite,player)<0) return -1;
   if (ps_sprgrp_add_sprite(WIDGET->grp,sprite)<0) return -1;

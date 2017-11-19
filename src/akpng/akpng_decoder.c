@@ -82,7 +82,7 @@ static int akpng_decode_ihdr(struct akpng_decoder *decoder,const uint8_t *src,in
   decoder->xstride=(decoder->pixelsize+7)>>3;
 
   if (compression||filter) return -1;
-  if (interlace) return -1; // TODO Interlacing is a pain in the ass. Is it worth the trouble?
+  if (interlace) return -1; // We don't support interlacing; it's obsolete and complicated.
 
   if (akpng_image_realloc(decoder->image,w,h,depth,colortype)<0) return -1;
 

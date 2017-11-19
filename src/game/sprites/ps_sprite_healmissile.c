@@ -63,7 +63,7 @@ static int ps_healmissile_check_collisions(struct ps_sprite *spr,struct ps_game 
     }
   }
 
-  //TODO healmissiles maybe should stop at solid sprites too
+  // Healmissiles do not stop at solid sprites. We've built blueprints around that fact.
 
   return 0;
 }

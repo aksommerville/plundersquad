@@ -1,1 +1,3 @@
 - More projectile-throwing monsters.
+- Random monster selection and count based on difficulty.
+- Cell shapes in region (see ps_gridgen_shape_for_tile).

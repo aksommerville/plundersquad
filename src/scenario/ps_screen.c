@@ -263,8 +263,6 @@ static int ps_screen_populate_grid_north_margin(struct ps_screen *screen,const s
   ps_grid_set_physics(screen->grid,2,1,refp-2,1,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,refp+refc,1,PS_GRID_COLC-2-refc-refp,1,PS_BLUEPRINT_CELL_SOLID);
 
-  //TODO I think we need to validate that a path exists, and force it if not. (For the other 3 directions too)
-
   return 0;
 }
 

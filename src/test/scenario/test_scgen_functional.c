@@ -7,6 +7,7 @@
 #include "scenario/ps_screen.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_grid.h"
+#include "scenario/ps_region.h"
 #include "akpng/akpng.h"
 #include "akgl/akgl.h"
 #include "os/ps_fs.h"
@@ -260,8 +261,7 @@ static void copy_rgba(uint8_t *dst,const uint8_t *src,int w,int h,int dststride,
   }
 }
 
-static void write_cell_graphics_to_image(uint8_t *dst,const struct ps_grid_cell *cell,int stride) {
-  struct ps_res_TILESHEET *tilesheet=get_tilesheet(cell->tsid);
+static void write_cell_graphics_to_image(uint8_t *dst,const struct ps_grid_cell *cell,int stride,struct ps_res_TILESHEET *tilesheet) {
   if (tilesheet&&tilesheet->pixels&&(tilesheet->fmt==AKGL_FMT_RGBA8)&&(tilesheet->w==16*PS_TILESIZE)&&(tilesheet->h==16*PS_TILESIZE)) {
     int srcx=(cell->tileid&0x0f)*PS_TILESIZE;
     int srcy=(cell->tileid>>4)*PS_TILESIZE;
@@ -273,13 +273,16 @@ static void write_cell_graphics_to_image(uint8_t *dst,const struct ps_grid_cell 
   }
 }
 
-static void write_grid_graphics_to_image(uint8_t *dst,const struct ps_grid_cell *src,int stride) {
+static void write_grid_graphics_to_image(uint8_t *dst,const struct ps_screen *screen,const struct ps_grid_cell *src,int stride) {
+  int tsid=0;
+  if (screen&&screen->region) tsid=screen->region->tsid;
+  struct ps_res_TILESHEET *tilesheet=get_tilesheet(tsid);
   int tilerowstride=stride*PS_TILESIZE;
   int y=PS_GRID_ROWC; for (;y-->0;dst+=tilerowstride,src+=PS_GRID_COLC) {
     uint8_t *subdst=dst;
     const struct ps_grid_cell *subsrc=src;
     int x=PS_GRID_COLC; for (;x-->0;subdst+=4*PS_TILESIZE,subsrc++) {
-      write_cell_graphics_to_image(subdst,subsrc,stride);
+      write_cell_graphics_to_image(subdst,subsrc,stride,tilesheet);
     }
   }
 }
@@ -297,7 +300,7 @@ static int generate_grids_graphics_image_rgba(void *dstpp,const struct ps_world 
   for (;screenc-->0;screen++) {
     int dstoffset=stride*PS_GRID_ROWC*PS_TILESIZE*screen->y+PS_GRID_COLC*PS_TILESIZE*screen->x*4;
     uint8_t *subimg=img+dstoffset;
-    write_grid_graphics_to_image(subimg,screen->grid->cellv,stride);
+    write_grid_graphics_to_image(subimg,screen,screen->grid->cellv,stride);
   }
 
   *(void**)dstpp=img;
@@ -363,16 +366,7 @@ PS_TEST(test_scgen_functional,scgen,functional,ignore) {
 
   /* Set random seed. */
   int seed=time(0);
-  //seed=1501965046;
-  //seed=1501965960;
-  //seed=1501966643;
-  //seed=1502024780;
-  //seed=1502025550;
-  //seed=1502025635;
-  //seed=1502030716;
-  //seed=1502066311;
-  //seed=1502067177;
-  seed=1504374193;
+  //seed=1504374193;
   PS_LOG("Random seed %d",seed);
   srand(seed);
 

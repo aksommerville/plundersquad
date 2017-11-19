@@ -325,7 +325,7 @@ static int ps_game_sprite_position_conflicts_with_others(const struct ps_game *g
     if (dx<=-PS_TILESIZE) continue;
     int dy=y-spr->y;
     if (dy>=PS_TILESIZE) continue;
-    if (dy<=PS_TILESIZE) continue;
+    if (dy<=-PS_TILESIZE) continue;
   }
   return 0;
 }

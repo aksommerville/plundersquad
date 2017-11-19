@@ -1,4 +1,3 @@
 - More projectile-throwing monsters.
-- Spawn random monsters on top of solid sprites -- prevent
 - Suppress firing action on game start.
 - Hero-on-hero collision when leaving screen, caused push into wall.

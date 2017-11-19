@@ -850,10 +850,16 @@ int ps_game_get_treasure_state(const struct ps_game *game,int treasureid) {
 
 /* Create fireworks when something dies.
  */
- 
+
+#define PS_FIREWORKS_SPRITE_COUNT 20
+
 int ps_game_create_fireworks(struct ps_game *game,int x,int y) {
   if (!game) return -1;
-  //TODO fireworks
+
+  int i=PS_FIREWORKS_SPRITE_COUNT; while (i-->0) {
+    if (!ps_sprite_fireworks_new(game,x,y,i,PS_FIREWORKS_SPRITE_COUNT)) return -1;
+  }
+  
   return 0;
 }
 

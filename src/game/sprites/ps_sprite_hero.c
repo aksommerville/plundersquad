@@ -632,6 +632,7 @@ static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sp
   SPR->hp--;
   if (SPR->hp<=0) {
     SPR->hp=0;
+    if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
     return ps_hero_become_ghost(game,spr);
   }
 

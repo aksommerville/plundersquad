@@ -256,7 +256,7 @@ LOADER(sconfig)
 STUBLOADER(pconfig)
 LOADER(pause)
 STUBLOADER(debug)
-STUBLOADER(gameover)
+LOADER(gameover)
 
 #undef LOADER
 #undef STUBLOADER

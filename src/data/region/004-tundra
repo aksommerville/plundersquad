@@ -1,6 +1,3 @@
-# XXX This is copied directly from 001-outdoors (which is not even complete)
-# Just need some sane data while I test the generator.
-
 tilesheet 5
 song 0
 
@@ -10,8 +7,6 @@ monster 14 # bumblebat
 
 # Only one VACANT shape. VACANT is a special case for gridgen.
 shape VACANT 100 0x00 ALT16
-
-# Columns 4..15 in rows 0..3 contain some old VACANTs that I'm not using anymore.
 
 # Only three SOLID actually in use: A SKINNY, a FAT, and a SINGLE.
 # There's room for more and we should probably use it.

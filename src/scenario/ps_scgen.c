@@ -1,7 +1,6 @@
 #include "ps.h"
 #include "ps_scgen.h"
 #include "ps_scenario.h"
-#include "ps_world.h"
 #include "ps_screen.h"
 #include "ps_blueprint.h"
 #include "ps_blueprint_list.h"
@@ -195,14 +194,14 @@ static struct ps_screen *ps_scgen_select_edge_screen(struct ps_scgen *scgen) {
 
   /* List all candidate screens. */
   #define CANDIDATE(x,y) { \
-    struct ps_screen *screen=PS_WORLD_SCREEN(scgen->scenario->world,x,y); \
+    struct ps_screen *screen=PS_SCENARIO_SCREEN(scgen->scenario,x,y); \
     if (!screen->features) { \
       if (ps_scgen_screenbuf_append(scgen,screen)<0) return 0; \
     } \
   }
   scgen->screenbufc=0;
-  int w=scgen->scenario->world->w;
-  int h=scgen->scenario->world->h;
+  int w=scgen->scenario->w;
+  int h=scgen->scenario->h;
   int x; for (x=0;x<w;x++) {
     CANDIDATE(x,0)
     CANDIDATE(x,h-1)
@@ -220,24 +219,23 @@ static struct ps_screen *ps_scgen_select_edge_screen(struct ps_scgen *scgen) {
 }
 
 static struct ps_screen *ps_scgen_select_middle_screen(struct ps_scgen *scgen) {
-  int w=scgen->scenario->world->w;
-  int h=scgen->scenario->world->h;
+  int w=scgen->scenario->w;
+  int h=scgen->scenario->h;
   int x,y;
 
   /* Odd sizes are deterministic, for even sizes it's 50/50. */
   if (w&1) x=w>>1; else x=(w>>1)-ps_scgen_randint(scgen,2);
   if (h&1) y=h>>1; else y=(h>>1)-ps_scgen_randint(scgen,2);
 
-  return PS_WORLD_SCREEN(scgen->scenario->world,x,y);
+  return PS_SCENARIO_SCREEN(scgen->scenario,x,y);
 }
 
 static struct ps_screen *ps_scgen_select_lonely_screen(struct ps_scgen *scgen) {
-  struct ps_world *world=scgen->scenario->world;
-  int w=world->w;
-  int h=world->h;
+  int w=scgen->scenario->w;
+  int h=scgen->scenario->h;
   int screenc=w*h;
   scgen->screenbufc=0;
-  struct ps_screen *screen=world->v;
+  struct ps_screen *screen=scgen->scenario->screenv;
   int i=0; for (;i<screenc;i++,screen++) {
     if (screen->features) continue;
     if (screen->x>0) {
@@ -294,29 +292,29 @@ static int ps_scgen_place_home_and_treasure_screens(struct ps_scgen *scgen) {
  * We use screenbuf as a 'visited' list, you must clear it first.
  */
 
-static int ps_scgen_path_exists(struct ps_scgen *scgen,struct ps_world *world,int ax,int ay,int bx,int by) {
+static int ps_scgen_path_exists(struct ps_scgen *scgen,struct ps_scenario *scenario,int ax,int ay,int bx,int by) {
   if ((ax==bx)&&(ay==by)) return 1;
-  if ((ax<0)||(ax>=world->w)) return 0;
-  if ((ay<0)||(ay>=world->h)) return 0;
-  if ((bx<0)||(bx>=world->w)) return 0;
-  if ((by<0)||(by>=world->h)) return 0;
+  if ((ax<0)||(ax>=scenario->w)) return 0;
+  if ((ay<0)||(ay>=scenario->h)) return 0;
+  if ((bx<0)||(bx>=scenario->w)) return 0;
+  if ((by<0)||(by>=scenario->h)) return 0;
 
-  struct ps_screen *ascreen=PS_WORLD_SCREEN(world,ax,ay);
+  struct ps_screen *ascreen=PS_SCENARIO_SCREEN(scenario,ax,ay);
   if (ps_scgen_screenbuf_contains(scgen,ascreen)) return 0;
   if (ps_scgen_screenbuf_append(scgen,ascreen)<0) return 0;
 
   int screenbufc0=scgen->screenbufc;
   if (ascreen->doorn==PS_DOOR_OPEN) {
-    if (ps_scgen_path_exists(scgen,world,ax,ay-1,bx,by)) return 1;
+    if (ps_scgen_path_exists(scgen,scenario,ax,ay-1,bx,by)) return 1;
   }
   if (ascreen->doors==PS_DOOR_OPEN) {
-    if (ps_scgen_path_exists(scgen,world,ax,ay+1,bx,by)) return 1;
+    if (ps_scgen_path_exists(scgen,scenario,ax,ay+1,bx,by)) return 1;
   }
   if (ascreen->doorw==PS_DOOR_OPEN) {
-    if (ps_scgen_path_exists(scgen,world,ax-1,ay,bx,by)) return 1;
+    if (ps_scgen_path_exists(scgen,scenario,ax-1,ay,bx,by)) return 1;
   }
   if (ascreen->doore==PS_DOOR_OPEN) {
-    if (ps_scgen_path_exists(scgen,world,ax+1,ay,bx,by)) return 1;
+    if (ps_scgen_path_exists(scgen,scenario,ax+1,ay,bx,by)) return 1;
   }
 
   return 0;
@@ -350,7 +348,7 @@ O-------------OO-------------OO-------------OO-------------OO-------------OO----
  */
 
 static int ps_scgen_forge_partial_path(
-  struct ps_scgen *scgen,struct ps_world *world,struct ps_screen *screen,int dstx,int dsty,int strict
+  struct ps_scgen *scgen,struct ps_scenario *scenario,struct ps_screen *screen,int dstx,int dsty,int strict
 ) {
 
   /* If this is the target, succeed. */
@@ -408,19 +406,19 @@ static int ps_scgen_forge_partial_path(
     if (dx<0) {
       if (screen->doorw==PS_DOOR_CLOSED) continue;
       if (strict&&(screen[-1].features&PS_SCREEN_FEATURE_TREASURE)) continue;
-      if (ps_scgen_forge_partial_path(scgen,world,screen-1,dstx,dsty,strict)>=0) return 0;
+      if (ps_scgen_forge_partial_path(scgen,scenario,screen-1,dstx,dsty,strict)>=0) return 0;
     } else if (dx>0) {
       if (screen->doore==PS_DOOR_CLOSED) continue;
       if (strict&&(screen[1].features&PS_SCREEN_FEATURE_TREASURE)) continue;
-      if (ps_scgen_forge_partial_path(scgen,world,screen+1,dstx,dsty,strict)>=0) return 0;
+      if (ps_scgen_forge_partial_path(scgen,scenario,screen+1,dstx,dsty,strict)>=0) return 0;
     } else if (dy<0) {
       if (screen->doorn==PS_DOOR_CLOSED) continue;
-      if (strict&&(screen[-world->w].features&PS_SCREEN_FEATURE_TREASURE)) continue;
-      if (ps_scgen_forge_partial_path(scgen,world,screen-world->w,dstx,dsty,strict)>=0) return 0;
+      if (strict&&(screen[-scenario->w].features&PS_SCREEN_FEATURE_TREASURE)) continue;
+      if (ps_scgen_forge_partial_path(scgen,scenario,screen-scenario->w,dstx,dsty,strict)>=0) return 0;
     } else if (dy>0) {
       if (screen->doors==PS_DOOR_CLOSED) continue;
-      if (strict&&(screen[world->w].features&PS_SCREEN_FEATURE_TREASURE)) continue;
-      if (ps_scgen_forge_partial_path(scgen,world,screen+world->w,dstx,dsty,strict)>=0) return 0;
+      if (strict&&(screen[scenario->w].features&PS_SCREEN_FEATURE_TREASURE)) continue;
+      if (ps_scgen_forge_partial_path(scgen,scenario,screen+scenario->w,dstx,dsty,strict)>=0) return 0;
     }
     scgen->screenbufc=screenbufc0;
   }
@@ -431,19 +429,19 @@ static int ps_scgen_forge_partial_path(
 /* Forge a single path from the given screen to (dstx,dsty).
  */
 
-static int ps_scgen_forge_path(struct ps_scgen *scgen,struct ps_world *world,struct ps_screen *screen,int dstx,int dsty) {
+static int ps_scgen_forge_path(struct ps_scgen *scgen,struct ps_scenario *scenario,struct ps_screen *screen,int dstx,int dsty) {
 
   /* Are they already connected? */
   scgen->screenbufc=0;
-  if (ps_scgen_path_exists(scgen,world,screen->x,screen->y,dstx,dsty)) return 0;
+  if (ps_scgen_path_exists(scgen,scenario,screen->x,screen->y,dstx,dsty)) return 0;
 
   /* Use screenbuf as a stack of visited screens.
    * We then walk recursively to the goal.
    */
   scgen->screenbufc=0;
-  if (ps_scgen_forge_partial_path(scgen,world,screen,dstx,dsty,1)<0) {
+  if (ps_scgen_forge_partial_path(scgen,scenario,screen,dstx,dsty,1)<0) {
     scgen->screenbufc=0;
-    if (ps_scgen_forge_partial_path(scgen,world,screen,dstx,dsty,0)<0) {
+    if (ps_scgen_forge_partial_path(scgen,scenario,screen,dstx,dsty,0)<0) {
       return ps_scgen_fail(scgen,"Failed to identify path from (%d,%d) to (%d,%d).",screen->x,screen->y,dstx,dsty);
     }
   }
@@ -469,10 +467,10 @@ static int ps_scgen_forge_path(struct ps_scgen *scgen,struct ps_world *world,str
       screen[1].doorw=PS_DOOR_OPEN;
     } else if (dy<0) {
       screen->doorn=PS_DOOR_OPEN;
-      screen[-world->w].doors=PS_DOOR_OPEN;
+      screen[-scenario->w].doors=PS_DOOR_OPEN;
     } else if (dy>0) {
       screen->doors=PS_DOOR_OPEN;
-      screen[world->w].doorn=PS_DOOR_OPEN;
+      screen[scenario->w].doorn=PS_DOOR_OPEN;
     }
   }
 
@@ -483,12 +481,12 @@ static int ps_scgen_forge_path(struct ps_scgen *scgen,struct ps_world *world,str
  */
 
 static int ps_scgen_forge_paths(struct ps_scgen *scgen) {
-  struct ps_world *world=scgen->scenario->world;
-  struct ps_screen *screen=world->v;
-  int y=0; for (;y<world->h;y++) {
-    int x=0; for (;x<world->w;x++,screen++) {
+  struct ps_scenario *scenario=scgen->scenario;
+  struct ps_screen *screen=scenario->screenv;
+  int y=0; for (;y<scenario->h;y++) {
+    int x=0; for (;x<scenario->w;x++,screen++) {
       if (!(screen->features&PS_SCREEN_FEATURE_TREASURE)) continue;
-      if (ps_scgen_forge_path(scgen,world,screen,scgen->homex,scgen->homey)<0) return -1;
+      if (ps_scgen_forge_path(scgen,scenario,screen,scgen->homex,scgen->homey)<0) return -1;
     }
   }
   return 0;
@@ -507,8 +505,8 @@ static int ps_scgen_open_one_unset_door(struct ps_scgen *scgen,struct ps_screen 
   if (optionc<1) return 0;
   int which=optionv[ps_scgen_randint(scgen,optionc)];
   switch (which) {
-    case 0: screen->doorn=PS_DOOR_OPEN; screen[-scgen->scenario->world->w].doors=PS_DOOR_OPEN; break;
-    case 1: screen->doors=PS_DOOR_OPEN; screen[scgen->scenario->world->w].doorn=PS_DOOR_OPEN; break;
+    case 0: screen->doorn=PS_DOOR_OPEN; screen[-scgen->scenario->w].doors=PS_DOOR_OPEN; break;
+    case 1: screen->doors=PS_DOOR_OPEN; screen[scgen->scenario->w].doorn=PS_DOOR_OPEN; break;
     case 2: screen->doorw=PS_DOOR_OPEN; screen[-1].doore=PS_DOOR_OPEN; break;
     case 3: screen->doore=PS_DOOR_OPEN; screen[1].doorw=PS_DOOR_OPEN; break;
   }
@@ -520,12 +518,12 @@ static int ps_scgen_open_one_unset_door(struct ps_scgen *scgen,struct ps_screen 
  */
 
 static int ps_scgen_make_all_screens_reachable(struct ps_scgen *scgen) {
-  struct ps_world *world=scgen->scenario->world;
+  struct ps_scenario *scenario=scgen->scenario;
 
   /* Identify all unreachable screens, add them to screenbuf. */
   scgen->screenbufc=0;
-  int i=world->w*world->h;
-  struct ps_screen *screen=world->v;
+  int i=scenario->w*scenario->h;
+  struct ps_screen *screen=scenario->screenv;
   for (;i-->0;screen++) {
     if (screen->doorn==PS_DOOR_OPEN) continue;
     if (screen->doors==PS_DOOR_OPEN) continue;
@@ -557,7 +555,7 @@ static int ps_scgen_make_all_screens_reachable(struct ps_scgen *scgen) {
     for (i=0;i<unreachablec;i++) {
       struct ps_screen *screen=unreachablev[i];
       scgen->screenbufc=0;
-      if (ps_scgen_path_exists(scgen,scgen->scenario->world,screen->x,screen->y,scgen->homex,scgen->homey)) continue;
+      if (ps_scgen_path_exists(scgen,scenario,screen->x,screen->y,scgen->homex,scgen->homey)) continue;
       int err=ps_scgen_open_one_unset_door(scgen,screen);
       if (err<0) {
         free(unreachablev);
@@ -579,9 +577,9 @@ static int ps_scgen_make_all_screens_reachable(struct ps_scgen *scgen) {
  */
 
 static int ps_scgen_finalize_doors(struct ps_scgen *scgen) {
-  struct ps_world *world=scgen->scenario->world;
-  struct ps_screen *screen=world->v;
-  int i=world->w*world->h; for (;i-->0;screen++) {
+  struct ps_scenario *scenario=scgen->scenario;
+  struct ps_screen *screen=scenario->screenv;
+  int i=scenario->w*scenario->h; for (;i-->0;screen++) {
     if (screen->doorn==PS_DOOR_UNSET) screen->doorn=PS_DOOR_CLOSED;
     if (screen->doors==PS_DOOR_UNSET) screen->doors=PS_DOOR_CLOSED;
     if (screen->doorw==PS_DOOR_UNSET) screen->doorw=PS_DOOR_CLOSED;
@@ -594,7 +592,7 @@ static int ps_scgen_finalize_doors(struct ps_scgen *scgen) {
  */
 
 static int ps_scgen_identify_homeward_direction_1(struct ps_scgen *scgen,struct ps_screen *screen,int direction) {
-  struct ps_world *world=scgen->scenario->world;
+  struct ps_scenario *scenario=scgen->scenario;
 
   int err=ps_scgen_screenbuf_append(scgen,screen);
   if (err<=0) return err;
@@ -608,17 +606,17 @@ static int ps_scgen_identify_homeward_direction_1(struct ps_scgen *scgen,struct 
     if (ps_scgen_identify_homeward_direction_1(scgen,screen+1,PS_DIRECTION_WEST)<0) return -1;
   }
   if (screen->doorn==PS_DOOR_OPEN) {
-    if (ps_scgen_identify_homeward_direction_1(scgen,screen-world->w,PS_DIRECTION_SOUTH)<0) return -1;
+    if (ps_scgen_identify_homeward_direction_1(scgen,screen-scenario->w,PS_DIRECTION_SOUTH)<0) return -1;
   }
   if (screen->doors==PS_DOOR_OPEN) {
-    if (ps_scgen_identify_homeward_direction_1(scgen,screen+world->w,PS_DIRECTION_NORTH)<0) return -1;
+    if (ps_scgen_identify_homeward_direction_1(scgen,screen+scenario->w,PS_DIRECTION_NORTH)<0) return -1;
   }
 
   return 0;
 }
 
 static int ps_scgen_identify_homeward_directions(struct ps_scgen *scgen) {
-  struct ps_screen *screen=PS_WORLD_SCREEN(scgen->scenario->world,scgen->homex,scgen->homey);
+  struct ps_screen *screen=PS_SCENARIO_SCREEN(scgen->scenario,scgen->homex,scgen->homey);
   scgen->screenbufc=0;
   if (ps_scgen_identify_homeward_direction_1(scgen,screen,0)<0) return -1;
   return 0;
@@ -636,13 +634,13 @@ static int ps_scgen_move_treasure_awayward(struct ps_scgen *scgen,struct ps_scre
 
   int direction=ps_direction_reverse(screen->direction_home);
 
-  struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,direction,scgen->scenario->world->w);
+  struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,direction,scgen->scenario->w);
   if (!neighbor||neighbor->features) {
-    neighbor=ps_screen_neighbor_for_direction(screen,ps_direction_rotate_clockwise(direction),scgen->scenario->world->w);
+    neighbor=ps_screen_neighbor_for_direction(screen,ps_direction_rotate_clockwise(direction),scgen->scenario->w);
     if (neighbor&&!neighbor->features) {
       direction=ps_direction_rotate_clockwise(direction);
     } else {
-      neighbor=ps_screen_neighbor_for_direction(screen,ps_direction_rotate_counterclockwise(direction),scgen->scenario->world->w);
+      neighbor=ps_screen_neighbor_for_direction(screen,ps_direction_rotate_counterclockwise(direction),scgen->scenario->w);
       if (neighbor&&!neighbor->features) {
         direction=ps_direction_rotate_counterclockwise(direction);
       } else {
@@ -658,8 +656,8 @@ static int ps_scgen_move_treasure_awayward(struct ps_scgen *scgen,struct ps_scre
 }
 
 static int ps_scgen_move_treasures_awayward(struct ps_scgen *scgen) {
-  struct ps_screen *screen=scgen->scenario->world->v;
-  int i=scgen->scenario->world->w*scgen->scenario->world->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
+  int i=scgen->scenario->w*scgen->scenario->h;
   for (;i-->0;screen++) {
     if (!(screen->features&PS_SCREEN_FEATURE_TREASURE)) continue;
     if (ps_scgen_move_treasure_awayward(scgen,screen,20)<0) return -1;
@@ -672,11 +670,11 @@ static int ps_scgen_move_treasures_awayward(struct ps_scgen *scgen) {
  */
 
 static int ps_scgen_identify_prime_challenges(struct ps_scgen *scgen) {
-  struct ps_screen *screen=scgen->scenario->world->v;
-  int i=scgen->scenario->world->w*scgen->scenario->world->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
+  int i=scgen->scenario->w*scgen->scenario->h;
   for (;i-->0;screen++) {
     if (!(screen->features&PS_SCREEN_FEATURE_TREASURE)) continue;
-    struct ps_screen *neighbor=ps_screen_get_single_neighbor(screen,scgen->scenario->world->w);
+    struct ps_screen *neighbor=ps_screen_get_single_neighbor(screen,scgen->scenario->w);
     if (!neighbor) continue;
     if (neighbor->features) continue;
     if (ps_screen_count_doors(neighbor)!=2) continue;
@@ -715,7 +713,7 @@ static int ps_scgen_blueprint_filter_other(const struct ps_blueprint *blueprint)
  */
 
 static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {
-  struct ps_world *world=scgen->scenario->world;
+  struct ps_scenario *scenario=scgen->scenario;
 
   /* Build the global set of legal blueprints. */
   if (!scgen->blueprints) {
@@ -738,8 +736,8 @@ static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {
   ps_log(GENERATOR,DEBUG,"Classified blueprints: home=%d, treasure=%d, challenge=%d, other=%d",bpc_home,bpc_treasure,bpc_challenge,bpc_other);
 
   /* Grab randomly from the available blueprints for each screen. */
-  struct ps_screen *screen=world->v;
-  int i=world->w*world->h;
+  struct ps_screen *screen=scenario->screenv;
+  int i=scenario->w*scenario->h;
   for (;i-->0;screen++) {
     struct ps_blueprint *blueprint=0;
     
@@ -823,14 +821,14 @@ static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {
  */
 
 static int ps_scgen_populate_grid_margins(struct ps_scgen *scgen) {
-  struct ps_world *world=scgen->scenario->world;
-  int i=world->w*world->h;
-  struct ps_screen *screen=world->v;
+  struct ps_scenario *scenario=scgen->scenario;
+  int i=scenario->w*scenario->h;
+  struct ps_screen *screen=scenario->screenv;
   for (;i-->0;screen++) {
-    struct ps_screen *neighborn=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_NORTH,world->w);
-    struct ps_screen *neighbors=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_SOUTH,world->w);
-    struct ps_screen *neighborw=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_WEST,world->w);
-    struct ps_screen *neighbore=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_EAST,world->w);
+    struct ps_screen *neighborn=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_NORTH,scenario->w);
+    struct ps_screen *neighbors=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_SOUTH,scenario->w);
+    struct ps_screen *neighborw=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_WEST,scenario->w);
+    struct ps_screen *neighbore=ps_screen_neighbor_for_direction(screen,PS_DIRECTION_EAST,scenario->w);
     if (ps_screen_populate_grid_margins(screen,
       neighborn?neighborn->grid:0,neighbors?neighbors->grid:0,
       neighborw?neighborw->grid:0,neighbore?neighbore->grid:0
@@ -852,7 +850,7 @@ static int ps_scgen_count_unassigned_regions(struct ps_scgen *scgen,struct ps_sc
   screen->visited=1;
   int c=1;
   int dir=1; for (;dir<=4;dir++) {
-    struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dir,scgen->scenario->world->w);
+    struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dir,scgen->scenario->w);
     if (!neighbor) continue;
     c+=ps_scgen_count_unassigned_regions(scgen,neighbor,limit-c);
     if (c>=limit) break;
@@ -876,7 +874,7 @@ static int ps_scgen_expand_region(struct ps_scgen *scgen,struct ps_screen *scree
 
   /* Calculate how far we can go in each direction. */
   for (i=0;i<4;i++) {
-    struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dirv[i],scgen->scenario->world->w);
+    struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dirv[i],scgen->scenario->w);
     if (!neighbor) continue;
     if (neighbor->region) continue;
     availablev[i]=ps_scgen_count_unassigned_regions(scgen,neighbor,c);
@@ -902,7 +900,7 @@ static int ps_scgen_expand_region(struct ps_scgen *scgen,struct ps_screen *scree
   /* Recur into selected neighbors with our artificial limits. Gather the actual assigned count. */
   for (i=0;i<4;i++) {
     if (!usev[i]) continue;
-    struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dirv[i],scgen->scenario->world->w);
+    struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dirv[i],scgen->scenario->w);
     if (!neighbor) continue;
     if (neighbor->region) continue;
     result++;
@@ -917,8 +915,8 @@ static int ps_scgen_expand_region(struct ps_scgen *scgen,struct ps_screen *scree
  */
 
 static int ps_scgen_region_in_use(struct ps_scgen *scgen,struct ps_region *region) {
-  int screenc=scgen->scenario->world->w*scgen->scenario->world->h;
-  struct ps_screen *screen=scgen->scenario->world->v;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
   for (;screenc-->0;screen++) {
     if (screen->region==region) return 1;
   }
@@ -941,15 +939,15 @@ static struct ps_region *ps_scgen_select_random_unused_region(struct ps_scgen *s
  */
 
 static struct ps_screen *ps_scgen_select_random_regionless_screen(struct ps_scgen *scgen) {
-  int screenc=scgen->scenario->world->w*scgen->scenario->world->h;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
   struct ps_screen *screen;
   int regionlessc=0,i;
-  for (i=screenc,screen=scgen->scenario->world->v;i-->0;screen++) {
+  for (i=screenc,screen=scgen->scenario->screenv;i-->0;screen++) {
     if (!screen->region) regionlessc++;
   }
   if (!regionlessc) return 0;
   int p=ps_scgen_randint(scgen,regionlessc);
-  for (i=screenc,screen=scgen->scenario->world->v;i-->0;screen++) {
+  for (i=screenc,screen=scgen->scenario->screenv;i-->0;screen++) {
     if (screen->region) continue;
     if (p-->0) continue;
     return screen;
@@ -964,14 +962,14 @@ static struct ps_screen *ps_scgen_select_random_regionless_screen(struct ps_scge
 
 static int ps_scgen_expand_all_regions(struct ps_scgen *scgen) {
   int result=1;
-  int worldc=scgen->scenario->world->w*scgen->scenario->world->h;
-  struct ps_screen *screen=scgen->scenario->world->v;
-  for (;worldc-->0;screen++) {
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
+  for (;screenc-->0;screen++) {
     if (screen->region) continue;
     int dirv[4];
     ps_scgen_randomize_directions(dirv,scgen);
     int i=0; for (;i<4;i++) {
-      struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dirv[i],scgen->scenario->world->w);
+      struct ps_screen *neighbor=ps_screen_neighbor_for_direction(screen,dirv[i],scgen->scenario->w);
       if (!neighbor) continue;
       if (neighbor->region) {
         screen->region=neighbor->region;
@@ -993,7 +991,7 @@ static int ps_scgen_select_regions(struct ps_scgen *scgen) {
   if (restype->resc<1) return ps_scgen_fail(scgen,"No region resources.");
 
   int regionc=restype->resc;
-  int screenc=scgen->scenario->world->w*scgen->scenario->world->h;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
   if (regionc>screenc) regionc=screenc;
   int regionsize=screenc/regionc;
   if (regionsize<1) regionsize=1;
@@ -1005,7 +1003,7 @@ static int ps_scgen_select_regions(struct ps_scgen *scgen) {
 
   /* Select a region at random for the home screen. */
   int homeregionp=ps_scgen_randint(scgen,restype->resc);
-  struct ps_screen *screen=PS_WORLD_SCREEN(scgen->scenario->world,scgen->homex,scgen->homey);
+  struct ps_screen *screen=PS_SCENARIO_SCREEN(scgen->scenario,scgen->homex,scgen->homey);
   screen->region=restype->resv[homeregionp].obj;
 
   /* Seed fill from home for the calculated region size. */
@@ -1063,8 +1061,8 @@ static int ps_scgen_assign_treasure_ids_in_grid(struct ps_scgen *scgen,struct ps
 
 static int ps_scgen_assign_treasure_ids(struct ps_scgen *scgen) {
   int treasureid=0;
-  int screenc=scgen->scenario->world->w*scgen->scenario->world->h;
-  struct ps_screen *screen=scgen->scenario->world->v;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
   for (;screenc-->0;screen++) {
     if (!(screen->features&PS_SCREEN_FEATURE_TREASURE)) {
       if (ps_scgen_eliminate_treasure_poi(scgen,screen->grid)<0) return -1;
@@ -1102,7 +1100,7 @@ int ps_scgen_generate(struct ps_scgen *scgen) {
   if (ps_scgen_calculate_world_size(&w,&h,&scgen->treasurec,scgen)<0) return -1;
   if ((scgen->treasurec<1)||(scgen->treasurec>PS_TREASURE_LIMIT)) return ps_scgen_fail(scgen,"treasurec=%d",scgen->treasurec);
   scgen->scenario->treasurec=scgen->treasurec;
-  if (!(scgen->scenario->world=ps_world_new(w,h))) return -1;
+  if (ps_scenario_reallocate_screens(scgen->scenario,w,h)<0) return -1;
 
   /* Place the home and treasure screens. */
   if (ps_scgen_place_home_and_treasure_screens(scgen)<0) return -1;
@@ -1177,8 +1175,8 @@ static int ps_scgen_select_test_blueprints(struct ps_scgen *scgen) {
   }
 
   int bpp=0;
-  int screenc=scgen->scenario->world->w*scgen->scenario->world->h;
-  struct ps_screen *screen=scgen->scenario->world->v;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
   for (;screenc-->0;screen++) {
     if (screen->features&PS_SCREEN_FEATURE_HOME) {
       if (ps_screen_set_blueprint(screen,bphome)<0) return -1;
@@ -1198,8 +1196,8 @@ static int ps_scgen_select_test_blueprints(struct ps_scgen *scgen) {
 static int ps_scgen_assign_region_to_all_screens(struct ps_scgen *scgen,int regionid) {
   struct ps_region *region=ps_res_get(PS_RESTYPE_REGION,regionid);
   if (!region) return ps_scgen_fail(scgen,"region:%d not found",regionid);
-  int screenc=scgen->scenario->world->w*scgen->scenario->world->h;
-  struct ps_screen *screen=scgen->scenario->world->v;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
   for (;screenc-->0;screen++) screen->region=region;
   return 0;
 }
@@ -1208,13 +1206,13 @@ static int ps_scgen_assign_region_to_all_screens(struct ps_scgen *scgen,int regi
  */
 
 static int ps_scgen_make_wide_open_doors(struct ps_scgen *scgen) {
-  int screenc=scgen->scenario->world->w*scgen->scenario->world->h;
-  struct ps_screen *screen=scgen->scenario->world->v;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
   for (;screenc-->0;screen++) {
     screen->doorw=(screen->x?PS_DOOR_OPEN:PS_DOOR_CLOSED);
     screen->doorn=(screen->y?PS_DOOR_OPEN:PS_DOOR_CLOSED);
-    screen->doore=((screen->x<scgen->scenario->world->w-1)?PS_DOOR_OPEN:PS_DOOR_CLOSED);
-    screen->doors=((screen->y<scgen->scenario->world->h-1)?PS_DOOR_OPEN:PS_DOOR_CLOSED);
+    screen->doore=((screen->x<scgen->scenario->w-1)?PS_DOOR_OPEN:PS_DOOR_CLOSED);
+    screen->doors=((screen->y<scgen->scenario->h-1)?PS_DOOR_OPEN:PS_DOOR_CLOSED);
   }
   return 0;
 }
@@ -1263,7 +1261,7 @@ int ps_scgen_test_generate(struct ps_scgen *scgen) {
   /* Create a blank world map. */
   int w,h;
   if (ps_scgen_calculate_world_size(&w,&h,&scgen->treasurec,scgen)<0) return -1;
-  if (!(scgen->scenario->world=ps_world_new(w,h))) return -1;
+  if (ps_scenario_reallocate_screens(scgen->scenario,w,h)<0) return -1;
 
   /* Place the home and treasure screens. */
   if (ps_scgen_place_home_and_treasure_screens(scgen)<0) return -1;

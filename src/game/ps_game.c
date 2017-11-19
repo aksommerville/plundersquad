@@ -7,10 +7,10 @@
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
-#include "scenario/ps_world.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_region.h"
+#include "scenario/ps_screen.h"
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
 #include "video/ps_video.h"
@@ -528,7 +528,7 @@ int ps_game_restart(struct ps_game *game) {
   if (!game||!game->scenario) return -1;
 
   ps_log(GAME,DEBUG,"Restarting game at home screen (%d,%d) of (%d,%d).",
-    game->scenario->homex,game->scenario->homey,game->scenario->world->w,game->scenario->world->h
+    game->scenario->homex,game->scenario->homey,game->scenario->w,game->scenario->h
   );
 
   game->finished=0;
@@ -540,7 +540,7 @@ int ps_game_restart(struct ps_game *game) {
 
   game->gridx=game->scenario->homex;
   game->gridy=game->scenario->homey;
-  game->grid=PS_WORLD_SCREEN(game->scenario->world,game->gridx,game->gridy)->grid;
+  game->grid=PS_SCENARIO_SCREEN(game->scenario,game->gridx,game->gridy)->grid;
   if (ps_grid_close_all_barriers(game->grid)<0) return -1;
   if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
 
@@ -561,7 +561,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   if (!game->grid) return -1;
 
   ps_log(GAME,DEBUG,"Returning to home screen (%d,%d) of (%d,%d).",
-    game->scenario->homex,game->scenario->homey,game->scenario->world->w,game->scenario->world->h
+    game->scenario->homex,game->scenario->homey,game->scenario->w,game->scenario->h
   );
 
   game->finished=0;
@@ -569,7 +569,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
 
   game->gridx=game->scenario->homex;
   game->gridy=game->scenario->homey;
-  game->grid=PS_WORLD_SCREEN(game->scenario->world,game->gridx,game->gridy)->grid;
+  game->grid=PS_SCENARIO_SCREEN(game->scenario,game->gridx,game->gridy)->grid;
   if (ps_grid_close_all_barriers(game->grid)<0) return -1;
   if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
 
@@ -653,8 +653,8 @@ static int ps_game_check_grid_change(struct ps_game *game) {
   struct ps_vector d=ps_vector_from_direction(changedir);
   int nx=game->gridx+d.dx;
   int ny=game->gridy+d.dy;
-  if ((nx<0)||(ny<0)||(nx>=game->scenario->world->w)||(ny>=game->scenario->world->h)) return 0;
-  struct ps_grid *ngrid=game->scenario->world->v[ny*game->scenario->world->w+nx].grid;
+  if ((nx<0)||(ny<0)||(nx>=game->scenario->w)||(ny>=game->scenario->h)) return 0;
+  struct ps_grid *ngrid=game->scenario->screenv[ny*game->scenario->w+nx].grid;
   
   return ps_game_load_neighbor_grid(game,ngrid,d.dx,d.dy);
 }
@@ -698,8 +698,8 @@ int ps_game_force_next_screen(struct ps_game *game,int dx,int dy) {
   
   int nx=game->gridx+dx;
   int ny=game->gridy+dy;
-  if ((nx<0)||(ny<0)||(nx>=game->scenario->world->w)||(ny>=game->scenario->world->h)) return 0;
-  struct ps_grid *ngrid=game->scenario->world->v[ny*game->scenario->world->w+nx].grid;
+  if ((nx<0)||(ny<0)||(nx>=game->scenario->w)||(ny>=game->scenario->h)) return 0;
+  struct ps_grid *ngrid=game->scenario->screenv[ny*game->scenario->w+nx].grid;
   
   if (ps_game_load_neighbor_grid(game,ngrid,dx,dy)<0) return -1;
 
@@ -860,10 +860,10 @@ int ps_game_toggle_pause(struct ps_game *game) {
  
 struct ps_screen *ps_game_get_screen_for_current_grid(const struct ps_game *game) {
   if (!game) return 0;
-  if (!game->scenario||!game->scenario->world) return 0;
-  if ((game->gridx<0)||(game->gridx>=game->scenario->world->w)) return 0;
-  if ((game->gridy<0)||(game->gridy>=game->scenario->world->h)) return 0;
-  return game->scenario->world->v+(game->gridy*game->scenario->world->w)+game->gridx;
+  if (!game->scenario) return 0;
+  if ((game->gridx<0)||(game->gridx>=game->scenario->w)) return 0;
+  if ((game->gridy<0)||(game->gridy>=game->scenario->h)) return 0;
+  return game->scenario->screenv+(game->gridy*game->scenario->w)+game->gridx;
 }
 
 int ps_game_get_current_blueprint_id(const struct ps_game *game) {

@@ -1,7 +1,6 @@
 #include "ps.h"
 #include "ps_scgen.h"
 #include "ps_scenario.h"
-#include "ps_world.h"
 #include "ps_screen.h"
 #include "ps_region.h"
 #include "ps_grid.h"
@@ -374,9 +373,8 @@ static int ps_scgen_generate_grid(struct ps_scgen *scgen,struct ps_screen *scree
 
 int ps_scgen_generate_grids(struct ps_scgen *scgen) {
   if (!scgen) return -1;
-  struct ps_world *world=scgen->scenario->world;
-  int screenc=world->w*world->h;
-  struct ps_screen *screen=world->v;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
   for (;screenc-->0;screen++) {
     if (ps_scgen_generate_grid(scgen,screen)<0) return -1;
   }

@@ -3,7 +3,6 @@
 #include "res/ps_restype.h"
 #include "scenario/ps_scgen.h"
 #include "scenario/ps_scenario.h"
-#include "scenario/ps_world.h"
 #include "scenario/ps_screen.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_grid.h"
@@ -81,15 +80,15 @@ static int screen_unreachable(const struct ps_screen *screen) {
   return 1;
 }
 
-static void dump_world(struct ps_world *world) {
+static void dump_world(struct ps_scenario *scenario) {
   PS_LOG("----- world -----")
-  PS_LOG("Size %d,%d",world->w,world->h)
-  struct ps_screen *screenrow=world->v;
-  int y=0; for (;y<world->h;y++,screenrow+=world->w) {
+  PS_LOG("Size %d,%d",scenario->w,scenario->h)
+  struct ps_screen *screenrow=scenario->screenv;
+  int y=0; for (;y<scenario->h;y++,screenrow+=scenario->w) {
     int x;
     struct ps_screen *screen;
     
-    for (x=0,screen=screenrow;x<world->w;x++,screen++) switch (screen->doorn) {
+    for (x=0,screen=screenrow;x<scenario->w;x++,screen++) switch (screen->doorn) {
       case PS_DOOR_UNSET:  printf("O?????????????O"); break;
       case PS_DOOR_CLOSED: printf("O-------------O"); break;
       case PS_DOOR_OPEN:   printf("O             O"); break;
@@ -97,7 +96,7 @@ static void dump_world(struct ps_world *world) {
     }
     printf("\n");
     
-    for (x=0,screen=screenrow;x<world->w;x++,screen++) {
+    for (x=0,screen=screenrow;x<scenario->w;x++,screen++) {
       if (screen_unreachable(screen)) {
         printf("|XXXXXXXXXXXXX|");
       } else {
@@ -106,7 +105,7 @@ static void dump_world(struct ps_world *world) {
     }
     printf("\n");
     
-    for (x=0,screen=screenrow;x<world->w;x++,screen++) {
+    for (x=0,screen=screenrow;x<scenario->w;x++,screen++) {
       if (screen_unreachable(screen)) {
         printf("|XXXXXXXXXXXXX|");
       } else {
@@ -115,7 +114,7 @@ static void dump_world(struct ps_world *world) {
     }
     printf("\n");
     
-    for (x=0,screen=screenrow;x<world->w;x++,screen++) {
+    for (x=0,screen=screenrow;x<scenario->w;x++,screen++) {
       if (screen_unreachable(screen)) {
         printf("|XXXXXXXXXXXXX|");
       } else {
@@ -124,7 +123,7 @@ static void dump_world(struct ps_world *world) {
     }
     printf("\n");
     
-    for (x=0,screen=screenrow;x<world->w;x++,screen++) {
+    for (x=0,screen=screenrow;x<scenario->w;x++,screen++) {
       if (screen_unreachable(screen)) {
         printf("|XXXXXXXXXXXXX|");
       } else {
@@ -133,7 +132,7 @@ static void dump_world(struct ps_world *world) {
     }
     printf("\n");
     
-    for (x=0,screen=screenrow;x<world->w;x++,screen++) switch (screen->doors) {
+    for (x=0,screen=screenrow;x<scenario->w;x++,screen++) switch (screen->doors) {
       case PS_DOOR_UNSET:  printf("O?????????????O"); break;
       case PS_DOOR_CLOSED: printf("O-------------O"); break;
       case PS_DOOR_OPEN:   printf("O             O"); break;
@@ -149,8 +148,8 @@ static void dump_scenario(struct ps_scenario *scenario) {
 
   if (ps_test_verbosity<0) return;
 
-  if (scenario->world) dump_world(scenario->world);
-  else PS_LOG("World is NULL.");
+  // There used to be an object called "world", which we rolled into ps_scenario.
+  dump_world(scenario);
   
 }
 
@@ -176,16 +175,16 @@ static void write_grid_to_image(uint8_t *dst,const struct ps_grid_cell *src,int 
   }
 }
 
-static int generate_grids_image_rgba(void *dstpp,const struct ps_world *world) {
-  int w=world->w*PS_GRID_COLC;
-  int h=world->h*PS_GRID_ROWC;
+static int generate_grids_image_rgba(void *dstpp,const struct ps_scenario *scenario) {
+  int w=scenario->w*PS_GRID_COLC;
+  int h=scenario->h*PS_GRID_ROWC;
   int stride=w*4;
   int imgsize=stride*h;
   uint8_t *img=malloc(imgsize);
   if (!img) return -1;
 
-  const struct ps_screen *screen=world->v;
-  int screenc=world->w*world->h;
+  const struct ps_screen *screen=scenario->screenv;
+  int screenc=scenario->w*scenario->h;
   for (;screenc-->0;screen++) {
     uint8_t *subimg=img+stride*PS_GRID_ROWC*screen->y+PS_GRID_COLC*screen->x*4;
     write_grid_to_image(subimg,screen->grid->cellv,stride);
@@ -195,29 +194,29 @@ static int generate_grids_image_rgba(void *dstpp,const struct ps_world *world) {
   return imgsize;
 }
 
-static int generate_grids_image_png(void *dstpp,const struct ps_world *world) {
+static int generate_grids_image_png(void *dstpp,const struct ps_scenario *scenario) {
 
   void *pixels=0;
-  int pixelsc=generate_grids_image_rgba(&pixels,world);
+  int pixelsc=generate_grids_image_rgba(&pixels,scenario);
   if ((pixelsc<0)||!pixels) return -1;
   
   struct akpng_image image={
     .pixels=pixels,
-    .w=world->w*PS_GRID_COLC,
-    .h=world->h*PS_GRID_ROWC,
+    .w=scenario->w*PS_GRID_COLC,
+    .h=scenario->h*PS_GRID_ROWC,
     .depth=8,
     .colortype=6,
-    .stride=world->w*PS_GRID_COLC*4,
+    .stride=scenario->w*PS_GRID_COLC*4,
   };
   int err=akpng_encode(dstpp,&image);
   akpng_image_cleanup(&image);
   return err;
 }
 
-static void write_grids_to_image_file(const struct ps_world *world) {
+static void write_grids_to_image_file(const struct ps_scenario *scenario) {
 
   void *src=0;
-  int srcc=generate_grids_image_png(&src,world);
+  int srcc=generate_grids_image_png(&src,scenario);
   if ((srcc<0)||!src) {
     PS_LOG("Failed to generate grid image.")
     return;
@@ -287,16 +286,16 @@ static void write_grid_graphics_to_image(uint8_t *dst,const struct ps_screen *sc
   }
 }
 
-static int generate_grids_graphics_image_rgba(void *dstpp,const struct ps_world *world) {
-  int w=world->w*PS_GRID_COLC*PS_TILESIZE;
-  int h=world->h*PS_GRID_ROWC*PS_TILESIZE;
+static int generate_grids_graphics_image_rgba(void *dstpp,const struct ps_scenario *scenario) {
+  int w=scenario->w*PS_GRID_COLC*PS_TILESIZE;
+  int h=scenario->h*PS_GRID_ROWC*PS_TILESIZE;
   int stride=w*4;
   int imgsize=stride*h;
   uint8_t *img=malloc(imgsize);
   if (!img) return -1;
 
-  const struct ps_screen *screen=world->v;
-  int screenc=world->w*world->h;
+  const struct ps_screen *screen=scenario->screenv;
+  int screenc=scenario->w*scenario->h;
   for (;screenc-->0;screen++) {
     int dstoffset=stride*PS_GRID_ROWC*PS_TILESIZE*screen->y+PS_GRID_COLC*PS_TILESIZE*screen->x*4;
     uint8_t *subimg=img+dstoffset;
@@ -307,29 +306,29 @@ static int generate_grids_graphics_image_rgba(void *dstpp,const struct ps_world 
   return imgsize;
 }
 
-static int generate_grids_graphics_image_png(void *dstpp,const struct ps_world *world) {
+static int generate_grids_graphics_image_png(void *dstpp,const struct ps_scenario *scenario) {
 
   void *pixels=0;
-  int pixelsc=generate_grids_graphics_image_rgba(&pixels,world);
+  int pixelsc=generate_grids_graphics_image_rgba(&pixels,scenario);
   if ((pixelsc<0)||!pixels) return -1;
   
   struct akpng_image image={
     .pixels=pixels,
-    .w=world->w*PS_GRID_COLC*PS_TILESIZE,
-    .h=world->h*PS_GRID_ROWC*PS_TILESIZE,
+    .w=scenario->w*PS_GRID_COLC*PS_TILESIZE,
+    .h=scenario->h*PS_GRID_ROWC*PS_TILESIZE,
     .depth=8,
     .colortype=6,
-    .stride=world->w*PS_GRID_COLC*PS_TILESIZE*4,
+    .stride=scenario->w*PS_GRID_COLC*PS_TILESIZE*4,
   };
   int err=akpng_encode(dstpp,&image);
   akpng_image_cleanup(&image);
   return err;
 }
 
-static void write_grids_graphics_to_image_file(const struct ps_world *world) {
+static void write_grids_graphics_to_image_file(const struct ps_scenario *scenario) {
 
   void *src=0;
-  int srcc=generate_grids_graphics_image_png(&src,world);
+  int srcc=generate_grids_graphics_image_png(&src,scenario);
   if ((srcc<0)||!src) {
     PS_LOG("Failed to generate grid graphics image.")
     return;
@@ -378,8 +377,8 @@ PS_TEST(test_scgen_functional,scgen,functional,ignore) {
     PS_LOG("ps_scgen_generate() OK")
     PS_ASSERT(scgen->scenario)
     dump_scenario(scgen->scenario);
-    write_grids_to_image_file(scgen->scenario->world);
-    write_grids_graphics_to_image_file(scgen->scenario->world);
+    write_grids_to_image_file(scgen->scenario);
+    write_grids_graphics_to_image_file(scgen->scenario);
   }
 
   ps_scgen_del(scgen);

@@ -568,7 +568,7 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
 
 int ps_hero_become_ghost(struct ps_game *game,struct ps_sprite *spr) {
   if (!game||!spr||(spr->type!=&ps_sprtype_hero)) return -1;
-  //ps_log(GAME,INFO,"Hero %p becomes ghost.",spr);
+  ps_log(GAME,INFO,"Hero %p becomes ghost.",spr);
 
   if (ps_hero_action_end(spr,game)<0) return -1;
   if (ps_hero_auxaction_end(spr,game)<0) return -1;

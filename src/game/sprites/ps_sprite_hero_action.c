@@ -140,7 +140,6 @@ static int ps_hero_hookshot_begin(struct ps_sprite *spr,struct ps_game *game) {
 }
 
 static int ps_hero_hookshot_end(struct ps_sprite *spr,struct ps_game *game) {
-  //ps_log(GAME,TRACE,"%s",__func__);
   if (!SPR->hookshot_in_progress) return 0;
   SPR->hookshot_in_progress=0;
 
@@ -158,7 +157,10 @@ static int ps_hero_hookshot_continue(struct ps_sprite *spr,struct ps_game *game)
 
 int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
   if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
-  spr->collide_hole=1;
+  if (SPR->hp) {
+    // Hookshot may be abort becuase we just died -- in that case, collide_hole stays false.
+    spr->collide_hole=1;
+  }
   return ps_hero_hookshot_end(spr,game);
 }
 

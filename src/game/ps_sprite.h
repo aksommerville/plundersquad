@@ -147,6 +147,7 @@ extern const struct ps_sprtype ps_sprtype_blueberry;
 extern const struct ps_sprtype ps_sprtype_rabbit;
 extern const struct ps_sprtype ps_sprtype_prize;
 extern const struct ps_sprtype ps_sprtype_swordswitch;
+extern const struct ps_sprtype ps_sprtype_lobster;
 
 /* API for sprite types too trivial to warrant their own headers.
  */

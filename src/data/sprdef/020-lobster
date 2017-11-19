@@ -1,0 +1,10 @@
+type lobster
+
+# 00:head, 01:body, 02:tail, 03:arm, 04:claw(front), 05:claw(back)
+tileid 0x0417
+
+grpmask visible update herohazard fragile physics solid latch
+
+shape circle
+radius 7
+layer 100

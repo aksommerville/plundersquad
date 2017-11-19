@@ -534,7 +534,7 @@ static int _ps_lobster_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps
     return 0;
   }
 
-  
+  SPR->invincible=INT_MAX;  
   if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
   if (ps_game_create_prize(game,spr->x,spr->y)<0) return -1;
   if (ps_sprite_kill_later(spr,game)<0) return -1;

@@ -48,6 +48,7 @@ struct ps_game {
   struct ps_video_layer *layer_scene;
 
   int finished; // Signal to owner that you should drop this and return to the menus.
+  int paused;
   
 };
 
@@ -78,6 +79,11 @@ int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...
 /* With a scenario generated, call this to reset the transient state and begin play.
  */
 int ps_game_restart(struct ps_game *game);
+
+/* During play, call this to forcibly return to the first screen.
+ * This is an option in the pause menu, for use when players end up in an impossible place.
+ */
+int ps_game_return_to_start_screen(struct ps_game *game);
 
 int ps_game_update(struct ps_game *game);
 

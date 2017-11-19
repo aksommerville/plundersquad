@@ -28,7 +28,7 @@ static int ps_gui_init_layer(struct ps_gui *gui) {
   gui->layer=ps_video_layer_new(sizeof(struct ps_gui_layer));
   if (!gui->layer) return -1;
 
-  gui->layer->blackout=1;
+  gui->layer->blackout=0;
   gui->layer->draw=_ps_gui_layer_draw;
   LAYER->gui=gui;
 
@@ -254,7 +254,7 @@ int ps_gui_unload_page(struct ps_gui *gui) {
 LOADER(assemble)
 LOADER(sconfig)
 STUBLOADER(pconfig)
-STUBLOADER(pause)
+LOADER(pause)
 STUBLOADER(debug)
 STUBLOADER(gameover)
 

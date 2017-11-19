@@ -138,9 +138,13 @@ static int ps_main_update() {
   if (ps_gui_is_active(ps_gui)) {
     if (ps_gui_update(ps_gui)<0) return -1;
   } else if (ps_game) {
-    if (ps_game_update(ps_game)<0) return -1;
-    if (ps_game->finished) {
-      if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+    if (ps_game->paused) {
+      if (ps_gui_load_page_pause(ps_gui)<0) return -1;
+    } else {
+      if (ps_game_update(ps_game)<0) return -1;
+      if (ps_game->finished) {
+        if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+      }
     }
   }
   

@@ -40,9 +40,11 @@ static int ps_game_draw_hud(struct ps_game *game) {
 
 static int ps_game_layer_draw(struct ps_video_layer *layer) {
   struct ps_game *game=((struct ps_game_layer*)layer)->game;
-  if (ps_video_draw_grid(game->grid)<0) return -1;
-  if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE)<0) return -1;
-  if (ps_game_draw_hud(game)<0) return -1;
+  if (game&&game->grid) {
+    if (ps_video_draw_grid(game->grid)<0) return -1;
+    if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE)<0) return -1;
+    if (ps_game_draw_hud(game)<0) return -1;
+  }
   return 0;
 }
 
@@ -519,7 +521,7 @@ static int ps_game_setup_deathgate(struct ps_game *game) {
   return 0;
 }
 
-/* Restart.
+/* Hard restart.
  */
 
 int ps_game_restart(struct ps_game *game) {
@@ -531,9 +533,39 @@ int ps_game_restart(struct ps_game *game) {
 
   game->finished=0;
   game->playtime=0;
+  game->paused=0;
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;
+
+  game->gridx=game->scenario->homex;
+  game->gridy=game->scenario->homey;
+  game->grid=PS_WORLD_SCREEN(game->scenario->world,game->gridx,game->gridy)->grid;
+  if (ps_grid_close_all_barriers(game->grid)<0) return -1;
+  if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
+
+  ps_sprgrp_kill(game->grpv+PS_SPRGRP_KEEPALIVE);
+
+  if (ps_game_spawn_hero_sprites(game)<0) return -1;
+  if (ps_game_spawn_sprites(game)<0) return -1;
+  if (ps_game_setup_deathgate(game)<0) return -1;
+
+  return 0;
+}
+
+/* Soft restart.
+ */
+ 
+int ps_game_return_to_start_screen(struct ps_game *game) {
+  if (!game||!game->scenario) return -1;
+  if (!game->grid) return -1;
+
+  ps_log(GAME,DEBUG,"Returning to home screen (%d,%d) of (%d,%d).",
+    game->scenario->homex,game->scenario->homey,game->scenario->world->w,game->scenario->world->h
+  );
+
+  game->finished=0;
+  game->paused=0;
 
   game->gridx=game->scenario->homex;
   game->gridy=game->scenario->homey;
@@ -819,7 +851,7 @@ int ps_game_update(struct ps_game *game) {
  
 int ps_game_toggle_pause(struct ps_game *game) {
   if (!game) return -1;
-  ps_log(GAME,INFO,"TODO: Pause/resume");
+  game->paused=game->paused?0:1;
   return 0;
 }
 

@@ -291,24 +291,53 @@ static uint8_t ps_gridgen_skin_cell_3X3(uint8_t neighbors,uint8_t tileid) {
 
 #undef MATCH
 
-/* Get cell shape. TODO This should be stored in the tilesheet resource.
- * Which is tricky, because that is a plain image file.
- * We should have a new resource type 'tsshape', which assigns itself into tilesheet at link time.
- * For now (early development), we're hard-coding the one image in use.
+/* Get cell shape.
+ * We determine this by looking at the shape's ROUND flag, and considering which tile of the shape was selected.
  */
 
-static uint8_t ps_gridgen_shape_for_tile(uint8_t tsid,uint8_t tileid) {
-  switch (tileid) {
-    case 0x45: return PS_GRID_CELL_SHAPE_RNW;
-    case 0x47: return PS_GRID_CELL_SHAPE_RNE;
-    case 0x50: return PS_GRID_CELL_SHAPE_CIRCLE;
-    case 0x60: return PS_GRID_CELL_SHAPE_CIRCLE;
-    case 0x65: return PS_GRID_CELL_SHAPE_RSW;
-    case 0x67: return PS_GRID_CELL_SHAPE_RSE;
-    case 0x68: return PS_GRID_CELL_SHAPE_CIRCLE;
-    case 0x70: return PS_GRID_CELL_SHAPE_CIRCLE;
-    //TODO water cells, didn't bother
+static uint8_t ps_gridgen_shape_for_tile(uint8_t tsid,uint8_t tileid,const struct ps_region_shape *shape) {
+
+  /* If the shape is not ROUND, all tiles of it are perfect squares. */
+  if (!(shape->flags&PS_REGION_SHAPE_FLAG_ROUND)) {
+    return 0;
   }
+  
+  int subx=(tileid&0x0f)-(shape->tileid&0x0f);
+  int suby=(tileid>>4)-(shape->tileid>>4);
+  switch (shape->style) {
+
+    #define _(tag) PS_GRID_CELL_SHAPE_##tag
+    #define MATRIX(w,h,...) { \
+      const uint8_t cellshapev[w*h]={__VA_ARGS__}; \
+      return cellshapev[suby*w+subx]; \
+    }
+
+    case PS_REGION_SHAPE_STYLE_SINGLE: return PS_GRID_CELL_SHAPE_CIRCLE;
+    case PS_REGION_SHAPE_STYLE_ALT4: return PS_GRID_CELL_SHAPE_CIRCLE;
+    case PS_REGION_SHAPE_STYLE_ALT8: return PS_GRID_CELL_SHAPE_CIRCLE;
+    case PS_REGION_SHAPE_STYLE_EVEN4: return PS_GRID_CELL_SHAPE_CIRCLE;
+    case PS_REGION_SHAPE_STYLE_ALT16: return PS_GRID_CELL_SHAPE_CIRCLE;
+    case PS_REGION_SHAPE_STYLE_SKINNY: MATRIX(4,4,
+        _(RNW),   _(SQUARE),_(RNE),   _(RN),
+        _(SQUARE),_(SQUARE),_(SQUARE),_(SQUARE),
+        _(RSW),   _(SQUARE),_(RSE),   _(RS),
+        _(RW),    _(SQUARE),_(RE),    _(CIRCLE)
+      )
+    case PS_REGION_SHAPE_STYLE_FAT: MATRIX(5,3,
+        _(RNW),   _(SQUARE),_(RNE),   _(SQUARE),_(SQUARE),
+        _(SQUARE),_(SQUARE),_(SQUARE),_(SQUARE),_(SQUARE),
+        _(RSW),   _(SQUARE),_(RSE),   _(CIRCLE),_(CIRCLE)
+      )
+    case PS_REGION_SHAPE_STYLE_3X3: MATRIX(3,3,
+        _(RNW),   _(SQUARE),_(RNE),
+        _(SQUARE),_(SQUARE),_(SQUARE),
+        _(RSW),   _(SQUARE),_(RSE)
+      )
+
+    #undef _
+    #undef MATRIX
+  }
+
   return 0;
 }
 
@@ -336,7 +365,7 @@ static int ps_gridgen_skin_cells_for_zone(struct ps_scgen *scgen,struct ps_scree
   int i=zone->cellc; for (;i-->0;zcell++) {
     struct ps_grid_cell *gcell=screen->grid->cellv+zcell->y*PS_GRID_COLC+zcell->x;
     gcell->tileid=ps_gridgen_skin_cell(scgen,zone->shape,zcell->neighbors);
-    gcell->shape=ps_gridgen_shape_for_tile(screen->region->tsid,gcell->tileid);
+    gcell->shape=ps_gridgen_shape_for_tile(screen->region->tsid,gcell->tileid,zone->shape);
   }
   return 0;
 }

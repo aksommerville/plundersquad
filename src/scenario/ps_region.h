@@ -17,6 +17,8 @@
 #define PS_REGION_SHAPE_STYLE_3X3       0x06 /* 3x3 exactly. */
 #define PS_REGION_SHAPE_STYLE_ALT16     0x07 /* 4x4 singletons with heavy randomization, intended for VACANT mostly. */
 
+#define PS_REGION_SHAPE_FLAG_ROUND    0x01 /* Round corners. */
+
 #define PS_REGION_MONSTER_LIMIT 8
 
 struct ps_region_shape {
@@ -24,6 +26,7 @@ struct ps_region_shape {
   uint8_t weight;  // Higher are more likely to be selected. Zero to disable.
   uint8_t tileid;  // First tile of this group.
   uint8_t style;   // How these tiles combine with each other.
+  uint8_t flags;   // PS_REGION_SHAPE_FLAG_*
 };
 
 struct ps_region {
@@ -66,15 +69,17 @@ int ps_region_add_monster(struct ps_region *region,int sprdefid); // Fallible, a
  * First word is the command:
  *   tilesheet ID                      # required once
  *   region ID                         # required once
- *   shape PHYSICS WEIGHT TILEID STYLE # any count
+ *   shape PHYSICS WEIGHT TILEID STYLE [FLAGS...] # any count
  *     PHYSICS: ps_blueprint_cell_eval() (VACANT,SOLID,HOLE,LATCH,HAZARD,HEAL,HEROONLY)
  *     WEIGHT: integer
  *     TILEID: integer
  *     STYLE: ps_region_shape_style_eval() (SINGLE,ALT4,ALT8,EVEN4,SKINNY,FAT)
+ *     FLAGS: ps_region_shape_flag_eval() (ROUND)
  *   monster SPRDEFID                  # 0..8
  */
 struct ps_region *ps_region_decode(const char *src,int srcc);
 
 int ps_region_shape_style_eval(const char *src,int srcc);
+int ps_region_shape_flag_eval(const char *src,int srcc);
 
 #endif

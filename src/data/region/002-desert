@@ -10,16 +10,16 @@ shape VACANT 100 0x00 ALT16
 
 # Only three SOLID actually in use: A SKINNY, a FAT, and a SINGLE.
 # There's room for more and we should probably use it.
-shape SOLID 100 0x41 SKINNY
-shape SOLID 100 0x45 FAT
-shape SOLID 100 0x60 SINGLE
+shape SOLID 100 0x41 SKINNY ROUND
+shape SOLID 100 0x45 FAT ROUND
+shape SOLID 100 0x60 SINGLE ROUND
 
 # Latchable object, not yet drawn. Probably will be trees.
-shape LATCH 100 0x4b FAT
+shape LATCH 100 0x4b FAT ROUND
 
 # Holes, not yet drawn. Probably will be water.
-shape HOLE 100 0x84 SKINNY
-shape HOLE 100 0x88 FAT
+shape HOLE 100 0x84 SKINNY ROUND
+shape HOLE 100 0x88 FAT ROUND
 
 # Hazards.
 shape HAZARD 100 0xc5 FAT

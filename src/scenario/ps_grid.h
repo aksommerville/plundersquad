@@ -8,10 +8,18 @@
 struct ps_blueprint_poi;
 struct ps_region;
 
+/* Cell shape bits. */
 #define PS_GRID_CELL_SHAPE_RNW    0x01
 #define PS_GRID_CELL_SHAPE_RNE    0x02
 #define PS_GRID_CELL_SHAPE_RSW    0x04
 #define PS_GRID_CELL_SHAPE_RSE    0x08
+
+/* Compound cell shapes. */
+#define PS_GRID_CELL_SHAPE_SQUARE 0x00
+#define PS_GRID_CELL_SHAPE_RN     0x03
+#define PS_GRID_CELL_SHAPE_RS     0x0c
+#define PS_GRID_CELL_SHAPE_RW     0x05
+#define PS_GRID_CELL_SHAPE_RE     0x0a
 #define PS_GRID_CELL_SHAPE_CIRCLE 0x0f
 
 struct ps_grid_cell {

@@ -207,7 +207,17 @@ static int ps_region_decode_shape(struct ps_region_shape *shape,const char *src,
     ps_log(RES,ERROR,"Failed to evaluate '%.*s' as region shape style.",subc,sub);
     return -1;
   }
-  shape->style=v;  
+  shape->style=v;
+
+  while (srcp<srcc) {
+    NEXTTOKEN
+    if (!subc) break;
+    if ((v=ps_region_shape_flag_eval(sub,subc))<0) {
+      ps_log(RES,ERROR,"Failed to evaluate '%.*s' as region shape flag.",subc,sub);
+      return -1;
+    }
+    shape->flags|=v;
+  }
 
   #undef NEXTTOKEN
 
@@ -327,6 +337,14 @@ int ps_region_shape_style_eval(const char *src,int srcc) {
   _(FAT)
   _(3X3)
   _(ALT16)
+  #undef _
+  return -1;
+}
+
+int ps_region_shape_flag_eval(const char *src,int srcc) {
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_REGION_SHAPE_FLAG_##tag;
+  _(ROUND)
   #undef _
   return -1;
 }

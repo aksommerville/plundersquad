@@ -1,5 +1,6 @@
 /* ps_grid.h
  * Single screen of map, composed by generator from a blueprint.
+ * Grid has a serial format, which is managed by ps_scenario.
  */
 
 #ifndef PS_GRID_H

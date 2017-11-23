@@ -21,6 +21,10 @@ int ps_buffer_clear(struct ps_buffer *buffer);
 int ps_buffer_appendf(struct ps_buffer *buffer,const char *fmt,...);
 int ps_buffer_appendfv(struct ps_buffer *buffer,const char *fmt,va_list vargs);
 
+int ps_buffer_append_be8(struct ps_buffer *buffer,uint8_t src);
+int ps_buffer_append_be16(struct ps_buffer *buffer,uint16_t src);
+int ps_buffer_append_be32(struct ps_buffer *buffer,uint32_t src);
+
 int ps_buffer_terminate(struct ps_buffer *buffer);
 
 #endif

@@ -33,6 +33,7 @@
 #define PS_BLUEPRINT_SIZE_LARGER PS_BLUEPRINT_COLC
 
 // World size limits, in screens.
+// This is a sanity limit. Must not exceed 255 because we serialize coordinates as bytes.
 #define PS_WORLD_W_LIMIT 32
 #define PS_WORLD_H_LIMIT 32
 

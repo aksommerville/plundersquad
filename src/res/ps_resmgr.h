@@ -32,7 +32,7 @@ struct ps_restype *ps_resmgr_get_type_by_name(const char *name,int namec);
 
 void *ps_res_get(int tid,int rid);
 
-// Reverse lookup. Production flows shouldn't depend on this, it's for troubleshooting.
+// Reverse lookup.
 int ps_res_get_id_by_obj(int tid,const void *obj);
 
 #endif

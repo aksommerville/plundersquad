@@ -1,5 +1,6 @@
 /* ps_screen.h
  * One screenful of map data.
+ * Screens have a serial format, which is managed by ps_scenario.
  */
 
 #ifndef PS_SCREEN_H

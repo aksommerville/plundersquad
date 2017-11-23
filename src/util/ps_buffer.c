@@ -88,6 +88,23 @@ int ps_buffer_appendfv(struct ps_buffer *buffer,const char *fmt,va_list vargs) {
   }
 }
 
+/* Append big-endian integers.
+ */
+ 
+int ps_buffer_append_be8(struct ps_buffer *buffer,uint8_t src) {
+  return ps_buffer_append(buffer,&src,1);
+}
+
+int ps_buffer_append_be16(struct ps_buffer *buffer,uint16_t src) {
+  uint8_t tmp[2]={src>>8,src};
+  return ps_buffer_append(buffer,tmp,2);
+}
+
+int ps_buffer_append_be32(struct ps_buffer *buffer,uint32_t src) {
+  uint8_t tmp[4]={src>>24,src>>16,src>>8,src};
+  return ps_buffer_append(buffer,tmp,4);
+}
+
 /* Terminate.
  */
  

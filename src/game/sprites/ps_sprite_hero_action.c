@@ -5,6 +5,7 @@
 #include "game/ps_game.h"
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
+#include "game/ps_sound_effects.h"
 #include "util/ps_geometry.h"
 #include "input/ps_input_button.h"
 #include "res/ps_resmgr.h"
@@ -82,6 +83,7 @@ static struct ps_fbox ps_hero_get_sword_bounds(const struct ps_sprite *spr) {
 static int ps_hero_sword_begin(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
   if (SPR->sword_in_progress) return 0;
+  PS_SFX_SWORD
   SPR->sword_in_progress=1;
   struct ps_fbox swordbounds=ps_hero_get_sword_bounds(spr);
   if (ps_hero_assess_damage_to_others(spr,game,swordbounds)<0) return -1;
@@ -123,6 +125,7 @@ static int ps_hero_sword_continue(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_arrow(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprite *arrow=ps_sprite_arrow_new(spr,game);
   if (!arrow) return -1;
+  PS_SFX_ARROW
   //TODO hero animation when firing an arrow
   return 0;
 }
@@ -133,6 +136,7 @@ static int ps_hero_arrow(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_hookshot_begin(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
   if (SPR->hookshot_in_progress) return 0;
+  PS_SFX_HOOKSHOT_BEGIN
   SPR->hookshot_in_progress=1;
   struct ps_sprite *hookshot=ps_sprite_hookshot_new(spr,game);
   if (!hookshot) return 0;
@@ -169,6 +173,7 @@ int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_hero_flame_begin(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->flame_in_progress) return 0;
+  PS_SFX_FLAME
   SPR->flame_in_progress=1;
   SPR->flame_counter=0;
   return 0;
@@ -214,6 +219,7 @@ static int ps_hero_flame_continue(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_action_heal(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprite *missile=ps_sprite_healmissile_new(spr,game);
   if (!missile) return -1;
+  PS_SFX_HEALMISSILE
   return 0;
 }
 
@@ -237,6 +243,7 @@ static int ps_hero_carry_end(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_hero_fly_begin(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->fly_in_progress) return 0;
+  PS_SFX_TRANSFORM
   SPR->fly_in_progress=1;
   SPR->fly_counter=0;
   spr->collide_hole=0;//TODO conflict with hookshot pumpkin? I think there is a narrow error case there, but not sure how to find it.
@@ -245,6 +252,7 @@ static int ps_hero_fly_begin(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->fly_in_progress) return 0;
+  PS_SFX_UNTRANSFORM
   SPR->fly_in_progress=0;
   spr->collide_hole=1;
   return 0;
@@ -262,6 +270,7 @@ static int ps_hero_martyr(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
 
   /* Just create the explosion; it will kill us on its own time. */
+  PS_SFX_EXPLODE
   struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_HERO_MARTYR_EXPLOSION_SPRDEFID);
   if (!sprdef) {
     ps_log(GAME,ERROR,"sprdef:%d not found for martyr explosion",PS_HERO_MARTYR_EXPLOSION_SPRDEFID);

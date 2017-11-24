@@ -7,6 +7,7 @@
 #include "res/ps_resmgr.h"
 #include "game/ps_game.h"
 #include "gui/ps_gui.h"
+#include "akau/akau.h"
 #include <time.h>
 
 #if PS_USE_macioc
@@ -24,6 +25,14 @@
 
 static struct ps_game *ps_game=0;
 static struct ps_gui *ps_gui=0;
+
+/* Logging from akau.
+ */
+
+static void ps_log_akau(int level,const char *msg,int msgc) {
+  //TODO translate log levels from akau to ps
+  ps_log(AUDIO,INFO,"[%s] %.*s",akau_loglevel_repr(level),msgc,msg);
+}
 
 /* Setup for quick testing during development.
  */
@@ -105,6 +114,12 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (ps_resmgr_init("src/data",0)<0) return -1; //TODO resource path
 
+  #if PS_USE_akmacaudio
+    if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
+    if (akau_load_resources("src/data/audio")<0) return -1; //TODO resource path
+    if (akau_play_song(3,1)<0) return -1;
+  #endif
+
   if (!(ps_game=ps_game_new())) return -1;
 
   if (!(ps_gui=ps_gui_new())) return -1;
@@ -132,6 +147,8 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 static void ps_main_quit() {
   ps_log(MAIN,TRACE,"%s",__func__);
 
+  akau_quit();
+
   ps_gui_del(ps_gui);
   ps_game_del(ps_game);
 
@@ -155,6 +172,8 @@ static int ps_main_update() {
   if (ps_input_termination_requested()) {
     ps_ioc_quit(0);
   }
+
+  if (akau_update()<0) return -1;
 
   if (ps_gui_is_active(ps_gui)) {
     if (ps_gui_update(ps_gui)<0) return -1;

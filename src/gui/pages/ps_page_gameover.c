@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "gui/ps_gui.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "input/ps_input.h"
 #include "util/ps_geometry.h"
 
@@ -60,6 +61,7 @@ static int _ps_gameover_move_cursor(struct ps_page *page,int dx,int dy) {
 static int _ps_gameover_activate(struct ps_page *page) {
   switch (ps_widget_menu_get_cursor(PAGE->menu)) {
     case 0: { // Main menu
+        PS_SFX_GUI_ACTIVATE
         if (ps_gui_load_page_assemble(page->gui)<0) return -1;
       } break;
     case 1: { // Quit

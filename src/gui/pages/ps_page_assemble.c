@@ -2,6 +2,7 @@
 #include "gui/ps_gui.h"
 #include "util/ps_geometry.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 
 static int ps_assemble_is_complete(const struct ps_page *page);
 static int ps_assemble_setup_game(struct ps_page *page);

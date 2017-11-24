@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hookshot.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
@@ -348,6 +349,8 @@ static int ps_seamonster_shoot_fireball(struct ps_sprite *spr,struct ps_game *ga
     dstx=target->x;
     dsty=target->y;
   }
+
+  PS_SFX_SEAMONSTER_FIRE
   
   struct ps_sprite *fireball=ps_sprite_missile_new(PS_SEAMONSTER_FIREBALL_SPRDEF_ID,spr,dstx,dsty,game);
   if (!fireball) return -1;
@@ -360,6 +363,7 @@ static int ps_seamonster_shoot_fireball(struct ps_sprite *spr,struct ps_game *ga
  */
 
 static int ps_seamonster_begin_swim(struct ps_sprite *spr,struct ps_game *game) {
+  PS_SFX_SEAMONSTER_DIVE
   SPR->phase=PS_SEAMONSTER_PHASE_SWIM;
   SPR->phasetimer=PS_SEAMONSTER_SWIM_TIME_MAX;
   SPR->tentaclec=0;
@@ -376,6 +380,7 @@ static int ps_seamonster_begin_lurk(struct ps_sprite *spr,struct ps_game *game) 
 }
 
 static int ps_seamonster_begin_prefire(struct ps_sprite *spr,struct ps_game *game) {
+  PS_SFX_SEAMONSTER_SURFACE
   SPR->phase=PS_SEAMONSTER_PHASE_PREFIRE;
   SPR->phasetimer=PS_SEAMONSTER_PREFIRE_TIME_MIN+rand()%(PS_SEAMONSTER_PREFIRE_TIME_MAX-PS_SEAMONSTER_PREFIRE_TIME_MIN+1);
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;

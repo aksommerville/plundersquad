@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 
 #define PS_SWORDSWITCH_DELAY_TIME 60
@@ -60,10 +61,12 @@ int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps
   SPR->delay=PS_SWORDSWITCH_DELAY_TIME;
 
   if (SPR->active^=1) {
+    PS_SFX_SWORDSWITCH_UNLOCK
     if (ps_grid_open_barrier(game->grid,SPR->barrierid)<0) return -1;
     spr->tileid++;
 
   } else {
+    PS_SFX_SWORDSWITCH_LOCK
     if (ps_grid_close_barrier(game->grid,SPR->barrierid)<0) return -1;
     spr->tileid--;
 

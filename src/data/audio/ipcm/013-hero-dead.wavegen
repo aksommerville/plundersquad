@@ -1,0 +1,11 @@
+channel square
+
+0000 0 trim 0.00
+0000 0 step 300.0
+
+0010 0 trim 0.40
+
+0280 0 trim 0.10
+
+0200 0 step 1.00
+0200 0 trim 0.00

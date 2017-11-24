@@ -6,7 +6,7 @@ OBJC:=gcc -xobjective-c -c -MMD -O2 $(CCINC) $(CCWARN)
 LD:=gcc
 LDPOST:=-framework Cocoa -framework OpenGL -framework AudioUnit -lz -framework IOKit
 
-OPT_ENABLE:=macioc macwm machid
+OPT_ENABLE:=macioc macwm machid akmacaudio
 
 PS_GLSL_VERSION:=120
 

@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "gui/ps_gui.h"
 #include "util/ps_geometry.h"
+#include "game/ps_sound_effects.h"
 
 /* Widget definition.
  *
@@ -143,6 +144,7 @@ int ps_widget_menu_move_cursor(struct ps_widget *widget,int d) {
   if (optionc<=1) {
     WIDGET->cursorp=0;
   } else {
+    PS_SFX_MENU_MOVE
     d%=optionc;
     int np=WIDGET->cursorp+d;
     if (np<0) np+=optionc;
@@ -164,6 +166,7 @@ int ps_widget_menu_adjust_selection(struct ps_widget *widget,int d) {
   struct ps_widget *selection=widget->childv[1]->childv[WIDGET->cursorp];
   
   if (selection->type==&ps_widget_type_slider) {
+    PS_SFX_MENU_ADJUST
     if (ps_widget_slider_adjust(selection,d)<0) return -1;
     return 0;
   }

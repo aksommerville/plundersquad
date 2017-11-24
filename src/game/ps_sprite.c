@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "ps_sprite.h"
+#include "ps_sound_effects.h"
 #include "akgl/akgl.h"
 #include "ps_game.h"
 
@@ -122,6 +123,7 @@ int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struc
   }
 
   /* Default action for fragile sprites. */
+  PS_SFX_MONSTER_DEAD
   if (ps_game_create_fireworks(game,victim->x,victim->y)<0) return -1;
   if (ps_game_create_prize(game,victim->x,victim->y)<0) return -1;
   ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,victim);

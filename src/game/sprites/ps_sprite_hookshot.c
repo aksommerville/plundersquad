@@ -3,6 +3,7 @@
 #include "ps_sprite_hero.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "util/ps_geometry.h"
@@ -78,11 +79,13 @@ static struct ps_sprite *ps_hookshot_find_pumpkin(struct ps_sprite *spr,struct p
  */
 
 static int ps_hookshot_begin_empty(struct ps_sprite *spr) {
+  PS_SFX_HOOKSHOT_BONK
   SPR->phase=PS_HOOKSHOT_PHASE_EMPTY;
   return 0;
 }
 
 static int ps_hookshot_begin_pull(struct ps_sprite *spr) {
+  PS_SFX_HOOKSHOT_GRAB
   SPR->phase=PS_HOOKSHOT_PHASE_PULL;
   if (SPR->user&&(SPR->user->sprc==1)) {
     struct ps_sprite *user=SPR->user->sprv[0];
@@ -92,6 +95,7 @@ static int ps_hookshot_begin_pull(struct ps_sprite *spr) {
 }
 
 static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *pumpkin) {
+  PS_SFX_HOOKSHOT_GRAB
   SPR->phase=PS_HOOKSHOT_PHASE_DELIVER;
   SPR->pumpkin_restore_collide_hole=pumpkin->collide_hole;
   pumpkin->collide_hole=0;

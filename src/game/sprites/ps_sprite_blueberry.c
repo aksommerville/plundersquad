@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "akgl/akgl.h"
 #include <math.h>
 
@@ -207,6 +208,7 @@ static int _ps_blueberry_hurt(struct ps_game *game,struct ps_sprite *spr,struct 
   if (SPR->invincible) return 0;
 
   if ((SPR->nodec<=1)||!spr->grpc) {
+    PS_SFX_MONSTER_DEAD
     SPR->invincible=INT_MAX;
     if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
     if (ps_game_create_prize(game,spr->x,spr->y)<0) return -1;
@@ -214,6 +216,8 @@ static int _ps_blueberry_hurt(struct ps_game *game,struct ps_sprite *spr,struct 
     if (ps_game_check_deathgate(game)<0) return -1;
     return 0;
   }
+
+  PS_SFX_MONSTER_HURT
 
   struct ps_sprite *other=ps_sprite_new(&ps_sprtype_blueberry);
   if (!other) return -1;

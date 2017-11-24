@@ -3,6 +3,7 @@
 #include "util/ps_geometry.h"
 #include "input/ps_input.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 
 static int ps_sconfig_generate_scenario(struct ps_page *page);
 
@@ -70,10 +71,12 @@ static int _ps_sconfig_move_cursor(struct ps_page *page,int dx,int dy) {
 static int _ps_sconfig_activate(struct ps_page *page) {
   switch (ps_widget_menu_get_cursor(PAGE->menu)) {
     case 0: { // Begin
+        PS_SFX_GUI_ACTIVATE
         if (ps_sconfig_generate_scenario(page)<0) return -1;
         if (ps_gui_unload_page(page->gui)<0) return -1;
       } break;
     case 3: { // Back
+        PS_SFX_GUI_ACTIVATE
         if (ps_gui_load_page_assemble(page->gui)<0) return -1;
       } break;
     case 4: { // Quit

@@ -4,6 +4,7 @@
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "util/ps_geometry.h"
@@ -605,6 +606,7 @@ int ps_hero_heal(struct ps_sprite *spr,struct ps_game *game) {
   if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
   if (!game) return -1;
   if (SPR->hp==PS_HERO_DEFAULT_HP) return 0;
+  PS_SFX_HERO_HEAL
   SPR->healtime=PS_HERO_HEAL_TIME;
   if (SPR->hp) {
     SPR->hp=PS_HERO_DEFAULT_HP;
@@ -625,17 +627,20 @@ static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sp
 
   /* If we have the IMMORTAL skill, forget about it. */
   if (SPR->player&&SPR->player->plrdef&&(SPR->player->plrdef->skills&PS_SKILL_IMMORTAL)) {
+    PS_SFX_HERO_HURT
     SPR->hurttime=PS_HERO_HURT_TIME; // Fake pain as a way of mocking pathetic mortals.
     return 0;
   }
 
   SPR->hp--;
   if (SPR->hp<=0) {
+    PS_SFX_HERO_DEAD
     SPR->hp=0;
     if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
     return ps_hero_become_ghost(game,spr);
   }
 
+  PS_SFX_HERO_HURT
   SPR->hurttime=PS_HERO_HURT_TIME;
   
   return 0;

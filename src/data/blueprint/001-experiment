@@ -5,8 +5,8 @@
 monsters 0 0
 
 #XXX TEMP
-poi 0 0 HERO 1 0 0
-poi 1 0 HERO 2 0 0
+#poi 0 0 HERO 1 0 0
+#poi 1 0 HERO 2 0 0
 #poi 2 1 HERO 3 0 0
 
 #poi 10 5 SPRITE 20 0 0

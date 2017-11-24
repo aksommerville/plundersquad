@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "util/ps_geometry.h"
 #include "akgl/akgl.h"
 #include <math.h>
@@ -530,10 +531,12 @@ static int _ps_lobster_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps
   if (SPR->invincible) return 0;
 
   if (--(SPR->hp)>0) {
+    PS_SFX_MONSTER_HURT
     SPR->invincible=PS_LOBSTER_INVINCIBLE_TIME;
     return 0;
   }
 
+  PS_SFX_MONSTER_DEAD
   SPR->invincible=INT_MAX;  
   if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
   if (ps_game_create_prize(game,spr->x,spr->y)<0) return -1;

@@ -2,6 +2,7 @@
 #include "gui/ps_gui.h"
 #include "input/ps_input.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "os/ps_fs.h"
 
 static int ps_pause_restart(struct ps_page *page);
@@ -58,6 +59,7 @@ static int _ps_pause_move_cursor(struct ps_page *page,int dx,int dy) {
 }
 
 static int _ps_pause_activate(struct ps_page *page) {
+  PS_SFX_GUI_ACTIVATE
   switch (ps_widget_menu_get_cursor(PAGE->menu)) {
     case 0: { // Resume
         if (ps_game_toggle_pause(ps_gui_get_game(page->gui))<0) return -1;

@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "util/ps_geometry.h"
 #include "akgl/akgl.h"
 #include <math.h>
@@ -171,6 +172,8 @@ static int ps_rabbit_begin_HOP(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_rabbit_begin_BURN(struct ps_sprite *spr,struct ps_game *game) {
 
+  PS_SFX_RABBIT_FIRE
+
   SPR->phase=PS_RABBIT_PHASE_BURN;
   SPR->counter=PS_RABBIT_BURN_TIME;
 
@@ -183,6 +186,8 @@ static int ps_rabbit_begin_BURN(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_rabbit_begin_LICK(struct ps_sprite *spr,struct ps_game *game) {
+
+  PS_SFX_RABBIT_TONGUE
 
   SPR->phase=PS_RABBIT_PHASE_LICK;
   SPR->counter=PS_RABBIT_LICK_TIME;
@@ -202,6 +207,8 @@ static int ps_rabbit_begin_SPIT(struct ps_sprite *spr,struct ps_game *game) {
 
   if (SPR->belly->sprc>0) {
     struct ps_sprite *pumpkin=SPR->belly->sprv[0];
+
+    PS_SFX_RABBIT_SPIT
 
     // Restore basic groups.
     if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_VISIBLE,pumpkin)<0) return -1;
@@ -256,6 +263,8 @@ static int ps_rabbit_swallow_pumpkin(struct ps_sprite *spr,struct ps_game *game)
   if (SPR->pumpkin->sprc<1) return 0;
   if (SPR->belly->sprc) return -1;
   struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
+
+  PS_SFX_RABBIT_SWALLOW
 
   if (ps_sprgrp_add_sprite(SPR->belly,pumpkin)<0) return -1;
   if (ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin)<0) return -1;
@@ -331,6 +340,7 @@ static int ps_rabbit_grab_pumpkin(struct ps_sprite *spr,struct ps_game *game,str
 
   if (SPR->pumpkin->sprc) return -1;
   if (ps_sprgrp_add_sprite(SPR->pumpkin,pumpkin)<0) return -1;
+  PS_SFX_RABBIT_GRAB
   
   return 0;
 }
@@ -553,6 +563,8 @@ static int _ps_rabbit_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_
 
   SPR->hp--;
   if (!SPR->hp) {
+
+    PS_SFX_MONSTER_DEAD
   
     /* IMPORTANT! If we have something in the belly at the moment of death, spit it out. */
     if (SPR->belly->sprc) ps_rabbit_begin_SPIT(spr,game);
@@ -566,6 +578,7 @@ static int _ps_rabbit_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_
     return 0;
   }
 
+  PS_SFX_MONSTER_HURT
   SPR->invincible=PS_RABBIT_INVINCIBLE_TIME;
 
   return 0;

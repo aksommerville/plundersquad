@@ -6,6 +6,7 @@
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
 #include "game/ps_sprite.h"
+#include "game/ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "res/ps_resmgr.h"
 #include "video/ps_video.h"
@@ -326,6 +327,7 @@ static int ps_herosetup_enter_ready(struct ps_widget *widget) {
 
 int ps_widget_herosetup_advance_phase(struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_herosetup)) return -1;
+  PS_SFX_GUI_ACTIVATE
   switch (WIDGET->phase) {
     case PS_HEROSETUP_PHASE_INIT: return ps_herosetup_enter_edit(widget);
     case PS_HEROSETUP_PHASE_EDIT: return ps_herosetup_enter_ready(widget);
@@ -338,6 +340,9 @@ int ps_widget_herosetup_advance_phase(struct ps_widget *widget) {
 
 int ps_widget_herosetup_retreat_phase(struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_herosetup)) return -1;
+  if (WIDGET->phase!=PS_HEROSETUP_PHASE_INIT) {
+    PS_SFX_GUI_CANCEL
+  }
   switch (WIDGET->phase) {
     case PS_HEROSETUP_PHASE_INIT: return ps_herosetup_enter_init(widget);
     case PS_HEROSETUP_PHASE_EDIT: return ps_herosetup_enter_init(widget);

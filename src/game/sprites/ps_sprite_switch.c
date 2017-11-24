@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 
 /* Private sprite object.
@@ -79,6 +80,7 @@ static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Newly pressed. */
   if (SPR->press=state) {
+    PS_SFX_SWITCH_PRESS
     spr->tileid++;
     if (SPR->stompbox) {
       if (SPR->state) {
@@ -92,6 +94,7 @@ static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Newly released. */
   } else {
+    PS_SFX_SWITCH_RELEASE
     spr->tileid--;
     if (!SPR->stompbox) {
       if (ps_switch_disengage(spr,game)<0) return -1;

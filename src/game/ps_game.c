@@ -4,6 +4,7 @@
 #include "ps_sprite.h"
 #include "ps_physics.h"
 #include "ps_plrdef.h"
+#include "ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -531,6 +532,8 @@ int ps_game_restart(struct ps_game *game) {
     game->scenario->homex,game->scenario->homey,game->scenario->w,game->scenario->h
   );
 
+  PS_SFX_BEGIN_PLAY
+
   game->finished=0;
   game->playtime=0;
   game->paused=0;
@@ -562,6 +565,8 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   ps_log(GAME,DEBUG,"Returning to home screen (%d,%d) of (%d,%d).",
     game->scenario->homex,game->scenario->homey,game->scenario->w,game->scenario->h
   );
+
+  PS_SFX_BEGIN_PLAY
 
   game->finished=0;
   game->paused=0;
@@ -598,6 +603,9 @@ static int ps_game_kill_nonhero_sprites(struct ps_game *game) {
  */
 
 static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,int dx,int dy) {
+
+  PS_SFX_SHIFT_SCREEN
+
   game->grid=grid;
   game->gridx+=dx;
   game->gridy+=dy;
@@ -800,6 +808,7 @@ static int ps_game_check_completion(struct ps_game *game) {
     if (!game->treasurev[i]) return 0;
   }
 
+  PS_SFX_VICTORY
   ps_log(GAME,INFO,"Game complete!");
   game->finished=1;
   return 0;
@@ -850,7 +859,9 @@ int ps_game_update(struct ps_game *game) {
  
 int ps_game_toggle_pause(struct ps_game *game) {
   if (!game) return -1;
-  game->paused=game->paused?0:1;
+  if (game->paused=game->paused?0:1) {
+    PS_SFX_PAUSE
+  }
   return 0;
 }
 
@@ -882,6 +893,8 @@ int ps_game_collect_treasure(struct ps_game *game,struct ps_sprite *collector,in
     return 0;
   }
   if (game->treasurev[treasureid]) return 0; // Already have it. Huh.
+
+  PS_SFX_TREASURE
   
   game->treasurev[treasureid]=1;
 
@@ -947,7 +960,7 @@ static int ps_game_remove_deathgate(struct ps_game *game) {
     }
   }
   if (removec) {
-    //TODO Death gate removed -- play a sound effect or something?
+    PS_SFX_DEATHGATE
   }
   return 0;
 }

@@ -1,0 +1,9 @@
+channel saw
+
+0000 0 trim 0.00
+0000 0 step 300.0
+
+0010 0 trim 0.40
+
+0100 0 step 1.00
+0100 0 trim 0.00

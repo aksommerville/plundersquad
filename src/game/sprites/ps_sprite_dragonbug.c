@@ -2,6 +2,7 @@
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
 #include "game/sprites/ps_sprite_hookshot.h"
+#include "game/ps_sound_effects.h"
 #include "util/ps_geometry.h"
 #include "akgl/akgl.h"
 #include <math.h>
@@ -258,6 +259,8 @@ static int ps_dragonbug_begin_walk(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_dragonbug_begin_exhale(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phase=PS_DRAGONBUG_PHASE_EXHALE;
+
+  PS_SFX_DRAGONBUG_EXHALE
   
   double t=(SPR->headt*M_PI)/128.0;
   double dstx=spr->x-100.0*sin(t);

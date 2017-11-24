@@ -15,8 +15,12 @@
 #ifndef PS_IOC_H
 #define PS_IOC_H
 
+struct ps_cmdline {
+  const char *saved_game_path; // If not NULL, restore from this saved game.
+};
+
 struct ps_ioc_delegate {
-  int (*init)();
+  int (*init)(const struct ps_cmdline *cmdline);
   void (*quit)();
   int (*update)();
 };

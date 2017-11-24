@@ -25,6 +25,8 @@ int ps_buffer_append_be8(struct ps_buffer *buffer,uint8_t src);
 int ps_buffer_append_be16(struct ps_buffer *buffer,uint16_t src);
 int ps_buffer_append_be32(struct ps_buffer *buffer,uint32_t src);
 
+int ps_buffer_compress_and_append(struct ps_buffer *buffer,const void *src,int srcc);
+
 int ps_buffer_terminate(struct ps_buffer *buffer);
 
 #endif

@@ -558,7 +558,6 @@ int ps_game_restart(struct ps_game *game) {
  
 int ps_game_return_to_start_screen(struct ps_game *game) {
   if (!game||!game->scenario) return -1;
-  if (!game->grid) return -1;
 
   ps_log(GAME,DEBUG,"Returning to home screen (%d,%d) of (%d,%d).",
     game->scenario->homex,game->scenario->homey,game->scenario->w,game->scenario->h

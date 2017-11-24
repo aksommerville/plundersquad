@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "ps_buffer.h"
+#include <zlib.h>
 
 /* Cleanup.
  */
@@ -103,6 +104,45 @@ int ps_buffer_append_be16(struct ps_buffer *buffer,uint16_t src) {
 int ps_buffer_append_be32(struct ps_buffer *buffer,uint32_t src) {
   uint8_t tmp[4]={src>>24,src>>16,src>>8,src};
   return ps_buffer_append(buffer,tmp,4);
+}
+
+/* Append after compressing with zlib.
+ */
+ 
+int ps_buffer_compress_and_append(struct ps_buffer *buffer,const void *src,int srcc) {
+  if (!buffer||(srcc<0)||(srcc&&!src)) return -1;
+  z_stream z={0};
+  if (deflateInit(&z,Z_BEST_COMPRESSION)<0) return -1;
+
+  int reqc=deflateBound(&z,srcc);
+  if (reqc>8192) reqc=8192; // Sanity limit; it's no problem for us to do multiple passes.
+
+  z.next_in=(Bytef*)src;
+  z.avail_in=srcc;
+  int zend=0,mode=Z_NO_FLUSH;
+  while (1) {
+    if (!z.avail_in) mode=Z_FINISH;
+    if (ps_buffer_require(buffer,reqc)<0) {
+      deflateEnd(&z);
+      return -1;
+    }
+    z.next_out=(Bytef*)(buffer->v+buffer->c);
+    z.avail_out=buffer->a-buffer->c;
+    int avail_out_0=z.avail_out;
+    int err=deflate(&z,mode);
+    if (err<0) {
+      deflateEnd(&z);
+      return -1;
+    }
+    buffer->c+=avail_out_0-z.avail_out;
+    if (err==Z_STREAM_END) {
+      zend=1;
+      break;
+    }
+  }
+
+  deflateEnd(&z);
+  return 0;
 }
 
 /* Terminate.

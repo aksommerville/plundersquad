@@ -38,6 +38,7 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
       argc--;
       memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
     } else {
+      ps_macioc.cmdline.saved_game_path=arg;
       argp++;
     }
   }
@@ -73,7 +74,7 @@ void ps_macioc_abort(const char *fmt,...) {
  */
  
 int ps_macioc_call_init() {
-  int result=(ps_macioc.delegate.init?ps_macioc.delegate.init():0);
+  int result=(ps_macioc.delegate.init?ps_macioc.delegate.init(&ps_macioc.cmdline):0);
   ps_macioc.delegate.init=0; // Guarantee only one call.
   return result;
 }

@@ -104,4 +104,27 @@ int ps_game_create_fireworks(struct ps_game *game,int x,int y);
 int ps_game_create_prize(struct ps_game *game,int x,int y);
 int ps_game_check_deathgate(struct ps_game *game);
 
+/* ===== Serial Format =====
+ *  0000   8 Signature: "\0PLSQD\n\xff"
+ *  0008   4 Game Serial Version: 1
+ *  000c   4 Reserved for resources version or checksum.
+ *  0010   1 Player count.
+ *  0011   1 Difficulty.
+ *  0012   1 Length.
+ *  0013   1 unused
+ *  0014   4 Treasure state, bitmap. treasurev[0]==0x00000001 etc
+ *  0018   4 Play time.
+ *  001c   2 Selected grid (x,y). (XXX not used; we restart at the home screen)
+ *  001e ... Players:
+ *    0000   2 plrdef id
+ *    0002   1 Palette
+ *    0003   1 unused
+ *    0004
+ *  ....   4 Scenario compressed size.
+ *  ...4   4 Scenario uncompressed size.
+ *  ...8 ... Scenario.
+ */
+int ps_game_encode(void *dstpp,const struct ps_game *game);
+int ps_game_decode(struct ps_game *game,const void *src,int srcc);
+
 #endif

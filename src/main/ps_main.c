@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "os/ps_ioc.h"
+#include "os/ps_fs.h"
 #include "video/ps_video.h"
 #include "input/ps_input.h"
 #include "input/ps_input_button.h"
@@ -56,10 +57,28 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
   return 0;
 }
 
+static int ps_setup_restore_game(const char *path) {
+  void *serial=0;
+  int serialc=ps_file_read(&serial,path);
+  if ((serialc<0)||!serial) {
+    ps_log(GAME,ERROR,"%s: Failed to read saved game.",path);
+    return -1;
+  }
+  if (ps_game_decode(ps_game,serial,serialc)<0) {
+    ps_log(GAME,ERROR,"%s: Failed to decode game.",path);
+    free(serial);
+    return -1;
+  }
+  free(serial);
+  if (ps_game_return_to_start_screen(ps_game)<0) return -1;
+  ps_log(GAME,INFO,"Restored game from '%s'.",path);
+  return 0;
+}
+
 /* Init.
  */
 
-static int ps_main_init() {
+static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
   int randseed=time(0);
@@ -91,7 +110,9 @@ static int ps_main_init() {
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
 
-  if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
+  if (cmdline->saved_game_path) {
+    if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
+  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

@@ -2,8 +2,10 @@
 #include "gui/ps_gui.h"
 #include "input/ps_input.h"
 #include "game/ps_game.h"
+#include "os/ps_fs.h"
 
 static int ps_pause_restart(struct ps_page *page);
+static int ps_pause_save(struct ps_page *page);
 
 /* Page definition.
  */
@@ -37,6 +39,7 @@ static int _ps_pause_init(struct ps_page *page) {
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"Return to start",-1))) return -1;
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"End game",-1))) return -1;
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"Quit",-1))) return -1;
+  if (!(option=ps_widget_menu_add_option(PAGE->menu,"Save (experimental)",-1))) return -1;
 
   return 0;
 }
@@ -69,6 +72,9 @@ static int _ps_pause_activate(struct ps_page *page) {
       } break;
     case 3: { // Quit
         if (ps_input_request_termination()<0) return -1;
+      } break;
+    case 4: { // Save
+        if (ps_pause_save(page)<0) return -1;
       } break;
   }
   return 0;
@@ -114,5 +120,30 @@ static int ps_pause_restart(struct ps_page *page) {
   struct ps_game *game=ps_gui_get_game(page->gui);
   if (!game) return -1;
   if (ps_game_return_to_start_screen(game)<0) return -1;
+  return 0;
+}
+
+/* Save game.
+ */
+
+static int ps_pause_save(struct ps_page *page) {
+  if (!page||(page->type!=&ps_page_type_pause)) return -1;
+
+  struct ps_game *game=ps_gui_get_game(page->gui);
+  if (!game) return -1;
+
+  void *serial=0;
+  int serialc=ps_game_encode(&serial,game);
+  if ((serialc<0)||!serial) return -1;
+
+  const char *path="out/savedgame"; 
+  if (ps_file_write(path,serial,serialc)<0) {
+    ps_log(RES,ERROR,"%s: Failed to write saved game.",path);
+    free(serial);
+    return -1;
+  }
+  ps_log(RES,INFO,"Saved game to '%s'.",path);
+  
+  free(serial);
   return 0;
 }

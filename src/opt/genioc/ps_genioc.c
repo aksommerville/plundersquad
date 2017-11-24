@@ -12,7 +12,12 @@ static struct {
  
 int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
 
-  if (delegate->init()<0) {
+  struct ps_cmdline cmdline={0};
+  if (argc>=2) {
+    cmdline.saved_game_path=argv[1];
+  }
+
+  if (delegate->init(&cmdline)<0) {
     return 1;
   }
   if (ps_clockassist_setup(&ps_genioc.clockassist,PS_FRAME_RATE)<0) return 1;

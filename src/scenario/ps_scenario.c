@@ -333,6 +333,10 @@ static int ps_scenario_decode_header(struct ps_scenario *scenario,const uint8_t 
     ps_log(RES,ERROR,"Illegal home position (%d,%d) in world size (%d,%d).",homex,homey,w,h);
     return -1;
   }
+  if (treasurec>PS_TREASURE_LIMIT) {
+    ps_log(RES,ERROR,"Illegal treasure count %d (limit %d).",treasurec,PS_TREASURE_LIMIT);
+    return -1;
+  }
   if (gridsize!=PS_GRID_SIZE) {
     ps_log(RES,ERROR,"Serialized scenario has %d-cell grids, we only support %d (%d*%d).",gridsize,PS_GRID_SIZE,PS_GRID_COLC,PS_GRID_ROWC);
     return -1;

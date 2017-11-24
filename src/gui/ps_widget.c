@@ -255,3 +255,48 @@ struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget) {
   if (!page) return 0;
   return page->gui;
 }
+
+/* Test point.
+ */
+ 
+int ps_widget_contains_point(const struct ps_widget *widget,int x,int y) {
+  if (!widget) return 0;
+  if (x<widget->x) return 0;
+  if (y<widget->y) return 0;
+  if (x>=widget->x+widget->w) return 0;
+  if (y>=widget->y+widget->h) return 0;
+  return 1;
+}
+
+/* Dispatch mouse events.
+ */
+ 
+int ps_widget_event_mouseenter(struct ps_widget *widget) {
+  if (!widget) return -1;
+  if (widget->type->mouseenter) return widget->type->mouseenter(widget);
+  return 0;
+}
+
+int ps_widget_event_mouseexit(struct ps_widget *widget) {
+  if (!widget) return -1;
+  if (widget->type->mouseexit) return widget->type->mouseexit(widget);
+  return 0;
+}
+
+int ps_widget_event_mousedown(struct ps_widget *widget,int btnid) {
+  if (!widget) return -1;
+  if (widget->type->mousedown) return widget->type->mousedown(widget,btnid);
+  return 0;
+}
+
+int ps_widget_event_mouseup(struct ps_widget *widget,int btnid,int inbounds) {
+  if (!widget) return -1;
+  if (widget->type->mouseup) return widget->type->mouseup(widget,btnid,inbounds);
+  return 0;
+}
+
+int ps_widget_event_mousewheel(struct ps_widget *widget,int dx,int dy) {
+  if (!widget) return -1;
+  if (widget->type->mousewheel) return widget->type->mousewheel(widget,dx,dy);
+  return 0;
+}

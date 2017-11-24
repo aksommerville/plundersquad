@@ -15,6 +15,8 @@ extern const struct ps_widget_type ps_widget_type_menu; // Vertical packer of la
 extern const struct ps_widget_type ps_widget_type_heroselect; // Container and controller for multiple herosetup widgets.
 extern const struct ps_widget_type ps_widget_type_herosetup; // Panel for one input device, to click in and set up.
 extern const struct ps_widget_type ps_widget_type_slider; // Label and horiztonal indicator, for use in menus.
+extern const struct ps_widget_type ps_widget_type_resedit; // Resource editor, agnostic to data type.
+extern const struct ps_widget_type ps_widget_type_reseditmenu; // Menu bar under resedit.
 
 /* Root.
  *****************************************************************************/
@@ -29,6 +31,13 @@ int ps_widget_label_set_text(struct ps_widget *widget,const char *src,int srcc);
 
 // Convenience to initialize a label and add to parent. Returns WEAK reference on success.
 struct ps_widget *ps_widget_spawn_label(struct ps_widget *parent,const char *src,int srcc,uint32_t rgba);
+
+int ps_widget_label_set_click_cb(
+  struct ps_widget *widget,
+  int (*cb)(struct ps_widget *widget,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata)
+);
 
 /* Packer.
  *****************************************************************************/
@@ -92,5 +101,13 @@ int ps_widget_slider_adjust(struct ps_widget *widget,int d);
 
 int ps_widget_slider_set_value(struct ps_widget *widget,int v);
 int ps_widget_slider_get_value(const struct ps_widget *widget);
+
+/* ResEdit.
+ *****************************************************************************/
+
+int ps_widget_resedit_hello(struct ps_widget *widget);
+
+int ps_widget_reseditmenu_set_name(struct ps_widget *widget,const char *text,int textc);
+struct ps_widget *ps_widget_reseditmenu_add_menu(struct ps_widget *widget,const char *text,int textc);
 
 #endif

@@ -57,6 +57,7 @@ struct ps_gui *ps_gui_new() {
   struct ps_gui *gui=calloc(1,sizeof(struct ps_gui));
   if (!gui) return 0;
 
+  gui->refc=1;
   gui->use_unified_input=1;
 
   return gui;
@@ -64,6 +65,10 @@ struct ps_gui *ps_gui_new() {
 
 void ps_gui_del(struct ps_gui *gui) {
   if (!gui) return;
+  if (gui->refc-->1) return;
+
+  ps_widget_del(gui->track_hover);
+  ps_widget_del(gui->track_click);
 
   if (gui->transitionv) {
     while (gui->transitionc-->0) {
@@ -77,6 +82,14 @@ void ps_gui_del(struct ps_gui *gui) {
   ps_video_layer_del(gui->layer);
 
   free(gui);
+}
+
+int ps_gui_ref(struct ps_gui *gui) {
+  if (!gui) return -1;
+  if (gui->refc<1) return -1;
+  if (gui->refc==INT_MAX) return -1;
+  gui->refc++;
+  return 0;
 }
 
 /* Trivial accessors.
@@ -183,6 +196,121 @@ int ps_gui_submit_page(struct ps_gui *gui) {
   return 0;
 }
 
+/* Mouse motion.
+ */
+
+int ps_gui_event_mmotion(struct ps_gui *gui,int x,int y) {
+  if (!gui) return -1;
+  if ((x==gui->mousex)&&(y==gui->mousey)) return 0;
+  gui->mousex=x;
+  gui->mousey=y;
+
+  /* If we are tracking a click, only the subject of the click can receive "hover" focus. */
+  if (gui->track_click) {
+    int inbounds=ps_widget_contains_point(gui->track_click,x,y);
+    if (inbounds) {
+      if (gui->track_hover==gui->track_click) return 0;
+      if (ps_widget_ref(gui->track_click)<0) return -1;
+      ps_widget_del(gui->track_hover);
+      gui->track_hover=gui->track_click;
+      if (ps_widget_event_mouseenter(gui->track_hover)<0) return -1;
+    } else {
+      if (!gui->track_hover) return 0;
+      if (ps_widget_event_mouseexit(gui->track_hover)<0) return -1;
+      ps_widget_del(gui->track_hover);
+      gui->track_hover=0;
+    }
+    return 0;
+  }
+
+  /* No click tracking in progress, so focus anything. */
+  struct ps_widget *nhover=ps_gui_find_widget_at_point(gui,x,y);
+  if (nhover==gui->track_hover) return 0;
+
+  if (gui->track_hover) {
+    if (ps_widget_event_mouseexit(gui->track_hover)<0) return -1;
+  }
+  
+  if (nhover&&(ps_widget_ref(nhover)<0)) return -1;
+  ps_widget_del(gui->track_hover);
+  gui->track_hover=nhover;
+
+  if (nhover) {
+    if (ps_widget_event_mouseenter(nhover)<0) return -1;
+  }
+  
+  return 0;
+}
+
+/* Mouse button.
+ */
+
+int ps_gui_event_mbutton(struct ps_gui *gui,int btnid,int value) {
+  if (!gui) return -1;
+
+  if (value) {
+    if (gui->track_click) return 0; // Already tracking something, discard new events.
+    if (!gui->track_hover) return 0; // Not hovering on anything.
+    if (ps_widget_ref(gui->track_hover)<0) return -1;
+    gui->track_click=gui->track_hover;
+    gui->track_btnid=btnid;
+    if (ps_widget_event_mousedown(gui->track_click,btnid)<0) return -1;
+
+  } else {
+    if (btnid!=gui->track_btnid) return 0;
+    gui->track_btnid=0;
+    if (gui->track_click) {
+      if (ps_widget_event_mouseup(gui->track_click,btnid,(gui->track_hover==gui->track_click)?1:0)<0) return -1;
+      ps_widget_del(gui->track_click);
+      gui->track_click=0;
+    }
+  }
+  return 0;
+}
+
+/* Mouse wheel.
+ */
+
+int ps_gui_event_mwheel(struct ps_gui *gui,int dx,int dy) {
+  if (!gui) return -1;
+  if (!dx&&!dy) return -1;
+  if (gui->track_hover) {
+    if (ps_widget_event_mousewheel(gui->track_hover,dx,dy)<0) return -1;
+  }
+  return 0;
+}
+
+/* Find widget at point.
+ */
+
+static struct ps_widget *ps_gui_find_widget_at_point_1(struct ps_widget *widget,int x,int y) {
+
+  /* Doesn't intersect this widget? Return NULL. */
+  if (x<widget->x) return 0;
+  if (x>=widget->x+widget->w) return 0;
+  if (y<widget->y) return 0;
+  if (y>=widget->y+widget->h) return 0;
+
+  /* Check my children, in reverse rendering order. Return the first hit. */
+  x-=widget->x;
+  y-=widget->y;
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *child=widget->childv[i];
+    struct ps_widget *found=ps_gui_find_widget_at_point_1(child,x,y);
+    if (found) return found;
+  }
+
+  /* Does this widget track mouse events? */
+  if (!widget->track_mouse) return 0;
+  return widget;
+}
+ 
+struct ps_widget *ps_gui_find_widget_at_point(const struct ps_gui *gui,int x,int y) {
+  if (!gui) return 0;
+  if (!gui->page) return 0;
+  return ps_gui_find_widget_at_point_1(gui->page->root,x,y);
+}
+
 /* Load page.
  */
 
@@ -249,7 +377,11 @@ int ps_gui_unload_page(struct ps_gui *gui) {
     ps_page_del(page); \
     return 0; \
   }
-#define STUBLOADER(tag) int ps_gui_load_page_##tag(struct ps_gui *gui) { return -1; }
+#define STUBLOADER(tag) \
+  int ps_gui_load_page_##tag(struct ps_gui *gui) { \
+    ps_log(GUI,ERROR,"Page type '"#tag"' stubbed."); \
+    return -1; \
+  }
 
 LOADER(assemble)
 LOADER(sconfig)
@@ -257,6 +389,12 @@ STUBLOADER(pconfig)
 LOADER(pause)
 STUBLOADER(debug)
 LOADER(gameover)
+LOADER(edithome)
+LOADER(editsfx)
+STUBLOADER(editsong)
+STUBLOADER(editblueprint)
+STUBLOADER(editsprdef)
+STUBLOADER(editplrdef)
 
 #undef LOADER
 #undef STUBLOADER

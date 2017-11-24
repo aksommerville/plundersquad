@@ -2,6 +2,7 @@
 #include "ps_input_config.h"
 #include "ps_input_provider.h"
 #include "ps_input_device.h"
+#include "gui/ps_gui.h"
 
 struct ps_input ps_input={0};
 
@@ -28,6 +29,8 @@ int ps_input_init() {
  */
 
 void ps_input_quit() {
+
+  ps_gui_del(ps_input.gui);
 
   if (ps_input.providerv) {
     while (ps_input.providerc>0) ps_input_uninstall_provider(ps_input.providerv[0]);
@@ -76,6 +79,18 @@ int ps_input_termination_requested() {
   int result=ps_input.termination_requested;
   ps_input.termination_requested=0;
   return result;
+}
+
+/* GUI.
+ */
+ 
+int ps_input_set_gui(struct ps_gui *gui) {
+  if (!ps_input.init) return -1;
+  if (gui==ps_input.gui) return 0;
+  if (ps_gui_ref(gui)<0) return -1;
+  ps_gui_del(ps_input.gui);
+  ps_input.gui=gui;
+  return 0;
 }
 
 /* Provider list public accesors.

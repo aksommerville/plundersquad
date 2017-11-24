@@ -47,7 +47,7 @@ struct ps_game *ps_page_get_game(const struct ps_page *page);
 // Initialization flow:
 extern const struct ps_page_type ps_page_type_assemble; // First page. Let players join in and configure themselves.
 extern const struct ps_page_type ps_page_type_sconfig; // Configure scenario (difficulty and length).
-extern const struct ps_page_type ps_page_type_pconfig; // Configure players, for things that don't affect scenario (eg colors).
+extern const struct ps_page_type ps_page_type_pconfig; // Configure players, for things that don't affect scenario (eg colors). XXX unused
 
 // Game in progress:
 extern const struct ps_page_type ps_page_type_pause;
@@ -55,5 +55,13 @@ extern const struct ps_page_type ps_page_type_debug;
 
 // Game over:
 extern const struct ps_page_type ps_page_type_gameover;
+
+// Editor:
+extern const struct ps_page_type ps_page_type_edithome;
+extern const struct ps_page_type ps_page_type_editsfx;
+extern const struct ps_page_type ps_page_type_editsong;
+extern const struct ps_page_type ps_page_type_editblueprint;
+extern const struct ps_page_type ps_page_type_editsprdef;
+extern const struct ps_page_type ps_page_type_editplrdef;
 
 #endif

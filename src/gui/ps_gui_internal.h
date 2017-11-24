@@ -22,6 +22,7 @@ struct ps_transition {
 };
 
 struct ps_gui {
+  int refc;
   struct ps_video_layer *layer;
   struct ps_page *page;
   uint16_t input;
@@ -29,6 +30,12 @@ struct ps_gui {
   struct ps_transition *transitionv;
   int transitionc,transitiona;
   struct ps_game *game; // WEAK
+
+  // Mouse events:
+  int mousex,mousey;
+  int track_btnid;
+  struct ps_widget *track_hover;
+  struct ps_widget *track_click;
 };
 
 struct ps_gui_layer {

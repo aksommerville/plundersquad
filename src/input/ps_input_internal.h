@@ -4,6 +4,8 @@
 #include "ps.h"
 #include "ps_input.h"
 
+struct ps_gui;
+
 struct ps_input_watch {
   int watchid;
   int (*cb_connect)(struct ps_input_device *device,void *userdata);
@@ -32,6 +34,8 @@ extern struct ps_input {
 
   struct ps_input_watch *watchv;
   int watchc,watcha;
+
+  struct ps_gui *gui;
   
 } ps_input;
 

@@ -48,6 +48,29 @@ static int _ps_skeleton_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Mouse events.
+ */
+
+static int _ps_skeleton_mouseenter(struct ps_widget *widget) {
+  return 0;
+}
+
+static int _ps_skeleton_mouseexit(struct ps_widget *widget) {
+  return 0;
+}
+
+static int _ps_skeleton_mousedown(struct ps_widget *widget,int btnid) {
+  return 0;
+}
+
+static int _ps_skeleton_mouseup(struct ps_widget *widget,int btnid,int inbounds) {
+  return 0;
+}
+
+static int _ps_skeleton_mousewheel(struct ps_widget *widget,int dx,int dy) {
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -59,4 +82,9 @@ const struct ps_widget_type ps_widget_type_skeleton={
   .draw=_ps_skeleton_draw,
   .measure=_ps_skeleton_measure,
   .pack=_ps_skeleton_pack,
+  .mouseenter=_ps_skeleton_mouseenter,
+  .mouseexit=_ps_skeleton_mouseexit,
+  .mousedown=_ps_skeleton_mousedown,
+  .mouseup=_ps_skeleton_mouseup,
+  .mousewheel=_ps_skeleton_mousewheel,
 };

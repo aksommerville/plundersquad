@@ -19,6 +19,12 @@ struct ps_widget_type {
   int (*measure)(int *w,int *h,struct ps_widget *widget,int maxw,int maxh);
   int (*pack)(struct ps_widget *widget);
 
+  int (*mouseenter)(struct ps_widget *widget);
+  int (*mouseexit)(struct ps_widget *widget);
+  int (*mousedown)(struct ps_widget *widget,int btnid);
+  int (*mouseup)(struct ps_widget *widget,int btnid,int inbounds);
+  int (*mousewheel)(struct ps_widget *widget,int dx,int dy);
+
 };
 
 struct ps_widget {
@@ -29,6 +35,7 @@ struct ps_widget {
   int childc,childa;
   int x,y,w,h; // Bounds, relative to parent.
   uint32_t bgrgba,fgrgba;
+  int track_mouse; // Must set nonzero to receive mouse events. Children do not require it of parents.
 };
 
 struct ps_widget *ps_widget_new(const struct ps_widget_type *type);
@@ -71,5 +78,13 @@ int ps_widget_set_property(struct ps_widget *widget,int k,int v);
 int ps_widget_get_property(const struct ps_widget *widget,int k);
 
 struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget);
+
+int ps_widget_contains_point(const struct ps_widget *widget,int x,int y);
+
+int ps_widget_event_mouseenter(struct ps_widget *widget);
+int ps_widget_event_mouseexit(struct ps_widget *widget);
+int ps_widget_event_mousedown(struct ps_widget *widget,int btnid);
+int ps_widget_event_mouseup(struct ps_widget *widget,int btnid,int inbounds);
+int ps_widget_event_mousewheel(struct ps_widget *widget,int dx,int dy);
 
 #endif

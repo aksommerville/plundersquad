@@ -25,6 +25,9 @@ int ps_video_uninstall_layer(struct ps_video_layer *layer);
 int ps_video_count_layers();
 struct ps_video_layer *ps_video_get_layer(int p);
 
+int ps_video_point_framebuffer_from_window(int *fbx,int *fby,int winx,int winy);
+int ps_video_point_window_from_framebuffer(int *winx,int *winy,int fbx,int fby);
+
 /* Helpers for drawing.
  *****************************************************************************/
 

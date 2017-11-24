@@ -112,6 +112,27 @@ const struct ps_widget_type ps_widget_type_menu={
 
 /* Add option.
  */
+
+static int ps_menu_cb_click(struct ps_widget *label,void *userdata) {
+  if (!label->parent) return -1; // Hint that we might be dealing with a zombie, and the menu might not exist anymore.
+  struct ps_widget *widget=userdata;
+  if (!widget||(widget->type!=&ps_widget_type_menu)) return -1;
+  if (widget->childc<2) return -1;
+
+  /* Find the label among our packer's children, select it, and fire submit to the containing page. */
+  int i=0;
+  for (;i<widget->childv[1]->childc;i++) {
+    struct ps_widget *child=widget->childv[1]->childv[i];
+    if (child==label) {
+      WIDGET->cursorp=i;
+      if (ps_menu_reposition_cursor(widget,0)<0) return -1;
+      if (ps_gui_activate_cursor(ps_widget_get_gui(widget))<0) return -1;
+      return 0;
+    }
+  }
+
+  return 0;
+}
  
 struct ps_widget *ps_widget_menu_add_option(struct ps_widget *widget,const char *text,int textc) {
   if (!widget||(widget->type!=&ps_widget_type_menu)) return 0;
@@ -119,6 +140,12 @@ struct ps_widget *ps_widget_menu_add_option(struct ps_widget *widget,const char 
   struct ps_widget *label=ps_widget_spawn(widget->childv[1],&ps_widget_type_label);
   if (!label) return 0;
   if (ps_widget_label_set_text(label,text,textc)<0) return 0;
+  
+  // Passing self weakly as userdata to the child. 
+  // This is a risk if the label could outsurvive us, but I don't think that will ever happen.
+  // If we were to retain ourself here, there would be a retention loop and memory leak.
+  if (ps_widget_label_set_click_cb(label,ps_menu_cb_click,widget,0)<0) return 0;
+  
   return label;
 }
 

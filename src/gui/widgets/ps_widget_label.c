@@ -12,6 +12,11 @@ struct ps_widget_label {
   int size;
   int xalign,yalign; // -1,0,1
   int font;
+  int track_hover;
+  int track_click;
+  int (*click_cb)(struct ps_widget *widget,void *userdata);
+  void *userdata;
+  void (*userdata_del)(void *userdata);
 };
 
 #define WIDGET ((struct ps_widget_label*)widget)
@@ -20,6 +25,7 @@ struct ps_widget_label {
  */
 
 static void _ps_label_del(struct ps_widget *widget) {
+  if (WIDGET->userdata_del) WIDGET->userdata_del(WIDGET->userdata);
   if (WIDGET->text) free(WIDGET->text);
 }
 
@@ -62,6 +68,31 @@ static void ps_label_get_start_position(int *x,int *y,const struct ps_widget *wi
  * TODO Is it possible to draw multiple labels in a single rendering pass?
  */
 
+static uint32_t ps_rgba_darken(uint32_t src,int factor) {
+  uint8_t r=src>>24,g=src>>16,b=src>>8,a=src;
+  if (r+g+b>=384) {
+    r/=factor;
+    g/=factor;
+    b/=factor;
+  } else {
+    int nr=r+0x40*factor; r=(nr>255)?255:nr;
+    int ng=g+0x40*factor; g=(ng>255)?255:ng;
+    int nb=b+0x40*factor; b=(nb>255)?255:nb;
+  }
+  return (r<<24)|(g<<16)|(b<<8)|a;
+}
+
+static uint32_t ps_label_get_fgrgba(const struct ps_widget *widget) {
+  if (WIDGET->track_hover) {
+    if (WIDGET->track_click) {
+      return ps_rgba_darken(widget->fgrgba,3);
+    } else {
+      return ps_rgba_darken(widget->fgrgba,2);
+    }
+  }
+  return widget->fgrgba;
+}
+
 static int _ps_label_draw(struct ps_widget *widget,int x0,int y0) {
   if (ps_widget_draw_background(widget,x0,y0)<0) return -1;
   if (WIDGET->textc) {
@@ -70,7 +101,7 @@ static int _ps_label_draw(struct ps_widget *widget,int x0,int y0) {
     x+=x0;
     y+=y0;
     if (ps_video_text_begin()<0) return -1;
-    if (ps_video_text_add(WIDGET->size,widget->fgrgba,x,y,WIDGET->text,WIDGET->textc)<0) return -1;
+    if (ps_video_text_add(WIDGET->size,ps_label_get_fgrgba(widget),x,y,WIDGET->text,WIDGET->textc)<0) return -1;
     if (ps_video_text_end(WIDGET->font)<0) return -1;
   }
   // Label must not have children.
@@ -93,6 +124,42 @@ static int _ps_label_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Mouse events.
+ */
+
+static int _ps_label_mouseenter(struct ps_widget *widget) {
+  WIDGET->track_hover=1;
+  return 0;
+}
+
+static int _ps_label_mouseexit(struct ps_widget *widget) {
+  WIDGET->track_hover=0;
+  return 0;
+}
+
+static int _ps_label_mousedown(struct ps_widget *widget,int btnid) {
+  if (btnid==1) {
+    WIDGET->track_click=1;
+  }
+  return 0;
+}
+
+static int _ps_label_mouseup(struct ps_widget *widget,int btnid,int inbounds) {
+  if (btnid==1) {
+    WIDGET->track_click=0;
+    if (inbounds) {
+      if (WIDGET->click_cb) {
+        if (WIDGET->click_cb(widget,WIDGET->userdata)<0) return -1;
+      }
+    }
+  }
+  return 0;
+}
+
+static int _ps_label_mousewheel(struct ps_widget *widget,int dx,int dy) {
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -104,6 +171,11 @@ const struct ps_widget_type ps_widget_type_label={
   .draw=_ps_label_draw,
   .measure=_ps_label_measure,
   .pack=_ps_label_pack,
+  .mouseenter=_ps_label_mouseenter,
+  .mouseexit=_ps_label_mouseexit,
+  .mousedown=_ps_label_mousedown,
+  .mouseup=_ps_label_mouseup,
+  .mousewheel=_ps_label_mousewheel,
 };
 
 /* Set text.
@@ -136,4 +208,26 @@ struct ps_widget *ps_widget_spawn_label(struct ps_widget *parent,const char *src
   }
   widget->fgrgba=rgba;
   return widget;
+}
+
+/* Set activation callback.
+ */
+ 
+int ps_widget_label_set_click_cb(
+  struct ps_widget *widget,
+  int (*cb)(struct ps_widget *widget,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata)
+) {
+  if (!widget||(widget->type!=&ps_widget_type_label)) return -1;
+  if (WIDGET->userdata_del) WIDGET->userdata_del(WIDGET->userdata);
+  WIDGET->click_cb=cb;
+  WIDGET->userdata=userdata;
+  WIDGET->userdata_del=userdata_del;
+  if (cb) {
+    widget->track_mouse=1;
+  } else {
+    widget->track_mouse=0;
+  }
+  return 0;
 }

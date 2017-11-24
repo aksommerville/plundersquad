@@ -208,6 +208,33 @@ int ps_video_resized(int w,int h) {
   return 0;
 }
 
+/* Translate coordinates between framebuffer and window.
+ */
+ 
+int ps_video_point_framebuffer_from_window(int *fbx,int *fby,int winx,int winy) {
+  if (fbx) {
+    if (ps_video.dstw<1) return -1;
+    *fbx=((winx-ps_video.dstx)*PS_SCREENW)/ps_video.dstw;
+  }
+  if (fby) {
+    if (ps_video.dsth<1) return -1;
+    *fby=((winy-ps_video.dsty)*PS_SCREENH)/ps_video.dsth;
+  }
+  return 0;
+}
+
+int ps_video_point_window_from_framebuffer(int *winx,int *winy,int fbx,int fby) {
+  if (winx) {
+    if (ps_video.dstw<1) return -1;
+    *winx=ps_video.dstx+(fbx*ps_video.dstw)/PS_SCREENW;
+  }
+  if (winy) {
+    if (ps_video.dsth<1) return -1;
+    *winy=ps_video.dsty+(fby*ps_video.dsth)/PS_SCREENH;
+  }
+  return 0;
+}
+
 /* Layer list.
  */
  

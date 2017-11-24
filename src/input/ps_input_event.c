@@ -3,6 +3,8 @@
 #include "ps_input_maptm.h"
 #include "ps_input_map.h"
 #include "ps_input_config.h"
+#include "gui/ps_gui.h"
+#include "video/ps_video.h"
 
 /* Connect device.
  */
@@ -115,5 +117,31 @@ int ps_input_event_button(struct ps_input_device *device,int btnid,int value) {
   if (!device->map) return 0;
   if (ps_input_device_call_button_watchers(device,btnid,value,0)<0) return -1;
   if (ps_input_map_set_button(device->map,btnid,value,device,ps_input_event_button_cb)<0) return -1;
+  return 0;
+}
+
+/* System pointer device.
+ */
+ 
+int ps_input_event_mmotion(int x,int y) {
+  if (ps_input.gui) {
+    int fbx,fby;
+    if (ps_video_point_framebuffer_from_window(&fbx,&fby,x,y)<0) return -1;
+    if (ps_gui_event_mmotion(ps_input.gui,fbx,fby)<0) return -1;
+  }
+  return 0;
+}
+
+int ps_input_event_mbutton(int btnid,int value) {
+  if (ps_input.gui) {
+    if (ps_gui_event_mbutton(ps_input.gui,btnid,value)<0) return -1;
+  }
+  return 0;
+}
+
+int ps_input_event_mwheel(int dx,int dy) {
+  if (ps_input.gui) {
+    if (ps_gui_event_mwheel(ps_input.gui,dx,dy)<0) return -1;
+  }
   return 0;
 }

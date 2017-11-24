@@ -17,6 +17,7 @@
 struct ps_input_provider;
 struct ps_input_device;
 struct ps_input_config;
+struct ps_gui;
 
 /* Input manager global API.
  *****************************************************************************/
@@ -32,6 +33,8 @@ int ps_input_count_providers();
 struct ps_input_provider *ps_input_get_provider_by_index(int index);
 struct ps_input_provider *ps_input_get_provider_by_id(int providerid);
 
+int ps_input_set_gui(struct ps_gui *gui);
+
 int ps_input_load_configuration(const char *path);
 
 int ps_input_update();
@@ -41,7 +44,6 @@ int ps_input_reassign_devices();
 
 int ps_input_request_termination();
 int ps_input_termination_requested();
-
 
 /* Register your interest to receive device connect and disconnect events.
  * When you register, we immediately fire callbacks for all existing devices.
@@ -75,5 +77,11 @@ int ps_input_event_button(struct ps_input_device *device,int btnid,int value);
 /* Manager will call this internally, but you can too.
  */
 int ps_input_fire_action(int actionid);
+
+/* System pointer device.
+ */
+int ps_input_event_mmotion(int x,int y);
+int ps_input_event_mbutton(int btnid,int value);
+int ps_input_event_mwheel(int dx,int dy);
 
 #endif

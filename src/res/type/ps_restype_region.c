@@ -27,11 +27,7 @@ static int ps_REGION_link(void *obj) {
   }
 
   if (region->songid) {
-    struct ps_res_SONG *song=ps_res_get(PS_RESTYPE_SONG,region->songid);
-    if (!song) {
-      ps_log(RES,ERROR,"song:%d not found",region->songid);
-      return -1;
-    }
+    // Don't validate the song, since that comes from a different resource manager.
   }
 
   int i=PS_REGION_MONSTER_LIMIT;

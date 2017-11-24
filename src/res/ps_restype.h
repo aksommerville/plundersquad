@@ -35,8 +35,6 @@ void ps_restype_cleanup(struct ps_restype *type);
 
 int ps_restype_setup_TILESHEET(struct ps_restype *type);
 int ps_restype_setup_IMAGE(struct ps_restype *type);
-int ps_restype_setup_SOUNDEFFECT(struct ps_restype *type);
-int ps_restype_setup_SONG(struct ps_restype *type);
 int ps_restype_setup_BLUEPRINT(struct ps_restype *type);
 int ps_restype_setup_SPRDEF(struct ps_restype *type);
 int ps_restype_setup_REGION(struct ps_restype *type);
@@ -68,14 +66,6 @@ struct ps_res_TILESHEET {
 
 struct ps_res_IMAGE {
   struct akgl_texture *texture;
-};
-
-struct ps_res_SOUNDEFFECT {
-  //TODO incorporate akau
-};
-
-struct ps_res_SONG {
-  //TODO incorporate akau
 };
 
 // Defined in <scenario/ps_blueprint.h>

@@ -12,7 +12,7 @@ static int ps_edit_init() {
 
   if (ps_video_init()<0) return -1;
   if (ps_input_init()<0) return -1;
-  if (ps_resmgr_init("src/data",0)<0) return -1; //TODO resource path
+  if (ps_resmgr_init("src/data",1)<0) return -1; //TODO resource path
   
   return 0;
 }

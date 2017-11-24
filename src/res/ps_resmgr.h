@@ -18,13 +18,11 @@ int ps_resmgr_clear();
 
 #define PS_RESTYPE_TILESHEET      0
 #define PS_RESTYPE_IMAGE          1
-#define PS_RESTYPE_SOUNDEFFECT    2
-#define PS_RESTYPE_SONG           3
-#define PS_RESTYPE_BLUEPRINT      4
-#define PS_RESTYPE_SPRDEF         5
-#define PS_RESTYPE_REGION         6
-#define PS_RESTYPE_PLRDEF         7
-#define PS_RESTYPE_COUNT          8
+#define PS_RESTYPE_BLUEPRINT      2
+#define PS_RESTYPE_SPRDEF         3
+#define PS_RESTYPE_REGION         4
+#define PS_RESTYPE_PLRDEF         5
+#define PS_RESTYPE_COUNT          6
 
 struct ps_restype *ps_resmgr_get_type_by_id(int tid);
 #define PS_RESTYPE(tag) ps_resmgr_get_type_by_id(PS_RESTYPE_##tag)

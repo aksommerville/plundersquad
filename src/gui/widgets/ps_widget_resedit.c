@@ -113,6 +113,19 @@ static int ps_resedit_cb_next(struct ps_widget *label,void *userdata) {
   }
   return 0;
 }
+ 
+static int ps_resedit_cb_save(struct ps_widget *label,void *userdata) {
+  if (!label->parent) return -1; // Hint that we might be dealing with a zombie, and the menu might not exist anymore.
+  struct ps_widget *widget=userdata;
+  if (!widget||(widget->type!=&ps_widget_type_resedit)) return -1;
+  if (WIDGET->delegate.res_save) {
+    struct ps_page *page=ps_widget_get_page(widget);
+    if (page) {
+      if (WIDGET->delegate.res_save(page,WIDGET->resindex)<0) return -1;
+    }
+  }
+  return 0;
+}
 
 /* Delete.
  */
@@ -131,6 +144,7 @@ static int _ps_resedit_init(struct ps_widget *widget) {
   if (!ps_widget_reseditmenu_add_menu(child,"Del",3,ps_resedit_cb_del,widget,0)) return -1;
   if (!ps_widget_reseditmenu_add_menu(child,"Prev",4,ps_resedit_cb_prev,widget,0)) return -1;
   if (!ps_widget_reseditmenu_add_menu(child,"Next",4,ps_resedit_cb_next,widget,0)) return -1;
+  if (!ps_widget_reseditmenu_add_menu(child,"Save",4,ps_resedit_cb_save,widget,0)) return -1;
 
   if (!(child=ps_widget_spawn_label(widget,"Content not loaded",-1,0x000000ff))) return -1;
   

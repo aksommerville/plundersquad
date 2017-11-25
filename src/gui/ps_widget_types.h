@@ -116,6 +116,7 @@ struct ps_resedit_delegate {
   int (*res_del)(struct ps_page *page,int index);
   int (*res_count)(struct ps_page *page);
   int (*res_load)(struct ps_page *page,int index);
+  int (*res_save)(struct ps_page *page,int index);
 };
 
 int ps_widget_resedit_set_delegate(struct ps_widget *widget,const struct ps_resedit_delegate *delegate);

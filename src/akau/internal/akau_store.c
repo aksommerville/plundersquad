@@ -63,6 +63,15 @@ int akau_store_list_insert(struct akau_store_list *list,int p,int id,void *obj) 
   return 0;
 }
 
+int akau_store_list_replace(struct akau_store_list *list,int p,void *obj) {
+  if ((p<0)||(p>=list->c)) return -1;
+  if (!obj) return -1;
+  if (list->ref(obj)<0) return -1;
+  list->del(list->v[p].obj);
+  list->v[p].obj=obj;
+  return 0;
+}
+
 /* New store.
  */
 
@@ -145,6 +154,15 @@ int akau_store_clear(struct akau_store *store) {
     } \
     p=-p-1; \
     if (akau_store_list_insert(&store->tag##s,p,id,obj)<0) return -1; \
+    return 0; \
+  } \
+  int akau_store_replace_##tag(struct akau_store *store,struct akau_##tag *obj,int id) { \
+    if (!store) return -1; \
+    if (!obj) return -1; \
+    if (id<1) return -1; \
+    int p=akau_store_list_search(&store->tag##s,id); \
+    if (p<0) return -1; \
+    if (akau_store_list_replace(&store->tag##s,p,obj)<0) return -1; \
     return 0; \
   } \
   int akau_store_count_##tag(const struct akau_store *store) { \

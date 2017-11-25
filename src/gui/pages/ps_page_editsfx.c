@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "gui/ps_gui.h"
+#include "resedit/ps_iwg.h"
 #include "akau/akau.h"
 #include "os/ps_fs.h"
 
@@ -86,6 +87,41 @@ static void _ps_editsfx_del(struct ps_page *page) {
   ps_widget_del(PAGE->resedit);
 }
 
+/* Save.
+ */
+
+static int ps_editsfx_res_save(struct ps_page *page,int index) {
+
+  /* Acquire IPCM. */
+  struct ps_widget *editor=ps_widget_resedit_get_editor(PAGE->resedit);
+  if (!editor) return -1;
+  struct akau_ipcm *ipcm=ps_widget_editsfx_get_ipcm(editor);
+  if (!ipcm) return -1;
+  struct ps_iwg *iwg=ps_widget_editsfx_get_iwg(editor);
+  if (!iwg) return -1;
+
+  /* Replace in store. */
+  struct akau_store *store=akau_get_store();
+  if (!store) return -1;
+  int resid=akau_store_get_ipcm_id_by_index(store,index);
+  if (resid<0) return -1;
+  if (akau_store_replace_ipcm(store,ipcm,resid)<0) return -1;
+
+  /* Rewrite file. */
+  char path[1024];
+  int pathc=akau_store_get_resource_path(path,sizeof(path),store,"ipcm",resid);
+  if (pathc>=(int)sizeof(path)) return -1;
+  if (pathc<0) {
+    pathc=akau_store_generate_resource_path(path,sizeof(path),store,"ipcm",resid);
+    if ((pathc<0)||(pathc>=sizeof(path))) return -1;
+    if (ps_file_write(path,"",0)<0) return -1;
+  }
+  if (ps_iwg_write_file(path,iwg)<0) return -1;
+  ps_log(EDIT,INFO,"Wrote ipcm:%d resource to '%s'.",resid,path);
+  
+  return 0;
+}
+
 /* Initialize.
  */
 
@@ -106,6 +142,7 @@ static int _ps_editsfx_init(struct ps_page *page) {
     .res_del=ps_editsfx_res_del,
     .res_count=ps_editsfx_res_count,
     .res_load=ps_editsfx_res_load,
+    .res_save=ps_editsfx_res_save,
   };
   if (ps_widget_resedit_set_delegate(PAGE->resedit,&delegate)<0) return -1;
 

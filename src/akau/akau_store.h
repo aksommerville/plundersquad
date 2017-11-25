@@ -41,6 +41,11 @@ int akau_store_add_fpcm(struct akau_store *store,struct akau_fpcm *fpcm,int fpcm
 int akau_store_add_instrument(struct akau_store *store,struct akau_instrument *instrument,int instrumentid);
 int akau_store_add_song(struct akau_store *store,struct akau_song *song,int songid);
 
+int akau_store_replace_ipcm(struct akau_store *store,struct akau_ipcm *ipcm,int ipcmid);
+int akau_store_replace_fpcm(struct akau_store *store,struct akau_fpcm *fpcm,int fpcmid);
+int akau_store_replace_instrument(struct akau_store *store,struct akau_instrument *instrument,int instrumentid);
+int akau_store_replace_song(struct akau_store *store,struct akau_song *song,int songid);
+
 /* Get resources sequentially.
  */
  

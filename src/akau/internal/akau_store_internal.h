@@ -36,5 +36,6 @@ void akau_store_list_cleanup(struct akau_store_list *list);
 void akau_store_list_clear(struct akau_store_list *list);
 int akau_store_list_search(const struct akau_store_list *list,int id);
 int akau_store_list_insert(struct akau_store_list *list,int p,int id,void *obj);
+int akau_store_list_replace(struct akau_store_list *list,int p,void *obj);
 
 #endif

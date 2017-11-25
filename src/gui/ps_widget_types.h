@@ -7,6 +7,7 @@
 
 struct ps_input_device;
 struct ps_player;
+struct akau_ipcm;
 
 extern const struct ps_widget_type ps_widget_type_root; // Only for pages' root widgets. One full-size child.
 extern const struct ps_widget_type ps_widget_type_label; // Single row of text.
@@ -17,6 +18,9 @@ extern const struct ps_widget_type ps_widget_type_herosetup; // Panel for one in
 extern const struct ps_widget_type ps_widget_type_slider; // Label and horiztonal indicator, for use in menus.
 extern const struct ps_widget_type ps_widget_type_resedit; // Resource editor, agnostic to data type.
 extern const struct ps_widget_type ps_widget_type_reseditmenu; // Menu bar under resedit.
+extern const struct ps_widget_type ps_widget_type_editsfx; // Sound effect editor.
+extern const struct ps_widget_type ps_widget_type_editsfxchan; // Channel row in editsfx.
+extern const struct ps_widget_type ps_widget_type_editsfxgraph; // Single graph view in editsfx.
 
 /* Root.
  *****************************************************************************/
@@ -105,9 +109,40 @@ int ps_widget_slider_get_value(const struct ps_widget *widget);
 /* ResEdit.
  *****************************************************************************/
 
-int ps_widget_resedit_hello(struct ps_widget *widget);
+/* Provides hooks from the controller page, for resedit widget to call.
+ */
+struct ps_resedit_delegate {
+  int (*res_new)(struct ps_page *page); // => index or <0=error
+  int (*res_del)(struct ps_page *page,int index);
+  int (*res_count)(struct ps_page *page);
+  int (*res_load)(struct ps_page *page,int index);
+};
+
+int ps_widget_resedit_set_delegate(struct ps_widget *widget,const struct ps_resedit_delegate *delegate);
+
+int ps_widget_resedit_set_editor(struct ps_widget *widget,struct ps_widget *editor);
+struct ps_widget *ps_widget_resedit_get_editor(const struct ps_widget *widget);
 
 int ps_widget_reseditmenu_set_name(struct ps_widget *widget,const char *text,int textc);
-struct ps_widget *ps_widget_reseditmenu_add_menu(struct ps_widget *widget,const char *text,int textc);
+
+struct ps_widget *ps_widget_reseditmenu_add_menu(
+  struct ps_widget *widget,
+  const char *text,int textc,
+  int (*cb)(struct ps_widget *label,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata)
+);
+
+/* Editsfx.
+ *****************************************************************************/
+
+int ps_widget_editsfx_set_ipcm(struct ps_widget *widget,struct akau_ipcm *ipcm);
+struct akau_ipcm *ps_widget_editsfx_get_ipcm(const struct ps_widget *widget);
+int ps_widget_editsfx_set_path(struct ps_widget *widget,const char *path);
+struct ps_iwg *ps_widget_editsfx_get_iwg(const struct ps_widget *widget);
+
+int ps_widget_editsfxchan_set_chanid(struct ps_widget *widget,int chanid);
+
+int ps_widget_editsfxgraph_set_field(struct ps_widget *widget,int chanid,int k);
 
 #endif

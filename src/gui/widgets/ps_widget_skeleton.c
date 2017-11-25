@@ -71,6 +71,10 @@ static int _ps_skeleton_mousewheel(struct ps_widget *widget,int dx,int dy) {
   return 0;
 }
 
+static int _ps_skeleton_mousemove(struct ps_widget *widget,int x,int y) {
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -87,4 +91,5 @@ const struct ps_widget_type ps_widget_type_skeleton={
   .mousedown=_ps_skeleton_mousedown,
   .mouseup=_ps_skeleton_mouseup,
   .mousewheel=_ps_skeleton_mousewheel,
+  .mousemove=_ps_skeleton_mousemove,
 };

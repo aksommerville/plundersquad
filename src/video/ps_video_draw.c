@@ -214,3 +214,35 @@ int ps_video_draw_sprites(const struct ps_sprgrp *grp) {
   
   return 0;
 }
+
+/* Draw mintiles.
+ */
+ 
+int ps_video_draw_mintile(const struct akgl_vtx_mintile *vtxv,int vtxc,uint8_t tsid) {
+  if ((vtxc<0)||(vtxc&&!vtxv)) return -1;
+
+  struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,tsid);
+  if (!tilesheet) {
+    ps_log(VIDEO,ERROR,"Tilesheet %d not found.",tsid);
+    return -1;
+  }
+
+  if (akgl_program_mintile_draw(
+    ps_video.program_mintile,tilesheet->texture,vtxv,vtxc,PS_TILESIZE
+  )<0) return -1;
+  
+  return 0;
+}
+
+/* Draw line strip.
+ */
+ 
+int ps_video_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc) {
+  if ((vtxc<0)||(vtxc&&!vtxv)) return -1;
+
+  if (akgl_program_raw_draw_line_strip(
+    ps_video.program_raw,vtxv,vtxc,1
+  )<0) return -1;
+
+  return 0;
+}

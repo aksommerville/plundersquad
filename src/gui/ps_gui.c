@@ -205,6 +205,13 @@ int ps_gui_event_mmotion(struct ps_gui *gui,int x,int y) {
   gui->mousex=x;
   gui->mousey=y;
 
+  /* If we are hovering over something, deliver the motion event. */
+  if (gui->track_hover) {
+    int subx,suby;
+    if (ps_widget_coords_from_window(&subx,&suby,gui->track_hover,x,y)<0) return -1;
+    if (ps_widget_event_mousemove(gui->track_hover,subx,suby)<0) return -1;
+  }
+
   /* If we are tracking a click, only the subject of the click can receive "hover" focus. */
   if (gui->track_click) {
     int inbounds=ps_widget_contains_point(gui->track_click,x,y);

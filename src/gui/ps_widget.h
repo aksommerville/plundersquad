@@ -24,6 +24,7 @@ struct ps_widget_type {
   int (*mousedown)(struct ps_widget *widget,int btnid);
   int (*mouseup)(struct ps_widget *widget,int btnid,int inbounds);
   int (*mousewheel)(struct ps_widget *widget,int dx,int dy);
+  int (*mousemove)(struct ps_widget *widget,int x,int y); // (x,y) relative to this widget
 
 };
 
@@ -78,6 +79,7 @@ int ps_widget_set_property(struct ps_widget *widget,int k,int v);
 int ps_widget_get_property(const struct ps_widget *widget,int k);
 
 struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget);
+struct ps_page *ps_widget_get_page(const struct ps_widget *widget);
 
 int ps_widget_contains_point(const struct ps_widget *widget,int x,int y);
 
@@ -86,5 +88,8 @@ int ps_widget_event_mouseexit(struct ps_widget *widget);
 int ps_widget_event_mousedown(struct ps_widget *widget,int btnid);
 int ps_widget_event_mouseup(struct ps_widget *widget,int btnid,int inbounds);
 int ps_widget_event_mousewheel(struct ps_widget *widget,int dx,int dy);
+int ps_widget_event_mousemove(struct ps_widget *widget,int x,int y);
+
+int ps_widget_coords_from_window(int *x,int *y,const struct ps_widget *widget,int winx,int winy);
 
 #endif

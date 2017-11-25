@@ -45,6 +45,9 @@ int ps_int_eval_interactive(int *dst,const char *src,int srcc,int lo,int hi,cons
 int ps_decsint_repr(char *dst,int dsta,int src);
 int ps_hexuint_repr(char *dst,int dsta,int src);
 
+// We only accept plain decimal floats. Whole part is required, fraction optional, exponent forbidden.
+int ps_double_eval(double *dst,const char *src,int srcc);
+
 /* Nothing too shocking in our string format, it's like C.
  * There are no octal escapes.
  * '#' is escaped as '\H', since we often use it as a line comment.

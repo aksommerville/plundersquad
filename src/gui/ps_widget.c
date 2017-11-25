@@ -256,15 +256,23 @@ struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget) {
   return page->gui;
 }
 
+struct ps_page *ps_widget_get_page(const struct ps_widget *widget) {
+  if (!widget) return 0;
+  while (widget->parent) {
+    widget=widget->parent;
+  }
+  return ps_widget_root_get_page(widget);
+}
+
 /* Test point.
  */
  
 int ps_widget_contains_point(const struct ps_widget *widget,int x,int y) {
-  if (!widget) return 0;
-  if (x<widget->x) return 0;
-  if (y<widget->y) return 0;
-  if (x>=widget->x+widget->w) return 0;
-  if (y>=widget->y+widget->h) return 0;
+  if (ps_widget_coords_from_window(&x,&y,widget,x,y)<0) return -1;
+  if (x<0) return 0;
+  if (y<0) return 0;
+  if (x>=widget->w) return 0;
+  if (y>=widget->h) return 0;
   return 1;
 }
 
@@ -298,5 +306,26 @@ int ps_widget_event_mouseup(struct ps_widget *widget,int btnid,int inbounds) {
 int ps_widget_event_mousewheel(struct ps_widget *widget,int dx,int dy) {
   if (!widget) return -1;
   if (widget->type->mousewheel) return widget->type->mousewheel(widget,dx,dy);
+  return 0;
+}
+
+int ps_widget_event_mousemove(struct ps_widget *widget,int x,int y) {
+  if (!widget) return -1;
+  if (widget->type->mousemove) return widget->type->mousemove(widget,x,y);
+  return 0;
+}
+
+/* Localize coordinates.
+ */
+ 
+int ps_widget_coords_from_window(int *x,int *y,const struct ps_widget *widget,int winx,int winy) {
+  if (!widget) return -1;
+  *x=winx;
+  *y=winy;
+  while (widget) {
+    (*x)-=widget->x;
+    (*y)-=widget->y;
+    widget=widget->parent;
+  }
   return 0;
 }

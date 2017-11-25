@@ -338,6 +338,46 @@ int ps_hexuint_repr(char *dst,int dsta,int src) {
   return dstc;
 }
 
+/* Evaluate floating-point number.
+ */
+ 
+int ps_double_eval(double *dst,const char *src,int srcc) {
+  if (!dst||!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  int srcp=0,positive=1;
+  
+  if (srcp>=srcc) return -1;
+  if (src[srcp]=='-') {
+    if (++srcp>=srcc) return -1;
+    positive=0;
+  } else if (src[srcp]=='+') {
+    if (++srcp>=srcc) return -1;
+  }
+
+  if ((src[srcp]<'0')||(src[srcp]>'9')) return -1;
+  *dst=0.0;
+  while ((srcp<srcc)&&(src[srcp]>='0')&&(src[srcp]<='9')) {
+    int digit=src[srcp++]-'0';
+    *dst*=10.0;
+    *dst+=digit;
+  }
+
+  if ((srcp<srcc)&&(src[srcp]=='.')) {
+    if (++srcp>=srcc) return -1;
+    if ((src[srcp]<'0')||(src[srcp]>'9')) return -1;
+    double coef=1.0;
+    while ((srcp<srcc)&&(src[srcp]>='0')&&(src[srcp]<='9')) {
+      int digit=src[srcp++]-'0';
+      coef*=0.1;
+      *dst+=digit*coef;
+    }
+  }
+
+  if (srcp<srcc) return -1;
+  if (!positive) *dst=-*dst;
+  return 0;
+}
+
 /* Measure string token.
  */
 

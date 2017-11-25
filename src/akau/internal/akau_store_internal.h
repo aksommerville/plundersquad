@@ -25,6 +25,7 @@ struct akau_store_list {
 
 struct akau_store {
   int refc;
+  char *path;
   struct akau_store_list ipcms;
   struct akau_store_list fpcms;
   struct akau_store_list instruments;

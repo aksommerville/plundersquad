@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <stdio.h>
 #include <sys/stat.h>
 #include <zlib.h>
 
@@ -576,7 +577,81 @@ int akau_store_load(struct akau_store *store,const char *path) {
     return akau_error("%s: Unknown file type.",path);
   }
 
+  if (store->path) free(store->path);
+  store->path=strdup(path);
+
   if (akau_store_link(store)<0) return -1;
   
   return 0;
+}
+
+/* Get path to resource file.
+ */
+ 
+int akau_store_get_resource_path(char *dst,int dsta,const struct akau_store *store,const char *restype,int resid) {
+  if ((dsta<0)||(dsta&&!dst)) return -1;
+  if (!store) return -1;
+  if (!store->path) return -1;
+  if (!restype) return -1;
+  if (resid<1) return -1;
+
+  struct stat st={0};
+  if (stat(store->path,&st)<0) return -1;
+  if (!S_ISDIR(st.st_mode)) return -1;
+
+  char dirpath[1024];
+  int dirpathc=snprintf(dirpath,sizeof(dirpath),"%s/%s/",store->path,restype);
+  if ((dirpathc<0)||(dirpathc>=sizeof(dirpath))) return -1;
+  
+  DIR *dir=opendir(dirpath);
+  if (!dir) return akau_error("%s: Failed to read directory.",dirpath);
+  struct dirent *de;
+  while (de=readdir(dir)) {
+
+    const char *base=de->d_name;
+    int basec=0; while (base[basec]) basec++;
+    
+    int id=0,basep=0;
+    while ((basep<basec)&&(base[basep]>='0')&&(base[basep]<='9')) {
+      int digit=base[basep++]-'0';
+      if (id>INT_MAX/10) { basep=0; break; }
+      id*=10;
+      if (id>INT_MAX-digit) { basep=0; break; }
+      id+=digit;
+    }
+    if (!basep) continue;
+
+    if (id==resid) {
+      closedir(dir);
+      int dstc=dirpathc+basec;
+      if (dstc<=dsta) {
+        memcpy(dst,dirpath,dirpathc);
+        memcpy(dst+dirpathc,base,basec);
+        if (dstc<dsta) dst[dstc]=0;
+      }
+      return dstc;
+    }
+  }
+  closedir(dir);
+
+  return -1;
+}
+
+/* Compose default path to resource file.
+ */
+ 
+int akau_store_generate_resource_path(char *dst,int dsta,const struct akau_store *store,const char *restype,int resid) {
+  if ((dsta<0)||(dsta&&!dst)) return -1;
+  if (!store) return -1;
+  if (!store->path) return -1;
+  if (!restype) return -1;
+  if (resid<1) return -1;
+
+  struct stat st={0};
+  if (stat(store->path,&st)<0) return -1;
+  if (!S_ISDIR(st.st_mode)) return -1;
+
+  int dstc=snprintf(dst,dsta,"%s/%s/%03d",store->path,restype,resid);
+  if ((dstc<0)||(dstc>=dsta)) return -1;
+  return dstc;
 }

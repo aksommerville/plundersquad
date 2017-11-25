@@ -91,6 +91,8 @@ void akau_store_del(struct akau_store *store) {
   if (!store) return;
   if (store->refc-->1) return;
 
+  if (store->path) free(store->path);
+
   akau_store_list_cleanup(&store->ipcms);
   akau_store_list_cleanup(&store->fpcms);
   akau_store_list_cleanup(&store->instruments);
@@ -158,6 +160,12 @@ int akau_store_clear(struct akau_store *store) {
     if (!store) return 0; \
     if ((p<0)||(p>=store->tag##s.c)) return 0; \
     return store->tag##s.v[p].id; \
+  } \
+  int akau_store_get_unused_##tag##_id(int *id,int *p,const struct akau_store *store) { \
+    if (!store) return -1; \
+    if (id) *id=store->tag##s.contigc+1; \
+    if (p) *p=store->tag##s.contigc; \
+    return 0; \
   }
 
 LISTACCESSORS(ipcm)

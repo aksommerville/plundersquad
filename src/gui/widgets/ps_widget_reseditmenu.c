@@ -10,7 +10,7 @@
 #define PS_RESEDITMENU_BACKGROUND_COLOR    0xe0e0e0ff
 #define PS_RESEDITMENU_BUTTON_COLOR        0x80ffa0ff
 #define PS_RESEDITMENU_MENU_COLOR          0x000000ff
-#define PS_RESEDITMENU_LABEL_COLOR_VALID   0x000000ff
+#define PS_RESEDITMENU_LABEL_COLOR_VALID   0x808080ff
 #define PS_RESEDITMENU_LABEL_COLOR_INVALID 0x800000ff
 #define PS_RESEDITMENU_LABEL_TEXT_INVALID "(not loaded)"
 
@@ -26,7 +26,7 @@ struct ps_widget_reseditmenu {
 
 #define WIDGET ((struct ps_widget_reseditmenu*)widget)
 
-/* Callback: "back" button.
+/* Menu item callbacks.
  */
  
 static int ps_reseditmenu_cb_back(struct ps_widget *label,void *userdata) {
@@ -54,6 +54,7 @@ static int _ps_reseditmenu_init(struct ps_widget *widget) {
   if (!(child=ps_widget_spawn_label(widget,"<",1,PS_RESEDITMENU_MENU_COLOR))) return -1;
   if (ps_widget_label_set_click_cb(child,ps_reseditmenu_cb_back,widget,0)<0) return -1;
   child->bgrgba=PS_RESEDITMENU_BUTTON_COLOR;
+  
   if (!(child=ps_widget_spawn_label(widget,PS_RESEDITMENU_LABEL_TEXT_INVALID,-1,PS_RESEDITMENU_LABEL_COLOR_INVALID))) return -1;
 
   return 0;
@@ -137,16 +138,24 @@ int ps_widget_reseditmenu_set_name(struct ps_widget *widget,const char *text,int
     if (ps_widget_label_set_text(widget->childv[1],PS_RESEDITMENU_LABEL_TEXT_INVALID,-1)<0) return -1;
     widget->childv[1]->fgrgba=PS_RESEDITMENU_LABEL_COLOR_INVALID;
   }
+  if (ps_widget_pack(widget)<0) return -1;
   return 0;
 }
 
 /* Add menu.
  */
  
-struct ps_widget *ps_widget_reseditmenu_add_menu(struct ps_widget *widget,const char *text,int textc) {
+struct ps_widget *ps_widget_reseditmenu_add_menu(
+  struct ps_widget *widget,
+  const char *text,int textc,
+  int (*cb)(struct ps_widget *label,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata)
+) {
   if (!widget||(widget->type!=&ps_widget_type_reseditmenu)) return 0;
   if (widget->childc<2) return 0;
   struct ps_widget *child=ps_widget_spawn_label(widget,text,textc,PS_RESEDITMENU_MENU_COLOR);
+  if (ps_widget_label_set_click_cb(child,cb,userdata,userdata_del)<0) return 0;
   child->bgrgba=PS_RESEDITMENU_BUTTON_COLOR;
   return child;
 }

@@ -251,7 +251,6 @@ static int ps_herosetup_drop_phase_children(struct ps_widget *widget) {
  */
 
 static int ps_herosetup_enter_init(struct ps_widget *widget) {
-  ps_log(GUI,TRACE,"%s %p",__func__,widget);
   struct ps_gui *gui=ps_widget_get_gui(widget);
   
   if (ps_widget_heroselect_free_player(widget->parent,WIDGET->playerid)<0) return -1;
@@ -276,7 +275,6 @@ static int ps_herosetup_enter_init(struct ps_widget *widget) {
  */
 
 static int ps_herosetup_enter_edit(struct ps_widget *widget) {
-  ps_log(GUI,TRACE,"%s %p",__func__,widget);
   
   int playerid=ps_widget_heroselect_allocate_player(widget->parent);
   if (playerid<1) return -1;
@@ -303,7 +301,6 @@ static int ps_herosetup_enter_edit(struct ps_widget *widget) {
  */
 
 static int ps_herosetup_enter_ready(struct ps_widget *widget) {
-  ps_log(GUI,TRACE,"%s %p %d",__func__,widget,WIDGET->playerid);
   
   if (ps_herosetup_drop_phase_children(widget)<0) return -1;
   WIDGET->phase=PS_HEROSETUP_PHASE_READY;
@@ -359,8 +356,6 @@ int ps_widget_herosetup_refresh_player(struct ps_widget *widget,struct ps_player
   if (WIDGET->phase<PS_HEROSETUP_PHASE_EDIT) return -1;
   if (!player) return -1;
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
-
-  ps_log(GUI,DEBUG,"%s %p:%d",__func__,player->plrdef,player->palette);
 
   ps_sprgrp_kill(WIDGET->grp);
 

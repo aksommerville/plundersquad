@@ -3,6 +3,7 @@
 #include "input/ps_input.h"
 #include "input/ps_input_device.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 
 #define PS_HEROSELECT_MARGIN   5
 #define PS_HEROSELECT_SPACING  5
@@ -239,6 +240,7 @@ int ps_widget_heroselect_receive_player_input(struct ps_widget *widget,struct ps
     #define ADJUST(tag,d) if (ps_widget_herosetup_get_phase(herosetup)==PS_HEROSETUP_PHASE_EDIT) { \
         struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget)); \
         if (game) { \
+          PS_SFX_MENU_ADJUST \
           int playerid=ps_widget_herosetup_get_playerid(herosetup); \
           if (ps_game_adjust_player_##tag(ps_gui_get_game(ps_widget_get_gui(widget)),playerid,d)<0) return -1; \
           if (ps_widget_herosetup_refresh_player(herosetup,game->playerv[playerid-1])<0) return -1; \

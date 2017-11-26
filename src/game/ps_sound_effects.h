@@ -13,14 +13,14 @@
 #define PS_SFX_HERO_HURT
 #define PS_SFX_HERO_DEAD akau_play_sound(13,0x80,0);
 #define PS_SFX_ARROW akau_play_sound(5,0x80,0);
-#define PS_SFX_HOOKSHOT_BEGIN
+#define PS_SFX_HOOKSHOT_BEGIN akau_play_sound(17,0x80,0);
+#define PS_SFX_HOOKSHOT_BONK akau_play_sound(18,0x80,0);
+#define PS_SFX_HOOKSHOT_GRAB akau_play_sound(19,0x80,0);
 #define PS_SFX_FLAME
 #define PS_SFX_HEALMISSILE
 #define PS_SFX_TRANSFORM
 #define PS_SFX_UNTRANSFORM
 #define PS_SFX_EXPLODE akau_play_sound(7,0x80,0);
-#define PS_SFX_HOOKSHOT_BONK
-#define PS_SFX_HOOKSHOT_GRAB
 
 #define PS_SFX_BEGIN_PLAY
 #define PS_SFX_SHIFT_SCREEN

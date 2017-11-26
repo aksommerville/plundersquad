@@ -1,7 +1,14 @@
-channel square
-
-0 0 trim 0
-0 0 step 50
-250 0 trim 0.5
-500 0 trim 0
-500 0 step 200
+channel sine
+0 0 trim 0.000000
+0 0 step 50.000000
+35 0 trim 0.764151
+38 0 step 186.132075
+62 0 step 136.559452
+100 0 trim 0.122642
+100 0 step 187.416340
+137 0 step 142.043020
+175 0 step 186.132075
+188 0 trim 0.858491
+199 0 step 72.358491
+498 0 step 58.773585
+500 0 trim 0.000000

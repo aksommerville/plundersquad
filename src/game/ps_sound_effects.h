@@ -17,34 +17,34 @@
 #define PS_SFX_HOOKSHOT_BONK akau_play_sound(18,0x80,0);
 #define PS_SFX_HOOKSHOT_GRAB akau_play_sound(19,0x80,0);
 #define PS_SFX_FLAME
-#define PS_SFX_HEALMISSILE
-#define PS_SFX_TRANSFORM
-#define PS_SFX_UNTRANSFORM
+#define PS_SFX_HEALMISSILE akau_play_sound(20,0x80,0);
+#define PS_SFX_TRANSFORM akau_play_sound(21,0x80,0);
+#define PS_SFX_UNTRANSFORM akau_play_sound(22,0x80,0);
 #define PS_SFX_EXPLODE akau_play_sound(7,0x80,0);
 
 #define PS_SFX_BEGIN_PLAY
 #define PS_SFX_SHIFT_SCREEN
 #define PS_SFX_VICTORY
-#define PS_SFX_PAUSE
-#define PS_SFX_TREASURE
-#define PS_SFX_DEATHGATE
+#define PS_SFX_PAUSE akau_play_sound(23,0x80,0);
+#define PS_SFX_TREASURE akau_play_sound(24,0x80,0);
+#define PS_SFX_DEATHGATE akau_play_sound(25,0x80,0);
 
 #define PS_SFX_MONSTER_DEAD akau_play_sound(15,0x80,0);
 #define PS_SFX_MONSTER_HURT akau_play_sound(14,0x80,0);
-#define PS_SFX_DRAGONBUG_EXHALE
-#define PS_SFX_RABBIT_FIRE
-#define PS_SFX_RABBIT_TONGUE
-#define PS_SFX_RABBIT_SPIT
-#define PS_SFX_RABBIT_SWALLOW
-#define PS_SFX_RABBIT_GRAB
-#define PS_SFX_SEAMONSTER_FIRE
-#define PS_SFX_SEAMONSTER_DIVE
-#define PS_SFX_SEAMONSTER_SURFACE
+#define PS_SFX_DRAGONBUG_EXHALE akau_play_sound(26,0x80,0);
+#define PS_SFX_RABBIT_FIRE akau_play_sound(30,0x80,0);
+#define PS_SFX_RABBIT_TONGUE akau_play_sound(31,0x80,0);
+#define PS_SFX_RABBIT_SPIT akau_play_sound(27,0x80,0);
+#define PS_SFX_RABBIT_SWALLOW akau_play_sound(28,0x80,0);
+#define PS_SFX_RABBIT_GRAB akau_play_sound(29,0x80,0);
+#define PS_SFX_SEAMONSTER_FIRE akau_play_sound(32,0x80,0);
+#define PS_SFX_SEAMONSTER_DIVE akau_play_sound(33,0x80,0);
+#define PS_SFX_SEAMONSTER_SURFACE akau_play_sound(34,0x80,0);
 
-#define PS_SFX_SWITCH_PRESS
-#define PS_SFX_SWITCH_RELEASE
-#define PS_SFX_SWORDSWITCH_UNLOCK
-#define PS_SFX_SWORDSWITCH_LOCK
+#define PS_SFX_SWITCH_PRESS akau_play_sound(35,0x80,0);
+#define PS_SFX_SWITCH_RELEASE akau_play_sound(36,0x80,0);
+#define PS_SFX_SWORDSWITCH_UNLOCK akau_play_sound(37,0x80,0);
+#define PS_SFX_SWORDSWITCH_LOCK akau_play_sound(38,0x80,0);
 
 #define PS_SFX_GUI_ACTIVATE akau_play_sound(6,0x80,0);
 #define PS_SFX_GUI_CANCEL akau_play_sound(4,0x80,0);

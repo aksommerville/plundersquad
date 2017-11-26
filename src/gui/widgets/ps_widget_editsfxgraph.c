@@ -396,6 +396,7 @@ static int ps_editsfxgraph_rebuild(struct ps_widget *widget) {
     if (range<1.0) range=1.0; // Entirely possible that only one step value is present, don't panic.
     yav=vmin-range/10.0;
     yzv=vmax+range/10.0;
+    if (yav<0.0) yav=0.0;
   }
   WIDGET->scale_time=xztime;
   WIDGET->scale_va=yav;

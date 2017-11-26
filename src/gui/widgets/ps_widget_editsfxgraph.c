@@ -160,6 +160,48 @@ static int _ps_editsfxgraph_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Convert visual space to model space.
+ * Everything we return is correctly bounded.
+ * (x,y) are in the relative widget space, ie (0,0) is the graph's top left corner.
+ */
+
+static int ps_editsfxgraph_time_from_x(const struct ps_widget *widget,int x) {
+  if (WIDGET->scale_time<1) return 0;
+  if (widget->w<1) return 0;
+  int time=(x*WIDGET->scale_time)/widget->w;
+  if (time<0) return 0;
+  if (time>WIDGET->scale_time) return WIDGET->scale_time;
+  return time;
+}
+
+static int ps_editsfxgraph_x_from_time(const struct ps_widget *widget,int time) {
+  if (time<=0) return 0;
+  if (time>=WIDGET->scale_time) return WIDGET->scale_time;
+  int x=(time*widget->w)/WIDGET->scale_time;
+  if (x<0) return 0;
+  if (x>widget->w) return widget->w;
+  return x;
+}
+
+static double ps_editsfxgraph_value_from_y(const struct ps_widget *widget,int y) {
+  if (y<=0) return WIDGET->scale_vz;
+  if (y>=widget->h) return WIDGET->scale_va;
+  if (WIDGET->scale_vz<=WIDGET->scale_va) return WIDGET->scale_va;
+  double value=WIDGET->scale_va+((widget->h-y)*(WIDGET->scale_vz-WIDGET->scale_va))/widget->h;
+  if (value<WIDGET->scale_va) return WIDGET->scale_va;
+  if (value>WIDGET->scale_vz) return WIDGET->scale_vz;
+  return value;
+}
+
+static int ps_editsfxgraph_y_from_value(const struct ps_widget *widget,double value) {
+  if (value<=WIDGET->scale_va) return WIDGET->scale_va;
+  if (value>=WIDGET->scale_vz) return WIDGET->scale_vz;
+  int y=widget->h-((value-WIDGET->scale_va)*widget->h)/(WIDGET->scale_vz-WIDGET->scale_va);
+  if (y<=0) return 0;
+  if (y>=widget->h) return widget->h;
+  return y;
+}
+
 /* Find point.
  */
 
@@ -180,8 +222,8 @@ static int ps_editsfxgraph_find_point(const struct ps_widget *widget,int x,int y
  */
 
 static int ps_editsfxgraph_create_point(struct ps_widget *widget,int x,int y) {
-  int time=(x*WIDGET->scale_time)/widget->w;
-  double value=WIDGET->scale_va+((widget->h-y)*(WIDGET->scale_vz-WIDGET->scale_va))/widget->h;
+  int time=ps_editsfxgraph_time_from_x(widget,x);
+  double value=ps_editsfxgraph_value_from_y(widget,y);
   struct ps_iwg *iwg=ps_editsfxgraph_get_iwg(widget);
   if (!iwg) return -1;
   iwg->dirty=1;
@@ -239,8 +281,8 @@ static int _ps_editsfxgraph_mouseup(struct ps_widget *widget,int btnid,int inbou
       if (iwg) {
         struct ps_editsfxgraph_point *pt=WIDGET->ptv+WIDGET->trackpt;
         if ((pt->cmdp>=0)&&(pt->cmdp<iwg->cmdc)) {
-          int ntime=(pt->x*WIDGET->scale_time)/widget->w;
-          iwg->cmdv[pt->cmdp].v=WIDGET->scale_va+((widget->h-pt->y)*(WIDGET->scale_vz-WIDGET->scale_va))/widget->h;
+          int ntime=ps_editsfxgraph_time_from_x(widget,pt->x);
+          iwg->cmdv[pt->cmdp].v=ps_editsfxgraph_value_from_y(widget,pt->y);
           iwg->dirty=1;
           if (ps_iwg_adjust_command_time(iwg,pt->cmdp,ntime)<0) return -1;
           if (!widget->parent) return -1;

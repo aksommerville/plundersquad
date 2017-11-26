@@ -341,6 +341,9 @@ static int ps_rabbit_grab_pumpkin(struct ps_sprite *spr,struct ps_game *game,str
   if (SPR->pumpkin->sprc) return -1;
   if (ps_sprgrp_add_sprite(SPR->pumpkin,pumpkin)<0) return -1;
   PS_SFX_RABBIT_GRAB
+
+  // Experimentally, remove the FRAGILE group now instead of waiting to swallow. So we don't accidentally kill it ourselves.
+  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,pumpkin)<0) return -1;
   
   return 0;
 }

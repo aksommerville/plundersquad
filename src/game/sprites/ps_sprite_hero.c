@@ -625,6 +625,9 @@ static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sp
   if (SPR->healtime) return 0;
   if (!SPR->hp) return 0; // Ghost.
 
+  int fragile=ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr);
+  if (!fragile) return 0;
+
   /* If we have the IMMORTAL skill, forget about it. */
   if (SPR->player&&SPR->player->plrdef&&(SPR->player->plrdef->skills&PS_SKILL_IMMORTAL)) {
     PS_SFX_HERO_HURT

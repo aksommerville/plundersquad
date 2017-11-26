@@ -51,6 +51,11 @@ int ps_iwg_add_command(struct ps_iwg *iwg,int time_ms,int chanid,int k,double v)
  */
 int ps_iwg_remove_channel(struct ps_iwg *iwg,int chanid);
 
+/* Replace the channel's definition as plain text.
+ * We don't validate, so please be careful.
+ */
+int ps_iwg_set_channel_shape(struct ps_iwg *iwg,int chanid,const char *arg,int argc);
+
 /* Remove a range of comamnds.
  */
 int ps_iwg_remove_commands(struct ps_iwg *iwg,int p,int c);

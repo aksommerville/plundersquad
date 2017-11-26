@@ -20,6 +20,8 @@
 #define PS_EDITSFXCHAN_STEP_FGCOLOR    0xffff00ff
 #define PS_EDITSFXCHAN_TRIM_FGCOLOR    0xff00ffff
 
+static int ps_editsfxchan_change_shape(struct ps_widget *widget);
+
 /* Widget definition.
  */
 
@@ -59,6 +61,7 @@ static int _ps_editsfxchan_init(struct ps_widget *widget) {
   child->bgrgba=PS_EDITSFXCHAN_TRIM_BGCOLOR;
   child->fgrgba=PS_EDITSFXCHAN_TRIM_FGCOLOR;
 
+  widget->track_mouse=1;
   WIDGET->shape_tileid=0x04;
   
   return 0;
@@ -136,6 +139,7 @@ static int _ps_editsfxchan_mouseexit(struct ps_widget *widget) {
 }
 
 static int _ps_editsfxchan_mousedown(struct ps_widget *widget,int btnid) {
+  if (ps_editsfxchan_change_shape(widget)<0) return -1;
   return 0;
 }
 
@@ -187,6 +191,37 @@ int ps_widget_editsfxchan_set_chanid(struct ps_widget *widget,int chanid) {
     if (ps_widget_editsfxgraph_set_field(widget->childv[0],WIDGET->chanid,AKAU_WAVEGEN_K_STEP)<0) return -1;
     if (ps_widget_editsfxgraph_set_field(widget->childv[1],WIDGET->chanid,AKAU_WAVEGEN_K_TRIM)<0) return -1;
   }
+  
+  return 0;
+}
+
+/* Change shape.
+ */
+ 
+static int ps_editsfxchan_change_shape(struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_editsfxchan)) return -1;
+  struct ps_iwg *iwg=ps_editsfxchan_get_iwg(widget);
+  if (!iwg) return -1;
+  if ((WIDGET->chanid<0)||(WIDGET->chanid>=iwg->chanc)) return -1;
+
+  struct ps_iwg_channel *chan=iwg->chanv+WIDGET->chanid;  
+  if ((chan->argc==4)&&!memcmp(chan->arg,"sine",4)) {
+    if (ps_iwg_set_channel_shape(iwg,WIDGET->chanid,"square",6)<0) return -1;
+    WIDGET->shape_tileid=0x01;
+  } else if ((chan->argc==6)&&!memcmp(chan->arg,"square",6)) {
+    if (ps_iwg_set_channel_shape(iwg,WIDGET->chanid,"saw",3)<0) return -1;
+    WIDGET->shape_tileid=0x02;
+  } else if ((chan->argc==3)&&!memcmp(chan->arg,"saw",3)) {
+    if (ps_iwg_set_channel_shape(iwg,WIDGET->chanid,"noise",5)<0) return -1;
+    WIDGET->shape_tileid=0x03;
+  } else if ((chan->argc==5)&&!memcmp(chan->arg,"noise",5)) {
+    if (ps_iwg_set_channel_shape(iwg,WIDGET->chanid,"sine",4)<0) return -1;
+    WIDGET->shape_tileid=0x00;
+  } else {
+    if (ps_iwg_set_channel_shape(iwg,WIDGET->chanid,"sine",4)<0) return -1;
+    WIDGET->shape_tileid=0x00;
+  }
+  iwg->dirty=1;
   
   return 0;
 }

@@ -185,6 +185,26 @@ int ps_iwg_remove_channel(struct ps_iwg *iwg,int chanid) {
   return 0;
 }
 
+/* Change shape of a channel.
+ */
+ 
+int ps_iwg_set_channel_shape(struct ps_iwg *iwg,int chanid,const char *arg,int argc) {
+  if (!iwg) return -1;
+  if ((chanid<0)||(chanid>=iwg->chanc)) return -1;
+  if (!arg) argc=0; else if (argc<0) { argc=0; while (arg[argc]) argc++; }
+  struct ps_iwg_channel *chan=iwg->chanv+chanid;
+  char *nv=0;
+  if (argc) {
+    if (!(nv=malloc(argc+1))) return -1;
+    memcpy(nv,arg,argc);
+    nv[argc]=0;
+  }
+  if (chan->arg) free(chan->arg);
+  chan->arg=nv;
+  chan->argc=argc;
+  return 0;
+}
+
 /* Remove a range of comamnds.
  */
 

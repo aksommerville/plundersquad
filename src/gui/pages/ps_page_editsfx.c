@@ -17,6 +17,13 @@ struct ps_page_editsfx {
 
 #define PAGE ((struct ps_page_editsfx*)page)
 
+/* Delete.
+ */
+
+static void _ps_editsfx_del(struct ps_page *page) {
+  ps_widget_del(PAGE->resedit);
+}
+
 /* Create new resource.
  */
 
@@ -78,13 +85,6 @@ static int ps_editsfx_res_load(struct ps_page *page,int index) {
   int id=akau_store_get_ipcm_id_by_index(store,index);
   if (id<0) return -1;
   return ps_editsfx_reload_resource(page,index,id,ipcm);
-}
-
-/* Delete.
- */
-
-static void _ps_editsfx_del(struct ps_page *page) {
-  ps_widget_del(PAGE->resedit);
 }
 
 /* Save.

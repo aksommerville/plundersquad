@@ -32,7 +32,7 @@ static int _ps_edithome_init(struct ps_page *page) {
 
   struct ps_widget *option;
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"Sound effect",-1))) return -1;
-  if (!(option=ps_widget_menu_add_option(PAGE->menu,"Song XXX",-1))) return -1;
+  if (!(option=ps_widget_menu_add_option(PAGE->menu,"Song",-1))) return -1;
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"Blueprint XXX",-1))) return -1;
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"Sprite XXX",-1))) return -1;
   if (!(option=ps_widget_menu_add_option(PAGE->menu,"Hero XXX",-1))) return -1;

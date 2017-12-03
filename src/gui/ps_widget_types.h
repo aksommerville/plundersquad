@@ -8,7 +8,7 @@
 struct ps_input_device;
 struct ps_player;
 struct akau_ipcm;
-struct ps_isong;
+struct akau_song;
 
 extern const struct ps_widget_type ps_widget_type_root; // Only for pages' root widgets. One full-size child.
 extern const struct ps_widget_type ps_widget_type_label; // Single row of text.
@@ -151,8 +151,8 @@ int ps_widget_editsfxgraph_set_field(struct ps_widget *widget,int chanid,int k);
 /* Editsong.
  *****************************************************************************/
 
-int ps_widget_editsong_set_isong(struct ps_widget *widget,struct ps_isong *isong);
-struct ps_isong *ps_widget_editsong_get_isong(const struct ps_widget *widget);
+int ps_widget_editsong_set_song(struct ps_widget *widget,struct akau_song *song);
+struct akau_song *ps_widget_editsong_get_song(const struct ps_widget *widget);
 int ps_widget_editsong_set_path(struct ps_widget *widget,const char *path);
 
 #endif

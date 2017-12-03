@@ -18,11 +18,6 @@ OPT_IGNORE_PATTERN:=$(foreach SFX,$(OPT_IGNORE_PATTERN_BASE), \
 GENERATED_FILES:=$(filter-out $(OPT_IGNORE_PATTERN),$(GENERATED_FILES))
 GENHFILES:=$(filter %.h,$(GENERATED_FILES))
 
-# We make an exception for the test contents list here.
-# Without this, we would rebuild the entire project every time a unit test changes.
-# TODO Do we need the GENHFILES dependency at all? Doesn't -MMD take care of that for us?
-GENHFILES:=$(filter-out $(MIDDIR)/ps_test_contents.h,$(GENHFILES))
-
 SRCFILES:=$(filter-out $(OPT_IGNORE_PATTERN),$(shell find src -type f)) $(GENERATED_FILES)
 SRCFILES_C:=$(filter %.c,$(SRCFILES))
 SRCFILES_M:=$(filter %.m,$(SRCFILES))
@@ -44,11 +39,11 @@ ifneq (,$(strip $(SRCFILES_M)))
   endif
 endif
 
-$(MIDDIR)/%.o:src/%.c $(GENHFILES);$(PRECMD) $(CC) -o $@ $<
-$(MIDDIR)/%.o:$(MIDDIR)/%.c $(GENHFILES);$(PRECMD) $(CC) -o $@ $<
+$(MIDDIR)/%.o:src/%.c|$(GENHFILES);$(PRECMD) $(CC) -o $@ $<
+$(MIDDIR)/%.o:$(MIDDIR)/%.c|$(GENHFILES);$(PRECMD) $(CC) -o $@ $<
 
-$(MIDDIR)/%.o:src/%.m $(GENHFILES);$(PRECMD) $(OBJC) -o $@ $<
-$(MIDDIR)/%.o:$(MIDDIR)/%.m $(GENHFILES);$(PRECMD) $(OBJC) -o $@ $<
+$(MIDDIR)/%.o:src/%.m|$(GENHFILES);$(PRECMD) $(OBJC) -o $@ $<
+$(MIDDIR)/%.o:$(MIDDIR)/%.m|$(GENHFILES);$(PRECMD) $(OBJC) -o $@ $<
 
 #TODO Process data files.
 

@@ -101,10 +101,18 @@ static void akau_store_decode_song_text_error(const char *msg,int msgc,const cha
 static void *akau_store_decode_song(uint8_t resfmt,const void *src,int srcc) {
   switch (resfmt) {
     case 3: {
-        struct akau_song_decoder *decoder=akau_song_decoder_new();
-        if (!decoder) return 0;
-        struct akau_song *song=akau_song_decoder_decode(decoder,src,srcc,akau_store_decode_song_text_error);
-        akau_song_decoder_del(decoder);
+        //XXX
+        //struct akau_song_decoder *decoder=akau_song_decoder_new();
+        //if (!decoder) return 0;
+        //struct akau_song *song=akau_song_decoder_decode(decoder,src,srcc,akau_store_decode_song_text_error);
+        //akau_song_decoder_del(decoder);
+        //return song;
+        struct akau_song *song=akau_song_new();
+        if (!song) return 0;
+        if (akau_song_decode(song,src,srcc)<0) {
+          akau_song_del(song);
+          return 0;
+        }
         return song;
       }
     default: {

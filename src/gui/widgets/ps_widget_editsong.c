@@ -98,13 +98,13 @@ const struct ps_widget_type ps_widget_type_editsong={
 /* Accessors.
  */
  
-int ps_widget_editsong_set_isong(struct ps_widget *widget,struct ps_isong *isong) {
+int ps_widget_editsong_set_song(struct ps_widget *widget,struct akau_song *song) {
   if (!widget||(widget->type!=&ps_widget_type_editsong)) return -1;
   //TODO
   return 0;
 }
 
-struct ps_isong *ps_widget_editsong_get_isong(const struct ps_widget *widget) {
+struct akau_song *ps_widget_editsong_get_song(const struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_editsong)) return 0;
   //TODO
   return 0;

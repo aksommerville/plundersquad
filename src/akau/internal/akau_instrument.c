@@ -203,6 +203,172 @@ struct akau_instrument *akau_instrument_decode(const char *src,int srcc) {
   return instrument;
 }
 
+/* Decode binary.
+ */
+ 
+struct akau_instrument *akau_instrument_decode_binary(const void *src,int srcc) {
+  if (!src||(srcc<10)) return 0;
+  const uint8_t *SRC=src;
+  
+  int attacktime=(SRC[0]<<8)|SRC[1];
+  int drawbacktime=(SRC[2]<<8)|SRC[3];
+  int decaytime=(SRC[4]<<8)|SRC[5];
+  double attacktrim=SRC[6]/255.0;
+  double drawbacktrim=SRC[7]/255.0;
+  int coefc=SRC[9];
+  if (srcc<10+coefc*2) return 0;
+
+  // Encoded times are in milliseconds, but akau_instrument_new() expects them in frames.
+  int rate=akau_get_master_rate();
+  if (rate<1) return 0;
+  attacktime=(attacktime*rate)/1000;
+  drawbacktime=(drawbacktime*rate)/1000;
+  decaytime=(decaytime*rate)/1000;
+
+  // (coefc==0) is legal, but we must add one if that is the case. akau_generate_fpcm_harmonics() requires at least one.
+  int dummy_coef=0;
+  if (!coefc) {
+    dummy_coef=1;
+    coefc=1;
+  }
+
+  double *coefv=malloc(sizeof(double)*coefc);
+  if (!coefv) return 0;
+  if (dummy_coef) {
+    coefv[0]=1.0;
+  } else {
+    int srcp=10;
+    int i=0; for (;i<coefc;i++,srcp+=2) {
+      coefv[i]=((SRC[srcp]<<8)|SRC[srcp+1])/65535.0;
+    }
+  }
+
+  struct akau_fpcm *fpcm=akau_generate_fpcm_harmonics(0,coefv,coefc,1);
+  free(coefv);
+  if (!fpcm) return 0;
+
+  struct akau_instrument *instrument=akau_instrument_new(fpcm,attacktime,attacktrim,drawbacktime,drawbacktrim,decaytime);
+  akau_fpcm_del(fpcm);
+  return instrument;
+}
+
+/* Represent decimal unsigned integer.
+ */
+
+static int akau_instrument_int_repr(char *dst,int dsta,int src) {
+  if (src<0) src=0;
+  int dstc=1,limit=10;
+  while (src>=limit) { dstc++; if (limit>INT_MAX/10) break; limit*=10; }
+  if (dstc>dsta) return dstc;
+  int i=dstc; for (;i-->0;src/=10) dst[i]='0'+src%10;
+  return dstc;
+}
+
+/* Text from binary.
+ */
+ 
+int akau_instrument_text_from_binary(char *dst,int dsta,const void *src,int srcc) {
+  if (!dst||(dsta<0)) dsta=0;
+  if (!src||(srcc<10)) return -1;
+  const uint8_t *SRC=src;
+  
+  int attacktime=(SRC[0]<<8)|SRC[1];
+  int drawbacktime=(SRC[2]<<8)|SRC[3];
+  int decaytime=(SRC[4]<<8)|SRC[5];
+  int attacktrim=SRC[6];
+  int drawbacktrim=SRC[7];
+  int coefc=SRC[9];
+  if (srcc<10+coefc*2) return 0;
+
+  int dstc=0;
+  if (dstc<dsta) dst[dstc]='('; dstc++;
+  if (dstc<dsta) dst[dstc]=' '; dstc++;
+  dstc+=akau_instrument_int_repr(dst+dstc,dsta-dstc,attacktime);
+  if (dstc<dsta) dst[dstc]=' '; dstc++;
+  dstc+=akau_instrument_int_repr(dst+dstc,dsta-dstc,attacktrim);
+  if (dstc<dsta) dst[dstc]=' '; dstc++;
+  dstc+=akau_instrument_int_repr(dst+dstc,dsta-dstc,drawbacktime);
+  if (dstc<dsta) dst[dstc]=' '; dstc++;
+  dstc+=akau_instrument_int_repr(dst+dstc,dsta-dstc,drawbacktrim);
+  if (dstc<dsta) dst[dstc]=' '; dstc++;
+  dstc+=akau_instrument_int_repr(dst+dstc,dsta-dstc,decaytime);
+  if (dstc<dsta) dst[dstc]=' '; dstc++;
+  if (dstc<dsta) dst[dstc]=')'; dstc++;
+
+  int srcp=10,i=0;
+  for (;i<coefc;i++,srcp+=2) {
+    int coef=(SRC[srcp]<<8)|SRC[srcp+1];
+    coef=(coef*1000)/65535;
+    if (coef>999) coef=999;
+    if (dstc<dsta) dst[dstc]=' '; dstc++;
+    dstc+=akau_instrument_int_repr(dst+dstc,dsta-dstc,coef);
+  }
+
+  if (dstc<dsta) dst[dstc]=0;
+  return dstc;
+}
+
+/* Binary from text.
+ */
+ 
+int akau_instrument_binary_from_text(void *dst,int dsta,const char *src,int srcc) {
+  int srcp=0,err;
+
+  int attacktime,attacktrim,drawbacktime,drawbacktrim,decaytime;
+  while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
+  if ((srcp>=srcc)||(src[srcp++]!='(')) return -1;
+  
+  if ((err=akau_instrument_decode_int(&attacktime,src+srcp,srcc-srcp))<0) return -1; srcp+=err;
+  if ((err=akau_instrument_decode_int(&attacktrim,src+srcp,srcc-srcp))<0) return -1; srcp+=err;
+  if ((err=akau_instrument_decode_int(&drawbacktime,src+srcp,srcc-srcp))<0) return -1; srcp+=err;
+  if ((err=akau_instrument_decode_int(&drawbacktrim,src+srcp,srcc-srcp))<0) return -1; srcp+=err;
+  if ((err=akau_instrument_decode_int(&decaytime,src+srcp,srcc-srcp))<0) return -1; srcp+=err;
+
+  while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
+  if ((srcp>=srcc)||(src[srcp++]!=')')) return -1;
+
+  if (attacktime>0xffff) return -1;
+  if (attacktrim>0xff) return -1;
+  if (drawbacktime>0xffff) return -1;
+  if (drawbacktrim>0xff) return -1;
+  if (decaytime>0xffff) return -1;
+
+  uint8_t *DST=dst;
+  if (dsta>=10) {
+    DST[0]=attacktime>>8;
+    DST[1]=attacktime;
+    DST[2]=drawbacktime>>8;
+    DST[3]=drawbacktime;
+    DST[4]=decaytime>>8;
+    DST[5]=decaytime;
+    DST[6]=attacktrim;
+    DST[7]=drawbacktrim;
+    DST[8]=0;
+    DST[9]=0; // will fill in with coefc
+  }
+  int dstc=10;
+
+  int coefc=0;
+  while (srcp<srcc) {
+    if ((unsigned char)src[srcp]<=0x20) { srcp++; continue; }
+    if (coefc>=255) return -1;
+    int coef;
+    if ((err=akau_instrument_decode_int(&coef,src+srcp,srcc-srcp))<0) return -1; srcp+=err;
+    if (coef<0) coef=0;
+    else if (coef>999) coef=999;
+    coef=(coef*65535)/999;
+    if (dstc<=dsta-2) {
+      DST[dstc++]=coef>>8;
+      DST[dstc++]=coef;
+    } else dstc+=2;
+    coefc++;
+  }
+
+  if (dsta>=10) DST[9]=coefc;
+
+  return dstc;
+}
+
 /* Link.
  */
  

@@ -53,21 +53,25 @@ int akau_store_count_ipcm(const struct akau_store *store);
 struct akau_ipcm *akau_store_get_ipcm_by_index(const struct akau_store *store,int p);
 int akau_store_get_ipcm_id_by_index(const struct akau_store *store,int p);
 int akau_store_get_unused_ipcm_id(int *id,int *p,const struct akau_store *store);
+int akau_store_get_ipcm_id_by_object(const struct akau_store *store,const struct akau_ipcm *ipcm);
 
 int akau_store_count_fpcm(const struct akau_store *store);
 struct akau_fpcm *akau_store_get_fpcm_by_index(const struct akau_store *store,int p);
 int akau_store_get_fpcm_id_by_index(const struct akau_store *store,int p);
 int akau_store_get_unused_fpcm_id(int *id,int *p,const struct akau_store *store);
+int akau_store_get_fpcm_id_by_object(const struct akau_store *store,const struct akau_fpcm *fpcm);
 
 int akau_store_count_instrument(const struct akau_store *store);
 struct akau_instrument *akau_store_get_instrument_by_index(const struct akau_store *store,int p);
 int akau_store_get_instrument_id_by_index(const struct akau_store *store,int p);
 int akau_store_get_unused_instrument_id(int *id,int *p,const struct akau_store *store);
+int akau_store_get_instrument_id_by_object(const struct akau_store *store,const struct akau_instrument *instrument);
 
 int akau_store_count_song(const struct akau_store *store);
 struct akau_song *akau_store_get_song_by_index(const struct akau_store *store,int p);
 int akau_store_get_song_id_by_index(const struct akau_store *store,int p);
 int akau_store_get_unused_song_id(int *id,int *p,const struct akau_store *store);
+int akau_store_get_song_id_by_object(const struct akau_store *store,const struct akau_song *song);
 
 /* Return path to the file for this resource.
  * If store was loaded from an archive or was built programmatically, we fail.

@@ -72,6 +72,15 @@ int akau_store_list_replace(struct akau_store_list *list,int p,void *obj) {
   return 0;
 }
 
+int akau_store_list_get_id_by_object(const struct akau_store_list *list,const void *obj) {
+  if (!list) return -1;
+  const struct akau_store_resource *res=list->v;
+  int i=list->c; for (;i-->0;res++) {
+    if (res->obj==obj) return res->id;
+  }
+  return -1;
+}
+
 /* New store.
  */
 
@@ -184,6 +193,10 @@ int akau_store_clear(struct akau_store *store) {
     if (id) *id=store->tag##s.contigc+1; \
     if (p) *p=store->tag##s.contigc; \
     return 0; \
+  } \
+  int akau_store_get_##tag##_id_by_object(const struct akau_store *store,const struct akau_##tag *obj) { \
+    if (!store) return -1; \
+    return akau_store_list_get_id_by_object(&store->tag##s,obj); \
   }
 
 LISTACCESSORS(ipcm)

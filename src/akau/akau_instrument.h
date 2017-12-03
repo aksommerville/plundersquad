@@ -78,6 +78,24 @@ double akau_instrument_get_drawback_trim(const struct akau_instrument *instrumen
  */
 struct akau_instrument *akau_instrument_decode(const char *src,int srcc);
 
+/* Newer alternative to akau_instrument_decode().
+ * Instruments can store as a binary list of timings, levels, and coefficients.
+ *   0000   2 Attack time, ms.
+ *   0002   2 Drawback time, ms.
+ *   0004   2 Decay time, ms.
+ *   0006   1 Attack trim.
+ *   0007   1 Drawback trim.
+ *   0008   1 unused.
+ *   0009   1 Coefficient count.
+ *   000a ... Coefficients, 2 bytes each, 0xffff => 1.0.
+ * Note that there are no "encode" functions.
+ * Producing an instrument is a one-way trip.
+ * You should store the original encoded form elsewhere if you might need it.
+ */
+struct akau_instrument *akau_instrument_decode_binary(const void *src,int srcc);
+int akau_instrument_text_from_binary(char *dst,int dsta,const void *src,int srcc);
+int akau_instrument_binary_from_text(void *dst,int dsta,const char *src,int srcc);
+
 /* If this instrument was decoded with an "external" reference, find the fpcm and bind them.
  */
 int akau_instrument_link(struct akau_instrument *instrument,struct akau_store *store);

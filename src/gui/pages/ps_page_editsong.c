@@ -1,10 +1,9 @@
 #include "ps.h"
 #include "gui/ps_gui.h"
 #include "akau/akau.h"
-#include "resedit/ps_isong.h"
 #include "os/ps_fs.h"
 
-static int ps_editsong_reload_resource(struct ps_page *page,int index,int id,struct ps_isong *isong);
+static int ps_editsong_reload_resource(struct ps_page *page,int index,int id,struct akau_song *song);
 
 /* Page definition.
  */
@@ -78,10 +77,7 @@ static int ps_editsong_res_load(struct ps_page *page,int index) {
   if (!song) return -1;
   int id=akau_store_get_song_id_by_index(store,index);
   if (id<0) return -1;
-  struct ps_isong *isong=ps_isong_from_song(song);
-  if (!isong) return -1;
-  int err=ps_editsong_reload_resource(page,index,id,isong);
-  ps_isong_del(isong);
+  int err=ps_editsong_reload_resource(page,index,id,song);
   return err;
 }
 
@@ -91,27 +87,15 @@ static int ps_editsong_res_save(struct ps_page *page,int index) {
   /* Acquire song. */
   struct ps_widget *editor=ps_widget_resedit_get_editor(PAGE->resedit);
   if (!editor) return -1;
-  struct ps_isong *isong=ps_widget_editsong_get_isong(editor);
-  if (!isong) return -1;
-  struct akau_song *song=ps_song_from_isong(isong);
+  struct akau_song *song=ps_widget_editsong_get_song(editor);
   if (!song) return -1;
 
   /* Replace in store. */
   struct akau_store *store=akau_get_store();
-  if (!store) {
-    akau_song_del(song);
-    return -1;
-  }
+  if (!store) return -1;
   int resid=akau_store_get_song_id_by_index(store,index);
-  if (resid<0) {
-    akau_song_del(song);
-    return -1;
-  }
-  if (akau_store_replace_song(store,song,resid)<0) {
-    akau_song_del(song);
-    return -1;
-  }
-  akau_song_del(song);
+  if (resid<0) return -1;
+  if (akau_store_replace_song(store,song,resid)<0) return -1;
 
   /* Rewrite file. */
   char path[1024];
@@ -123,7 +107,7 @@ static int ps_editsong_res_save(struct ps_page *page,int index) {
     if (ps_file_write(path,"",0)<0) return -1;
   }
   void *serial=0;
-  int serialc=ps_isong_encode_assembly(&serial,isong);
+  int serialc=akau_song_encode(&serial,song);
   if ((serialc<0)||!serial) {
     ps_log(EDIT,ERROR,"Failed to encode song.");
     return -1;
@@ -133,6 +117,7 @@ static int ps_editsong_res_save(struct ps_page *page,int index) {
     free(serial);
     return -1;
   }
+  free(serial);
   ps_log(EDIT,INFO,"Wrote song:%d resource to '%s'.",resid,path);
   
   return 0;
@@ -211,7 +196,7 @@ const struct ps_page_type ps_page_type_editsong={
 /* Reload resource.
  */
  
-static int ps_editsong_reload_resource(struct ps_page *page,int index,int id,struct ps_isong *isong) {
+static int ps_editsong_reload_resource(struct ps_page *page,int index,int id,struct akau_song *song) {
 
   struct akau_store *store=akau_get_store();
   if (!store) return -1;
@@ -233,7 +218,7 @@ static int ps_editsong_reload_resource(struct ps_page *page,int index,int id,str
   }
   ps_widget_del(editor);
 
-  if (ps_widget_editsong_set_isong(editor,isong)<0) return -1;
+  if (ps_widget_editsong_set_song(editor,song)<0) return -1;
   if (ps_widget_editsong_set_path(editor,path)<0) return -1;
 
   struct ps_widget *reseditmenu=0;

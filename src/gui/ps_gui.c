@@ -3,6 +3,8 @@
 #include "akgl/akgl.h"
 #include "input/ps_input.h"
 
+#define PS_GUI_BLOTTER_COLOR 0x000000c0
+
 /* Draw, master.
  */
 
@@ -12,6 +14,13 @@ static int _ps_gui_layer_draw(struct ps_video_layer *layer) {
   if (gui->page) {
     if (gui->page->root) {
       if (ps_widget_draw(gui->page->root,0,0)<0) return -1;
+    }
+    if (gui->page->modalc) {
+      if (ps_video_draw_rect(0,0,PS_SCREENW,PS_SCREENH,PS_GUI_BLOTTER_COLOR)<0) return -1;
+      int i=0; for (;i<gui->page->modalc;i++) {
+        struct ps_widget *modal=gui->page->modalv[i];
+        if (ps_widget_draw(modal,0,0)<0) return -1;
+      }
     }
   }
 
@@ -155,9 +164,7 @@ int ps_gui_update(struct ps_gui *gui) {
 int ps_gui_move_cursor(struct ps_gui *gui,int dx,int dy) {
   if (!gui) return -1;
   if (gui->page) {
-    if (gui->page->type->move_cursor) {
-      if (gui->page->type->move_cursor(gui->page,dx,dy)<0) return -1;
-    }
+    if (ps_page_move_cursor(gui->page,dx,dy)<0) return -1;
   }
   return 0;
 }
@@ -165,11 +172,7 @@ int ps_gui_move_cursor(struct ps_gui *gui,int dx,int dy) {
 int ps_gui_activate_cursor(struct ps_gui *gui) {
   if (!gui) return -1;
   if (gui->page) {
-    if (gui->page->type->activate) {
-      if (gui->page->type->activate(gui->page)<0) return -1;
-    } else if (gui->page->type->submit) {
-      if (gui->page->type->submit(gui->page)<0) return -1;
-    }
+    if (ps_page_activate(gui->page)<0) return -1;
   }
   return 0;
 }
@@ -177,9 +180,7 @@ int ps_gui_activate_cursor(struct ps_gui *gui) {
 int ps_gui_cancel_page(struct ps_gui *gui) {
   if (!gui) return -1;
   if (gui->page) {
-    if (gui->page->type->cancel) {
-      if (gui->page->type->cancel(gui->page)<0) return -1;
-    }
+    if (ps_page_cancel(gui->page)<0) return -1;
   }
   return 0;
 }
@@ -187,11 +188,7 @@ int ps_gui_cancel_page(struct ps_gui *gui) {
 int ps_gui_submit_page(struct ps_gui *gui) {
   if (!gui) return -1;
   if (gui->page) {
-    if (gui->page->type->submit) {
-      if (gui->page->type->submit(gui->page)<0) return -1;
-    } else if (gui->page->type->activate) {
-      if (gui->page->type->activate(gui->page)<0) return -1;
-    }
+    if (ps_page_submit(gui->page)<0) return -1;
   }
   return 0;
 }
@@ -315,7 +312,11 @@ static struct ps_widget *ps_gui_find_widget_at_point_1(struct ps_widget *widget,
 struct ps_widget *ps_gui_find_widget_at_point(const struct ps_gui *gui,int x,int y) {
   if (!gui) return 0;
   if (!gui->page) return 0;
-  return ps_gui_find_widget_at_point_1(gui->page->root,x,y);
+  if (gui->page->modalc) {
+    return ps_gui_find_widget_at_point_1(gui->page->modalv[gui->page->modalc-1],x,y);
+  } else {
+    return ps_gui_find_widget_at_point_1(gui->page->root,x,y);
+  }
 }
 
 /* Load page.

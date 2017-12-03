@@ -207,7 +207,7 @@ static int ps_editsong_reload_resource(struct ps_page *page,int index,int id,str
   if (pathc<0) {
     pathc=akau_store_generate_resource_path(path,sizeof(path),store,"song",id);
     if ((pathc<0)||(pathc>=sizeof(path))) return -1;
-    if (ps_file_write(path,"",0)<0) return -1;
+    if (ps_file_write(path,"\0AK\xffSONG\0\x64\0\0\0\0\0\0\x01",17)<0) return -1; // Minimum legal song file.
   }
 
   struct ps_widget *editor=ps_widget_new(&ps_widget_type_editsong);

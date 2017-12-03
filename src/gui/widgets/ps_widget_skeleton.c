@@ -75,6 +75,13 @@ static int _ps_skeleton_mousemove(struct ps_widget *widget,int x,int y) {
   return 0;
 }
 
+/* Unified events.
+ */
+
+static int _ps_skeleton_activate(struct ps_widget *widget) {
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -92,4 +99,5 @@ const struct ps_widget_type ps_widget_type_skeleton={
   .mouseup=_ps_skeleton_mouseup,
   .mousewheel=_ps_skeleton_mousewheel,
   .mousemove=_ps_skeleton_mousemove,
+  .activate=_ps_skeleton_activate,
 };

@@ -19,10 +19,13 @@ extern const struct ps_widget_type ps_widget_type_herosetup; // Panel for one in
 extern const struct ps_widget_type ps_widget_type_slider; // Label and horiztonal indicator, for use in menus.
 extern const struct ps_widget_type ps_widget_type_resedit; // Resource editor, agnostic to data type.
 extern const struct ps_widget_type ps_widget_type_reseditmenu; // Menu bar under resedit.
+extern const struct ps_widget_type ps_widget_type_menubar; // Like reseditmenu, but generic.
+extern const struct ps_widget_type ps_widget_type_dialogue; // Modal dialogue boxes (message, options, text entry).
 extern const struct ps_widget_type ps_widget_type_editsfx; // Sound effect editor.
 extern const struct ps_widget_type ps_widget_type_editsfxchan; // Channel row in editsfx.
 extern const struct ps_widget_type ps_widget_type_editsfxgraph; // Single graph view in editsfx.
 extern const struct ps_widget_type ps_widget_type_editsong; // Song editor.
+extern const struct ps_widget_type ps_widget_type_songvoices; // List of voices in song editor.
 
 /* Root.
  *****************************************************************************/
@@ -129,6 +132,51 @@ struct ps_widget *ps_widget_resedit_get_editor(const struct ps_widget *widget);
 int ps_widget_reseditmenu_set_name(struct ps_widget *widget,const char *text,int textc);
 
 struct ps_widget *ps_widget_reseditmenu_add_menu(
+  struct ps_widget *widget,
+  const char *text,int textc,
+  int (*cb)(struct ps_widget *label,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata)
+);
+
+/* Menubar.
+ *****************************************************************************/
+
+struct ps_widget *ps_widget_menubar_add_menu(
+  struct ps_widget *widget,
+  const char *text,int textc,
+  int (*cb)(struct ps_widget *label,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata)
+);
+
+/* Dialogue.
+ *****************************************************************************/
+
+struct ps_widget *ps_widget_dialogue_new_message(const char *src,int srcc);
+
+struct ps_widget *ps_widget_dialogue_new_input(
+  const char *message,int messagec,
+  const char *value,int valuec,
+  int (*cb)(const char *value,int valuec,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata)
+);
+
+struct ps_widget *ps_widget_dialogue_new_options_(
+  const char *message,int messagec,
+  int (*cb)(int optionp,void *userdata),
+  void *userdata,
+  void (*userdata_del)(void *userdata),
+  const char *optiontext,...
+);
+#define ps_widget_dialogue_new_options(message,messagec,cb,userdata,userdata_del,...) \
+  ps_widget_dialogue_new_options_(message,messagec,cb,userdata,userdata_del,##__VA_ARGS__,(void*)0)
+
+int ps_widget_dialogue_set_message(struct ps_widget *widget,const char *src,int srcc);
+int ps_widget_dialogue_set_default(struct ps_widget *widget,const char *src,int srcc);
+
+struct ps_widget *ps_widget_dialogue_add_button(
   struct ps_widget *widget,
   const char *text,int textc,
   int (*cb)(struct ps_widget *label,void *userdata),

@@ -26,6 +26,8 @@ struct ps_widget_type {
   int (*mousewheel)(struct ps_widget *widget,int dx,int dy);
   int (*mousemove)(struct ps_widget *widget,int x,int y); // (x,y) relative to this widget
 
+  int (*activate)(struct ps_widget *widget);
+
 };
 
 struct ps_widget {
@@ -89,6 +91,8 @@ int ps_widget_event_mousedown(struct ps_widget *widget,int btnid);
 int ps_widget_event_mouseup(struct ps_widget *widget,int btnid,int inbounds);
 int ps_widget_event_mousewheel(struct ps_widget *widget,int dx,int dy);
 int ps_widget_event_mousemove(struct ps_widget *widget,int x,int y);
+
+int ps_widget_event_activate(struct ps_widget *widget);
 
 int ps_widget_coords_from_window(int *x,int *y,const struct ps_widget *widget,int winx,int winy);
 

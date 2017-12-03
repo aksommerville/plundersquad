@@ -315,6 +315,12 @@ int ps_widget_event_mousemove(struct ps_widget *widget,int x,int y) {
   return 0;
 }
 
+int ps_widget_event_activate(struct ps_widget *widget) {
+  if (!widget) return -1;
+  if (widget->type->activate) return widget->type->activate(widget);
+  return 0;
+}
+
 /* Localize coordinates.
  */
  

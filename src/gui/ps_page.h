@@ -34,6 +34,8 @@ struct ps_page {
   int refc;
   struct ps_widget *root;
   struct ps_gui *gui; // WEAK; set only for loaded page.
+  struct ps_widget **modalv; // Above root, overriding it.
+  int modalc,modala;
 };
 
 struct ps_page *ps_page_new(const struct ps_page_type *type);
@@ -43,6 +45,14 @@ int ps_page_ref(struct ps_page *page);
 int ps_page_update(struct ps_page *page);
 
 struct ps_game *ps_page_get_game(const struct ps_page *page);
+
+int ps_page_move_cursor(struct ps_page *page,int dx,int dy);
+int ps_page_activate(struct ps_page *page);
+int ps_page_submit(struct ps_page *page);
+int ps_page_cancel(struct ps_page *page);
+
+int ps_page_push_modal(struct ps_page *page,struct ps_widget *modal);
+int ps_page_pop_modal(struct ps_page *page);
 
 // Initialization flow:
 extern const struct ps_page_type ps_page_type_assemble; // First page. Let players join in and configure themselves.

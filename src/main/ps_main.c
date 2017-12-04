@@ -7,6 +7,8 @@
 #include "res/ps_resmgr.h"
 #include "game/ps_game.h"
 #include "gui/ps_gui.h"
+#include "gui/ps_widget.h"
+#include "gui/corewidgets/ps_corewidgets.h"
 #include "akau/akau.h"
 #include <time.h>
 
@@ -84,6 +86,62 @@ static int ps_setup_restore_game(const char *path) {
   return 0;
 }
 
+/* XXX TEMP Testing GUI rewrite.
+ */
+#include "util/ps_geometry.h"
+
+static int cb_test_button(struct ps_widget *sender,const char *message) {
+  ps_log(MAIN,INFO,"%s: %s",__func__,message);
+  return 0;
+}
+
+static void cb_cleanup(void *userdata) {
+  ps_log(MAIN,INFO,"%s: %s",__func__,userdata);
+}
+
+static int ps_setup_test_ui() {
+  struct ps_widget *page,*child;
+  struct ps_widget *root=ps_gui_get_root(ps_gui);
+
+  if (!(page=ps_widget_spawn(root,&ps_widget_type_label))) return -1;
+  page->bgrgba=0x00ff00ff;
+  if (ps_widget_label_set_text(page,"Bottom fullscreen page.",-1)<0) return -1;
+
+  if (!(page=ps_widget_button_spawn(root,0x0104,"Click me",-1,ps_callback(cb_test_button,0,"Here is the message.")))) return -1;
+
+  if (!(page=ps_widget_spawn(root,&ps_widget_type_textblock))) return -1;
+  if (ps_widget_textblock_set_text(page,
+    "Way out in the uncharted backwaters of the highly unfashionable end "
+    "of the western spiral arm of the galaxy lies a small, unregarded yellow sun. "
+    "Orbiting this sun at a distance of roughly 98 million miles is an "
+    "utterly insignificant little blue-green planet whose ape-descended "
+    "lifeforms are so amazingly primitive that they still think digital "
+    "watches are a pretty neat idea.\n"
+    "\n"
+    "-Douglas Adams\n"
+    "  The Hitchhiker's Guide to the Galaxy"
+  ,-1)<0) return -1;
+
+  if (!(page=ps_widget_spawn(root,&ps_widget_type_packer))) return -1;
+  if (ps_widget_packer_set_margins(page,1,1)<0) return -1;
+  if (ps_widget_packer_set_alignment(page,PS_ALIGN_FILL,PS_ALIGN_FILL)<0) return -1;
+  if (ps_widget_packer_set_axis(page,PS_AXIS_VERT)<0) return -1;
+  page->bgrgba=0xffffffff;
+  if (!(child=ps_widget_spawn(page,&ps_widget_type_label))) return -1;
+    if (ps_widget_label_set_text(child,"One",-1)<0) return -1;
+    child->bgrgba=0xff0000ff;
+  if (!(child=ps_widget_spawn(page,&ps_widget_type_label))) return -1;
+    if (ps_widget_label_set_text(child,"Two",-1)<0) return -1;
+    child->bgrgba=0xffff00ff;
+  if (!(child=ps_widget_spawn(page,&ps_widget_type_label))) return -1;
+    if (ps_widget_label_set_text(child,"Three",-1)<0) return -1;
+    child->bgrgba=0x00ff00ff;
+
+  if (ps_widget_pack(root)<0) return -1;
+
+  return 0;
+}
+
 /* Init.
  */
 
@@ -124,11 +182,13 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
+  if (ps_input_set_gui(ps_gui)<0) return -1;
 
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
   } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
-    if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+    //TODO if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+    if (ps_setup_test_ui()<0) return -1;
   } else {
     if (ps_setup_test_game(
       1, // playerc: 1..8
@@ -150,6 +210,7 @@ static void ps_main_quit() {
   akau_quit();
 
   ps_gui_del(ps_gui);
+  ps_drop_global_gui();
   ps_game_del(ps_game);
 
   ps_resmgr_quit();
@@ -179,11 +240,11 @@ static int ps_main_update() {
     if (ps_gui_update(ps_gui)<0) return -1;
   } else if (ps_game) {
     if (ps_game->paused) {
-      if (ps_gui_load_page_pause(ps_gui)<0) return -1;
+      //TODO if (ps_gui_load_page_pause(ps_gui)<0) return -1;
     } else {
       if (ps_game_update(ps_game)<0) return -1;
       if (ps_game->finished) {
-        if (ps_gui_load_page_gameover(ps_gui)<0) return -1;
+        //TODO if (ps_gui_load_page_gameover(ps_gui)<0) return -1;
       }
     }
   }

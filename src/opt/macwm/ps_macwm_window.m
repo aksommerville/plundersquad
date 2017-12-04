@@ -158,7 +158,9 @@
   if (ps_input_event_button(ps_macwm.device_keyboard,key,state)<0) {
     ps_macwm_abort("Failure in key event handler.");
   }
-  //TODO how to report text?
+  if (ps_input_event_key(key,codepoint,state)<0) {
+    ps_macwm_abort("Failure in key event handler.");
+  }
 }
 
 -(void)keyUp:(NSEvent*)event {
@@ -166,6 +168,9 @@
   int key=ps_macwm_translate_keysym(event.keyCode);
   if (!key) return;
   if (ps_input_event_button(ps_macwm.device_keyboard,key,0)<0) {
+    ps_macwm_abort("Failure in key event handler.");
+  }
+  if (ps_input_event_key(key,0,0)<0) {
     ps_macwm_abort("Failure in key event handler.");
   }
 }

@@ -113,7 +113,7 @@ void ps_game_del(struct ps_game *game) {
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
   for (i=PS_SPRGRP_COUNT;i-->0;) ps_sprgrp_cleanup(game->grpv+i);
-
+  
   free(game);
 }
 

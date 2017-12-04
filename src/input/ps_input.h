@@ -84,4 +84,10 @@ int ps_input_event_mmotion(int x,int y);
 int ps_input_event_mbutton(int btnid,int value);
 int ps_input_event_mwheel(int dx,int dy);
 
+/* System keyboard.
+ * (keycode) is USB-HID, because it's something all platforms can agree on.
+ * (codepoint) is Unicode.
+ */
+int ps_input_event_key(int keycode,int codepoint,int value);
+
 #endif

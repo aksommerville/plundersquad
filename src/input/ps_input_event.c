@@ -127,21 +127,31 @@ int ps_input_event_mmotion(int x,int y) {
   if (ps_input.gui) {
     int fbx,fby;
     if (ps_video_point_framebuffer_from_window(&fbx,&fby,x,y)<0) return -1;
-    if (ps_gui_event_mmotion(ps_input.gui,fbx,fby)<0) return -1;
+    if (ps_gui_mousemotion(ps_input.gui,fbx,fby)<0) return -1;
   }
   return 0;
 }
 
 int ps_input_event_mbutton(int btnid,int value) {
   if (ps_input.gui) {
-    if (ps_gui_event_mbutton(ps_input.gui,btnid,value)<0) return -1;
+    if (ps_gui_mousebutton(ps_input.gui,btnid,value)<0) return -1;
   }
   return 0;
 }
 
 int ps_input_event_mwheel(int dx,int dy) {
   if (ps_input.gui) {
-    if (ps_gui_event_mwheel(ps_input.gui,dx,dy)<0) return -1;
+    if (ps_gui_mousewheel(ps_input.gui,dx,dy)<0) return -1;
+  }
+  return 0;
+}
+
+/* System keyboard.
+ */
+ 
+int ps_input_event_key(int keycode,int codepoint,int value) {
+  if (ps_input.gui) {
+    if (ps_gui_key(ps_input.gui,keycode,codepoint,value)<0) return -1;
   }
   return 0;
 }

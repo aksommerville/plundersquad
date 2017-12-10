@@ -75,6 +75,7 @@ struct ps_widget {
 
   int accept_mouse_focus;
   int accept_keyboard_focus;
+  int draggable; // Special case of mouse interaction, also managed by root.
   
 };
 

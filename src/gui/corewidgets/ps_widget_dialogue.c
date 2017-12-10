@@ -19,6 +19,8 @@
 
 struct ps_widget_dialogue {
   struct ps_widget hdr;
+  void *userdata;
+  void (*userdata_del)(void *userdata);
 };
 
 #define WIDGET ((struct ps_widget_dialogue*)widget)
@@ -27,6 +29,7 @@ struct ps_widget_dialogue {
  */
 
 static void _ps_dialogue_del(struct ps_widget *widget) {
+  if (WIDGET->userdata_del) WIDGET->userdata_del(WIDGET->userdata);
 }
 
 /* Initialize.
@@ -310,6 +313,22 @@ int ps_widget_dialogue_get_number(int *dst,const struct ps_widget *widget) {
   return ps_int_eval(dst,text,textc);
 }
 
+/* Extra user data.
+ */
+ 
+int ps_widget_dialogue_set_userdata(struct ps_widget *widget,void *userdata,void (*userdata_del)(void *userdata)) {
+  if (!widget||(widget->type!=&ps_widget_type_dialogue)) return -1;
+  if (WIDGET->userdata_del) WIDGET->userdata_del(WIDGET->userdata);
+  WIDGET->userdata=userdata;
+  WIDGET->userdata_del=userdata_del;
+  return 0;
+}
+
+void *ps_widget_dialogue_get_userdata(const struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_dialogue)) return 0;
+  return WIDGET->userdata;
+}
+
 /* Convenience ctors.
  */
 
@@ -327,6 +346,7 @@ struct ps_widget *ps_widget_spawn_dialogue_message(
   if (!ps_widget_dialogue_set_message(widget,message,messagec)) return 0;
   if (!ps_widget_dialogue_add_button(widget,"Cancel",6,ps_callback(ps_dialogue_cb_cancel,0,widget))) return 0;
   if (!ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(cb,0,widget))) return 0;
+  if (ps_widget_pack(parent)<0) return 0;
   return widget;
 }
 
@@ -342,6 +362,7 @@ struct ps_widget *ps_widget_spawn_dialogue_text(
   if (!ps_widget_dialogue_set_input(widget,input,inputc)) return 0;
   if (!ps_widget_dialogue_add_button(widget,"Cancel",6,ps_callback(ps_dialogue_cb_cancel,0,widget))) return 0;
   if (!ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(cb,0,widget))) return 0;
+  if (ps_widget_pack(parent)<0) return 0;
   return widget;
 }
 
@@ -360,5 +381,6 @@ struct ps_widget *ps_widget_spawn_dialogue_number(
   if (!ps_widget_dialogue_set_input(widget,text,textc)) return 0;
   if (!ps_widget_dialogue_add_button(widget,"Cancel",6,ps_callback(ps_dialogue_cb_cancel,0,widget))) return 0;
   if (!ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(cb,0,widget))) return 0;
+  if (ps_widget_pack(parent)<0) return 0;
   return widget;
 }

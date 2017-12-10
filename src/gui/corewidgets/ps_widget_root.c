@@ -28,6 +28,8 @@ struct ps_widget_root {
   struct ps_widget *track_hover;
   struct ps_widget *track_click;
   struct ps_widget *track_keyboard;
+  int mousex,mousey;
+  int dragdx,dragdy; // Position of cursor relative to track_click, if it is draggable.
 };
 
 #define WIDGET ((struct ps_widget_root*)widget)
@@ -120,14 +122,30 @@ static int _ps_root_update(struct ps_widget *widget) {
   return 0;
 }
 
+/* Drag the tracking widget.
+ */
+
+static int ps_root_drag_widget(struct ps_widget *widget,struct ps_widget *pumpkin,int x,int y) {
+  int relx,rely;
+  if (ps_widget_coords_from_screen(&relx,&rely,pumpkin->parent,x,y)<0) return -1;
+  pumpkin->x=relx-WIDGET->dragdx;
+  pumpkin->y=rely-WIDGET->dragdy;
+  return 0;
+}
+
 /* Mouse motion.
  */
 
 static int _ps_root_mousemotion(struct ps_widget *widget,int x,int y) {
 
+  WIDGET->mousex=x;
+  WIDGET->mousey=y;
+
   /* If we are tracking a click, events go exclusively to that widget. */
   if (WIDGET->track_click) {
-    if (ps_widget_contains_screen_point(WIDGET->track_click,x,y)) {
+    if (WIDGET->track_click->draggable) {
+      if (ps_root_drag_widget(widget,WIDGET->track_click,x,y)<0) return -1;
+    } else if (ps_widget_contains_screen_point(WIDGET->track_click,x,y)) {
       if (WIDGET->track_click!=WIDGET->track_hover) {
         if (ps_root_set_track_hover(widget,WIDGET->track_click)<0) return -1;
         if (ps_widget_mouseenter(WIDGET->track_click)<0) return -1;
@@ -167,6 +185,8 @@ static int _ps_root_mousemotion(struct ps_widget *widget,int x,int y) {
 }
 
 /* Mouse button.
+ * Check aggressively for orphaned focus widgets. 
+ * Might not be perfect, but we can avoid abvious errors.
  */
 
 static int _ps_root_mousebutton(struct ps_widget *widget,int btnid,int value) {
@@ -174,13 +194,21 @@ static int _ps_root_mousebutton(struct ps_widget *widget,int btnid,int value) {
   /* Any button other than the principal, forward it directly to the hover widget. */
   if (btnid!=1) {
     if (!WIDGET->track_hover) return 0;
-    if (ps_widget_mousebutton(WIDGET->track_hover,btnid,value)<0) return -1;
+    if (!ps_widget_is_ancestor(widget,WIDGET->track_hover)) {
+      if (ps_root_set_track_hover(widget,0)<0) return -1;
+    } else {
+      if (ps_widget_mousebutton(WIDGET->track_hover,btnid,value)<0) return -1;
+    }
     return 0;
   }
 
   /* Releasing the principal button either activates or untracks the click-track widget. */
   if (!value) {
     if (!WIDGET->track_click) return 0;
+    if (!ps_widget_is_ancestor(widget,WIDGET->track_click)) {
+      if (ps_root_set_track_click(widget,0)<0) return -1;
+      return 0;
+    }
     if (WIDGET->track_click==WIDGET->track_hover) {
       if (ps_widget_activate(WIDGET->track_click)<0) return -1;
     } else {
@@ -193,8 +221,13 @@ static int _ps_root_mousebutton(struct ps_widget *widget,int btnid,int value) {
 
   /* Pressing the principal button begins tracking if we are hovering on something. */
   if (WIDGET->track_hover) {
-    if (ps_widget_mousebutton(WIDGET->track_hover,btnid,value)<0) return -1;
-    if (ps_root_set_track_click(widget,WIDGET->track_hover)<0) return -1;
+    if (!ps_widget_is_ancestor(widget,WIDGET->track_hover)) {
+      if (ps_root_set_track_hover(widget,0)<0) return -1;
+    } else {
+      if (ps_widget_mousebutton(WIDGET->track_hover,btnid,value)<0) return -1;
+      if (ps_root_set_track_click(widget,WIDGET->track_hover)<0) return -1;
+      if (ps_widget_coords_from_screen(&WIDGET->dragdx,&WIDGET->dragdy,WIDGET->track_hover,WIDGET->mousex,WIDGET->mousey)<0) return -1;
+    }
     return 0;
   }
 
@@ -217,7 +250,11 @@ static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int v
 
   /* If there is a keyboard focus, give it the event exclusively. */
   if (WIDGET->track_keyboard) {
-    if (ps_widget_key(WIDGET->track_keyboard,keycode,codepoint,value)<0) return -1;
+    if (!ps_widget_is_ancestor(widget,WIDGET->track_keyboard)) {
+      if (ps_root_set_track_keyboard(widget,0)<0) return 0;
+    } else {
+      if (ps_widget_key(WIDGET->track_keyboard,keycode,codepoint,value)<0) return -1;
+    }
     return 0;
   }
 

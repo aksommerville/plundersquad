@@ -21,6 +21,7 @@ extern const struct ps_widget_type ps_widget_type_packer; /* Lines children up i
 extern const struct ps_widget_type ps_widget_type_menu; /* List of selectable options. */
 extern const struct ps_widget_type ps_widget_type_scrolllist; /* Vertically scrolling list of arbitrary widgets. */
 extern const struct ps_widget_type ps_widget_type_dialogue; /* Box with optional message, input, and buttons. */
+extern const struct ps_widget_type ps_widget_type_menubar; /* Horizontal bar of buttons. */
 
 /* Root.
  *****************************************************************************/
@@ -56,6 +57,10 @@ struct ps_widget *ps_widget_button_spawn(
 );
 
 int ps_widget_button_set_callback(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_button_set_margins(struct ps_widget *widget,int bevel_width,int border_width);
+int ps_widget_button_set_icon(struct ps_widget *widget,uint16_t tileid);
+int ps_widget_button_set_text(struct ps_widget *widget,const char *src,int srcc);
+const char *ps_widget_button_get_text(const struct ps_widget *widget);
 
 /* Field.
  *****************************************************************************/
@@ -116,6 +121,7 @@ struct ps_widget *ps_widget_scrolllist_add_label(struct ps_widget *widget,const 
 int ps_widget_scrolllist_enable_selection(struct ps_widget *widget,struct ps_callback cb);
 int ps_widget_scrolllist_get_selection(const struct ps_widget *widget);
 int ps_widget_scrolllist_set_selection(struct ps_widget *widget,int p);
+const char *ps_widget_scrolllist_get_text(const struct ps_widget *widget);
 
 /* Dialogue.
  *****************************************************************************/
@@ -126,6 +132,9 @@ struct ps_widget *ps_widget_dialogue_add_button(struct ps_widget *widget,const c
 
 int ps_widget_dialogue_get_text(void *dstpp,const struct ps_widget *widget);
 int ps_widget_dialogue_get_number(int *dst,const struct ps_widget *widget);
+
+int ps_widget_dialogue_set_userdata(struct ps_widget *widget,void *userdata,void (*userdata_del)(void *userdata));
+void *ps_widget_dialogue_get_userdata(const struct ps_widget *widget);
 
 /* Conveniences that create, populate, and present a dialogue box.
  */
@@ -146,5 +155,14 @@ struct ps_widget *ps_widget_spawn_dialogue_number(
   int input,
   int (*cb)(struct ps_widget *button,struct ps_widget *dialogue)
 );
+
+/* Menubar.
+ *****************************************************************************/
+
+struct ps_widget *ps_widget_menubar_add_button(struct ps_widget *widget,const char *text,int textc,struct ps_callback cb);
+
+/* Menu has an optional title which appears in gray text after all the buttons.
+ */
+struct ps_widget *ps_widget_menubar_set_title(struct ps_widget *widget,const char *text,int textc);
 
 #endif

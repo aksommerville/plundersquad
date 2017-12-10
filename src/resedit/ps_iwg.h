@@ -1,7 +1,7 @@
 /* ps_iwg.h
  * Intermediate Wave Generator.
  * This is closely tied to akgu_wavegen.
- * It presents a mutable data model for use by the editor (ps_widget_editsfx).
+ * It presents a mutable data model for use by the editor.
  * We can convert to and from the portable text format, and from there to akau_wavegen.
  */
 

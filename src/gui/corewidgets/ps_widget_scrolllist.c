@@ -1,5 +1,4 @@
 /* ps_widget_scrolllist.c
- * TODO OpenGL scissor? I'm assuming it will be possible. Must add to akgl.
  */
 
 #include "ps.h"
@@ -118,7 +117,7 @@ static int _ps_scrolllist_measure(int *w,int *h,struct ps_widget *widget,int max
   for (;i<widget->childc;i++,entry++) {
     struct ps_widget *child=widget->childv[i];
     int chw,chh;
-    if (ps_widget_measure(&chw,&chh,child,maxw,maxh)<0) return -1;
+    if (ps_widget_measure(&chw,&chh,child,PS_SCREENW,PS_SCREENH)<0) return -1;
     entry->y=y;
     entry->w=chw;
     entry->h=chh;
@@ -348,4 +347,11 @@ int ps_widget_scrolllist_get_selection(const struct ps_widget *widget) {
 int ps_widget_scrolllist_set_selection(struct ps_widget *widget,int p) {
   if (!widget||(widget->type!=&ps_widget_type_scrolllist)) return -1;
   return ps_scrolllist_set_selection(widget,p);
+}
+
+const char *ps_widget_scrolllist_get_text(const struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_scrolllist)) return 0;
+  if ((WIDGET->selp<0)||(WIDGET->selp>=widget->childc)) return 0;
+  struct ps_widget *label=widget->childv[WIDGET->selp];
+  return ps_widget_label_get_text(label);
 }

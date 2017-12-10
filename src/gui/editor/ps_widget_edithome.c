@@ -13,9 +13,13 @@
 #include "akau/akau.h"
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
+#include "input/ps_input.h"
 
 static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typeindex);
 static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int resindex);
+static int ps_edithome_cb_quit(struct ps_widget *button,struct ps_widget *widget);
+static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget);
+static int ps_edithome_cb_delete(struct ps_widget *button,struct ps_widget *widget);
 
 /* Object definition.
  */
@@ -60,9 +64,12 @@ static void _ps_edithome_del(struct ps_widget *widget) {
 static int _ps_edithome_init(struct ps_widget *widget) {
   struct ps_widget *child;
 
-  if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1; //TODO menubar
-  if (ps_widget_label_set_text(child,"MENU BAR (TODO)",-1)<0) return -1;
-  child->bgrgba=0xff0000ff;
+  if (!(child=ps_widget_spawn(widget,&ps_widget_type_menubar))) return -1;
+  { struct ps_widget *button;
+    if (!(button=ps_widget_menubar_add_button(child,"Quit",4,ps_callback(ps_edithome_cb_quit,0,widget)))) return -1;
+    if (!(button=ps_widget_menubar_add_button(child,"New",3,ps_callback(ps_edithome_cb_new,0,widget)))) return -1;
+    if (!(button=ps_widget_menubar_add_button(child,"Delete",6,ps_callback(ps_edithome_cb_delete,0,widget)))) return -1;
+  }
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_scrolllist))) return -1;
   if (ps_widget_scrolllist_enable_selection(child,ps_callback(ps_edithome_cb_select_type,0,widget))<0) return -1;
@@ -232,7 +239,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
 
 //XXX stub resource editors -- If we substitute ps_widget_type_dialogue, the user will see a friendly error message.
 #define ps_widget_type_editsong ps_widget_type_dialogue
-#define ps_widget_type_editsoundeffect ps_widget_type_dialogue
 #define ps_widget_type_editblueprint ps_widget_type_dialogue
 #define ps_widget_type_editsprdef ps_widget_type_dialogue
 #define ps_widget_type_editplrdef ps_widget_type_dialogue
@@ -241,16 +247,18 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
 /* Open song.
  */
 
-static int ps_edithome_open_song(struct ps_widget *widget,int index) {
+static int ps_edithome_open_song(struct ps_widget *widget,int index,const char *resname) {
+
   struct akau_store *store=akau_get_store();
   int rid=akau_store_get_song_id_by_index(store,index);
   if (rid<0) return -1;
   struct akau_song *song=akau_store_get_song(store,rid);
   if (!song) return -1;
+
   struct ps_widget *root=ps_widget_get_root(widget);
   struct ps_widget *editor=ps_widget_spawn(root,&ps_widget_type_editsong);
   if (!editor) return -1;
-  if (ps_widget_editor_set_resource(editor,rid,song)<0) return -1;
+  if (ps_widget_editor_set_resource(editor,rid,song,resname)<0) return -1;
   if (ps_widget_pack(root)<0) return -1;
   return 0;
 }
@@ -258,16 +266,18 @@ static int ps_edithome_open_song(struct ps_widget *widget,int index) {
 /* Open sound effect.
  */
 
-static int ps_edithome_open_soundeffect(struct ps_widget *widget,int index) {
+static int ps_edithome_open_soundeffect(struct ps_widget *widget,int index,const char *resname) {
+
   struct akau_store *store=akau_get_store();
   int rid=akau_store_get_ipcm_id_by_index(store,index);
   if (rid<0) return -1;
   struct akau_ipcm *ipcm=akau_store_get_ipcm(store,rid);
   if (!ipcm) return -1;
+  
   struct ps_widget *root=ps_widget_get_root(widget);
   struct ps_widget *editor=ps_widget_spawn(root,&ps_widget_type_editsoundeffect);
   if (!editor) return -1;
-  if (ps_widget_editor_set_resource(editor,rid,ipcm)<0) return -1;
+  if (ps_widget_editor_set_resource(editor,rid,ipcm,resname)<0) return -1;
   if (ps_widget_pack(root)<0) return -1;
   return 0;
   
@@ -276,15 +286,17 @@ static int ps_edithome_open_soundeffect(struct ps_widget *widget,int index) {
 /* Open PS resource.
  */
 
-static int ps_edithome_open_ps_resource(struct ps_widget *widget,int tid,int index,const struct ps_widget_type *editortype) {
+static int ps_edithome_open_ps_resource(struct ps_widget *widget,int tid,int index,const struct ps_widget_type *editortype,const char *resname) {
+
   const struct ps_restype *restype=ps_resmgr_get_type_by_id(tid);
   if (!restype) return -1;
   if (index>=restype->resc) return -1;
   const struct ps_res *res=restype->resv+index;
+
   struct ps_widget *root=ps_widget_get_root(widget);
   struct ps_widget *editor=ps_widget_spawn(root,editortype);
   if (!editor) return -1;
-  if (ps_widget_editor_set_resource(editor,res->id,res->obj)<0) return -1;
+  if (ps_widget_editor_set_resource(editor,res->id,res->obj,resname)<0) return -1;
   if (ps_widget_pack(root)<0) return -1;
   return 0;
 }
@@ -293,16 +305,19 @@ static int ps_edithome_open_ps_resource(struct ps_widget *widget,int tid,int ind
  */
  
 static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int resindex) {
-  if (!widget||(widget->type!=&ps_widget_type_edithome)) return -1;
+  if (!widget||(widget->type!=&ps_widget_type_edithome)||(widget->childc!=3)) return -1;
   if (resindex<0) return -1;
 
+  struct ps_widget *reslist=widget->childv[2];
+  const char *resname=ps_widget_scrolllist_get_text(reslist);
+
   switch (typeindex) {
-    case 0: return ps_edithome_open_song(widget,resindex);
-    case 1: return ps_edithome_open_soundeffect(widget,resindex);
-    case 2: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_BLUEPRINT,resindex,&ps_widget_type_editblueprint);
-    case 3: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_SPRDEF,resindex,&ps_widget_type_editsprdef);
-    case 4: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_PLRDEF,resindex,&ps_widget_type_editplrdef);
-    case 5: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_REGION,resindex,&ps_widget_type_editregion);
+    case 0: return ps_edithome_open_song(widget,resindex,resname);
+    case 1: return ps_edithome_open_soundeffect(widget,resindex,resname);
+    case 2: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_BLUEPRINT,resindex,&ps_widget_type_editblueprint,resname);
+    case 3: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_SPRDEF,resindex,&ps_widget_type_editsprdef,resname);
+    case 4: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_PLRDEF,resindex,&ps_widget_type_editplrdef,resname);
+    case 5: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_REGION,resindex,&ps_widget_type_editregion,resname);
   }
 
   return -1;
@@ -312,22 +327,45 @@ static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int 
  */
 
 static int ps_edithome_cb_dismiss(struct ps_widget *button,struct ps_widget *dialogue) {
+  ps_log(EDIT,TRACE,"%s",__func__);
   return ps_widget_kill(dialogue);
 }
 
-int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj) {
+int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,const char *name) {
   if (!widget||(id<0)||!obj) return -1;
 
   if (widget->type==&ps_widget_type_dialogue) {
     char msg[256];
-    int msgc=snprintf(msg,sizeof(msg),"Failed to load resource ID %d (%p). Editor not yet implemented.",id,obj);
+    int msgc=snprintf(msg,sizeof(msg),"Failed to load resource '%s', ID %d (%p). Editor not yet implemented.",name,id,obj);
     if ((msgc<0)||(msgc>=sizeof(msg))) msgc=snprintf(msg,sizeof(msg),"Editor not implemented.");
     if (ps_widget_dialogue_set_message(widget,msg,msgc)<0) return -1;
     if (ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(ps_edithome_cb_dismiss,0,widget))<0) return -1;
     return 0;
   }
 
+  if (widget->type==&ps_widget_type_editsoundeffect) {
+    return ps_widget_editsoundeffect_set_resource(widget,id,obj,name);
+  }
+
   //TODO load resource to specific types.
 
   return -1;
+}
+
+/* Menubar callbacks.
+ */
+ 
+static int ps_edithome_cb_quit(struct ps_widget *button,struct ps_widget *widget) {
+  if (ps_input_request_termination()<0) return -1;
+  return 0;
+}
+
+static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget) {
+  ps_log(GUI,DEBUG,"%s TODO",__func__); // New resource is not critical, it can wait
+  return 0;
+}
+
+static int ps_edithome_cb_delete(struct ps_widget *button,struct ps_widget *widget) {
+  ps_log(GUI,DEBUG,"%s TODO",__func__); // Delete resource is not critical, it can wait
+  return 0;
 }

@@ -290,6 +290,36 @@ const struct ps_widget_type ps_widget_type_button={
 
 };
 
+/* Children by type.
+ */
+
+static struct ps_widget *ps_button_require_icon(struct ps_widget *widget) {
+  if ((widget->childc>=1)&&(widget->childv[0]->type==&ps_widget_type_icon)) return widget->childv[0];
+  struct ps_widget *icon=ps_widget_new(&ps_widget_type_icon);
+  if (!icon) return 0;
+  if (ps_widget_insert_child(widget,0,icon)<0) {
+    ps_widget_del(icon);
+    return 0;
+  }
+  ps_widget_del(icon);
+  return icon;
+}
+
+static struct ps_widget *ps_button_require_label(struct ps_widget *widget) {
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *child=widget->childv[i];
+    if (child->type==&ps_widget_type_label) return child;
+  }
+  struct ps_widget *label=ps_widget_new(&ps_widget_type_label);
+  if (!label) return 0;
+  if (ps_widget_add_child(widget,label)<0) {
+    ps_widget_del(label);
+    return 0;
+  }
+  ps_widget_del(label);
+  return label;
+}
+
 /* Accessors.
  */
  
@@ -297,6 +327,41 @@ int ps_widget_button_set_callback(struct ps_widget *widget,struct ps_callback cb
   if (!widget||(widget->type!=&ps_widget_type_button)) return -1;
   ps_callback_cleanup(&WIDGET->cb);
   WIDGET->cb=cb;
+  return 0;
+}
+
+int ps_widget_button_set_margins(struct ps_widget *widget,int bevel_width,int border_width) {
+  if (!widget||(widget->type!=&ps_widget_type_button)) return -1;
+  if ((bevel_width<0)||(border_width<0)) return -1;
+  WIDGET->bevel_width=bevel_width;
+  WIDGET->border_width=border_width;
+  return 0;
+}
+
+int ps_widget_button_set_icon(struct ps_widget *widget,uint16_t tileid) {
+  if (!widget||(widget->type!=&ps_widget_type_button)) return -1;
+  struct ps_widget *icon=ps_button_require_icon(widget);
+  if (ps_widget_icon_set_tile(icon,tileid)<0) return -1;
+  if (ps_widget_pack(widget)<0) return -1;
+  return 0;
+}
+
+int ps_widget_button_set_text(struct ps_widget *widget,const char *src,int srcc) {
+  if (!widget||(widget->type!=&ps_widget_type_button)) return -1;
+  struct ps_widget *label=ps_button_require_label(widget);
+  if (ps_widget_label_set_text(label,src,srcc)<0) return -1;
+  if (ps_widget_pack(widget)<0) return -1;
+  return 0;
+}
+
+const char *ps_widget_button_get_text(const struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_button)) return 0;
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *child=widget->childv[i];
+    if (child->type==&ps_widget_type_label) {
+      return ps_widget_label_get_text(child);
+    }
+  }
   return 0;
 }
 

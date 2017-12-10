@@ -1,5 +1,6 @@
 /* ps_corewidgets.h
  * Interface to widgets that are a fundamental part of the GUI's plumbing.
+ * The widget classes defined here are not specific to any particular screen.
  */
 
 #ifndef PS_COREWIDGETS_H
@@ -15,11 +16,11 @@ extern const struct ps_widget_type ps_widget_type_icon; /* Graphic tile. */
 extern const struct ps_widget_type ps_widget_type_button; /* Clickable button. */
 extern const struct ps_widget_type ps_widget_type_field; /* Single line text entry. */
 extern const struct ps_widget_type ps_widget_type_textblock; /* Multi-line static text. */
-extern const struct ps_widget_type ps_widget_type_packer; /* Lines children up in a row or column. */
 
-//TODO menu: simple text menu (esp for game)
-//TODO scrolllist: vertical scroller, letting children disappear above and below (esp for editor)
-//TODO dialogue: modal dialogue box with optional icon, prompt, field, and buttons
+extern const struct ps_widget_type ps_widget_type_packer; /* Lines children up in a row or column. */
+extern const struct ps_widget_type ps_widget_type_menu; /* List of selectable options. */
+extern const struct ps_widget_type ps_widget_type_scrolllist; /* Vertically scrolling list of arbitrary widgets. */
+extern const struct ps_widget_type ps_widget_type_dialogue; /* Box with optional message, input, and buttons. */
 
 /* Root.
  *****************************************************************************/
@@ -32,7 +33,10 @@ int ps_widget_root_set_gui(struct ps_widget *widget,struct ps_gui *gui);
 /* Label.
  *****************************************************************************/
 
+const char *ps_widget_label_get_text(const struct ps_widget *widget);
 int ps_widget_label_set_text(struct ps_widget *widget,const char *src,int srcc);
+int ps_widget_label_set_textfv(struct ps_widget *widget,const char *fmt,va_list vargs);
+int ps_widget_label_set_textf(struct ps_widget *widget,const char *fmt,...);
 int ps_widget_label_set_font_resid(struct ps_widget *widget,int resid);
 int ps_widget_label_set_size(struct ps_widget *widget,int size);
 
@@ -57,6 +61,7 @@ int ps_widget_button_set_callback(struct ps_widget *widget,struct ps_callback cb
  *****************************************************************************/
 
 int ps_widget_field_set_text(struct ps_widget *widget,const char *src,int srcc);
+int ps_widget_field_get_text(void *dstpp,const struct ps_widget *widget);
 
 int ps_widget_field_append_char(struct ps_widget *widget,int codepoint);
 int ps_widget_field_backspace(struct ps_widget *widget);
@@ -79,5 +84,67 @@ int ps_widget_textblock_set_text(struct ps_widget *widget,const char *src,int sr
 int ps_widget_packer_set_margins(struct ps_widget *widget,int padding,int spacing);
 int ps_widget_packer_set_alignment(struct ps_widget *widget,int major,int minor);
 int ps_widget_packer_set_axis(struct ps_widget *widget,int axis);
+
+/* Menu.
+ *****************************************************************************/
+
+struct ps_widget *ps_widget_menu_get_thumb(const struct ps_widget *widget);
+struct ps_widget *ps_widget_menu_get_packer(const struct ps_widget *widget);
+
+int ps_widget_menu_set_callback(struct ps_widget *widget,struct ps_callback cb);
+
+int ps_widget_menu_get_selected_index(const struct ps_widget *widget);
+struct ps_widget *ps_widget_menu_get_selected_widget(const struct ps_widget *widget);
+
+int ps_widget_menu_change_selection(struct ps_widget *widget,int d);
+int ps_widget_menu_adjust_selection(struct ps_widget *widget,int d);
+int ps_widget_menu_activate(struct ps_widget *widget);
+
+struct ps_widget *ps_widget_menu_spawn_label(struct ps_widget *widget,const char *src,int srcc);
+
+/* Scrolllist.
+ *****************************************************************************/
+
+#define PS_WIDGET_SCROLLLIST_PROPERTY_scroll 1000
+
+int ps_widget_scrolllist_get_scroll_position(const struct ps_widget *widget);
+int ps_widget_scrolllist_set_scroll_position(struct ps_widget *widget,int p);
+int ps_widget_scrolllist_adjust(struct ps_widget *widget,int dy);
+
+struct ps_widget *ps_widget_scrolllist_add_label(struct ps_widget *widget,const char *src,int srcc);
+
+int ps_widget_scrolllist_enable_selection(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_scrolllist_get_selection(const struct ps_widget *widget);
+int ps_widget_scrolllist_set_selection(struct ps_widget *widget,int p);
+
+/* Dialogue.
+ *****************************************************************************/
+
+struct ps_widget *ps_widget_dialogue_set_message(struct ps_widget *widget,const char *text,int textc);
+struct ps_widget *ps_widget_dialogue_set_input(struct ps_widget *widget,const char *text,int textc);
+struct ps_widget *ps_widget_dialogue_add_button(struct ps_widget *widget,const char *text,int textc,struct ps_callback cb);
+
+int ps_widget_dialogue_get_text(void *dstpp,const struct ps_widget *widget);
+int ps_widget_dialogue_get_number(int *dst,const struct ps_widget *widget);
+
+/* Conveniences that create, populate, and present a dialogue box.
+ */
+struct ps_widget *ps_widget_spawn_dialogue_message(
+  struct ps_widget *parent,
+  const char *message,int messagec,
+  int (*cb)(struct ps_widget *button,struct ps_widget *dialogue)
+);
+struct ps_widget *ps_widget_spawn_dialogue_text(
+  struct ps_widget *parent,
+  const char *message,int messagec,
+  const char *input,int inputc,
+  int (*cb)(struct ps_widget *button,struct ps_widget *dialogue)
+);
+struct ps_widget *ps_widget_spawn_dialogue_number(
+  struct ps_widget *parent,
+  const char *message,int messagec,
+  int input,
+  int (*cb)(struct ps_widget *button,struct ps_widget *dialogue)
+);
 
 #endif

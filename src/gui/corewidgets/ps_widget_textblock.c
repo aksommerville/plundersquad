@@ -82,7 +82,7 @@ static int _ps_textblock_measure(int *w,int *h,struct ps_widget *widget,int maxw
     if (srcc>longestline) longestline=srcc;
   }
   *w=(longestline*WIDGET->size)>>1;
-  
+
   return 0;
 }
 

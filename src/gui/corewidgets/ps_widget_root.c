@@ -59,9 +59,9 @@ static int _ps_root_draw(struct ps_widget *widget,int parentx,int parenty) {
   parentx+=widget->x;
   parenty+=widget->y;
 
-  /* Background only? */
+  /* No children -- GUI is inactive and we must draw nothing. */
   if (widget->childc<1) {
-    if (ps_video_draw_rect(parentx,parenty,widget->w,widget->h,widget->bgrgba)<0) return -1;
+    //if (ps_video_draw_rect(parentx,parenty,widget->w,widget->h,widget->bgrgba)<0) return -1;
 
   /* Single child only? */
   } else if (widget->childc==1) {
@@ -107,6 +107,7 @@ static int _ps_root_pack(struct ps_widget *widget) {
     child->h=chh;
     if (ps_widget_pack(child)<0) return -1;
   }
+
   return 0;
 }
 
@@ -229,8 +230,9 @@ static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int v
  */
 
 static int _ps_root_userinput(struct ps_widget *widget,int plrid,int btnid,int value) {
-  //TODO user input in GUI
-  return 0;
+  //TODO GUI "userinput" is delivered dumbly to the topmost layer. Should we have some concept of "focus" for joysticks?
+  if (widget->childc<1) return 0;
+  return ps_widget_userinput(widget->childv[widget->childc-1],plrid,btnid,value);
 }
 
 /* Digested input events.

@@ -43,6 +43,15 @@ static int _ps_packer_init(struct ps_widget *widget) {
 static int _ps_packer_measure(int *w,int *h,struct ps_widget *widget,int maxw,int maxh) {
   *w=*h=0;
   if (widget->childc>0) {
+
+    maxw-=WIDGET->padding<<1;
+    maxh-=WIDGET->padding<<1;
+    if (WIDGET->axis==PS_AXIS_VERT) {
+      maxh-=WIDGET->spacing*(widget->childc-1);
+    } else {
+      maxw-=WIDGET->spacing*(widget->childc-1);
+    }
+    
     int wmax=0,wsum=0,hmax=0,hsum=0;
     int i=0; for (;i<widget->childc;i++) {
       struct ps_widget *child=widget->childv[i];
@@ -63,6 +72,7 @@ static int _ps_packer_measure(int *w,int *h,struct ps_widget *widget,int maxw,in
       *h=hmax;
     }
   }
+
   (*w)+=WIDGET->padding<<1;
   (*h)+=WIDGET->padding<<1;
   return 0;

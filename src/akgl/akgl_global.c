@@ -93,3 +93,24 @@ int akgl_clear(uint32_t rgba) {
   glClear(GL_COLOR_BUFFER_BIT);
   return 0;
 }
+
+/* Set scissor.
+ */
+
+int akgl_scissor(int x,int y,int w,int h) {
+  if (!akgl.init) return -1;
+  glEnable(GL_SCISSOR_TEST);
+  if (akgl.framebuffer) {
+    y=akgl.framebuffer->h-y-h;
+  } else {
+    y=akgl.screenh-y-h;
+  }
+  glScissor(x,y,w,h);
+  return 0;
+}
+
+int akgl_scissor_none() {
+  if (!akgl.init) return 0;
+  glDisable(GL_SCISSOR_TEST);
+  return 0;
+}

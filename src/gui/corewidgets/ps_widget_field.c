@@ -99,7 +99,7 @@ static int _ps_field_draw(struct ps_widget *widget,int parentx,int parenty) {
 
 static int _ps_field_measure(int *w,int *h,struct ps_widget *widget,int maxw,int maxh) {
   *w=PS_FIELD_DEFAULT_WIDTH;
-  *h=WIDGET->size+PS_FIELD_MARGIN;
+  *h=WIDGET->size+(PS_FIELD_MARGIN<<1);
   return 0;
 }
 
@@ -176,7 +176,7 @@ const struct ps_widget_type ps_widget_type_field={
 
 };
 
-/* Set text.
+/* Text accessors.
  */
  
 int ps_widget_field_set_text(struct ps_widget *widget,const char *src,int srcc) {
@@ -185,6 +185,12 @@ int ps_widget_field_set_text(struct ps_widget *widget,const char *src,int srcc) 
   if (ps_buffer_append(&WIDGET->text,src,srcc)<0) return -1;
   WIDGET->insp=WIDGET->text.c;
   return 0;
+}
+
+int ps_widget_field_get_text(void *dstpp,const struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_field)) return -1;
+  if (dstpp) *(void**)dstpp=WIDGET->text.v;
+  return WIDGET->text.c;
 }
 
 /* Insert one character.

@@ -81,11 +81,12 @@ int ps_widget_has_child(const struct ps_widget *parent,const struct ps_widget *c
 
 /* Add child.
  */
- 
-int ps_widget_add_child(struct ps_widget *parent,struct ps_widget *child) {
+
+int ps_widget_insert_child(struct ps_widget *parent,int p,struct ps_widget *child) {
   if (!parent||!child) return -1;
   if (child->parent) return -1;
   if (ps_widget_is_ancestor(child,parent)) return -1;
+  if ((p<0)||(p>parent->childc)) p=parent->childc;
 
   if (parent->childc>=parent->childa) {
     int na=parent->childa+4;
@@ -97,10 +98,16 @@ int ps_widget_add_child(struct ps_widget *parent,struct ps_widget *child) {
   }
 
   if (ps_widget_ref(child)<0) return -1;
-  parent->childv[parent->childc++]=child;
+  memmove(parent->childv+p+1,parent->childv+p,sizeof(void*)*(parent->childc-p));
+  parent->childc++;
+  parent->childv[p]=child;
   child->parent=parent;
 
   return 0;
+}
+ 
+int ps_widget_add_child(struct ps_widget *parent,struct ps_widget *child) {
+  return ps_widget_insert_child(parent,-1,child);
 }
 
 /* Remove child.
@@ -148,6 +155,18 @@ struct ps_widget *ps_widget_spawn(struct ps_widget *parent,const struct ps_widge
   }
   ps_widget_del(child);
   return child;
+}
+
+/* Remove from parent, then repack parent.
+ */
+ 
+int ps_widget_kill(struct ps_widget *widget) {
+  if (!widget) return -1;
+  struct ps_widget *parent=widget->parent;
+  if (!parent) return -1;
+  if (ps_widget_remove_child(parent,widget)<0) return -1;
+  if (ps_widget_pack(parent)<0) return -1;
+  return 0;
 }
 
 /* Convert coordinates.
@@ -326,13 +345,27 @@ int ps_widget_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Update children.
+ */
+ 
+int ps_widget_update_children(struct ps_widget *widget) {
+  if (!widget) return -1;
+  int i=0; for (;i<widget->childc;i++) {
+    if (ps_widget_update(widget->childv[i])<0) return -1;
+  }
+  return 0;
+}
+
 /* Event hooks.
  */
 
 int ps_widget_update(struct ps_widget *widget) {
   if (!widget) return -1;
-  if (widget->type->update) return widget->type->update(widget);
-  return 0;
+  if (widget->type->update) {
+    return widget->type->update(widget);
+  } else {
+    return ps_widget_update_children(widget);
+  }
 }
 
 int ps_widget_mousemotion(struct ps_widget *widget,int x,int y) {

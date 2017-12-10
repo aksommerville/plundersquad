@@ -47,6 +47,9 @@ int akgl_clear_error();
 
 int akgl_clear(uint32_t rgba);
 
+int akgl_scissor(int x,int y,int w,int h);
+int akgl_scissor_none();
+
 /* Texture.
  *****************************************************************************/
 

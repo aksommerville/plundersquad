@@ -33,4 +33,10 @@ void *ps_res_get(int tid,int rid);
 // Reverse lookup.
 int ps_res_get_id_by_obj(int tid,const void *obj);
 
+/* If we were loaded from loose files, identify the file for resource (tid,rid).
+ * (only_if_existing) nonzero means we will respond with an existing file or fail.
+ * If zero, we make up a path.
+ */
+int ps_res_get_path_for_resource(char *dst,int dsta,int tid,int rid,int only_if_existing);
+
 #endif

@@ -185,3 +185,79 @@ int ps_resmgr_reload() {
 
   return 0;
 }
+
+/* Get path for resource -- existing file.
+ */
+
+static int ps_res_get_path_for_resource_existing(char *dst,int pfxc,int dsta,int rid) {
+  DIR *dir=opendir(dst);
+  if (!dir) return -1;
+  struct dirent *de;
+  while (de=readdir(dir)) {
+  
+    const char *base=de->d_name;
+    if (base[0]=='.') continue;
+    int basec=0; while (base[basec]) basec++;
+
+    int qrid=ps_resmgr_id_from_basename(base,basec);
+    if (qrid!=rid) continue;
+
+    if (pfxc>dsta-basec) break;
+    closedir(dir);
+    memcpy(dst+pfxc,base,basec);
+    int dstc=pfxc+basec;
+    if (dstc<dsta) dst[dstc]=0;
+    return dstc;
+    
+  }
+  closedir(dir);
+  return -1;
+}
+
+/* Get path for resource -- new file.
+ */
+
+static int ps_res_get_path_for_resource_generate(char *dst,int pfxc,int dsta,int rid) {
+  int dstc=snprintf(dst+pfxc,dsta-pfxc,"%03d",rid);
+  if (dstc<0) return -1;
+  return pfxc+dstc;
+}
+
+/* Get path for resource.
+ */
+ 
+int ps_res_get_path_for_resource(char *dst,int dsta,int tid,int rid,int only_if_existing) {
+  if (!ps_resmgr.init) return -1;
+  if (ps_resmgr.rootpathc<1) return -1;
+  if (!dst||(dsta<0)) dsta=0;
+  if ((tid<0)||(tid>=PS_RESTYPE_COUNT)) return -1;
+  const struct ps_restype *type=ps_resmgr.typev+tid;
+
+  char path[1024];
+  int subpathc=snprintf(path,sizeof(path),"%.*s/%s/",ps_resmgr.rootpathc,ps_resmgr.rootpath,type->name);
+  if ((subpathc<0)||(subpathc>=sizeof(path))) return -1;
+
+  int dstc=ps_res_get_path_for_resource_existing(path,subpathc,sizeof(path),rid);
+  if (dstc>=0) {
+    if (dstc>sizeof(path)) return -1;
+    if (dstc<=dsta) {
+      memcpy(dst,path,dstc);
+      if (dstc<dsta) dst[dstc]=0;
+    }
+    return dstc;
+  }
+
+  if (!only_if_existing) {
+    dstc=ps_res_get_path_for_resource_generate(path,subpathc,sizeof(path),rid);
+    if (dstc>=0) {
+      if (dstc>sizeof(path)) return -1;
+      if (dstc<=dsta) {
+        memcpy(dst,path,dstc);
+        if (dstc<dsta) dst[dstc]=0;
+      }
+      return dstc;
+    }
+  }
+  
+  return -1;
+}

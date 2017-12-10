@@ -90,8 +90,10 @@ int ps_widget_ref(struct ps_widget *widget);
 int ps_widget_is_ancestor(const struct ps_widget *ancestor,const struct ps_widget *descendant);
 int ps_widget_has_child(const struct ps_widget *parent,const struct ps_widget *child);
 int ps_widget_add_child(struct ps_widget *parent,struct ps_widget *child);
+int ps_widget_insert_child(struct ps_widget *parent,int p,struct ps_widget *child);
 int ps_widget_remove_child(struct ps_widget *parent,struct ps_widget *child);
 int ps_widget_remove_all_children(struct ps_widget *widget);
+int ps_widget_kill(struct ps_widget *widget); // Remove from parent and repack parent.
 
 /* Create a new widget and add it as a child of an existing one.
  * This returns a WEAK reference.
@@ -137,6 +139,12 @@ int ps_widget_measure(int *w,int *h,struct ps_widget *widget,int maxw,int maxh);
  * Set bounds of our children and pack them recursively.
  */
 int ps_widget_pack(struct ps_widget *widget);
+
+/* If you implement update(), it's all up to you.
+ * You'll probably want to call this.
+ * The default implementation is just this.
+ */
+int ps_widget_update_children(struct ps_widget *widget);
 
 /* Primitive input events.
  */

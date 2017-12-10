@@ -59,7 +59,7 @@ static int ps_edit_init() {
   
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_input_set_gui(ps_gui)<0) return -1;
-  //TODO if (ps_gui_load_page_edithome(ps_gui)<0) return -1;
+  if (ps_gui_load_page_edithome(ps_gui)<0) return -1;
   
   return 0;
 }

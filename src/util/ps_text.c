@@ -307,7 +307,7 @@ int ps_decsint_repr(char *dst,int dsta,int src) {
   if (src<0) {
     dstc=2;
     limit=-10;
-    while (limit<=src) { dstc++; if (limit<INT_MIN/10) break; limit*=10; }
+    while (limit>=src) { dstc++; if (limit<INT_MIN/10) break; limit*=10; }
     if (dstc>dsta) return dstc;
     for (i=dstc;i-->1;src/=10) dst[i]='0'-src%10;
     dst[0]='-';

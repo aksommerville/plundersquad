@@ -65,4 +65,11 @@ int ps_gui_animate_property(
   int duration
 );
 
+/* Conveniences to create a modal widget and push it on to the root.
+ */
+int ps_gui_load_page_assemble(struct ps_gui *gui);
+int ps_gui_load_page_pause(struct ps_gui *gui);
+int ps_gui_load_page_gameover(struct ps_gui *gui);
+int ps_gui_load_page_edithome(struct ps_gui *gui);
+
 #endif

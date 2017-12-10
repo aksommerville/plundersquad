@@ -83,6 +83,11 @@ const struct ps_widget_type ps_widget_type_label={
 /* Accessors.
  */
  
+const char *ps_widget_label_get_text(const struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_label)) return 0;
+  return WIDGET->text;
+}
+ 
 int ps_widget_label_set_text(struct ps_widget *widget,const char *src,int srcc) {
   if (!widget||(widget->type!=&ps_widget_type_label)) return -1;
   if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
@@ -97,6 +102,22 @@ int ps_widget_label_set_text(struct ps_widget *widget,const char *src,int srcc) 
   WIDGET->text=nv;
   WIDGET->textc=srcc;
   return 0;
+}
+
+int ps_widget_label_set_textfv(struct ps_widget *widget,const char *fmt,va_list vargs) {
+  char buf[256];
+  int bufc=vsnprintf(buf,sizeof(buf),fmt,vargs);
+  if ((bufc<0)||(bufc>=sizeof(buf))) {
+    return ps_widget_label_set_text(widget,0,0);
+  } else {
+    return ps_widget_label_set_text(widget,buf,bufc);
+  }
+}
+
+int ps_widget_label_set_textf(struct ps_widget *widget,const char *fmt,...) {
+  va_list vargs;
+  va_start(vargs,fmt);
+  return ps_widget_label_set_textfv(widget,fmt,vargs);
 }
 
 int ps_widget_label_set_font_resid(struct ps_widget *widget,int resid) {

@@ -88,6 +88,10 @@ static int ps_input_event_button_cb(int plrid,int btnid,int value,void *userdata
   struct ps_input_device *device=userdata;
   ps_log(INPUT,TRACE,"%s plrid=%d btnid=%d value=%d device='%.*s'",__func__,plrid,btnid,value,device->namec,device->name);
 
+  if (ps_input.gui) {
+    if (ps_gui_userinput(ps_input.gui,plrid,btnid,value)<0) return -1;
+  }
+
   if (ps_input_device_call_button_watchers(device,btnid,value,1)<0) return -1;
 
   if (btnid&~0xffff) {
@@ -117,6 +121,7 @@ int ps_input_event_button(struct ps_input_device *device,int btnid,int value) {
   if (!device->map) return 0;
   if (ps_input_device_call_button_watchers(device,btnid,value,0)<0) return -1;
   if (ps_input_map_set_button(device->map,btnid,value,device,ps_input_event_button_cb)<0) return -1;
+  //TODO We might also want to provide raw joystick input to the GUI, esp for interactive input config.
   return 0;
 }
 

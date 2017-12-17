@@ -195,7 +195,10 @@ static int ps_editsoundeffect_cb_play(struct ps_widget *button,struct ps_widget 
 }
 
 static int ps_editsoundeffect_cb_addchannel(struct ps_widget *button,struct ps_widget *widget) {
-  ps_log(EDIT,DEBUG,"TODO %s",__func__);
+  int chanid=ps_iwg_add_channel(WIDGET->iwg,"sine",4);
+  if (chanid<0) return -1;
+  WIDGET->iwg->dirty=1;
+  if (ps_editsoundeffect_rebuild_ui(widget)<0) return -1;
   return 0;
 }
 
@@ -216,6 +219,13 @@ static int ps_editsoundeffect_cb_save(struct ps_widget *button,struct ps_widget 
   }
   free(serial);
 
+  struct akau_ipcm *nipcm=ps_iwg_to_ipcm(WIDGET->iwg);
+  if (!nipcm) return -1;
+  akau_ipcm_del(WIDGET->ipcm);
+  WIDGET->ipcm=nipcm;
+  if (akau_store_replace_ipcm(store,WIDGET->ipcm,WIDGET->resid)<0) return -1;
+
+  WIDGET->iwg->dirty=0;
   ps_log(EDIT,DEBUG,"Saved %d bytes to %s",serialc,path);
   return 0;
 }
@@ -237,6 +247,20 @@ int ps_widget_editsoundeffect_rebuild_graphs(struct ps_widget *widget) {
   int i=chanlist->childc; while (i-->0) {
     struct ps_widget *sfxchan=chanlist->childv[i];
     if (ps_widget_sfxchan_rebuild_graphs(sfxchan)<0) return -1;
+  }
+  return 0;
+}
+
+/* Reassign channel ID to all descendant channel widgets.
+ * You must call this after removing a channel.
+ */
+
+int ps_widget_editsoundeffect_reassign_channel_ids(struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_editsoundeffect)||(widget->childc!=2)) return -1;
+  struct ps_widget *chanlist=widget->childv[1];
+  int i=0; for (;i<chanlist->childc;i++) {
+    struct ps_widget *sfxchan=chanlist->childv[i];
+    if (ps_widget_sfxchan_set_chanid(sfxchan,i)<0) return -1;
   }
   return 0;
 }

@@ -22,6 +22,7 @@ struct ps_widget_sfxgraph {
   double valuez; // Range of y axis. We acquire x dynamically as needed.
   struct akgl_vtx_raw *vtxv;
   int vtxa;
+  int mousex,mousey;
 };
 
 #define WIDGET ((struct ps_widget_sfxgraph*)widget)
@@ -40,6 +41,8 @@ static int _ps_sfxgraph_init(struct ps_widget *widget) {
 
   WIDGET->k=AKAU_WAVEGEN_K_NOOP;
   WIDGET->valuez=100.0;
+  WIDGET->mousex=-1; // initialize negative to ensure we do not react when mousedown comes before mousemotion
+  WIDGET->mousey=-1;
   
   return 0;
 }
@@ -154,10 +157,15 @@ static int _ps_sfxgraph_update(struct ps_widget *widget) {
  */
 
 static int _ps_sfxgraph_mousemotion(struct ps_widget *widget,int x,int y) {
+  WIDGET->mousex=x;
+  WIDGET->mousey=y;
   return 0;
 }
 
 static int _ps_sfxgraph_mousebutton(struct ps_widget *widget,int btnid,int value) {
+  if ((btnid==1)&&value) {
+    if (ps_widget_sfxgraph_add_point(widget,WIDGET->mousex,WIDGET->mousey)<0) return -1;
+  }
   return 0;
 }
 
@@ -287,5 +295,89 @@ int ps_widget_sfxgraph_rebuild(struct ps_widget *widget) {
     }
   }
   if (ps_widget_pack(widget)<0) return -1;
+  return 0;
+}
+
+/* Calculations for adding point.
+ */
+
+static int ps_sfxgraph_locate_insertion_point(const struct ps_widget *widget,int x) {
+  int i=0; for (;i<widget->childc;i++) {
+    const struct ps_widget *child=widget->childv[i];
+    int childx=child->x+(child->w>>1);
+    if (x<=childx) return i;
+  }
+  return widget->childc;
+}
+
+static int ps_sfxgraph_time_from_horz(const struct ps_widget *widget,const struct ps_iwg *iwg,int x) {
+
+  if (widget->w<1) return -1;
+  if (iwg->cmdc<1) return widget->w;
+  int maxtime=iwg->cmdv[iwg->cmdc-1].time;
+  if (maxtime<1) maxtime=widget->w;
+
+  int time=(x*maxtime)/widget->w;
+  if (time<0) return 0;
+  if (time>maxtime) return maxtime;
+  return time;
+}
+
+static double ps_sfxgraph_value_from_vert(const struct ps_widget *widget,int y) {
+  if (WIDGET->valuez<1.0) return -1.0;
+  if (widget->h<1) return -1.0;
+  double v=((widget->h-y-1)*WIDGET->valuez)/widget->h;
+  if (v<0.0) return 0.0;
+  if (v>WIDGET->valuez) return WIDGET->valuez;
+  return v;
+}
+
+/* Add point.
+ */
+ 
+int ps_widget_sfxgraph_add_point(struct ps_widget *widget,int x,int y) {
+  if (!widget||(widget->type!=&ps_widget_type_sfxgraph)) return -1;
+  
+  if ((x<0)||(y<0)||(x>=widget->w)||(y>=widget->h)) {
+    ps_log(EDIT,DEBUG,"Rejecting new point at (%d,%d) in sfxgraph size (%d,%d).",x,y,widget->w,widget->h);
+    return 0;
+  }
+
+  struct ps_iwg *iwg=ps_sfxgraph_get_iwg(widget);
+  if (!iwg) return -1;
+
+  int childp=ps_sfxgraph_locate_insertion_point(widget,x);
+  if (childp<0) return -1;
+  int time=ps_sfxgraph_time_from_horz(widget,iwg,x);
+  if (time<0) return -1;
+  int chanid=ps_widget_sfxchan_get_chanid(widget->parent);
+  if (chanid<0) return -1;
+  double v=ps_sfxgraph_value_from_vert(widget,y);
+  if (v<0.0) return -1;
+
+  struct ps_widget *point=ps_widget_new(&ps_widget_type_sfxpoint);
+  if (!point) return -1;
+  if (ps_widget_insert_child(widget,childp,point)<0) {
+    ps_widget_del(point);
+    return -1;
+  }
+  ps_widget_del(point);
+
+  int cmdp=ps_iwg_add_command(iwg,time,chanid,WIDGET->k,v);
+  if (cmdp<0) return -1;
+  iwg->dirty=1;
+  if (ps_widget_sfxpoint_set_cmdp(point,cmdp)<0) return -1;
+  if (ps_widget_sfxpoint_set_time(point,time)<0) return -1;
+  if (ps_widget_sfxpoint_set_value(point,v)<0) return -1;
+
+  /* This invalidates all the graphs, so we must signal the editor to rebuild. */
+  struct ps_widget *editsoundeffect=widget;
+  while (editsoundeffect&&(editsoundeffect->type!=&ps_widget_type_editsoundeffect)) {
+    editsoundeffect=editsoundeffect->parent;
+  }
+  if (!editsoundeffect) return -1;
+
+  if (ps_widget_editsoundeffect_rebuild_graphs(editsoundeffect)<0) return -1;
+
   return 0;
 }

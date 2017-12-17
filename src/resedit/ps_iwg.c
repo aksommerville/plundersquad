@@ -102,6 +102,7 @@ int ps_iwg_add_channel(struct ps_iwg *iwg,const char *arg,int argc) {
     iwg->chana=na;
   }
 
+  int chanid=iwg->chanc;
   struct ps_iwg_channel *chan=iwg->chanv+iwg->chanc++;
   memset(chan,0,sizeof(struct ps_iwg_channel));
   if (argc) {
@@ -114,7 +115,7 @@ int ps_iwg_add_channel(struct ps_iwg *iwg,const char *arg,int argc) {
   }
   chan->argc=argc;
 
-  return 0;
+  return chanid;
 }
 
 /* Add command.
@@ -154,7 +155,7 @@ int ps_iwg_add_command(struct ps_iwg *iwg,int time_ms,int chanid,int k,double v)
   cmd->k=k;
   cmd->v=v;
 
-  return 0;
+  return cmdp;
 }
 
 /* Remove channel, cascading.

@@ -7,6 +7,7 @@
  *   [2] trim limit button
  *   [3] step graph
  *   [4] trim graph
+ *   [5] Delete button
  */
 
 #include "ps.h"
@@ -25,6 +26,8 @@
 static int ps_sfxchan_cb_edit_shape(struct ps_widget *button,struct ps_widget *widget);
 static int ps_sfxchan_cb_edit_step_limit(struct ps_widget *button,struct ps_widget *widget);
 static int ps_sfxchan_cb_edit_trim_limit(struct ps_widget *button,struct ps_widget *widget);
+static int ps_sfxchan_cb_delete(struct ps_widget *button,struct ps_widget *widget);
+static int ps_sfxchan_cb_wave(struct ps_widget *wave,struct ps_widget *widget);
 
 /* Object definition.
  */
@@ -71,6 +74,11 @@ static int _ps_sfxchan_init(struct ps_widget *widget) {
   child->bgrgba=0x00ff0080;
   if (ps_widget_sfxgraph_set_key(child,AKAU_WAVEGEN_K_TRIM)<0) return -1;
 
+  if (!(child=ps_widget_spawn(widget,&ps_widget_type_button))) return -1; // delete button
+  child->bgrgba=0xff0000ff;
+  if (ps_widget_button_set_text(child,"X",1)<0) return -1;
+  if (ps_widget_button_set_callback(child,ps_callback(ps_sfxchan_cb_delete,0,widget))<0) return -1;
+
   return 0;
 }
 
@@ -89,28 +97,33 @@ static struct ps_iwg *ps_sfxchan_get_iwg(const struct ps_widget *widget) {
  */
 
 static struct ps_widget *ps_sfxchan_get_shape_button(const struct ps_widget *widget) {
-  if (widget->childc!=5) return 0;
+  if (widget->childc!=6) return 0;
   return widget->childv[0];
 }
 
 static struct ps_widget *ps_sfxchan_get_step_limit_button(const struct ps_widget *widget) {
-  if (widget->childc!=5) return 0;
+  if (widget->childc!=6) return 0;
   return widget->childv[1];
 }
 
 static struct ps_widget *ps_sfxchan_get_trim_limit_button(const struct ps_widget *widget) {
-  if (widget->childc!=5) return 0;
+  if (widget->childc!=6) return 0;
   return widget->childv[2];
 }
 
 static struct ps_widget *ps_sfxchan_get_step_graph(const struct ps_widget *widget) {
-  if (widget->childc!=5) return 0;
+  if (widget->childc!=6) return 0;
   return widget->childv[3];
 }
 
 static struct ps_widget *ps_sfxchan_get_trim_graph(const struct ps_widget *widget) {
-  if (widget->childc!=5) return 0;
+  if (widget->childc!=6) return 0;
   return widget->childv[4];
+}
+
+static struct ps_widget *ps_sfxchan_get_delete_button(const struct ps_widget *widget) {
+  if (widget->childc!=6) return 0;
+  return widget->childv[5];
 }
 
 /* Draw.
@@ -146,13 +159,14 @@ static void ps_sfxchan_zero_child_sizes(struct ps_widget *widget) {
 static int _ps_sfxchan_pack(struct ps_widget *widget) {
 
   /* Acquire child widgets. */
-  if (widget->childc!=5) return -1;
-  struct ps_widget *shapebutton,*steplimitbutton,*trimlimitbutton,*stepgraph,*trimgraph;
+  if (widget->childc!=6) return -1;
+  struct ps_widget *shapebutton,*steplimitbutton,*trimlimitbutton,*stepgraph,*trimgraph,*deletebutton;
   if (!(shapebutton=ps_sfxchan_get_shape_button(widget))) return -1;
   if (!(steplimitbutton=ps_sfxchan_get_step_limit_button(widget))) return -1;
   if (!(trimlimitbutton=ps_sfxchan_get_trim_limit_button(widget))) return -1;
   if (!(stepgraph=ps_sfxchan_get_step_graph(widget))) return -1;
   if (!(trimgraph=ps_sfxchan_get_trim_graph(widget))) return -1;
+  if (!(deletebutton=ps_sfxchan_get_delete_button(widget))) return -1;
 
   /* Panic if we're too narrow. */
   if (widget->w<=PS_SFXCHAN_HEADER_WIDTH) {
@@ -160,6 +174,7 @@ static int _ps_sfxchan_pack(struct ps_widget *widget) {
 
   /* Establish child sizes. */
   } else {
+    int chw,chh;
 
     /* Limit buttons take half of the height, and the width of the longer, aligned right with header edge. 
      */
@@ -180,6 +195,14 @@ static int _ps_sfxchan_pack(struct ps_widget *widget) {
     shapebutton->h=PS_TILESIZE;
     shapebutton->x=(steplimitbutton->x>>1)-(shapebutton->w>>1);
     shapebutton->y=(widget->h>>1)-(shapebutton->h>>1);
+
+    /* Delete button in the top-left corner, whatever size it wants.
+     */
+    if (ps_widget_measure(&chw,&chh,deletebutton,steplimitbutton->x,widget->h)<0) return -1;
+    deletebutton->x=0;
+    deletebutton->y=0;
+    deletebutton->w=chw;
+    deletebutton->h=chh;
 
     /* Graphs take all right of header, and each half of the height. Step on top.
      */
@@ -225,13 +248,45 @@ int ps_widget_sfxchan_get_chanid(const struct ps_widget *widget) {
   return WIDGET->chanid;
 }
 
+int ps_widget_sfxchan_set_chanid(struct ps_widget *widget,int chanid) {
+  if (!widget||(widget->type!=&ps_widget_type_sfxchan)) return -1;
+  if (chanid<0) return -1;
+  const struct ps_iwg *iwg=ps_sfxchan_get_iwg(widget);
+  if (!iwg) return -1;
+  if (chanid>=iwg->chanc) return -1;
+  WIDGET->chanid=chanid;
+  return 0;
+}
+
+/* Choose icon based on channel description.
+ */
+
+static uint16_t ps_sfxchan_get_icon(const struct ps_widget *widget) {
+  const struct ps_iwg *iwg=ps_sfxchan_get_iwg(widget);
+  if (!iwg) return 0x0105;
+  if (WIDGET->chanid<0) return 0x0105;
+  if (WIDGET->chanid>=iwg->chanc) return 0x0105;
+  const char *arg=iwg->chanv[WIDGET->chanid].arg;
+  int argc=iwg->chanv[WIDGET->chanid].argc;
+
+  if ((argc==4)&&!memcmp(arg,"sine",4)) return 0x0100;
+  if ((argc==6)&&!memcmp(arg,"square",6)) return 0x0101;
+  if ((argc==3)&&!memcmp(arg,"saw",3)) return 0x0102;
+  if ((argc==5)&&!memcmp(arg,"noise",5)) return 0x0103;
+
+  /* Assume that anything else is harmonics. */
+  return 0x0104;
+}
+
 /* Setup.
  */
  
 int ps_widget_sfxchan_setup(struct ps_widget *widget,int chanid) {
   if (!widget||(widget->type!=&ps_widget_type_sfxchan)) return -1;
+  struct ps_widget *shapebutton=ps_sfxchan_get_shape_button(widget);
   struct ps_widget *stepgraph=ps_sfxchan_get_step_graph(widget);
   struct ps_widget *trimgraph=ps_sfxchan_get_trim_graph(widget);
+  if (!shapebutton||!stepgraph||!trimgraph) return -1;
   
   WIDGET->chanid=chanid;
   if (chanid&1) {
@@ -239,6 +294,8 @@ int ps_widget_sfxchan_setup(struct ps_widget *widget,int chanid) {
   } else {
     widget->bgrgba=PS_SFXCHAN_BGCOLOR_EVEN;
   }
+
+  if (ps_widget_button_set_icon(shapebutton,ps_sfxchan_get_icon(widget))<0) return -1;
 
   //TODO coordinate graph value limits with button in channel widget
   if (ps_widget_sfxgraph_set_value_limit(stepgraph,2000.0)<0) return -1;
@@ -254,7 +311,48 @@ int ps_widget_sfxchan_setup(struct ps_widget *widget,int chanid) {
  */
  
 static int ps_sfxchan_cb_edit_shape(struct ps_widget *button,struct ps_widget *widget) {
-  //TODO
+
+  const struct ps_iwg *iwg=ps_sfxchan_get_iwg(widget);
+  if (!iwg) return -1;
+  if (WIDGET->chanid<0) return -1;
+  if (WIDGET->chanid>=iwg->chanc) return -1;
+
+  struct ps_widget *root=ps_widget_get_root(widget);
+  struct ps_widget *wave=ps_widget_spawn(root,&ps_widget_type_wave);
+  if (!wave) return -1;
+  
+  if (ps_widget_wave_set_usage(wave,PS_WIDGET_WAVE_USAGE_IPCM)<0) return -1;
+  if (ps_widget_wave_set_serial(wave,iwg->chanv[WIDGET->chanid].arg,iwg->chanv[WIDGET->chanid].argc)<0) return -1;
+  if (ps_widget_wave_set_callback(wave,ps_callback(ps_sfxchan_cb_wave,0,widget))<0) return -1;
+  
+  if (ps_widget_pack(root)<0) return -1;
+  return 0;
+}
+ 
+static int ps_sfxchan_cb_delete(struct ps_widget *button,struct ps_widget *widget) {
+
+  struct ps_iwg *iwg=ps_sfxchan_get_iwg(widget);
+  if (!iwg) return -1;
+  if (iwg->chanc<=1) {
+    ps_log(EDIT,ERROR,"Refusing to delete last channel in iwg.");
+    return 0;
+  }
+  if (ps_iwg_remove_channel(iwg,WIDGET->chanid)<0) return -1;
+  iwg->dirty=1;
+
+  /* Acquire the owning editsoundeffect and hold it. */
+  struct ps_widget *editsoundeffect=widget;
+  while (editsoundeffect&&(editsoundeffect->type!=&ps_widget_type_editsoundeffect)) {
+    editsoundeffect=editsoundeffect->parent;
+  }
+  if (!editsoundeffect) return -1;
+
+  /* Kill me. */
+  if (ps_widget_kill(widget)<0) return -1;
+
+  /* Reassign channel IDs. */
+  if (ps_widget_editsoundeffect_reassign_channel_ids(editsoundeffect)<0) return -1;
+  
   return 0;
 }
 
@@ -319,6 +417,40 @@ static int ps_sfxchan_cb_edit_trim_limit(struct ps_widget *button,struct ps_widg
   if (!dialogue) return -1;
   if (ps_widget_ref(widget)<0) return -1;
   if (ps_widget_dialogue_set_userdata(dialogue,widget,(void*)ps_widget_del)<0) return -1;
+  return 0;
+}
+
+/* Callback from wave editor.
+ */
+ 
+static int ps_sfxchan_cb_wave(struct ps_widget *wave,struct ps_widget *widget) {
+
+  char serial[256];
+  int serialc=ps_widget_wave_serialize(serial,sizeof(serial),wave);
+
+  /* We can carry on in the face of serialization failures. 
+   * It only means that some work was lost.
+   */
+  if (serialc<0) {
+    ps_log(EDIT,ERROR,"Failed to serialize from wave editor.");
+    return 0;
+  }
+  if (!serialc) {
+    ps_log(EDIT,ERROR,"Wave editor return empty serial data.");
+    return 0;
+  }
+  if (serialc>(int)sizeof(serial)) {
+    ps_log(EDIT,ERROR,"Wave editor serialized to %d bytes, limit %d.",serialc,(int)sizeof(serial));
+    return 0;
+  }
+
+  struct ps_iwg *iwg=ps_sfxchan_get_iwg(widget);
+  if (!iwg) return -1;
+  if (ps_iwg_set_channel_shape(iwg,WIDGET->chanid,serial,serialc)<0) return -1;
+  iwg->dirty=1;
+
+  if (ps_widget_button_set_icon(ps_sfxchan_get_shape_button(widget),ps_sfxchan_get_icon(widget))<0) return -1;
+
   return 0;
 }
 

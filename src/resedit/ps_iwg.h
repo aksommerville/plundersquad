@@ -42,6 +42,7 @@ int ps_iwg_clear(struct ps_iwg *iwg);
 
 /* Add a channel or command.
  * For channels, we only validate and record the text to initialize it.
+ * Both return index of new object.
  */
 int ps_iwg_add_channel(struct ps_iwg *iwg,const char *arg,int argc);
 int ps_iwg_add_command(struct ps_iwg *iwg,int time_ms,int chanid,int k,double v);

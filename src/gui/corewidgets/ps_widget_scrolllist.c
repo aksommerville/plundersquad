@@ -177,7 +177,7 @@ static int ps_scrolllist_child_index_from_vertical(const struct ps_widget *widge
 
 static int ps_scrolllist_set_selection(struct ps_widget *widget,int childp) {
   if ((childp<0)||(childp>=widget->childc)) childp=-1;
-  if (WIDGET->selp==childp) return 0;
+  //if (WIDGET->selp==childp) return 0; // I prefer to fire the callback even on re-click.
   if (!WIDGET->cb_select.fn) return -1;
 
   WIDGET->selp=childp;

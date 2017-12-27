@@ -14,6 +14,7 @@ extern const struct ps_widget_type ps_widget_type_blotter; /* Solid color, no in
 extern const struct ps_widget_type ps_widget_type_label; /* Single line text. */
 extern const struct ps_widget_type ps_widget_type_icon; /* Graphic tile. */
 extern const struct ps_widget_type ps_widget_type_button; /* Clickable button. */
+extern const struct ps_widget_type ps_widget_type_toggle; /* State-preserving button. */
 extern const struct ps_widget_type ps_widget_type_field; /* Single line text entry. */
 extern const struct ps_widget_type ps_widget_type_textblock; /* Multi-line static text. */
 
@@ -22,6 +23,7 @@ extern const struct ps_widget_type ps_widget_type_menu; /* List of selectable op
 extern const struct ps_widget_type ps_widget_type_scrolllist; /* Vertically scrolling list of arbitrary widgets. */
 extern const struct ps_widget_type ps_widget_type_dialogue; /* Box with optional message, input, and buttons. */
 extern const struct ps_widget_type ps_widget_type_menubar; /* Horizontal bar of buttons. */
+extern const struct ps_widget_type ps_widget_type_scrollbar; /* General-purpose scrollbar. */
 
 /* Root.
  *****************************************************************************/
@@ -61,6 +63,23 @@ int ps_widget_button_set_margins(struct ps_widget *widget,int bevel_width,int bo
 int ps_widget_button_set_icon(struct ps_widget *widget,uint16_t tileid);
 int ps_widget_button_set_text(struct ps_widget *widget,const char *src,int srcc);
 const char *ps_widget_button_get_text(const struct ps_widget *widget);
+
+/* Toggle.
+ *****************************************************************************/
+
+// Setting value manually does not fire the callback.
+int ps_widget_toggle_set_value(struct ps_widget *widget,int value);
+int ps_widget_toggle_get_value(const struct ps_widget *widget);
+
+int ps_widget_toggle_set_enable(struct ps_widget *widget,int enable);
+int ps_widget_toggle_get_enable(const struct ps_widget *widget);
+
+// Toggles may have a label or an icon but not both.
+// Setting one clears the other.
+struct ps_widget *ps_widget_toggle_set_text(struct ps_widget *widget,const char *src,int srcc);
+struct ps_widget *ps_widget_toggle_set_icon(struct ps_widget *widget,uint16_t tileid);
+
+int ps_widget_toggle_set_callback(struct ps_widget *widget,struct ps_callback cb);
 
 /* Field.
  *****************************************************************************/
@@ -133,8 +152,12 @@ struct ps_widget *ps_widget_dialogue_add_button(struct ps_widget *widget,const c
 int ps_widget_dialogue_get_text(void *dstpp,const struct ps_widget *widget);
 int ps_widget_dialogue_get_number(int *dst,const struct ps_widget *widget);
 
+/* This is kind of sloppy, but we give a few fields for originators to pass extra data to their callback.
+ */
 int ps_widget_dialogue_set_userdata(struct ps_widget *widget,void *userdata,void (*userdata_del)(void *userdata));
 void *ps_widget_dialogue_get_userdata(const struct ps_widget *widget);
+int ps_widget_dialogue_set_refnum1(struct ps_widget *widget,int v);
+int ps_widget_dialogue_get_refnum1(const struct ps_widget *widget);
 
 /* Conveniences that create, populate, and present a dialogue box.
  */
@@ -164,5 +187,19 @@ struct ps_widget *ps_widget_menubar_add_button(struct ps_widget *widget,const ch
 /* Menu has an optional title which appears in gray text after all the buttons.
  */
 struct ps_widget *ps_widget_menubar_set_title(struct ps_widget *widget,const char *text,int textc);
+
+/* Scrollbar.
+ *****************************************************************************/
+
+int ps_widget_scrollbar_set_callback(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_scrollbar_set_orientation(struct ps_widget *widget,int axis);
+int ps_widget_scrollbar_set_value(struct ps_widget *widget,int value); // Does not trigger callback.
+int ps_widget_scrollbar_get_value(const struct ps_widget *widget);
+int ps_widget_scrollbar_set_limit(struct ps_widget *widget,int limit);
+int ps_widget_scrollbar_get_limit(const struct ps_widget *widget);
+int ps_widget_scrollbar_set_visible_size(struct ps_widget *widget,int visible_size);
+int ps_widget_scrollbar_get_visible_size(const struct ps_widget *widget);
+
+int ps_widget_scrollbar_adjust(struct ps_widget *widget,int d); // Triggers callback.
 
 #endif

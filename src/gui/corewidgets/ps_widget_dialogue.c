@@ -21,6 +21,7 @@ struct ps_widget_dialogue {
   struct ps_widget hdr;
   void *userdata;
   void (*userdata_del)(void *userdata);
+  int refnum1;
 };
 
 #define WIDGET ((struct ps_widget_dialogue*)widget)
@@ -161,6 +162,7 @@ static int _ps_dialogue_mouseexit(struct ps_widget *widget) {
 }
 
 static int _ps_dialogue_activate(struct ps_widget *widget) {
+  ps_log(GUI,INFO,"TODO: %s",__func__);
   return 0;
 }
 
@@ -327,6 +329,17 @@ int ps_widget_dialogue_set_userdata(struct ps_widget *widget,void *userdata,void
 void *ps_widget_dialogue_get_userdata(const struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_dialogue)) return 0;
   return WIDGET->userdata;
+}
+
+int ps_widget_dialogue_set_refnum1(struct ps_widget *widget,int v) {
+  if (!widget||(widget->type!=&ps_widget_type_dialogue)) return -1;
+  WIDGET->refnum1=v;
+  return 0;
+}
+
+int ps_widget_dialogue_get_refnum1(const struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_dialogue)) return 0;
+  return WIDGET->refnum1;
 }
 
 /* Convenience ctors.

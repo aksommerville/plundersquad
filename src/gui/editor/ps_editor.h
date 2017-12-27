@@ -8,14 +8,16 @@
 #include "util/ps_callback.h"
 
 struct akau_ipcm;
+struct akau_song;
 struct ps_iwg;
+struct ps_sem;
 
 extern const struct ps_widget_type ps_widget_type_edithome;
 extern const struct ps_widget_type ps_widget_type_editsoundeffect;
 extern const struct ps_widget_type ps_widget_type_wave; /* Modal. For instruments and ipcm voices. */
+extern const struct ps_widget_type ps_widget_type_editsong;
 
 // TODO:
-// editsong
 // editblueprint
 // editsprdef
 // editplrdef
@@ -26,6 +28,11 @@ extern const struct ps_widget_type ps_widget_type_sfxgraph;
 extern const struct ps_widget_type ps_widget_type_sfxpoint;
 extern const struct ps_widget_type ps_widget_type_harmonics;
 extern const struct ps_widget_type ps_widget_type_waveview;
+extern const struct ps_widget_type ps_widget_type_waveenv;
+extern const struct ps_widget_type ps_widget_type_waveenvpoint;
+extern const struct ps_widget_type ps_widget_type_songchart;
+extern const struct ps_widget_type ps_widget_type_songvoice;
+extern const struct ps_widget_type ps_widget_type_songevent; // Modal dialogue.
 
 /* Edithome.
  *****************************************************************************/
@@ -112,6 +119,9 @@ int ps_widget_wave_serialize(void *dst,int dsta,struct ps_widget *widget);
 
 int ps_widget_wave_set_callback(struct ps_widget *widget,struct ps_callback cb);
 
+int ps_widget_wave_set_refnum1(struct ps_widget *widget,int v);
+int ps_widget_wave_get_refnum1(const struct ps_widget *widget);
+
 /* For children of the wave editor, report current modeling of the wave.
  * To be convenient, (widget) may be a wave editor or any child of it.
  * 'dirty' works the same way, to alert the entire UI of a model change.
@@ -122,14 +132,73 @@ int ps_widget_wave_dirty(struct ps_widget *widget);
 struct akau_fpcm *ps_widget_wave_get_fpcm(struct ps_widget *widget);
 struct akau_instrument *ps_widget_wave_get_instrument(struct ps_widget *widget);
 
-/* Harmonics.
+/* Wave components: harmonics, waveview, waveenv, waveenvpoint.
  *****************************************************************************/
+
+#define PS_WIDGET_WAVEENVPOINT_USAGE_ATTACK   1
+#define PS_WIDGET_WAVEENVPOINT_USAGE_DRAWBACK 2
 
 int ps_widget_harmonics_model_changed(struct ps_widget *widget);
 
-/* Waveview.
+int ps_widget_waveview_model_changed(struct ps_widget *widget);
+
+int ps_widget_waveenv_model_changed(struct ps_widget *widget);
+int ps_widget_waveenv_get_timescale(const struct ps_widget *widget);
+
+int ps_widget_waveenvpoint_set_usage(struct ps_widget *widget,int usage);
+int ps_widget_waveenvpoint_get_usage(const struct ps_widget *widget);
+
+/* Editsong.
  *****************************************************************************/
 
-int ps_widget_waveview_model_changed(struct ps_widget *widget);
+int ps_widget_editsong_set_resource(struct ps_widget *widget,int id,struct akau_song *song,const char *name);
+
+int ps_widget_editsong_toggle_playback(struct ps_widget *widget);
+
+/* For convenience, these accept any descendant of the editsong.
+ */
+struct akau_song *ps_widget_editsong_get_song(const struct ps_widget *widget);
+struct ps_sem *ps_widget_editsong_get_sem(const struct ps_widget *widget);
+int ps_widget_editsong_dirty(struct ps_widget *widget);
+int ps_widget_editsong_get_current_beat(const struct ps_widget *widget);
+
+/* Real song editing. Again, these accept any descendant.
+ * These are mostly interactive.
+ * If a (force) argument exists, pass nonzero to skip any verification dialogue.
+ */
+int ps_widget_editsong_edit_drum(struct ps_widget *widget,int drumid);
+int ps_widget_editsong_edit_instrument(struct ps_widget *widget,int instrid);
+int ps_widget_editsong_delete_drum(struct ps_widget *widget,int drumid,int force);
+int ps_widget_editsong_delete_instrument(struct ps_widget *widget,int instrid,int force);
+
+/* (drums) and (instruments) each point to 32 bytes.
+ * We set a bit in each buffer for the voices currently visible. (little-endianly)
+ */
+int ps_widget_editsong_get_voice_visibility(uint8_t *drums,uint8_t *instruments,const struct ps_widget *widget);
+#define PS_EDITSONG_TEST_VOICE(buffer,voiceid) ((buffer)[(voiceid)>>3]&(1<<((voiceid)&7)))
+
+int ps_widget_editsong_voice_visibility_changed(struct ps_widget *widget);
+
+/* Songvoice.
+ *****************************************************************************/
+
+int ps_widget_songvoice_setup_drum(struct ps_widget *widget,int drumid);
+int ps_widget_songvoice_setup_instrument(struct ps_widget *widget,int instrid);
+
+// 0=invalid or unset, 1=drum, 2=instrument
+int ps_widget_songvoice_get_type(const struct ps_widget *widget);
+uint8_t ps_widget_songvoice_get_id(const struct ps_widget *widget);
+int ps_widget_songvoice_get_visibility(const struct ps_widget *widget);
+
+/* Songchart.
+ *****************************************************************************/
+
+int ps_widget_songchart_rebuild(struct ps_widget *widget);
+int ps_widget_songchart_voice_visibility_changed(struct ps_widget *widget);
+
+/* Songevent.
+ *****************************************************************************/
+
+int ps_widget_songevent_setup(struct ps_widget *widget,struct ps_sem *sem,int beatp,int eventp);
 
 #endif

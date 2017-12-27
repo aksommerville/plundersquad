@@ -35,6 +35,7 @@ struct ps_widget_wave {
   int play_chanid;
   int play_pitch;
   struct ps_callback cb;
+  int refnum1;
 };
 
 #define WIDGET ((struct ps_widget_wave*)widget)
@@ -94,8 +95,7 @@ static int _ps_wave_init(struct ps_widget *widget) {
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_harmonics))) return -1; // Harmonics
 
-  if (!(child=ps_widget_spawn(widget,&ps_widget_type_blotter))) return -1; // Envelope TODO
-  child->bgrgba=0xffff00ff;
+  if (!(child=ps_widget_spawn(widget,&ps_widget_type_waveenv))) return -1; // Envelope
 
   return 0;
 }
@@ -408,8 +408,37 @@ static int ps_wave_rebuild_serial_ipcm(struct ps_widget *widget) {
  */
 
 static int ps_wave_rebuild_serial_instrument(struct ps_widget *widget) {
-  ps_log(EDIT,ERROR,"TODO: %s",__func__);
-  return 0;
+
+  /* Compose a complete instrument with 16 coefficients. */
+  uint8_t tmp[42];
+  tmp[0]=WIDGET->model.attack_time>>8;
+  tmp[1]=WIDGET->model.attack_time;
+  tmp[2]=WIDGET->model.drawback_time>>8;
+  tmp[3]=WIDGET->model.drawback_time;
+  tmp[4]=WIDGET->model.decay_time>>8;
+  tmp[5]=WIDGET->model.decay_time;
+  tmp[6]=WIDGET->model.attack_trim;
+  tmp[7]=WIDGET->model.drawback_trim;
+  tmp[8]=0;
+  tmp[9]=16; // coefc
+  int tmpp=10;
+  int i=0; for (;i<16;i++,tmpp+=2) {
+    int coef=WIDGET->model.coefv[i]*0xffff;
+    if (coef<0) coef=0;
+    else if (coef>0xffff) coef=0xffff;
+    tmp[tmpp]=coef>>8;
+    tmp[tmpp+1]=coef;
+  }
+
+  /* Trim unused coefficients. */
+  int tmpc=42;
+  while (tmp[9]>0) {
+    if (tmp[tmpc-1]||tmp[tmpc-2]) break; // nonzero, stop here.
+    tmpc-=2;
+    tmp[9]--;
+  }
+
+  return ps_wave_replace_serial(widget,tmp,tmpc);
 }
 
 /* Rebuild WIDGET->serial from dynamic UI.
@@ -488,7 +517,46 @@ static int ps_wave_decode_to_model_ipcm(struct ps_widget *widget) {
  */
 
 static int ps_wave_decode_to_model_instrument(struct ps_widget *widget) {
-  ps_log(EDIT,ERROR,"TODO %s -- see akau_instrument_decode_binary()",__func__);
+
+  /* Validate incoming data. Length only; beyond that, anything goes. */
+  if (WIDGET->serialc<10) {
+    ps_log(EDIT,ERROR,"Failed to decode instrument. length=%d",WIDGET->serialc);
+    return 0;
+  }
+  const uint8_t *src=WIDGET->serial;
+  int coefc=src[9];
+  int reqc=10+(coefc*2);
+  if (reqc>WIDGET->serialc) {
+    ps_log(EDIT,ERROR,"Short instrument data. length=%d expected=%d",WIDGET->serialc,reqc);
+    return 0;
+  }
+
+  /* We can safely truncate the coefficients, if they run longer than our fixed buffer.
+   * (FWIW, AKAU does this too).
+   */
+  if (coefc>PS_WIDGET_WAVE_COEF_COUNT) {
+    coefc=PS_WIDGET_WAVE_COEF_COUNT;
+  }
+
+  /* And we're good. Copy it. */
+  memset(&WIDGET->model,0,sizeof(WIDGET->model));
+  WIDGET->model.preset=PS_WIDGET_WAVE_PRESET_HARMONICS;
+  WIDGET->model.attack_time=(src[0]<<8)|src[1];
+  WIDGET->model.drawback_time=(src[2]<<8)|src[3];
+  WIDGET->model.decay_time=(src[4]<<8)|src[5];
+  WIDGET->model.attack_trim=src[6];
+  WIDGET->model.drawback_trim=src[7];
+
+  if (coefc>0) {
+    int srcp=10,i=0;
+    for (;i<coefc;i++,srcp+=2) {
+      int coef=(src[srcp]<<8)|src[srcp+1];
+      WIDGET->model.coefv[i]=coef/65535.0;
+    }
+  } else {
+    WIDGET->model.coefv[0]=1.0;
+  }
+  
   return 0;
 }
 
@@ -507,6 +575,7 @@ static int ps_wave_decode_to_model(struct ps_widget *widget) {
   }
   if (ps_widget_harmonics_model_changed(ps_wave_get_harmonics(widget))<0) return -1;
   if (ps_widget_waveview_model_changed(ps_wave_get_visualization(widget))<0) return -1;
+  if (ps_widget_waveenv_model_changed(ps_wave_get_envelope(widget))<0) return -1;
   return 0;
 }
 
@@ -548,6 +617,17 @@ int ps_widget_wave_set_callback(struct ps_widget *widget,struct ps_callback cb) 
   ps_callback_cleanup(&WIDGET->cb);
   WIDGET->cb=cb;
   return 0;
+}
+
+int ps_widget_wave_set_refnum1(struct ps_widget *widget,int v) {
+  if (ps_wave_obj_validate(widget)<0) return -1;
+  WIDGET->refnum1=v;
+  return 0;
+}
+
+int ps_widget_wave_get_refnum1(const struct ps_widget *widget) {
+  if (ps_wave_obj_validate(widget)<0) return 0;
+  return WIDGET->refnum1;
 }
 
 /* Button callbacks.
@@ -615,6 +695,7 @@ int ps_widget_wave_dirty(struct ps_widget *widget) {
   WIDGET->instrument=0;
 
   if (ps_widget_waveview_model_changed(ps_wave_get_visualization(widget))<0) return -1;
+  if (ps_widget_waveenv_model_changed(ps_wave_get_envelope(widget))<0) return -1;
    
   return 0;
 }

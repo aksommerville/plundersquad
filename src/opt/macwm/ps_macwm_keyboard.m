@@ -180,6 +180,23 @@ int ps_macwm_translate_keysym(int key) {
   return 0xffff0000|key;
 }
 
+/* Modifier keys.
+ */
+
+int ps_macwm_translate_modifier(int src) {
+  switch (src) {
+    case 0x00000002: return 0x000700e1; // l shift
+    case 0x00800000: return 0x00070076; // fn ("Keyboard Menu" in HID)
+    case 0x00000001: return 0x000700e0; // l control
+    case 0x00000020: return 0x000700e2; // l option
+    case 0x00000008: return 0x000700e3; // l command
+    case 0x00000010: return 0x000700e7; // r command
+    case 0x00000040: return 0x000700e6; // r option
+    case 0x00000004: return 0x000700e5; // r shift
+  }
+  return 0;
+}
+
 /* MacOS to general mouse buttons.
  * We expect (1,2,3) to be (left,middle,right). Beyond that, no expectations.
  * MacOS reports right as 2, so we swap 2 and 3, and that's all.

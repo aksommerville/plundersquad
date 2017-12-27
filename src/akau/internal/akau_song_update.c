@@ -11,6 +11,10 @@ static int akau_song_execute_command(struct akau_song *song,const union akau_son
     case AKAU_SONG_OP_NOOP: return 0;
 
     case AKAU_SONG_OP_BEAT: {
+        if (song->cb_sync) {
+          if (song->cb_sync(song,song->beatp,song->userdata)<0) return -1;
+        }
+        song->beatp++;
         if (akau_mixer_set_song_delay(mixer,song->frames_per_beat)<0) return -1;
       } return 1;
 
@@ -64,7 +68,11 @@ static int akau_song_execute_command(struct akau_song *song,const union akau_son
 int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp) {
   if (!song||!mixer) return -1;
   if (song->cmdc<1) return -1;
-  if ((cmdp<0)||(cmdp>=song->cmdc)) cmdp=0;
+  int reset=0;
+  if ((cmdp<0)||(cmdp>=song->cmdc)) {
+    song->beatp=0;
+    cmdp=0;
+  }
 
   while (cmdp<song->cmdc) {
     const union akau_song_command *cmd=song->cmdv+cmdp;

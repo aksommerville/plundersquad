@@ -175,6 +175,31 @@
   }
 }
 
+-(void)flagsChanged:(NSEvent*)event {
+  int nmodifiers=(int)event.modifierFlags;
+  if (nmodifiers!=modifiers) {
+    int omodifiers=modifiers;
+    modifiers=nmodifiers;
+    int mask=1; for (;mask;mask<<=1) {
+    
+      if ((nmodifiers&mask)&&!(omodifiers&mask)) {
+        int key=ps_macwm_translate_modifier(mask);
+        if (key) {
+          if (ps_input_event_button(ps_macwm.device_keyboard,key,1)<0) ps_macwm_abort("Failure in key event handler.");
+          if (ps_input_event_key(key,0,1)<0) ps_macwm_abort("Failure in key event handler.");
+        }
+
+      } else if (!(nmodifiers&mask)&&(omodifiers&mask)) {
+        int key=ps_macwm_translate_modifier(mask);
+        if (key) {
+          if (ps_input_event_button(ps_macwm.device_keyboard,key,0)<0) ps_macwm_abort("Failure in key event handler.");
+          if (ps_input_event_key(key,0,0)<0) ps_macwm_abort("Failure in key event handler.");
+        }
+      }
+    }
+  }
+}
+
 /* Mouse events.
  */
 

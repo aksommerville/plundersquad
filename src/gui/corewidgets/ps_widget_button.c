@@ -36,6 +36,7 @@ static int _ps_button_init(struct ps_widget *widget) {
   widget->fgrgba=0x000000ff;
   WIDGET->bevel_width=3; // Always renders 1 pixel, but you can set higher to establish a margin.
   WIDGET->border_width=1;
+  widget->accept_keyboard_focus=0;
 
   return 0;
 }

@@ -45,6 +45,7 @@ static void _ps_scrolllist_del(struct ps_widget *widget) {
 
 static int _ps_scrolllist_init(struct ps_widget *widget) {
   WIDGET->selp=-1;
+  widget->accept_mouse_wheel=1;
   return 0;
 }
 

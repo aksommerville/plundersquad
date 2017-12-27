@@ -87,3 +87,34 @@ int ps_log_should_print(int domain,int level) {
     return (level>=ps_log_level_by_domain[domain])?1:0;
   }
 }
+
+/* Print hex dump.
+ */
+ 
+void _ps_log_hexdump(FILE *f,const void *src,int srcc) {
+  if (!f) f=stderr;
+  const uint8_t *SRC=src;
+  int srcp=0,i;
+  while (srcp<srcc) {
+    fprintf(f,"  %08x | ",srcp);
+    for (i=0;i<16;i++) {
+      if (srcp+i<srcc) {
+        fprintf(f,"%02x ",SRC[srcp+i]);
+      } else {
+        fprintf(f,"   ");
+      }
+    }
+    fprintf(f,"| ");
+    for (i=0;i<16;i++) {
+      if (srcp+i>=srcc) break;
+      char ch=SRC[srcp+i];
+      if ((ch>=0x20)&&(ch<=0x7e)) {
+        fprintf(f,"%c",ch);
+      } else {
+        fprintf(f,".");
+      }
+    }
+    fprintf(f,"\n");
+    srcp+=16;
+  }
+}

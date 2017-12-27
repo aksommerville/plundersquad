@@ -172,7 +172,9 @@ static int ps_edithome_list_songs(struct ps_widget *widget) {
   int resp=0; for (;resp<resc;resp++) {
     int resid=akau_store_get_song_id_by_index(store,resp);
     int pathc=akau_store_get_resource_path(path,sizeof(path),store,"song",resid);
-    if ((pathc<0)||(pathc>=sizeof(path))) pathc=0;
+    if ((pathc<0)||(pathc>=sizeof(path))) {
+      pathc=snprintf(path,sizeof(path),"#%d",resid);
+    }
     struct ps_widget *label=ps_edithome_spawn_resource_label(widget,reslist,resid,path,pathc);
     if (!label) return -1;
   }
@@ -238,7 +240,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
 }
 
 //XXX stub resource editors -- If we substitute ps_widget_type_dialogue, the user will see a friendly error message.
-#define ps_widget_type_editsong ps_widget_type_dialogue
 #define ps_widget_type_editblueprint ps_widget_type_dialogue
 #define ps_widget_type_editsprdef ps_widget_type_dialogue
 #define ps_widget_type_editplrdef ps_widget_type_dialogue
@@ -327,7 +328,6 @@ static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int 
  */
 
 static int ps_edithome_cb_dismiss(struct ps_widget *button,struct ps_widget *dialogue) {
-  ps_log(EDIT,TRACE,"%s",__func__);
   return ps_widget_kill(dialogue);
 }
 
@@ -347,9 +347,34 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
     return ps_widget_editsoundeffect_set_resource(widget,id,obj,name);
   }
 
+  if (widget->type==&ps_widget_type_editsong) {
+    return ps_widget_editsong_set_resource(widget,id,obj,name);
+  }
+
   //TODO load resource to specific types.
 
   return -1;
+}
+
+/* Create new song.
+ */
+
+static int ps_edithome_create_song(struct ps_widget *widget) {
+  struct akau_store *store=akau_get_store();
+  if (!store) return -1;
+
+  int songid,songindex;
+  if (akau_store_get_unused_song_id(&songid,&songindex,store)<0) return -1;
+  
+  struct akau_song *song=akau_song_new();
+  if (!song) return -1;
+  if (akau_store_add_song(store,song,songid)<0) {
+    akau_song_del(song);
+    return -1;
+  }
+
+  akau_song_del(song);
+  return 0;
 }
 
 /* Menubar callbacks.
@@ -361,7 +386,20 @@ static int ps_edithome_cb_quit(struct ps_widget *button,struct ps_widget *widget
 }
 
 static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget) {
-  ps_log(GUI,DEBUG,"%s TODO",__func__); // New resource is not critical, it can wait
+  if (!widget||(widget->type!=&ps_widget_type_edithome)||(widget->childc!=3)) return -1;
+  struct ps_widget *typelist=widget->childv[1];
+
+  int typeindex=ps_widget_scrolllist_get_selection(typelist);
+  switch (typeindex) {
+    case 0: if (ps_edithome_create_song(widget)<0) return -1; break;
+    case 1: break;//TODO new sound effect
+    case 2: break;//TODO new blueprint
+    case 3: break;//TODO new sprdef
+    case 4: break;//TODO new plrdef
+    case 5: break;//TODO new region
+  }
+
+  if (ps_edithome_rebuild_resource_list(widget,typeindex)<0) return -1;
   return 0;
 }
 

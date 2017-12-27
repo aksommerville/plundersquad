@@ -84,4 +84,25 @@ const char *ps_log_faint_color();
  */
 int ps_log_should_print(int domain,int level);
 
+/* Helper for dropping an arbitrarily-long hex dump into the log.
+ */
+ 
+#define ps_log_hexdump(domaintag,leveltag,src,srcc,fmt,...) ({ \
+  if (ps_log_should_print(PS_LOG_DOMAIN_##domaintag,PS_LOG_LEVEL_##leveltag)) { \
+    fprintf(ps_log_file?ps_log_file:stderr, \
+      "%s" #domaintag "%s:%s" #leveltag "%s: " fmt " %s[%s:%d]%s\n", \
+      ps_log_domain_color(PS_LOG_DOMAIN_##domaintag),ps_log_no_color(), \
+      ps_log_level_color(PS_LOG_LEVEL_##leveltag),ps_log_no_color(), \
+      ##__VA_ARGS__, \
+      ps_log_faint_color(),__FILE__,__LINE__,ps_log_no_color() \
+    ); \
+    _ps_log_hexdump(ps_log_file?ps_log_file:stderr,src,srcc); \
+    1; \
+  } else { \
+    0; \
+  } \
+})
+
+void _ps_log_hexdump(FILE *f,const void *src,int srcc);
+
 #endif

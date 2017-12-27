@@ -74,8 +74,10 @@ struct ps_widget {
   uint32_t bgrgba,fgrgba;
 
   int accept_mouse_focus;
+  int accept_mouse_wheel;
   int accept_keyboard_focus;
   int draggable; // Special case of mouse interaction, also managed by root.
+  int drag_verbatim; // Request mousemotion instead of digested (mouseenter,mouseexit).
   
 };
 

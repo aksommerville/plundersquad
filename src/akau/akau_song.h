@@ -1,6 +1,19 @@
 /* akau_song.h
  * Playback sequencer.
  * Delivers notes and verbatim sounds to mixer on schedule.
+ *
+ * Pitches reference:
+ *   0x00  a0   27.5
+ *   0x0c  a1   55
+ *   0x18  a2   110
+ *   0x24  a3   220
+ *   0x30  a4   440
+ *   0x3c  a5   880
+ *   0x48  a6   1760
+ *   0x54  a7   3520
+ *   0x60  a8   7040
+ *   0x6c  a9   14080
+ *   0x78  a10  28160
  */
 
 #ifndef AKAU_SONG_H
@@ -54,6 +67,7 @@ int akau_song_set_tempo(struct akau_song *song,int tempo_bpm);
  * We preserve the ID, and also keep a reference to the IPCM object.
  * It is legal to have ID only, if the song can be put in a pre-link state.
  * After setting a drum by ipcmid, you need to relink the song.
+ * Deleting a drum also deletes any command referring to it, and updates the IDs of other commands to reflect the new list.
  */
 int akau_song_count_drums(const struct akau_song *song);
 struct akau_ipcm *akau_song_get_drum(const struct akau_song *song,int drumid);
@@ -61,17 +75,20 @@ int akau_song_get_drum_ipcmid(const struct akau_song *song,int drumid);
 int akau_song_set_drum(struct akau_song *song,int drumid,int ipcmid);
 int akau_song_add_drum(struct akau_song *song,int ipcmid); // => drumid (sequential from zero).
 int akau_song_remove_drum(struct akau_song *song,int drumid);
+int akau_song_drum_in_use(const struct akau_song *song,int drumid); // => nonzero if any command refers to it
 
 /* Instruments are private to the song, they do not have external linkage.
  * (AKAU does have an "instrument" resource type, but we don't use it).
  * We preserve the instrument object and the serialized source of it.
+ * Deleting a drum also deletes any command referring to it, and updates the IDs of other commands to reflect the new list.
  */
 int akau_song_count_instruments(const struct akau_song *song);
 struct akau_instrument *akau_song_get_instrument(const struct akau_song *song,int instrid);
-int akau_song_get_instrument_source(void *dstpp,const struct akau_song *song,int instrid);
+int akau_song_get_instrument_source(void *dstpp_READONLY,const struct akau_song *song,int instrid);
 int akau_song_set_instrument(struct akau_song *song,int instrid,const void *src,int srcc);
 int akau_song_add_instrument(struct akau_song *song,const void *src,int srcc); // => instrid (sequential from zero).
 int akau_song_remove_instrument(struct akau_song *song,int instrid);
+int akau_song_instrument_in_use(const struct akau_song *song,int instrid); // => nonzero if any command refers to it
 
 /* The important part of a song is its command list.
  * These are framed internally by BEAT commands, one at the end of each beat.
@@ -92,6 +109,11 @@ int akau_song_beatp_from_cmdp(const struct akau_song *song,int cmdp);
 int akau_song_cmdp_from_beatp(const struct akau_song *song,int beatp); // => Index of first command of beat.
 int akau_song_cmdp_advance(const struct akau_song *song,int cmdp); // => Index of first command of next beat.
 int akau_song_cmdp_retreat(const struct akau_song *song,int cmdp); // => Index of first command of previous beat.
+int akau_song_count_beats(const struct akau_song *song);
+
+/* Eliminate commands or add empty beats to reach the given beat count.
+ */
+int akau_song_adjust_length(struct akau_song *song,int beatc);
 
 /* We serialize to a private binary format.
  *   0000   8 Signature: "\0AK\xffSONG"
@@ -121,5 +143,9 @@ int akau_song_link(struct akau_song *song,struct akau_store *store);
  * We call the mixer to set its next delay and position.
  */
 int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp);
+
+int akau_song_set_sync_callback(struct akau_song *song,int (*cb_sync)(struct akau_song *song,int beatp,void *userdata),void *userdata);
+void *akau_song_get_userdata(const struct akau_song *song);
+int akau_song_restart(struct akau_song *song);
 
 #endif

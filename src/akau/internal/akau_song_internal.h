@@ -32,6 +32,9 @@ struct akau_song {
   union akau_song_command *cmdv;
   int cmdc,cmda;
   int chanid_ref[256];
+  int beatp;
+  int (*cb_sync)(struct akau_song *song,int beatp,void *userdata);
+  void *userdata;
 };
 
 #endif

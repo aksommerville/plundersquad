@@ -17,6 +17,7 @@ static int ps_root_set_track_hover(struct ps_widget *widget,struct ps_widget *tr
 static int ps_root_set_track_click(struct ps_widget *widget,struct ps_widget *track);
 static int ps_root_set_track_keyboard(struct ps_widget *widget,struct ps_widget *track);
 static struct ps_widget *ps_root_find_hover_widget(const struct ps_widget *widget,int x,int y);
+static struct ps_widget *ps_root_find_scroll_widget(const struct ps_widget *widget,int x,int y);
 static int ps_root_doublecheck_keyboard_focus(struct ps_widget *widget);
 
 /* Object definition.
@@ -143,13 +144,20 @@ static int _ps_root_mousemotion(struct ps_widget *widget,int x,int y) {
 
   /* If we are tracking a click, events go exclusively to that widget. */
   if (WIDGET->track_click) {
+  
     if (WIDGET->track_click->draggable) {
       if (ps_root_drag_widget(widget,WIDGET->track_click,x,y)<0) return -1;
+
+    } else if (WIDGET->track_click->drag_verbatim) {
+      if (ps_widget_coords_from_screen(&x,&y,WIDGET->track_click,x,y)<0) return -1;
+      if (ps_widget_mousemotion(WIDGET->track_click,x,y)<0) return -1;
+
     } else if (ps_widget_contains_screen_point(WIDGET->track_click,x,y)) {
       if (WIDGET->track_click!=WIDGET->track_hover) {
         if (ps_root_set_track_hover(widget,WIDGET->track_click)<0) return -1;
         if (ps_widget_mouseenter(WIDGET->track_click)<0) return -1;
       }
+
     } else {
       if (WIDGET->track_hover) {
         if (ps_widget_mouseexit(WIDGET->track_hover)<0) return -1;
@@ -191,14 +199,19 @@ static int _ps_root_mousemotion(struct ps_widget *widget,int x,int y) {
 
 static int _ps_root_mousebutton(struct ps_widget *widget,int btnid,int value) {
 
+  /* Remove stale track_hover and recheck if unset.
+   */
+  if (WIDGET->track_hover&&!ps_widget_is_ancestor(widget,WIDGET->track_hover)) {
+    if (ps_root_set_track_hover(widget,0)<0) return -1;
+  }
+  if (!WIDGET->track_hover) {
+    if (_ps_root_mousemotion(widget,WIDGET->mousex,WIDGET->mousey)<0) return -1;
+  }
+
   /* Any button other than the principal, forward it directly to the hover widget. */
   if (btnid!=1) {
     if (!WIDGET->track_hover) return 0;
-    if (!ps_widget_is_ancestor(widget,WIDGET->track_hover)) {
-      if (ps_root_set_track_hover(widget,0)<0) return -1;
-    } else {
-      if (ps_widget_mousebutton(WIDGET->track_hover,btnid,value)<0) return -1;
-    }
+    if (ps_widget_mousebutton(WIDGET->track_hover,btnid,value)<0) return -1;
     return 0;
   }
 
@@ -234,10 +247,78 @@ static int _ps_root_mousebutton(struct ps_widget *widget,int btnid,int value) {
   return 0;
 }
 
+/* Mouse wheel.
+ * Originally, these were delivered to the hover focus, but that is causing problems.
+ * I think it makes more sense to separate "clickable" and "scrollable" focus.
+ */
+
 static int _ps_root_mousewheel(struct ps_widget *widget,int dx,int dy) {
-  if (WIDGET->track_hover) {
-    if (ps_widget_mousewheel(WIDGET->track_hover,dx,dy)<0) return -1;
+  
+  struct ps_widget *target=ps_root_find_scroll_widget(widget,WIDGET->mousex,WIDGET->mousey);
+  if (!target) return 0;
+
+  if (ps_widget_mousewheel(target,dx,dy)<0) return -1;
+
+  /* Generate a dummy motion event in case the hover widget moved beneath us. */
+  if (_ps_root_mousemotion(widget,WIDGET->mousex,WIDGET->mousey)<0) return -1;
+  
+  return 0;
+}
+
+/* Find a widget under the given one that accepts keyboard focus.
+ */
+
+static struct ps_widget *ps_root_find_keyboard_widget(struct ps_widget *widget) {
+  if (widget->accept_keyboard_focus) return widget;
+  int i=0; for (;i<widget->childc;i++) {
+    struct ps_widget *child=widget->childv[i];
+    struct ps_widget *found=ps_root_find_keyboard_widget(child);
+    if (found) return found;
   }
+  return 0;
+}
+
+/* Advance keyboard focus.
+ * TODO: This only works if all keyboard focus widgets are peers.
+ */
+
+static struct ps_widget *ps_root_advance_keyboard_focus_1(struct ps_widget *widget,const struct ps_widget *find_first) {
+  if (widget->accept_keyboard_focus) {
+    if (find_first) return 0;
+    return widget;
+  }
+  int i=0; for (;i<widget->childc;i++) {
+    struct ps_widget *child=widget->childv[i];
+    if (child==find_first) {
+      find_first=0;
+    } else {
+      struct ps_widget *found=ps_root_advance_keyboard_focus_1(child,find_first);
+      if (found) return found;
+    }
+  }
+  return 0;
+}
+
+static int ps_root_advance_keyboard_focus(struct ps_widget *widget) {
+  struct ps_widget *active=ps_root_get_active_child(widget);
+  if (!active) return 0;
+
+  struct ps_widget *nfocus=ps_root_advance_keyboard_focus_1(active,WIDGET->track_keyboard);
+  if (!nfocus) {
+    if (WIDGET->track_keyboard) {
+      nfocus=ps_root_advance_keyboard_focus_1(active,0);
+    }
+    if (!nfocus) return 0;
+  }
+
+  if (nfocus==WIDGET->track_keyboard) return 0;
+
+  if (WIDGET->track_keyboard) {
+    if (ps_widget_unfocus(WIDGET->track_keyboard)<0) return -1;
+  }
+  if (ps_root_set_track_keyboard(widget,nfocus)<0) return -1;
+  if (ps_widget_focus(WIDGET->track_keyboard)<0) return -1;
+  
   return 0;
 }
 
@@ -246,7 +327,22 @@ static int _ps_root_mousewheel(struct ps_widget *widget,int dx,int dy) {
 
 static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int value) {
 
-  //TODO Tab key to change keyboard focus.
+  if (codepoint==0x09) {
+    if (value) {
+      if (ps_root_advance_keyboard_focus(widget)<0) return -1;
+    }
+    return 0;
+  }
+
+  if ((codepoint==0x0a)||(codepoint==0x0d)) {
+    if (value) {
+      struct ps_widget *active=ps_root_get_active_child(widget);
+      if (active) {
+        if (ps_widget_activate(active)<0) return -1;
+      }
+    }
+    return 0;
+  }
 
   /* If there is a keyboard focus, give it the event exclusively. */
   if (WIDGET->track_keyboard) {
@@ -387,17 +483,36 @@ static struct ps_widget *ps_root_find_hover_widget(const struct ps_widget *widge
   return ps_root_find_hover_widget_1(active,x,y);
 }
 
-/* Find a widget under the given one that accepts keyboard focus.
+/* Find the scrollable widget under a given point.
  */
 
-static struct ps_widget *ps_root_find_keyboard_widget(struct ps_widget *widget) {
-  if (widget->accept_keyboard_focus) return widget;
-  int i=0; for (;i<widget->childc;i++) {
+static struct ps_widget *ps_root_find_scroll_widget_1(struct ps_widget *widget,int x,int y) {
+
+  /* Adjust coordinates and abort if oob. */
+  x-=widget->x;
+  y-=widget->y;
+  if (x<0) return 0;
+  if (y<0) return 0;
+  if (x>=widget->w) return 0;
+  if (y>=widget->h) return 0;
+
+  /* If any of my children return a result, use it. From end of list to beginning. */
+  int i=widget->childc; while (i-->0) {
     struct ps_widget *child=widget->childv[i];
-    struct ps_widget *found=ps_root_find_keyboard_widget(child);
+    struct ps_widget *found=ps_root_find_scroll_widget_1(child,x,y);
     if (found) return found;
   }
+
+  /* If I accept scroll events, return me. */
+  if (widget->accept_mouse_wheel) return widget;
+
   return 0;
+}
+ 
+static struct ps_widget *ps_root_find_scroll_widget(const struct ps_widget *widget,int x,int y) {
+  struct ps_widget *active=ps_root_get_active_child(widget);
+  if (!active) return 0;
+  return ps_root_find_scroll_widget_1(active,x,y);
 }
 
 /* Double-check keyboard focus.

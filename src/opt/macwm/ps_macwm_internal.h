@@ -28,6 +28,7 @@
   int cursor_visible;
   int w,h;
   int mousex,mousey;
+  int modifiers;
 }
 
 +(PsWindow*)newWithWidth:(int)width 
@@ -60,6 +61,7 @@ void ps_macwm_abort(const char *fmt,...);
 int ps_macwm_decode_utf8(int *dst,const void *src,int srcc);
 int ps_macwm_translate_codepoint(int src);
 int ps_macwm_translate_keysym(int src);
+int ps_macwm_translate_modifier(int src);
 int ps_macwm_translate_mbtn(int src);
 
 int ps_macwm_btnid_repr(char *dst,int dsta,int btnid);

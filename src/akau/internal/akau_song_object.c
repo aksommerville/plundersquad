@@ -177,6 +177,81 @@ static int akau_song_cmdv_require(struct akau_song *song) {
   return 0;
 }
 
+/* Remove any command referencing this object, and shuffle other references down.
+ */
+
+static int akau_song_update_commands_for_removed_drum(struct akau_song *song,int drumid) {
+  uint8_t refv[256]={0}; // nonzero if this drum is in use on a given referenced channel (ie remove any adjustments to it)
+  int cmdp=0;
+  union akau_song_command *cmd=song->cmdv;
+  while (cmdp<song->cmdc) {
+    switch (cmd->op) {
+      case AKAU_SONG_OP_DRUM: {
+          if (cmd->DRUM.drumid==drumid) {
+            refv[cmd->DRUM.ref]=1;
+            song->cmdc--;
+            memmove(cmd,cmd+1,sizeof(union akau_song_command)*(song->cmdc-cmdp));
+            continue;
+          } else if (cmd->DRUM.drumid>drumid) {
+            cmd->DRUM.drumid--;
+          }
+          refv[cmd->DRUM.ref]=0;
+        } break;
+      case AKAU_SONG_OP_NOTE: {
+          refv[cmd->NOTE.ref]=0;
+        } break;
+      case AKAU_SONG_OP_ADJPITCH:
+      case AKAU_SONG_OP_ADJTRIM:
+      case AKAU_SONG_OP_ADJPAN: {
+          if (refv[cmd->ADJ.ref]) {
+            song->cmdc--;
+            memmove(cmd,cmd+1,sizeof(union akau_song_command)*(song->cmdc-cmdp));
+            continue;
+          }
+        } break;
+    }
+    cmd++;
+    cmdp++;
+  }
+  return 0;
+}
+
+static int akau_song_update_commands_for_removed_instrument(struct akau_song *song,int instrid) {
+  uint8_t refv[256]={0}; // nonzero if this instrument is in use on a given referenced channel (ie remove any adjustments to it)
+  int cmdp=0;
+  union akau_song_command *cmd=song->cmdv;
+  while (cmdp<song->cmdc) {
+    switch (cmd->op) {
+      case AKAU_SONG_OP_NOTE: {
+          if (cmd->NOTE.instrid==instrid) {
+            refv[cmd->NOTE.ref]=1;
+            song->cmdc--;
+            memmove(cmd,cmd+1,sizeof(union akau_song_command)*(song->cmdc-cmdp));
+            continue;
+          } else if (cmd->NOTE.instrid>instrid) {
+            cmd->NOTE.instrid--;
+          }
+          refv[cmd->NOTE.ref]=0;
+        } break;
+      case AKAU_SONG_OP_DRUM: {
+          refv[cmd->DRUM.ref]=0;
+        } break;
+      case AKAU_SONG_OP_ADJPITCH:
+      case AKAU_SONG_OP_ADJTRIM:
+      case AKAU_SONG_OP_ADJPAN: {
+          if (refv[cmd->ADJ.ref]) {
+            song->cmdc--;
+            memmove(cmd,cmd+1,sizeof(union akau_song_command)*(song->cmdc-cmdp));
+            continue;
+          }
+        } break;
+    }
+    cmd++;
+    cmdp++;
+  }
+  return 0;
+}
+
 /* Drum list.
  */
 
@@ -229,6 +304,18 @@ int akau_song_remove_drum(struct akau_song *song,int drumid) {
   akau_song_drum_cleanup(drum);
   song->drumc--;
   memmove(drum,drum+1,sizeof(struct akau_song_drum)*(song->drumc-drumid));
+  if (akau_song_update_commands_for_removed_drum(song,drumid)<0) return -1;
+  return 0;
+}
+
+int akau_song_drum_in_use(const struct akau_song *song,int drumid) {
+  if (!song) return 0;
+  const union akau_song_command *cmd=song->cmdv;
+  int i=song->cmdc; for (;i-->0;cmd++) {
+    if (cmd->op==AKAU_SONG_OP_DRUM) {
+      if (cmd->DRUM.drumid==drumid) return 1;
+    }
+  }
   return 0;
 }
 
@@ -258,10 +345,19 @@ int akau_song_set_instrument(struct akau_song *song,int instrid,const void *src,
   if (song->lock) return -1;
   if ((instrid<0)||(instrid>=song->instrc)) return -1;
   struct akau_song_instrument *instr=song->instrv+instrid;
+  
   struct akau_instrument *instrument=akau_instrument_decode_binary(src,srcc);
   if (!instrument) return -1;
   akau_instrument_del(instr->instrument);
   instr->instrument=instrument;
+
+  void *nv=malloc(srcc);
+  if (!nv) return -1;
+  memcpy(nv,src,srcc);
+  if (instr->serial) free(instr->serial);
+  instr->serial=nv;
+  instr->serialc=srcc;
+  
   return 0;
 }
 
@@ -290,6 +386,18 @@ int akau_song_remove_instrument(struct akau_song *song,int instrid) {
   akau_song_instrument_cleanup(instr);
   song->instrc--;
   memmove(instr,instr+1,sizeof(struct akau_song_instrument)*(song->instrc-instrid));
+  if (akau_song_update_commands_for_removed_instrument(song,instrid)<0) return -1;
+  return 0;
+}
+
+int akau_song_instrument_in_use(const struct akau_song *song,int instrid) {
+  if (!song) return 0;
+  const union akau_song_command *cmd=song->cmdv;
+  int i=song->cmdc; for (;i-->0;cmd++) {
+    if (cmd->op==AKAU_SONG_OP_NOTE) {
+      if (cmd->NOTE.instrid==instrid) return 1;
+    }
+  }
   return 0;
 }
 
@@ -395,6 +503,53 @@ int akau_song_cmdp_retreat(const struct akau_song *song,int cmdp) {
   return cmdp;
 }
 
+int akau_song_count_beats(const struct akau_song *song) {
+  if (!song) return 0;
+  int c=0,i=song->cmdc;
+  const union akau_song_command *cmd=song->cmdv;
+  for (;i-->0;cmd++) {
+    if (cmd->op==AKAU_SONG_OP_BEAT) c++;
+  }
+  return c;
+}
+
+/* Adjust length.
+ */
+
+static int akau_song_reduce_length(struct akau_song *song,int rmbeatc) {
+  while (1) {
+    if (song->cmdc<1) return -1;
+    song->cmdc--;
+    if (song->cmdv[song->cmdc].op==AKAU_SONG_OP_BEAT) {
+      rmbeatc--;
+      while ((song->cmdc>0)&&(song->cmdv[song->cmdc-1].op!=AKAU_SONG_OP_BEAT)) song->cmdc--;
+      if (!rmbeatc) return 0;
+    }
+  }
+}
+
+static int akau_song_increase_length(struct akau_song *song,int addbeatc) {
+  const union akau_song_command command={
+    .op=AKAU_SONG_OP_BEAT,
+  };
+  while (addbeatc-->0) {
+    if (akau_song_insert_command(song,-1,&command)<0) return -1;
+  }
+  return 0;
+}
+ 
+int akau_song_adjust_length(struct akau_song *song,int nbeatc) {
+  if (!song) return -1;
+  if (nbeatc<1) return -1;
+  int obeatc=akau_song_count_beats(song);
+  if (nbeatc<obeatc) {
+    if (akau_song_reduce_length(song,obeatc-nbeatc)<0) return -1;
+  } else if (nbeatc>obeatc) {
+    if (akau_song_increase_length(song,nbeatc-obeatc)<0) return -1;
+  }
+  return 0;
+}
+
 /* Link.
  */
  
@@ -409,5 +564,26 @@ int akau_song_link(struct akau_song *song,struct akau_store *store) {
       return -1;
     }
   }
+  return 0;
+}
+
+/* Sync callback.
+ */
+ 
+int akau_song_set_sync_callback(struct akau_song *song,int (*cb_sync)(struct akau_song *song,int beatp,void *userdata),void *userdata) {
+  if (!song) return -1;
+  song->cb_sync=cb_sync;
+  song->userdata=userdata;
+  return 0;
+}
+
+void *akau_song_get_userdata(const struct akau_song *song) {
+  if (!song) return 0;
+  return song->userdata;
+}
+
+int akau_song_restart(struct akau_song *song) {
+  if (!song) return -1;
+  song->beatp=0;
   return 0;
 }

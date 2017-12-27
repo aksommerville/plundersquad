@@ -586,6 +586,10 @@ int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int res
 
   /* Retain, lock, and install the new song. */
   if (akau_song_ref(song)<0) return -1;
+  if (akau_song_restart(song)<0) {
+    akau_song_del(song);
+    return -1;
+  }
   if (akau_song_lock(song)<0) {
     akau_song_del(song);
     return -1;

@@ -266,7 +266,7 @@ int ps_gui_load_page_setup(struct ps_gui *gui) {
 
 int ps_gui_load_page_pause(struct ps_gui *gui) {
   if (!gui) return -1;
-  struct ps_widget *page=ps_widget_spawn(gui->root,&ps_widget_type_blotter);//pausepage);
+  struct ps_widget *page=ps_widget_spawn(gui->root,&ps_widget_type_pausepage);
   if (!page) return -1;
   if (ps_widget_pack(gui->root)<0) return -1;
   return 0;
@@ -274,8 +274,9 @@ int ps_gui_load_page_pause(struct ps_gui *gui) {
 
 int ps_gui_load_page_gameover(struct ps_gui *gui) {
   if (!gui) return -1;
-  struct ps_widget *page=ps_widget_spawn(gui->root,&ps_widget_type_blotter);//&ps_widget_type_gameoverpage);
+  struct ps_widget *page=ps_widget_spawn(gui->root,&ps_widget_type_gameoverpage);
   if (!page) return -1;
+  if (ps_widget_gameoverpage_setup(page,gui->game)<0) return -1;
   if (ps_widget_pack(gui->root)<0) return -1;
   return 0;
 }

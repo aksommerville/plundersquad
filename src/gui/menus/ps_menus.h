@@ -5,13 +5,17 @@
 #define PS_MENUS_H
 
 struct ps_input_device;
+struct ps_game;
 
 extern const struct ps_widget_type ps_widget_type_assemblepage; /* First screen, click in and choose a hero. */
 extern const struct ps_widget_type ps_widget_type_setuppage; /* Second screen, configure scenario generator. */
+extern const struct ps_widget_type ps_widget_type_pausepage; /* Popup menu during game play. */
+extern const struct ps_widget_type ps_widget_type_gameoverpage; /* Post-game report and menu. */
 
 extern const struct ps_widget_type ps_widget_type_heropacker; /* Principal component of assemblepage. */
 extern const struct ps_widget_type ps_widget_type_heroselect; /* Single player box in assemblepage. */
 extern const struct ps_widget_type ps_widget_type_sprite; /* General-purpose sprite view. */
+extern const struct ps_widget_type ps_widget_type_report; /* Game-over report. */
 
 /* Assemblepage.
  *****************************************************************************/
@@ -38,5 +42,11 @@ int ps_widget_sprite_get_palette(const struct ps_widget *widget);
  */
 int ps_widget_sprite_modify_plrdefid(struct ps_widget *widget,int d);
 int ps_widget_sprite_modify_palette(struct ps_widget *widget,int d);
+
+/* Gameoverpage.
+ *****************************************************************************/
+
+int ps_widget_gameoverpage_setup(struct ps_widget *widget,const struct ps_game *game);
+int ps_widget_report_generate(struct ps_widget *widget,const struct ps_game *game);
 
 #endif

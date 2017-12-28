@@ -63,12 +63,12 @@ static int _ps_menu_pack(struct ps_widget *widget) {
   if (widget->childc!=2) return -1;
   
   struct ps_widget *packer=widget->childv[1];
-  packer->x=widget->x;
-  packer->y=widget->y;
+  packer->x=0;
+  packer->y=0;
   packer->w=widget->w;
   packer->h=widget->h;
 
-  if (ps_widget_pack(widget->childv[1])<0) return -1;
+  if (ps_widget_pack(packer)<0) return -1;
   if (ps_menu_set_thumb_position(widget,0)<0) return -1;
   return 0;
 }
@@ -267,8 +267,14 @@ int ps_widget_menu_activate(struct ps_widget *widget) {
   struct ps_widget *packer=widget->childv[1];
   if ((WIDGET->optionp<0)||(WIDGET->optionp>=packer->childc)) return 0;
   struct ps_widget *selection=packer->childv[WIDGET->optionp];
-  if (ps_callback_call(&WIDGET->cb,widget)<0) return -1;
-  return ps_widget_activate(selection);
+
+  // Callback or activate, not both.
+  if (WIDGET->cb.fn) {
+    if (ps_callback_call(&WIDGET->cb,widget)<0) return -1;
+  } else {
+    if (ps_widget_activate(selection)<0) return -1;
+  }
+  return 0;
 }
 
 /* Add menu item.

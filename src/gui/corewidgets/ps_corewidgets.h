@@ -17,6 +17,7 @@ extern const struct ps_widget_type ps_widget_type_button; /* Clickable button. *
 extern const struct ps_widget_type ps_widget_type_toggle; /* State-preserving button. */
 extern const struct ps_widget_type ps_widget_type_field; /* Single line text entry. */
 extern const struct ps_widget_type ps_widget_type_textblock; /* Multi-line static text. */
+extern const struct ps_widget_type ps_widget_type_slider; /* Horizontal slider with text label, for integer input. */
 
 extern const struct ps_widget_type ps_widget_type_packer; /* Lines children up in a row or column. */
 extern const struct ps_widget_type ps_widget_type_menu; /* List of selectable options. */
@@ -201,5 +202,14 @@ int ps_widget_scrollbar_set_visible_size(struct ps_widget *widget,int visible_si
 int ps_widget_scrollbar_get_visible_size(const struct ps_widget *widget);
 
 int ps_widget_scrollbar_adjust(struct ps_widget *widget,int d); // Triggers callback.
+
+/* Slider.
+ *****************************************************************************/
+
+int ps_widget_slider_set_text(struct ps_widget *widget,const char *src,int srcc);
+int ps_widget_slider_set_limits(struct ps_widget *widget,int lo,int hi);
+int ps_widget_slider_set_value(struct ps_widget *widget,int v);
+int ps_widget_slider_get_value(const struct ps_widget *widget);
+int ps_widget_slider_set_variable_color(struct ps_widget *widget,uint32_t locolor,uint32_t hicolor);
 
 #endif

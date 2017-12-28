@@ -226,3 +226,18 @@ int ps_input_reassign_devices() {
   ps_input_reassign_devices_cleanup(&ctx);
   return -1;
 }
+
+/* Manual assignment for a single device.
+ * The wild dynamic reassignment that you see above, I think we don't need that anymore.
+ * Initial player configuration happens at the device level, before assignment.
+ * When player selection is committed to the game, we have very conveniently each player and his device.
+ */
+ 
+int ps_input_force_device_assignment(struct ps_input_device *device,int playerid) {
+  if (!device) return -1;
+  if (!device->map) return -1;
+  if ((playerid<0)||(playerid>PS_PLAYER_LIMIT)) playerid=0;
+  device->map->plrid=playerid;
+  memset(ps_input.plrbtnv,0,sizeof(ps_input.plrbtnv));
+  return 0;
+}

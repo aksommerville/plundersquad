@@ -260,7 +260,9 @@ static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
 static int _ps_hero_update(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Receive input. */
-  if (SPR->player) {
+  if (SPR->ignore_input>0) {
+    // pass
+  } else if (SPR->player) {
     if (ps_hero_rcvinput(spr,ps_get_player_buttons(SPR->player->playerid),game)<0) return -1;
   } else {
     if (ps_hero_rcvinput(spr,0,game)<0) return -1;
@@ -283,6 +285,16 @@ static int _ps_hero_update(struct ps_sprite *spr,struct ps_game *game) {
   /* Take actions based on grid cell. */
   if (ps_hero_check_grid(spr,game)<0) return -1;
 
+  return 0;
+}
+
+/* Accept fake input.
+ */
+ 
+int ps_hero_accept_fake_input(struct ps_sprite *spr,uint16_t input,struct ps_game *game) {
+  if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
+  if (ps_hero_rcvinput(spr,input,game)<0) return -1;
+  SPR->ignore_input=1;
   return 0;
 }
 

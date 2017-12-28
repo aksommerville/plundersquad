@@ -64,18 +64,18 @@ int ps_input_event_disconnect(struct ps_input_device *device) {
 
   ps_log(INPUT,INFO,"Disconnecting input device '%.*s'.",device->namec,device->name);
 
-  if (device->map) {
-    ps_input_map_del(device->map);
-    device->map=0;
-    ps_input.mapped_devices_changed=1;
-  }
-
   /* Call watchers. */
   int i=0; for (;i<ps_input.watchc;i++) {
     struct ps_input_watch *watch=ps_input.watchv+i;
     if (!watch->cb_disconnect) continue;
     int err=watch->cb_disconnect(device,watch->userdata);
     if (err<0) return err;
+  }
+
+  if (device->map) {
+    ps_input_map_del(device->map);
+    device->map=0;
+    ps_input.mapped_devices_changed=1;
   }
   
   return 0;

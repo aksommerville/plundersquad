@@ -59,6 +59,7 @@ struct ps_sprite_seamonster {
   struct ps_tentacle tentaclev[PS_SEAMONSTER_TENTACLE_LIMIT];
   int tentaclec;
   int holec; // Count of HOLE tiles in grid; refresh if zero.
+  int first_update; // To prevent DIVE sound from all sea monsters at screen start.
 };
 
 #define SPR ((struct ps_sprite_seamonster*)spr)
@@ -75,6 +76,7 @@ static void _ps_seamonster_del(struct ps_sprite *spr) {
 static int _ps_seamonster_init(struct ps_sprite *spr) {
 
   SPR->phase=PS_SEAMONSTER_PHASE_RESET;
+  SPR->first_update=1;
   
   return 0;
 }
@@ -363,7 +365,9 @@ static int ps_seamonster_shoot_fireball(struct ps_sprite *spr,struct ps_game *ga
  */
 
 static int ps_seamonster_begin_swim(struct ps_sprite *spr,struct ps_game *game) {
-  PS_SFX_SEAMONSTER_DIVE
+  if (!SPR->first_update) {
+    PS_SFX_SEAMONSTER_DIVE
+  }
   SPR->phase=PS_SEAMONSTER_PHASE_SWIM;
   SPR->phasetimer=PS_SEAMONSTER_SWIM_TIME_MAX;
   SPR->tentaclec=0;
@@ -449,6 +453,7 @@ static int _ps_seamonster_update(struct ps_sprite *spr,struct ps_game *game) {
     case PS_SEAMONSTER_PHASE_FIRE: break;
     case PS_SEAMONSTER_PHASE_POSTFIRE: break;
   }
+  SPR->first_update=0;
   return 0;
 }
 

@@ -113,6 +113,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
     }
   #endif
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
+  if (ps_input_update()<0) return -1; // Reassigns input devices and gets the core running.
 
   if (ps_resmgr_init("src/data",0)<0) return -1; //TODO resource path
 

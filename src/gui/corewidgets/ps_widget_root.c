@@ -363,9 +363,9 @@ static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int v
  */
 
 static int _ps_root_userinput(struct ps_widget *widget,int plrid,int btnid,int value) {
-  //TODO GUI "userinput" is delivered dumbly to the topmost layer. Should we have some concept of "focus" for joysticks?
-  if (widget->childc<1) return 0;
-  return ps_widget_userinput(widget->childv[widget->childc-1],plrid,btnid,value);
+  struct ps_widget *active=ps_root_get_active_child(widget);
+  if (!active) return 0;
+  return ps_widget_userinput(active,plrid,btnid,value);
 }
 
 /* Digested input events.

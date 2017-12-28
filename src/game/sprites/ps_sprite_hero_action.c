@@ -297,7 +297,7 @@ static int ps_hero_frog(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_action_begin_1(struct ps_sprite *spr,struct ps_game *game,int action) {
 
   //XXX TEMP: If we're dead, press the buton to heal.
-  if (1) {
+  if (0) {
     if (!SPR->hp) {
       return ps_hero_heal(spr,game);
     }

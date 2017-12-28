@@ -117,7 +117,7 @@ void ps_game_del(struct ps_game *game) {
   free(game);
 }
 
-/* Configure player list.
+/* Set player count.
  */
  
 int ps_game_set_player_count(struct ps_game *game,int playerc) {
@@ -139,6 +139,35 @@ int ps_game_set_player_count(struct ps_game *game,int playerc) {
 
   return 0;
 }
+
+/* Configure player.
+ */
+ 
+int ps_game_configure_player(struct ps_game *game,int playerid,int plrdefid,int palette,struct ps_input_device *device) {
+  if (!game) return -1;
+  if ((playerid<1)||(playerid>game->playerc)) return -1;
+  struct ps_player *player=game->playerv[playerid-1];
+  player->playerid=playerid;
+
+  if (!(player->plrdef=ps_res_get(PS_RESTYPE_PLRDEF,plrdefid))) {
+    ps_log(GAME,ERROR,"plrdef:%d not found",plrdefid);
+    return -1;
+  }
+
+  if (player->plrdef->palettec<1) {
+    ps_log(GAME,ERROR,"Invalid plrdef, id %d",plrdefid);
+    return -1;
+  }
+  if ((palette<0)||(palette>=player->plrdef->palettec)) palette=0;
+  player->palette=palette;
+
+  if (ps_input_force_device_assignment(device,playerid)<0) return -1;
+  
+  return 0;
+}
+
+/* XXX Old, unused (?) player configuration.
+ */
 
 int ps_game_eliminate_player(struct ps_game *game,int playerid) {
   if (!game) return -1;

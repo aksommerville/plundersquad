@@ -12,6 +12,7 @@ struct ps_player;
 struct ps_grid;
 struct ps_video_layer;
 struct ps_physics;
+struct ps_input_device;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -62,13 +63,17 @@ void ps_game_del(struct ps_game *game);
  * Finally, ps_game_generate() to commit config and generate the scenario.
  */
 int ps_game_set_player_count(struct ps_game *game,int playerc);
+int ps_game_configure_player(struct ps_game *game,int playerid,int plrdefid,int palette,struct ps_input_device *device);
+int ps_game_set_difficulty(struct ps_game *game,int difficulty);
+int ps_game_set_length(struct ps_game *game,int length);
+int ps_game_generate(struct ps_game *game);
+
+/* XXX These functions were used by earlier setup UI, but probably not needed anymore.
+ */
 int ps_game_eliminate_player(struct ps_game *game,int playerid); // Removes a player and drops the playerid of any above it; IDs must be contiguous
 int ps_game_set_player_definition(struct ps_game *game,int playerid,int plrdefid);
 int ps_game_adjust_player_definition(struct ps_game *game,int playerid,int d);
 int ps_game_adjust_player_palette(struct ps_game *game,int playerid,int d);
-int ps_game_set_difficulty(struct ps_game *game,int difficulty);
-int ps_game_set_length(struct ps_game *game,int length);
-int ps_game_generate(struct ps_game *game);
 
 /* For a test scenario, follow the same process but use this instead of ps_game_generate().
  * We will generate a scenario with one explicit region and only the blueprint IDs you provide.

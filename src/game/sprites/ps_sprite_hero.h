@@ -20,6 +20,7 @@ struct ps_sprite_hero {
   struct ps_player *player;
   uint16_t input;
   int input_ready; // Zero until the incoming buttons all go zero -- prevent unintended keystrokes on init.
+  int ignore_input;
   int reexamine_dpad; // Set during input processing to force dpad state to zero, to reexamine next time.
   int indx,indy; // Requested movement, ie joystick position. (-1,0,1)
   int facedir; // PS_DIRECTION_*, which direction to render
@@ -54,6 +55,12 @@ int ps_hero_get_principal_action(const struct ps_sprite *spr);
 int ps_hero_get_auxiliary_action(const struct ps_sprite *spr);
 
 int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game);
+
+/* Heroes by default accept input from the core.
+ * Calling this sends explicit input state, and also permanently disables reading from the input core.
+ * assemblepage uses this.
+ */
+int ps_hero_accept_fake_input(struct ps_sprite *spr,uint16_t input,struct ps_game *game);
 
 /* Actions mostly correspond to skills. */
 #define PS_HERO_ACTION_NONE         0

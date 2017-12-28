@@ -205,3 +205,18 @@ LISTACCESSORS(instrument)
 LISTACCESSORS(song)
 
 #undef LISTACCESSORS
+
+/* Relink all songs.
+ */
+ 
+int akau_store_relink_songs(struct akau_store *store) {
+  if (!store) return -1;
+  struct akau_store_resource *res=store->songs.v;
+  int i=store->songs.c;
+  for (;i-->0;res++) {
+    struct akau_song *song=res->obj;
+    if (akau_song_unlink(song)<0) return -1;
+    if (akau_song_link(song,store)<0) return -1;
+  }
+  return 0;
+}

@@ -136,8 +136,10 @@ int akau_song_decode(struct akau_song *song,const void *src,int srcc);
 
 /* Resolve references to IPCM objects.
  * Linkage must be complete before we permit locking (ie playback).
+ * Regular link will ignore resources already acquired; unlink first to ensure a fresh load.
  */
 int akau_song_link(struct akau_song *song,struct akau_store *store);
+int akau_song_unlink(struct akau_song *song);
 
 /* Play commands beginning at (cmdp) through the next BEAT, into the given mixer.
  * We call the mixer to set its next delay and position.

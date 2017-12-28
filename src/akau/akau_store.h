@@ -46,6 +46,12 @@ int akau_store_replace_fpcm(struct akau_store *store,struct akau_fpcm *fpcm,int 
 int akau_store_replace_instrument(struct akau_store *store,struct akau_instrument *instrument,int instrumentid);
 int akau_store_replace_song(struct akau_store *store,struct akau_song *song,int songid);
 
+/* Songs contain references to IPCM resources.
+ * Those resources are acquired during a link phase, and retained.
+ * If you replace an IPCM, it is wise to relink all songs, otherwise they might still have the old one.
+ */
+int akau_store_relink_songs(struct akau_store *store);
+
 /* Get resources sequentially.
  */
  

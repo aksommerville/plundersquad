@@ -224,6 +224,7 @@ static int ps_editsoundeffect_cb_save(struct ps_widget *button,struct ps_widget 
   akau_ipcm_del(WIDGET->ipcm);
   WIDGET->ipcm=nipcm;
   if (akau_store_replace_ipcm(store,WIDGET->ipcm,WIDGET->resid)<0) return -1;
+  if (akau_store_relink_songs(store)<0) return -1;
 
   WIDGET->iwg->dirty=0;
   ps_log(EDIT,DEBUG,"Saved %d bytes to %s",serialc,path);

@@ -567,6 +567,17 @@ int akau_song_link(struct akau_song *song,struct akau_store *store) {
   return 0;
 }
 
+int akau_song_unlink(struct akau_song *song) {
+  if (!song) return -1;
+  if (song->lock) return -1;
+  struct akau_song_drum *drum=song->drumv;
+  int i=song->drumc; for (;i-->0;drum++) {
+    akau_ipcm_del(drum->ipcm);
+    drum->ipcm=0;
+  }
+  return 0;
+}
+
 /* Sync callback.
  */
  

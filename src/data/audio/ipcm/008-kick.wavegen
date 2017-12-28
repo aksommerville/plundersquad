@@ -1,27 +1,19 @@
 channel square
 channel sine
-channel noise
-
-0000 0 step  100.0
-0000 0 trim    0.0
-0000 1 step   80.0
-0000 1 trim    0.0
-0000 2 step    1.0
-0000 2 trim    0.0
-
-0005 0 step   90.0
-0005 0 trim    0.7
-0005 1 step   75.0
-0005 1 trim    0.6
-0005 2 trim    0.1
-
-0090 0 step   60.0
-0090 0 trim    0.3
-0100 2 trim    0.0
-0150 1 step   70.0
-0150 1 trim    0.2
-
-0200 0 step   30.0
-0200 0 trim    0.0
-0200 1 step   60.0
-0200 1 trim    0.0
+0 0 step 172.000000
+0 0 trim 0.000000
+0 1 step 80.000000
+0 1 trim 0.000000
+5 0 step 90.000000
+5 0 trim 0.700000
+6 1 step 296.000000
+6 1 trim 0.260000
+30 0 trim 0.180000
+38 1 step 152.000000
+59 1 trim 0.180000
+101 0 step 24.000000
+150 1 step 70.000000
+200 0 step 30.000000
+200 0 trim 0.000000
+200 1 step 60.000000
+200 1 trim 0.000000

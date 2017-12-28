@@ -156,6 +156,7 @@ static int ps_songchart_draw_background(struct ps_widget *widget,int parentx,int
   /* Draw transparent columns for the beats. */
   int play_beatp=ps_widget_editsong_get_current_beat(widget);
   int beatp=ps_widget_scrollbar_get_value(horzbar);
+  int beatp0=beatp;
   int x=0;
   while (x<widget->w) {
     if (beatp==play_beatp) {
@@ -165,6 +166,13 @@ static int ps_songchart_draw_background(struct ps_widget *widget,int parentx,int
     }
     x+=PS_SONGCHART_BEAT_WIDTH;
     beatp++;
+  }
+
+  /* Draw a skinny line every 8 beats. */
+  for (x=0,beatp=beatp0;x<widget->w;x+=PS_SONGCHART_BEAT_WIDTH,beatp++) {
+    if (!(beatp&7)) {
+      if (ps_video_draw_rect(parentx+x,parenty,1,widget->h,0x00000080)<0) return -1;
+    }
   }
 
   return 0;
@@ -561,6 +569,41 @@ static int ps_songchart_get_first_visible_voice(const uint8_t *bits) {
   return -1;
 }
 
+/* Play one note as a helper while adding things.
+ */
+
+static int ps_songchart_play_drum(struct ps_widget *widget,uint8_t drumid,uint8_t trim,int8_t pan) {
+  struct akau_song *song=ps_widget_editsong_get_song(widget);
+  struct akau_ipcm *ipcm=akau_song_get_drum(song,drumid);
+  if (akau_mixer_play_ipcm(akau_get_mixer(),ipcm,trim,pan,0)<0) {
+  }
+  return 0;
+}
+
+static int ps_songchart_play_instrument(struct ps_widget *widget,uint8_t instrid,uint8_t pitch,uint8_t trim,int8_t pan) {
+  struct akau_song *song=ps_widget_editsong_get_song(widget);
+  struct akau_instrument *instrument=akau_song_get_instrument(song,instrid);
+  int duration=22050;
+  if (akau_mixer_play_note(akau_get_mixer(),instrument,pitch,trim,pan,duration)<0) {
+  }
+  return 0;
+}
+
+static int ps_songchart_play_event(struct ps_widget *widget,int beatp,int eventp) {
+  const struct ps_sem *sem=ps_widget_editsong_get_sem(widget);
+  if (!sem) return -1;
+  if ((beatp<0)||(beatp>=sem->beatc)) return -1;
+  const struct ps_sem_beat *beat=sem->beatv+beatp;
+  if ((eventp<0)||(eventp>=beat->eventc)) return -1;
+  const struct ps_sem_event *event=beat->eventv+eventp;
+  if (event->noteid) {
+    if (ps_songchart_play_instrument(widget,event->objid,event->pitch,event->trim,event->pan)<0) return -1;
+  } else {
+    if (ps_songchart_play_drum(widget,event->objid,event->trim,event->pan)<0) return -1;
+  }
+  return 0;
+}
+
 /* Create new event.
  */
 
@@ -575,6 +618,7 @@ static int ps_songchart_create_event(struct ps_widget *widget,int beatp,int pitc
     uint8_t trim=0x60;
     int8_t pan=0;
     if (ps_sem_add_drum(sem,beatp,drumid,trim,pan)<0) return -1;
+    if (ps_songchart_play_drum(widget,drumid,trim,pan)<0) return -1;
 
   } else {
     int instrid=ps_songchart_get_first_visible_voice(WIDGET->instrument_visibility);
@@ -582,6 +626,7 @@ static int ps_songchart_create_event(struct ps_widget *widget,int beatp,int pitc
     uint8_t trim=0x60;
     int8_t pan=0;
     if (ps_sem_add_note(sem,beatp,instrid,pitch,trim,pan)<0) return -1;
+    if (ps_songchart_play_instrument(widget,instrid,pitch,trim,pan)<0) return -1;
 
   }
   return 0;
@@ -610,6 +655,7 @@ static int _ps_songchart_mousemotion(struct ps_widget *widget,int x,int y) {
       if (npitch!=WIDGET->dragpitch) {
         ps_sem_adjust_event_pitch(sem,WIDGET->dragbeatp,WIDGET->drageventp,npitch);
         WIDGET->dragpitch=npitch;
+        if (ps_songchart_play_event(widget,WIDGET->dragbeatp,WIDGET->drageventp)<0) return -1;
       }
     }
   }

@@ -119,7 +119,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
     if (akau_load_resources("src/data/audio")<0) return -1; //TODO resource path
-    //if (akau_play_song(2,1)<0) return -1;//TODO decide where to change the song. can set here and it plays forever, which gets annoying
+    if (akau_play_song(4,1)<0) return -1;//TODO decide where to change the song. can set here and it plays forever, which gets annoying
   #endif
 
   if (!(ps_game=ps_game_new())) return -1;
@@ -130,7 +130,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
+  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

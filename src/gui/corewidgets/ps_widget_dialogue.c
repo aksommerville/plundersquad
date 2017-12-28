@@ -14,6 +14,8 @@
 #include "video/ps_video.h"
 #include "akgl/akgl.h"
 
+static struct ps_widget *ps_dialogue_get_buttonpacker(const struct ps_widget *widget);
+
 /* Object definition.
  */
 
@@ -162,8 +164,11 @@ static int _ps_dialogue_mouseexit(struct ps_widget *widget) {
 }
 
 static int _ps_dialogue_activate(struct ps_widget *widget) {
-  ps_log(GUI,INFO,"TODO: %s",__func__);
-  return 0;
+  struct ps_widget *buttonpacker=ps_dialogue_get_buttonpacker(widget);
+  if (!buttonpacker) return 0;
+  if (buttonpacker->childc<1) return 0;
+  struct ps_widget *button=buttonpacker->childv[buttonpacker->childc-1];
+  return ps_widget_activate(button);
 }
 
 static int _ps_dialogue_cancel(struct ps_widget *widget) {

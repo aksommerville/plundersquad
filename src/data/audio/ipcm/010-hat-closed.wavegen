@@ -1,7 +1,6 @@
 channel noise
-
-0000 0 step 1.0
-0000 0 trim 0.0
-0005 0 trim 0.4
-0020 0 trim 0.1
-0040 0 trim 0.0
+0 0 step 1.000000
+0 0 trim 0.000000
+4 0 trim 0.240000
+8 0 trim 0.080000
+40 0 trim 0.000000

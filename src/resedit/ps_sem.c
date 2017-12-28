@@ -42,6 +42,31 @@ int ps_sem_ref(struct ps_sem *sem) {
   return 0;
 }
 
+/* "start" vs "end" operations.
+ */
+
+static int ps_sem_op_is_start(uint8_t op) {
+  switch (op) {
+    case AKAU_SONG_OP_NOTE:
+    case AKAU_SONG_OP_ADJPITCH:
+    case AKAU_SONG_OP_ADJTRIM:
+    case AKAU_SONG_OP_ADJPAN:
+      return 1;
+  }
+  return 0;
+}
+
+static int ps_sem_op_is_end(uint8_t op) {
+  switch (op) {
+    case PS_SEM_OP_NOTEEND:
+    case PS_SEM_OP_ADJPITCHEND:
+    case PS_SEM_OP_ADJTRIMEND:
+    case PS_SEM_OP_ADJPANEND:
+      return 1;
+  }
+  return 0;
+}
+
 /* Beat list.
  */
 
@@ -172,14 +197,13 @@ int ps_sem_add_drum(struct ps_sem *sem,int beatp,uint8_t drumid,uint8_t trim,int
 /* Change pitch.
  */
 
-static int ps_sem_adjust_chain_pitch(struct ps_sem *sem,int beatp,int eventp,int pitch,int beatd) {
+static int ps_sem_adjust_chain_pitch(struct ps_sem *sem,int beatp,int noteid,int pitch,int beatd) {
 
   /* When (beatd<0) and we find ADJPITCH, modify only the END events, and terminate.
    * When (beatd>0) and we find ADJPITCHEND, modify only the START events, and terminate.
    * Otherwise, modify everything on this beat and advance to the next one.
+   * But on top of all that: Don't stop at the initial event.
    */
-
-  int noteid=sem->beatv[beatp].eventv[eventp].noteid;
 
   while ((beatp>=0)&&(beatp<sem->beatc)) {
     struct ps_sem_beat *beat=sem->beatv+beatp;
@@ -261,14 +285,17 @@ int ps_sem_adjust_event_pitch(struct ps_sem *sem,int beatp,int eventp,int pitch)
     case AKAU_SONG_OP_NOTE:
     case AKAU_SONG_OP_ADJPITCH:
     case AKAU_SONG_OP_ADJTRIM:
-    case AKAU_SONG_OP_ADJPAN:
+    case AKAU_SONG_OP_ADJPAN: {
+        if (ps_sem_adjust_chain_pitch(sem,beatp-1,event->noteid,pitch,-1)<0) return -1;
+        if (ps_sem_adjust_chain_pitch(sem,beatp,event->noteid,pitch,1)<0) return -1;
+      } break;
+    
     case PS_SEM_OP_NOTEEND:
     case PS_SEM_OP_ADJPITCHEND:
     case PS_SEM_OP_ADJTRIMEND:
     case PS_SEM_OP_ADJPANEND: {
-        event->pitch=pitch;
-        if (ps_sem_adjust_chain_pitch(sem,beatp,eventp,pitch,-1)<0) return -1;
-        if (ps_sem_adjust_chain_pitch(sem,beatp,eventp,pitch,1)<0) return -1;
+        if (ps_sem_adjust_chain_pitch(sem,beatp,event->noteid,pitch,-1)<0) return -1;
+        if (ps_sem_adjust_chain_pitch(sem,beatp+1,event->noteid,pitch,1)<0) return -1;
       } break;
 
   }
@@ -560,6 +587,40 @@ static int ps_sem_find_event(int *dstbeatp,int *dsteventp,const struct ps_sem *s
   return -1;
 }
 
+static int ps_sem_find_nearest_event_for_noteid(int *dstbeatp,int *dsteventp,const struct ps_sem *sem,int beatp,int beatd,int noteid) {
+  while ((beatp>=0)&&(beatp<sem->beatc)) {
+    const struct ps_sem_beat *beat=sem->beatv+beatp;
+    const struct ps_sem_event *event=beat->eventv;
+    int okeventp=-1;
+
+    /* Moving down, any END event is good. Moving up, any START event is good.
+     * If it's the wrong orientation, return it only we don't find something good.
+     */
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      if (event->noteid==noteid) {
+        if (
+          ((beatd<0)&&ps_sem_op_is_end(event->op))||
+          ((beatd>0)&&ps_sem_op_is_start(event->op))
+        ) {
+          *dstbeatp=beatp;
+          *dsteventp=eventp;
+          return 0;
+        } else {
+          okeventp=eventp;
+        }
+      }
+    }
+    
+    if (okeventp>=0) {
+      *dstbeatp=beatp;
+      *dsteventp=okeventp;
+      return 0;
+    }
+    beatp+=beatd;
+  }
+  return -1;
+}
+
 /* Locate partner event.
  */
  
@@ -609,6 +670,8 @@ int ps_sem_find_note_next(int *dstbeatp,int *dsteventp,const struct ps_sem *sem,
   if (!event->noteid) return -1;
   if (event->op==PS_SEM_OP_NOTEEND) return -1;
   int noteid=event->noteid;
+
+  #if 0//XXX first attempt -- We can't skip right away to the next beat. Also, we need to be STARTs before ENDs.
   beatp++; beat++;
   while (beatp<sem->beatc) {
     event=beat->eventv;
@@ -621,6 +684,68 @@ int ps_sem_find_note_next(int *dstbeatp,int *dsteventp,const struct ps_sem *sem,
     }
     beatp++;
     beat++;
+  }
+  #endif
+
+  /* If we are looking at a START op, proceed along the beat to the next START if present. */
+  if (ps_sem_op_is_start(event->op)) {
+    int i=eventp+1; for (;i<beat->eventc;i++) {
+      const struct ps_sem_event *ievent=beat->eventv+i;
+      if (ievent->noteid==noteid) {
+        if (ps_sem_op_is_start(ievent->op)) {
+          *dstbeatp=beatp;
+          *dsteventp=i;
+          return 0;
+        }
+      }
+    }
+    /* If there are no more STARTs on this beat, look for ENDs on this beat. eventp could be lower than the initial. */
+    for (i=0;i<beat->eventc;i++) {
+      const struct ps_sem_event *ievent=beat->eventv+i;
+      if (ievent->noteid==noteid) {
+        if (ps_sem_op_is_end(ievent->op)) {
+          *dstbeatp=beatp;
+          *dsteventp=i;
+          return 0;
+        }
+      }
+    }
+
+  /* If we are looking at an END op, proceed along the beat to the next END if present. */
+  } else {
+    int i=eventp+1; for (;i<beat->eventc;i++) {
+      const struct ps_sem_event *ievent=beat->eventv+i;
+      if (ievent->noteid==noteid) {
+        if (ps_sem_op_is_end(ievent->op)) {
+          *dstbeatp=beatp;
+          *dsteventp=i;
+          return 0;
+        }
+      }
+    }
+  }
+
+  /* Proceed to other beats, returning the first START if any is present, or the first anything. */
+  while (1) {
+    if (++beatp>=sem->beatc) return -1;
+    beat++;
+    int end_eventp=-1;
+    int i=0; for (;i<beat->eventc;i++) {
+      const struct ps_sem_event *ievent=beat->eventv+i;
+      if (ievent->noteid==noteid) {
+        if (ps_sem_op_is_start(ievent->op)) {
+          *dstbeatp=beatp;
+          *dsteventp=i;
+          return 0;
+        }
+        if (end_eventp<0) end_eventp=i;
+      }
+    }
+    if (end_eventp>=0) {
+      *dstbeatp=beatp;
+      *dsteventp=end_eventp;
+      return 0;
+    }
   }
   return -1;
 }
@@ -779,7 +904,7 @@ static int ps_sem_write_adjustments(struct akau_song *song,const struct ps_sem_b
           int beatpz,eventpz;
           if (ps_sem_find_partner(&beatpz,&eventpz,sem,beatp,eventp)<0) return -1;
           if (beatpz<beatp) return -1;
-          const struct ps_sem_event *eventz=sem->beatv[beatp].eventv+eventpz;
+          const struct ps_sem_event *eventz=sem->beatv[beatpz].eventv+eventpz;
           uint8_t ref=ps_sem_search_noteid(noteid_by_ref,event->noteid);
           if (!ref) return -1;
           union akau_song_command command={.ADJ={
@@ -832,6 +957,46 @@ int ps_sem_write_song(struct akau_song *song,const struct ps_sem *sem) {
     if (akau_song_insert_command(song,-1,&command)<0) return -1;
   }
   return 0;
+}
+
+/* Write pitch, trim, or pan to all events for a given noteid at or above a given beat.
+ * These are called when we add an adjustment.
+ */
+
+static void ps_sem_set_pitch_for_chain(struct ps_sem *sem,int beatp,int noteid,uint8_t pitch) {
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatp<sem->beatc;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int i=beat->eventc; for (;i-->0;event++) {
+      if (event->noteid==noteid) {
+        event->pitch=pitch;
+      }
+    }
+  }
+}
+
+static void ps_sem_set_trim_for_chain(struct ps_sem *sem,int beatp,int noteid,uint8_t trim) {
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatp<sem->beatc;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int i=beat->eventc; for (;i-->0;event++) {
+      if (event->noteid==noteid) {
+        event->trim=trim;
+      }
+    }
+  }
+}
+
+static void ps_sem_set_pan_for_chain(struct ps_sem *sem,int beatp,int noteid,int8_t pan) {
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatp<sem->beatc;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int i=beat->eventc; for (;i-->0;event++) {
+      if (event->noteid==noteid) {
+        event->pan=pan;
+      }
+    }
+  }
 }
 
 /* Read from song.
@@ -911,7 +1076,7 @@ int ps_sem_read_song(struct ps_sem *sem,const struct akau_song *song) {
         struct ps_sem_event *event;
         
         int srcbeatp,srceventp;
-        if (ps_sem_find_event(&srcbeatp,&srceventp,sem,beatp,-1,AKAU_SONG_OP_NOTE,noteid)<0) break;
+        if (ps_sem_find_nearest_event_for_noteid(&srcbeatp,&srceventp,sem,beatp,-1,noteid)<0) break;
         struct ps_sem_beat *srcbeat=sem->beatv+srcbeatp;
         // Don't take a pointer to srcevent because we might be reallocating it here.
 
@@ -920,14 +1085,26 @@ int ps_sem_read_song(struct ps_sem *sem,const struct akau_song *song) {
           event->op=cmdv[cmdp].op;
           event->noteid=noteid;
 
-        if (!(event=ps_sem_beat_new_event(sem->beatv+beatp))) return -1;
+        /* We already have the NOTEEND op out there, and possibly others.
+         * So apply the end value to everything on this note beyond this beat.
+         */
+        if (!(event=ps_sem_beat_new_event(sem->beatv+beatpz))) return -1;
           memcpy(event,srcbeat->eventv+srceventp,sizeof(struct ps_sem_event));
           event->op=opposite;
           event->noteid=noteid;
           switch (cmdv[cmdp].op) {
-            case AKAU_SONG_OP_ADJPITCH: event->pitch=cmdv[cmdp].ADJ.v; break;
-            case AKAU_SONG_OP_ADJTRIM: event->trim=cmdv[cmdp].ADJ.v; break;
-            case AKAU_SONG_OP_ADJPAN: event->pan=cmdv[cmdp].ADJ.v; break;
+            case AKAU_SONG_OP_ADJPITCH: {
+                event->pitch=cmdv[cmdp].ADJ.v; 
+                ps_sem_set_pitch_for_chain(sem,beatp+1,noteid,event->pitch);
+              } break;
+            case AKAU_SONG_OP_ADJTRIM: {
+                event->trim=cmdv[cmdp].ADJ.v;
+                ps_sem_set_trim_for_chain(sem,beatp+1,noteid,event->trim);
+              } break;
+            case AKAU_SONG_OP_ADJPAN: {
+                event->pan=cmdv[cmdp].ADJ.v;
+                ps_sem_set_pan_for_chain(sem,beatp+1,noteid,event->pan);
+              } break;
           }
           
       } break;

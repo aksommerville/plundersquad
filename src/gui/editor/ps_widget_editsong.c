@@ -247,7 +247,7 @@ int ps_widget_editsong_set_resource(struct ps_widget *widget,int id,struct akau_
   return 0;
 }
 
-/* Toggle playback.
+/* Playback control.
  */
  
 int ps_widget_editsong_toggle_playback(struct ps_widget *widget) {
@@ -256,6 +256,7 @@ int ps_widget_editsong_toggle_playback(struct ps_widget *widget) {
   if (!mixer) return -1;
   if (WIDGET->playing) {
     if (akau_mixer_play_song(mixer,0,1)<0) return -1;
+    if (akau_mixer_stop_all(mixer,100)<0) return -1;
     WIDGET->playing=0;
     WIDGET->play_beatp=-1;
   } else {
@@ -278,6 +279,22 @@ int ps_widget_editsong_toggle_playback(struct ps_widget *widget) {
       WIDGET->playing=1;
     }
   }
+  return 0;
+}
+
+int ps_widget_editsong_play_from_beat(struct ps_widget *widget,int beatp) {
+  while (widget&&(widget->type!=&ps_widget_type_editsong)) widget=widget->parent;
+  if (ps_editsong_obj_validate(widget)<0) return -1;
+  struct akau_mixer *mixer=akau_get_mixer();
+  if (!mixer) return -1;
+
+  if (ps_sem_write_song(WIDGET->song,WIDGET->sem)<0) return -1;
+  if (akau_song_set_sync_callback(WIDGET->song,ps_editsong_cb_mixer_sync,widget)<0) return -1;
+  if (akau_song_link(WIDGET->song,akau_get_store())<0) return -1;
+  if (akau_mixer_play_song_from_beat(mixer,WIDGET->song,beatp)<0) return -1;
+  WIDGET->playing=1;
+  WIDGET->play_beatp=beatp;
+  
   return 0;
 }
 

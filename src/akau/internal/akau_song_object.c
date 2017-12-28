@@ -475,7 +475,7 @@ int akau_song_cmdp_from_beatp(const struct akau_song *song,int beatp) {
   int cmdp=0;
   for (;cmdp<song->cmdc;cmdp++,cmd++) {
     if (cmd->op==AKAU_SONG_OP_BEAT) {
-      if (--beatp<0) return cmdp;
+      if (--beatp<=0) return cmdp+1;
     }
   }
   return -1;
@@ -585,5 +585,13 @@ void *akau_song_get_userdata(const struct akau_song *song) {
 int akau_song_restart(struct akau_song *song) {
   if (!song) return -1;
   song->beatp=0;
+  return 0;
+}
+
+int akau_song_restart_at_beat(struct akau_song *song,int beatp) {
+  if (!song) return -1;
+  if (beatp<0) return -1;
+  if (beatp>=akau_song_count_beats(song)) return -1;
+  song->beatp=beatp;
   return 0;
 }

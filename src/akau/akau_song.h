@@ -147,5 +147,6 @@ int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp);
 int akau_song_set_sync_callback(struct akau_song *song,int (*cb_sync)(struct akau_song *song,int beatp,void *userdata),void *userdata);
 void *akau_song_get_userdata(const struct akau_song *song);
 int akau_song_restart(struct akau_song *song);
+int akau_song_restart_at_beat(struct akau_song *song,int beatp);
 
 #endif

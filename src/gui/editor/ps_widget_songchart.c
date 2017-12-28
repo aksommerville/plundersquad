@@ -55,6 +55,7 @@ struct ps_widget_songchart {
   int dragging;
   int dragbeatp,drageventp,dragpitch;
   int mod_alt;
+  int mod_shift;
 };
 
 #define WIDGET ((struct ps_widget_songchart*)widget)
@@ -632,20 +633,58 @@ static int ps_songchart_edit_event(struct ps_widget *widget,int beatp,int eventp
   if (!dialogue) return -1;
 
   if (ps_widget_songevent_setup(dialogue,sem,beatp,eventp)<0) return -1;
-  
-  switch (event->op) {//XXX
-    case AKAU_SONG_OP_DRUM:
-    case AKAU_SONG_OP_NOTE:
-    case AKAU_SONG_OP_ADJPITCH:
-    case AKAU_SONG_OP_ADJTRIM:
-    case AKAU_SONG_OP_ADJPAN:
-    case PS_SEM_OP_NOTEEND:
-    case PS_SEM_OP_ADJPITCHEND:
-    case PS_SEM_OP_ADJTRIMEND:
-    case PS_SEM_OP_ADJPANEND:;
-  }
 
   if (ps_widget_pack(root)<0) return -1;
+  return 0;
+}
+
+/* Add pitch adjustment to note. Add it anywhere we want.
+ */
+
+static int ps_songchart_add_pitch_adjustment_to_note(struct ps_widget *widget,int beatp,int eventp) {
+  struct ps_sem *sem=ps_widget_editsong_get_sem(widget);
+  if (!sem) return -1;
+  if ((beatp<0)||(beatp>=sem->beatc)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  if ((eventp<0)||(eventp>=beat->eventc)) return -1;
+  struct ps_sem_event *event=beat->eventv+eventp;
+
+  /* Notes only; no drums. */
+  if (event->noteid<1) {
+    return 0;
+  }
+
+  /* Take a copy of the clicked event for reference. */
+  struct ps_sem_event evref;
+  memcpy(&evref,event,sizeof(struct ps_sem_event));
+
+  /* If there is an empty beat to the right of me, put the adjustment there.
+   * I don't think there's a very nice way to do this, just get it out there somehow.
+   */
+  int nextbeatp,nexteventp;
+  if (ps_sem_find_note_next(&nextbeatp,&nexteventp,sem,beatp,eventp)>=0) {
+    if (nextbeatp>=beatp+2) {
+      beatp++;
+      beat++;
+    }
+  }
+
+  if (!(event=ps_sem_beat_new_event(beat))) return -1;
+  memcpy(event,&evref,sizeof(struct ps_sem_event));
+  event->op=AKAU_SONG_OP_ADJPITCH;
+
+  if (!(event=ps_sem_beat_new_event(beat))) return -1;
+  memcpy(event,&evref,sizeof(struct ps_sem_event));
+  event->op=PS_SEM_OP_ADJPITCHEND;
+  
+  return 0;
+}
+
+/* Restart playback at a given beat.
+ */
+
+static int ps_songchart_play_from_beat(struct ps_widget *widget,int beatp) {
+  if (ps_widget_editsong_play_from_beat(widget,beatp)<0) return -1;
   return 0;
 }
 
@@ -653,38 +692,57 @@ static int ps_songchart_edit_event(struct ps_widget *widget,int beatp,int eventp
  */
 
 static int _ps_songchart_mousebutton(struct ps_widget *widget,int btnid,int value) {
-  //TODO create adjustment events
-  //TODO clean this up!
-  if (btnid==1) { // left button
-    if (value) { // left button down
-      int beatp,eventp;
-      int err=ps_songchart_find_event_at_location(&beatp,&eventp,widget,WIDGET->mousex,WIDGET->mousey);
-      if (err>0) {
-        if (WIDGET->mod_alt) { // left button down in event, with Alt == delete
-          struct ps_sem *sem=ps_widget_editsong_get_sem(widget);
-          if (ps_sem_remove_event(sem,beatp,eventp)<0) return -1;
-        } else { // left button down in event, without Alt == move
-          WIDGET->dragging=1;
-          WIDGET->dragbeatp=beatp;
-          WIDGET->drageventp=eventp;
-          WIDGET->dragpitch=-1; // Let mousemotion figure it out.
-        }
-      } else if (!err) {
-        if (!WIDGET->mod_alt) { // left button down outside event, without Alt == new event
-          if (ps_songchart_create_event(widget,beatp,eventp)<0) return -1;
-        }
-      }
-    } else { // left button up
-      WIDGET->dragging=0;
-    }
-  } else if (btnid==3) { // right button
-    if (value) { // right button down
-      int beatp,eventp;
-      if (ps_songchart_find_event_at_location(&beatp,&eventp,widget,WIDGET->mousex,WIDGET->mousey)>0) {
-        if (ps_songchart_edit_event(widget,beatp,eventp)<0) return -1;
-      }
-    }
+
+  /* First off, determine where the mouse is pointing, in model terms. */
+  int beatp,eventp,pitch,err;
+  err=ps_songchart_find_event_at_location(&beatp,&eventp,widget,WIDGET->mousex,WIDGET->mousey);
+  if (err>0) {
+    pitch=-1;
+  } else if (!err) {
+    pitch=eventp;
+    eventp=-1;
+  } else {
+    // Unable to acquire logical coordinates, abort.
+    return 0;
   }
+  struct ps_sem *sem=ps_widget_editsong_get_sem(widget);
+  if (!sem) return 0;
+
+  /* Now look at btnid, value, and modifiers. */
+  
+  if ((btnid==3)&&value&&(eventp>=0)) { // Right down in event == edit
+    return ps_songchart_edit_event(widget,beatp,eventp);
+  }
+
+  if ((btnid==1)&&!value) { // Left up == end drag
+    WIDGET->dragging=0;
+    return 0;
+  }
+
+  if ((btnid==1)&&value&&(eventp>=0)&&WIDGET->mod_alt) { // Left down in event with Alt == delete
+    return ps_sem_remove_event(sem,beatp,eventp);
+  }
+
+  if ((btnid==1)&&value&&(eventp>=0)&&WIDGET->mod_shift) { // Left down in event with Shift == add pitch adjustment
+    return ps_songchart_add_pitch_adjustment_to_note(widget,beatp,eventp);
+  }
+
+  if ((btnid==1)&&value&&(eventp>=0)) { // Left down in event == begin drag
+    WIDGET->dragging=1;
+    WIDGET->dragbeatp=beatp;
+    WIDGET->drageventp=eventp;
+    WIDGET->dragpitch=-1; // Will correct at the first motion event, no big deal.
+    return 0;
+  }
+
+  if ((btnid==1)&&value&&WIDGET->mod_shift) { // Left down outside event with Shift == play from beat
+    return ps_songchart_play_from_beat(widget,beatp);
+  }
+
+  if ((btnid==1)&&value) { // Left down outside event == create event
+    return ps_songchart_create_event(widget,beatp,pitch);
+  }
+
   return 0;
 }
 
@@ -704,6 +762,7 @@ static int _ps_songchart_mousewheel(struct ps_widget *widget,int dx,int dy) {
 static int _ps_songchart_key(struct ps_widget *widget,int keycode,int codepoint,int value) {
   //ps_log(EDIT,TRACE,"%s %d[U+%x]=%d",__func__,keycode,codepoint,value);
   switch (keycode) {
+    case 0x000700e1: WIDGET->mod_shift=value; break; // Left Shift
     case 0x000700e2: WIDGET->mod_alt=value; break; // Left Alt/Option
   }
   return 0;

@@ -599,6 +599,37 @@ int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int res
   return 0;
 }
 
+/* Play song from beat.
+ */
+
+int akau_mixer_play_song_from_beat(struct akau_mixer *mixer,struct akau_song *song,int beatp) {
+  if (!mixer||!song) return -1;
+
+  /* Get the target command position. */
+  int cmdp=akau_song_cmdp_from_beatp(song,beatp);
+  if (cmdp<0) return -1;
+
+  /* Stop current song. */
+  if (mixer->song) {
+    akau_song_unlock(mixer->song);
+    akau_song_del(mixer->song);
+    mixer->song=0;
+  }
+
+  /* Retain, lock, and install the new song. */
+  if (akau_song_restart_at_beat(song,beatp)<0) return -1;
+  if (akau_song_ref(song)<0) return -1;
+  if (akau_song_lock(song)<0) {
+    akau_song_del(song);
+    return -1;
+  }
+  mixer->song_delay=0;
+  mixer->song_cmdp=cmdp;
+  mixer->song=song;
+
+  return 0;
+}
+
 /* Song support.
  */
  

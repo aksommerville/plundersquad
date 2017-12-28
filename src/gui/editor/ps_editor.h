@@ -170,6 +170,7 @@ int ps_widget_editsong_edit_drum(struct ps_widget *widget,int drumid);
 int ps_widget_editsong_edit_instrument(struct ps_widget *widget,int instrid);
 int ps_widget_editsong_delete_drum(struct ps_widget *widget,int drumid,int force);
 int ps_widget_editsong_delete_instrument(struct ps_widget *widget,int instrid,int force);
+int ps_widget_editsong_play_from_beat(struct ps_widget *widget,int beatp);
 
 /* (drums) and (instruments) each point to 32 bytes.
  * We set a bit in each buffer for the voices currently visible. (little-endianly)

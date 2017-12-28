@@ -95,6 +95,10 @@ int akau_mixer_stop_all(struct akau_mixer *mixer,int duration);
  */
 int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart);
 
+/* Stop whatever is playing and start this song at the given beat.
+ */
+int akau_mixer_play_song_from_beat(struct akau_mixer *mixer,struct akau_song *song,int beatp);
+
 /* For song support only.
  * These should only be called from within akau_song_update().
  * Delay is the count of frames before we will update the song again.

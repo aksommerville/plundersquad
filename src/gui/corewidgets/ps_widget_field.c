@@ -2,6 +2,7 @@
 #include "../ps_widget.h"
 #include "ps_corewidgets.h"
 #include "util/ps_buffer.h"
+#include "util/ps_text.h"
 #include "video/ps_video.h"
 #include "akgl/akgl.h"
 
@@ -20,6 +21,8 @@ struct ps_widget_field {
   int insp;
   int insp_blink;
   int focus;
+  struct ps_callback cb_change;
+  struct ps_callback cb_blur;
 };
 
 #define WIDGET ((struct ps_widget_field*)widget)
@@ -29,6 +32,8 @@ struct ps_widget_field {
 
 static void _ps_field_del(struct ps_widget *widget) {
   ps_buffer_cleanup(&WIDGET->text);
+  ps_callback_cleanup(&WIDGET->cb_change);
+  ps_callback_cleanup(&WIDGET->cb_blur);
 }
 
 /* Initialize.
@@ -151,6 +156,7 @@ static int _ps_field_focus(struct ps_widget *widget) {
 
 static int _ps_field_unfocus(struct ps_widget *widget) {
   WIDGET->focus=0;
+  if (ps_callback_call(&WIDGET->cb_blur,widget)<0) return -1;
   return 0;
 }
 
@@ -193,6 +199,19 @@ int ps_widget_field_get_text(void *dstpp,const struct ps_widget *widget) {
   return WIDGET->text.c;
 }
 
+int ps_widget_field_set_integer(struct ps_widget *widget,int src) {
+  char buf[32];
+  int bufc=ps_decsint_repr(buf,sizeof(buf),src);
+  return ps_widget_field_set_text(widget,buf,bufc);
+}
+
+int ps_widget_field_get_integer(int *dst,const struct ps_widget *widget) {
+  const char *src;
+  int srcc=ps_widget_field_get_text(&src,widget);
+  if (srcc<0) return -1;
+  return ps_int_eval(dst,src,srcc);
+}
+
 /* Insert one character.
  */
  
@@ -202,6 +221,7 @@ int ps_widget_field_append_char(struct ps_widget *widget,int codepoint) {
   char ch=codepoint;
   if (ps_buffer_replace(&WIDGET->text,WIDGET->insp,0,&ch,1)<0) return -1;
   WIDGET->insp++;
+  if (ps_callback_call(&WIDGET->cb_change,widget)<0) return -1;
   return 0;
 }
 
@@ -213,6 +233,7 @@ int ps_widget_field_backspace(struct ps_widget *widget) {
   if (WIDGET->insp<1) return 0;
   if (ps_buffer_replace(&WIDGET->text,WIDGET->insp-1,1,0,0)<0) return -1;
   WIDGET->insp--;
+  if (ps_callback_call(&WIDGET->cb_change,widget)<0) return -1;
   return 0;
 }
 
@@ -220,6 +241,7 @@ int ps_widget_field_delete(struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_field)) return -1;
   if (WIDGET->insp>=WIDGET->text.c) return 0;
   if (ps_buffer_replace(&WIDGET->text,WIDGET->insp,1,0,0)<0) return -1;
+  if (ps_callback_call(&WIDGET->cb_change,widget)<0) return -1;
   return 0;
 }
 
@@ -238,5 +260,22 @@ int ps_widget_field_move_cursor(struct ps_widget *widget,int d) {
     WIDGET->insp=WIDGET->text.c;
   }
   WIDGET->insp_blink=0; // Make insertion point visible.
+  return 0;
+}
+
+/* Set callbacks.
+ */
+ 
+int ps_widget_field_set_cb_change(struct ps_widget *widget,struct ps_callback cb) {
+  if (!widget||(widget->type!=&ps_widget_type_field)) return -1;
+  ps_callback_cleanup(&WIDGET->cb_change);
+  WIDGET->cb_change=cb;
+  return 0;
+}
+
+int ps_widget_field_set_cb_blur(struct ps_widget *widget,struct ps_callback cb) {
+  if (!widget||(widget->type!=&ps_widget_type_field)) return -1;
+  ps_callback_cleanup(&WIDGET->cb_blur);
+  WIDGET->cb_blur=cb;
   return 0;
 }

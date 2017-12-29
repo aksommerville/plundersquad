@@ -2,7 +2,7 @@
 # Just need some sane data while I test the generator.
 
 tilesheet 2
-song 0
+song 3
 
 monster  9 # purple spider
 monster 13 # dragon bug

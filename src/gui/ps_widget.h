@@ -97,6 +97,7 @@ int ps_widget_insert_child(struct ps_widget *parent,int p,struct ps_widget *chil
 int ps_widget_remove_child(struct ps_widget *parent,struct ps_widget *child);
 int ps_widget_remove_all_children(struct ps_widget *widget);
 int ps_widget_kill(struct ps_widget *widget); // Remove from parent and repack parent.
+int ps_widget_get_index_of_child(const struct ps_widget *parent,const struct ps_widget *child);
 
 /* Create a new widget and add it as a child of an existing one.
  * This returns a WEAK reference.

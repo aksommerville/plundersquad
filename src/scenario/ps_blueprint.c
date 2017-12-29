@@ -537,6 +537,8 @@ int ps_blueprint_decode(struct ps_blueprint *blueprint,const void *src,int srcc)
 
   /* Looks good. Wipe blueprint and begin copying. */
   if (ps_blueprint_clear(blueprint)<0) return -1;
+  blueprint->monsterc_min=SRC[4];
+  blueprint->monsterc_max=SRC[5];
   int srcp=16;
   memcpy(blueprint->cellv,SRC+srcp,cellc);
   srcp+=cellc;

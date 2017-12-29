@@ -30,6 +30,11 @@ static int _ps_dummy_configure(struct ps_sprite *spr,struct ps_game *game,const 
   return 0;
 }
 
+static const char *_ps_dummy_get_configure_argument_name(int argp) {
+  // Very short descriptions of arguments to _ps_dummy_configure(), for editor.
+  return 0;
+}
+
 /* Update.
  */
 
@@ -65,6 +70,7 @@ const struct ps_sprtype ps_sprtype_dummy={
   .init=_ps_dummy_init,
   .del=_ps_dummy_del,
   .configure=_ps_dummy_configure,
+  .get_configure_argument_name=_ps_dummy_get_configure_argument_name,
   .update=_ps_dummy_update,
   //.draw=_ps_dummy_draw,
   

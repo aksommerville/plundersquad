@@ -69,6 +69,7 @@ int ps_region_add_monster(struct ps_region *region,int sprdefid); // Fallible, a
  * First word is the command:
  *   tilesheet ID                      # required once
  *   region ID                         # required once
+ *   song ID
  *   shape PHYSICS WEIGHT TILEID STYLE [FLAGS...] # any count
  *     PHYSICS: ps_blueprint_cell_eval() (VACANT,SOLID,HOLE,LATCH,HAZARD,HEAL,HEROONLY)
  *     WEIGHT: integer

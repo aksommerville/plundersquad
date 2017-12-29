@@ -582,6 +582,10 @@ int ps_game_restart(struct ps_game *game) {
   if (ps_game_spawn_sprites(game)<0) return -1;
   if (ps_game_setup_deathgate(game)<0) return -1;
 
+  if (game->grid->region) {
+    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+  }
+
   return 0;
 }
 
@@ -611,6 +615,10 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   if (ps_game_spawn_hero_sprites(game)<0) return -1;
   if (ps_game_spawn_sprites(game)<0) return -1;
   if (ps_game_setup_deathgate(game)<0) return -1;
+
+  if (game->grid->region) {
+    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+  }
 
   return 0;
 }
@@ -656,6 +664,10 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
 
   /* Check death gates. */
   if (ps_game_setup_deathgate(game)<0) return -1;
+
+  if (game->grid->region) {
+    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+  }
 
   ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
   

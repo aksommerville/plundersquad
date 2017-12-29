@@ -88,10 +88,16 @@ int ps_widget_toggle_set_callback(struct ps_widget *widget,struct ps_callback cb
 int ps_widget_field_set_text(struct ps_widget *widget,const char *src,int srcc);
 int ps_widget_field_get_text(void *dstpp,const struct ps_widget *widget);
 
+int ps_widget_field_set_integer(struct ps_widget *widget,int src);
+int ps_widget_field_get_integer(int *dst,const struct ps_widget *widget);
+
 int ps_widget_field_append_char(struct ps_widget *widget,int codepoint);
 int ps_widget_field_backspace(struct ps_widget *widget);
 int ps_widget_field_delete(struct ps_widget *widget);
 int ps_widget_field_move_cursor(struct ps_widget *widget,int d);
+
+int ps_widget_field_set_cb_change(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_field_set_cb_blur(struct ps_widget *widget,struct ps_callback cb);
 
 /* Textblock.
  *****************************************************************************/

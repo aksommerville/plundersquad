@@ -48,6 +48,9 @@ int ps_macwm_translate_codepoint(int src) {
     // We prefer LF over CR.
     case 0x0d: return 0x0a;
 
+    // Macs report Shift+Tab as U+19 (End of Medium), which is cool but not if they're the only ones doing it.
+    case 0x19: return 0x09;
+
     // Macs report BACKSPACE as DELETE for some reason...
     case 0x7f: return 0x08;
 

@@ -116,6 +116,7 @@ struct ps_sprtype {
   void (*del)(struct ps_sprite *spr);
 
   int (*configure)(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc);
+  const char *(*get_configure_argument_name)(int argp);
 
   int (*update)(struct ps_sprite *spr,struct ps_game *game);
 

@@ -148,6 +148,18 @@ static int ps_editsoundeffect_rebuild_iwg_from_file(struct ps_widget *widget,int
   return 0;
 }
 
+/* Compose default IWG.
+ */
+
+static int ps_editsoundeffect_compose_default_iwg(struct ps_widget *widget) {
+  if (ps_iwg_clear(WIDGET->iwg)<0) return -1;
+  if (ps_iwg_add_channel(WIDGET->iwg,"sine",4)<0) return -1;
+  if (ps_iwg_add_command(WIDGET->iwg,   0,0,AKAU_WAVEGEN_K_TRIM,0.0)<0) return -1;
+  if (ps_iwg_add_command(WIDGET->iwg,   0,0,AKAU_WAVEGEN_K_STEP,440.0)<0) return -1;
+  if (ps_iwg_add_command(WIDGET->iwg,1000,0,AKAU_WAVEGEN_K_TRIM,0.0)<0) return -1;
+  return 0;
+}
+
 /* Set resource.
  */
  
@@ -163,7 +175,7 @@ int ps_widget_editsoundeffect_set_resource(struct ps_widget *widget,int id,struc
 
   if (ps_editsoundeffect_rebuild_iwg_from_file(widget,id)<0) {
     ps_log(EDIT,ERROR,"Failed to rebuild ps_iwg in editsoundeffect for '%s' (ID %d).",name,id);
-    ps_iwg_clear(WIDGET->iwg);
+    if (ps_editsoundeffect_compose_default_iwg(widget)<0) return -1;
   }
 
   if (ps_editsoundeffect_rebuild_ui(widget)<0) return -1;
@@ -207,7 +219,10 @@ static int ps_editsoundeffect_cb_save(struct ps_widget *button,struct ps_widget 
   struct akau_store *store=akau_get_store();
   char path[1024];
   int pathc=akau_store_get_resource_path(path,sizeof(path),store,"ipcm",WIDGET->resid);
-  if ((pathc<0)||(pathc>=sizeof(path))) return -1;
+  if ((pathc<0)||(pathc>=sizeof(path))) {
+    pathc=akau_store_generate_resource_path(path,sizeof(path),store,"ipcm",WIDGET->resid);
+    if ((pathc<0)||(pathc>=sizeof(path))) return -1;
+  }
 
   void *serial=0;
   int serialc=ps_iwg_encode(&serial,WIDGET->iwg);

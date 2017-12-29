@@ -28,6 +28,13 @@ static int _ps_swordswitch_configure(struct ps_sprite *spr,struct ps_game *game,
   return 0;
 }
 
+static const char *_ps_swordswitch_get_configure_argument_name(int argp) {
+  switch (argp) {
+    case 0: return "Barrier ID";
+  }
+  return 0;
+}
+
 /* Update.
  */
 
@@ -48,6 +55,7 @@ const struct ps_sprtype ps_sprtype_swordswitch={
   .layer=100,
 
   .configure=_ps_swordswitch_configure,
+  .get_configure_argument_name=_ps_swordswitch_get_configure_argument_name,
   .update=_ps_swordswitch_update,
 
 };

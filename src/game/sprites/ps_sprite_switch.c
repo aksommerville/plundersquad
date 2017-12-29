@@ -30,6 +30,14 @@ static int _ps_switch_configure(struct ps_sprite *spr,struct ps_game *game,const
   return 0;
 }
 
+static const char *_ps_switch_get_configure_argument_name(int argp) {
+  switch (argp) {
+    case 0: return "Barrier ID";
+    case 1: return "Stompbox?";
+  }
+  return 0;
+}
+
 /* Poll for desired state.
  */
 
@@ -116,6 +124,7 @@ const struct ps_sprtype ps_sprtype_switch={
   .layer=100,
 
   .configure=_ps_switch_configure,
+  .get_configure_argument_name=_ps_switch_get_configure_argument_name,
   .update=_ps_switch_update,
 
 };

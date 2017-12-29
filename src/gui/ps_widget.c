@@ -169,6 +169,17 @@ int ps_widget_kill(struct ps_widget *widget) {
   return 0;
 }
 
+/* Search for child.
+ */
+ 
+int ps_widget_get_index_of_child(const struct ps_widget *parent,const struct ps_widget *child) {
+  if (!parent||!child) return -1;
+  int i=parent->childc; while (i-->0) {
+    if (parent->childv[i]==child) return i;
+  }
+  return -1;
+}
+
 /* Convert coordinates.
  */
 

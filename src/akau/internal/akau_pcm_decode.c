@@ -29,6 +29,11 @@ static int akau_pcm_detect_format(const char *src,int srcc) {
     return AKAU_PCM_FORMAT_AKAUPCM;
   }
 
+  /* Not a signature, but pretty reliable... */
+  if ((srcc>=7)&&!memcmp(src,"channel",7)) {
+    return AKAU_PCM_FORMAT_WAVEGEN;
+  }
+
   return AKAU_PCM_FORMAT_NONE;
 }
 
@@ -334,6 +339,7 @@ struct akau_ipcm *akau_ipcm_decode(const void *src,int srcc) {
   switch (format) {
     case AKAU_PCM_FORMAT_WAV: return akau_ipcm_decode_wav(src,srcc);
     case AKAU_PCM_FORMAT_AKAUPCM: return akau_ipcm_decode_akaupcm(src,srcc);
+    case AKAU_PCM_FORMAT_WAVEGEN: return akau_wavegen_decode(src,srcc);
     default: {
         akau_error("Unable to detect PCM format.");
         return 0;
@@ -353,6 +359,7 @@ struct akau_fpcm *akau_fpcm_decode(const void *src,int srcc) {
   switch (format) {
     case AKAU_PCM_FORMAT_WAV: ipcm=akau_ipcm_decode_wav(src,srcc); break;
     case AKAU_PCM_FORMAT_AKAUPCM: ipcm=akau_ipcm_decode_akaupcm(src,srcc); break;
+    case AKAU_PCM_FORMAT_WAVEGEN: ipcm=akau_wavegen_decode(src,srcc); break;
     default: {
         akau_error("Unable to detect PCM format.");
         return 0;

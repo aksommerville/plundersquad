@@ -184,6 +184,7 @@ int ps_int_measure(const char *src,int srcc) {
 int ps_int_eval(int *dst,const char *src,int srcc) {
   if (!dst||!src) return -1;
   if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  if (srcc<1) return -1;
   int srcp=0,positive=1,base=10,overflow=0;
   
   if (src[0]=='-') {

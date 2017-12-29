@@ -270,7 +270,7 @@ static int ps_region_decode_inner(struct ps_region *region,const char *src,int s
         ps_log(RES,ERROR,"%d: Multiple song in region.",reader.lineno);
         return -1;
       }
-      if (ps_int_eval_interactive(&region->songid,arg,argc,0,255,"song")<0) return -1;
+      if (ps_int_eval_interactive(&region->songid,arg,argc,0,INT_MAX,"song")<0) return -1;
       songc++;
 
     } else if ((kwc==7)&&!memcmp(kw,"monster",7)) {

@@ -53,6 +53,13 @@ static int _ps_treasurechest_configure(struct ps_sprite *spr,struct ps_game *gam
   return 0;
 }
 
+static const char *_ps_treasurechest_get_configure_argument_name(int argp) {
+  switch (argp) {
+    case 0: return "Treasure ID";
+  }
+  return 0;
+}
+
 /* Look for collectors.
  */
 
@@ -168,6 +175,7 @@ const struct ps_sprtype ps_sprtype_treasurechest={
   .init=_ps_treasurechest_init,
   .del=_ps_treasurechest_del,
   .configure=_ps_treasurechest_configure,
+  .get_configure_argument_name=_ps_treasurechest_get_configure_argument_name,
   .update=_ps_treasurechest_update,
   .draw=_ps_treasurechest_draw,
 

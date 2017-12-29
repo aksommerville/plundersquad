@@ -11,14 +11,17 @@ struct akau_ipcm;
 struct akau_song;
 struct ps_iwg;
 struct ps_sem;
+struct ps_blueprint;
+struct ps_blueprint_poi;
+struct ps_blueprint_solution;
 
 extern const struct ps_widget_type ps_widget_type_edithome;
 extern const struct ps_widget_type ps_widget_type_editsoundeffect;
 extern const struct ps_widget_type ps_widget_type_wave; /* Modal. For instruments and ipcm voices. */
 extern const struct ps_widget_type ps_widget_type_editsong;
+extern const struct ps_widget_type ps_widget_type_editblueprint;
 
 // TODO:
-// editblueprint
 // editsprdef
 // editplrdef
 // editregion
@@ -33,6 +36,9 @@ extern const struct ps_widget_type ps_widget_type_waveenvpoint;
 extern const struct ps_widget_type ps_widget_type_songchart;
 extern const struct ps_widget_type ps_widget_type_songvoice;
 extern const struct ps_widget_type ps_widget_type_songevent; // Modal dialogue.
+extern const struct ps_widget_type ps_widget_type_bpchart;
+extern const struct ps_widget_type ps_widget_type_editpoi; // Modal dialogue.
+extern const struct ps_widget_type ps_widget_type_editsolution; // Modal dialogue.
 
 /* Edithome.
  *****************************************************************************/
@@ -180,7 +186,7 @@ int ps_widget_editsong_get_voice_visibility(uint8_t *drums,uint8_t *instruments,
 
 int ps_widget_editsong_voice_visibility_changed(struct ps_widget *widget);
 
-/* Songvoice.
+/* Editsong components.
  *****************************************************************************/
 
 int ps_widget_songvoice_setup_drum(struct ps_widget *widget,int drumid);
@@ -191,15 +197,32 @@ int ps_widget_songvoice_get_type(const struct ps_widget *widget);
 uint8_t ps_widget_songvoice_get_id(const struct ps_widget *widget);
 int ps_widget_songvoice_get_visibility(const struct ps_widget *widget);
 
-/* Songchart.
- *****************************************************************************/
-
 int ps_widget_songchart_rebuild(struct ps_widget *widget);
 int ps_widget_songchart_voice_visibility_changed(struct ps_widget *widget);
 
-/* Songevent.
+int ps_widget_songevent_setup(struct ps_widget *widget,struct ps_sem *sem,int beatp,int eventp);
+
+/* Editblueprint.
  *****************************************************************************/
 
-int ps_widget_songevent_setup(struct ps_widget *widget,struct ps_sem *sem,int beatp,int eventp);
+int ps_widget_editblueprint_set_resource(struct ps_widget *widget,int id,struct ps_blueprint *blueprint,const char *name);
+int ps_widget_editblueprint_highlight_poi_for_cell(struct ps_widget *widget,int col,int row);
+
+struct ps_blueprint *ps_widget_editblueprint_get_blueprint(const struct ps_widget *widget);
+
+int ps_widget_editpoi_set_poi(struct ps_widget *widget,const struct ps_blueprint_poi *poi);
+const struct ps_blueprint_poi *ps_widget_editpoi_get_poi(const struct ps_widget *widget);
+int ps_widget_editpoi_set_callback(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_editpoi_set_index(struct ps_widget *widget,int index); // For reference only.
+int ps_widget_editpoi_get_index(const struct ps_widget *widget);
+int ps_widget_editpoi_set_blueprint(struct ps_widget *widget,struct ps_blueprint *blueprint); // For validation
+int ps_widget_editpoi_wants_deleted(const struct ps_widget *widget); // Always check first in your callback.
+
+int ps_widget_editsolution_set_solution(struct ps_widget *widget,const struct ps_blueprint_solution *solution);
+const struct ps_blueprint_solution *ps_widget_editsolution_get_solution(const struct ps_widget *widget);
+int ps_widget_editsolution_set_callback(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_editsolution_set_index(struct ps_widget *widget,int index);
+int ps_widget_editsolution_get_index(const struct ps_widget *widget);
+int ps_widget_editsolution_wants_deleted(const struct ps_widget *widget);
 
 #endif

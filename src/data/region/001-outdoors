@@ -1,5 +1,5 @@
 tilesheet 2
-song 0
+song 1
      
 monster  9 # purple spider
 #monster 10 # sea monster -- Can't place this randomly because it requires HOLE cells.

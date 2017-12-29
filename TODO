@@ -1,3 +1,4 @@
 - More projectile-throwing monsters.
 - Random monster selection and count based on difficulty.
-- Swapping of input assignments. Happened with 2 players.
+- Swapping of input assignments. Happened with 2 players. -- Input assignment was changed. I think this won't happen now.
+- Tab key in GUI: Go backwards with Shift, and keep a sane focus ring instead of the sloppy guesswork we have now.

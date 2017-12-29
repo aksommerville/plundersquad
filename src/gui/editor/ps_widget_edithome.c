@@ -14,6 +14,7 @@
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
 #include "input/ps_input.h"
+#include "scenario/ps_blueprint.h"
 
 static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typeindex);
 static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int resindex);
@@ -240,7 +241,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
 }
 
 //XXX stub resource editors -- If we substitute ps_widget_type_dialogue, the user will see a friendly error message.
-#define ps_widget_type_editblueprint ps_widget_type_dialogue
 #define ps_widget_type_editsprdef ps_widget_type_dialogue
 #define ps_widget_type_editplrdef ps_widget_type_dialogue
 #define ps_widget_type_editregion ps_widget_type_dialogue
@@ -351,6 +351,10 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
     return ps_widget_editsong_set_resource(widget,id,obj,name);
   }
 
+  if (widget->type==&ps_widget_type_editblueprint) {
+    return ps_widget_editblueprint_set_resource(widget,id,obj,name);
+  }
+
   //TODO load resource to specific types.
 
   return -1;
@@ -377,6 +381,46 @@ static int ps_edithome_create_song(struct ps_widget *widget) {
   return 0;
 }
 
+/* Create new sound effect.
+ */
+
+static int ps_edithome_create_sound_effect(struct ps_widget *widget) {
+  struct akau_store *store=akau_get_store();
+  if (!store) return -1;
+
+  int ipcmid,ipcmindex;
+  if (akau_store_get_unused_ipcm_id(&ipcmid,&ipcmindex,store)<0) return -1;
+  
+  struct akau_ipcm *ipcm=akau_ipcm_new(11025);
+  if (!ipcm) return -1;
+  if (akau_store_add_ipcm(store,ipcm,ipcmid)<0) {
+    akau_ipcm_del(ipcm);
+    return -1;
+  }
+
+  akau_ipcm_del(ipcm);
+  return 0;
+}
+
+/* Create new blueprint.
+ */
+
+static int ps_edithome_create_blueprint(struct ps_widget *widget) {
+  struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_BLUEPRINT);
+  if (!restype) return -1;
+  int resp=restype->rescontigc;
+  int resid=resp;
+  ps_log(EDIT,DEBUG,"resp=%d resid=%d c=%d contigc=%d",resp,resid,restype->resc,restype->rescontigc);
+
+  struct ps_blueprint *blueprint=ps_blueprint_new();
+  if (!blueprint) return -1;
+
+  ps_log(EDIT,DEBUG,"insert...");
+  if (ps_restype_res_insert(restype,resp,resid,blueprint)<0) return -1;
+  ps_log(EDIT,DEBUG,"OK");
+  return 0;
+}
+
 /* Menubar callbacks.
  */
  
@@ -392,11 +436,11 @@ static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget)
   int typeindex=ps_widget_scrolllist_get_selection(typelist);
   switch (typeindex) {
     case 0: if (ps_edithome_create_song(widget)<0) return -1; break;
-    case 1: break;//TODO new sound effect
-    case 2: break;//TODO new blueprint
-    case 3: break;//TODO new sprdef
-    case 4: break;//TODO new plrdef
-    case 5: break;//TODO new region
+    case 1: if (ps_edithome_create_sound_effect(widget)<0) return -1; break;
+    case 2: if (ps_edithome_create_blueprint(widget)<0) return -1; break;
+    case 3: return 0;//TODO new sprdef
+    case 4: return 0;//TODO new plrdef
+    case 5: return 0;//TODO new region
   }
 
   if (ps_edithome_rebuild_resource_list(widget,typeindex)<0) return -1;

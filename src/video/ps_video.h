@@ -9,6 +9,7 @@ struct ps_video_layer;
 struct ps_grid;
 struct ps_sprgrp;
 struct akgl_vtx_mintile;
+struct akgl_vtx_maxtile;
 struct akgl_vtx_raw;
 
 int ps_video_init();
@@ -47,6 +48,7 @@ int ps_video_draw_grid(const struct ps_grid *grid);
 int ps_video_draw_sprites(const struct ps_sprgrp *grp);
 
 int ps_video_draw_mintile(const struct akgl_vtx_mintile *vtxv,int vtxc,uint8_t tsid);
+int ps_video_draw_maxtile(const struct akgl_vtx_maxtile *vtxv,int vtxc,uint8_t tsid);
 int ps_video_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc);
 
 #endif

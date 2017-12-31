@@ -23,6 +23,8 @@ struct ps_plrdef {
 struct ps_plrdef *ps_plrdef_new();
 void ps_plrdef_del(struct ps_plrdef *plrdef);
 
+int ps_plrdef_add_palette(struct ps_plrdef *plrdef,uint32_t rgba_head,uint32_t rgba_body);
+
 /* Serial format is text with comments.
  * Lines are processed as whitespace-delimited words.
  * First word is the key:
@@ -34,5 +36,6 @@ void ps_plrdef_del(struct ps_plrdef *plrdef);
  * "skill" and "colors" may appear more than once.
  */
 int ps_plrdef_decode(struct ps_plrdef *plrdef,const void *src,int srcc);
+int ps_plrdef_encode(void *dstpp,const struct ps_plrdef *plrdef);
 
 #endif

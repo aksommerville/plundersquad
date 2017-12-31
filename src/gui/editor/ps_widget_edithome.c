@@ -242,7 +242,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
 }
 
 //XXX stub resource editors -- If we substitute ps_widget_type_dialogue, the user will see a friendly error message.
-#define ps_widget_type_editplrdef ps_widget_type_dialogue
 #define ps_widget_type_editregion ps_widget_type_dialogue
 
 /* Open song.
@@ -359,6 +358,10 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
     return ps_widget_editsprdef_set_resource(widget,id,obj,name);
   }
 
+  if (widget->type==&ps_widget_type_editplrdef) {
+    return ps_widget_editplrdef_set_resource(widget,id,obj,name);
+  }
+
   //TODO load resource to specific types.
 
   return -1;
@@ -458,7 +461,7 @@ static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget)
     case 1: if (ps_edithome_create_sound_effect(widget)<0) return -1; break;
     case 2: if (ps_edithome_create_blueprint(widget)<0) return -1; break;
     case 3: if (ps_edithome_create_sprdef(widget)<0) return -1; break;
-    case 4: return 0;//TODO new plrdef
+    case 4: return 0; // plrdef: We've already got the complete set, by the time I wrote this.
     case 5: return 0;//TODO new region
   }
 

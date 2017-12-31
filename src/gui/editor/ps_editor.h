@@ -15,6 +15,7 @@ struct ps_blueprint;
 struct ps_blueprint_poi;
 struct ps_blueprint_solution;
 struct ps_sprdef;
+struct ps_plrdef;
 
 extern const struct ps_widget_type ps_widget_type_edithome;
 extern const struct ps_widget_type ps_widget_type_editsoundeffect;
@@ -22,9 +23,9 @@ extern const struct ps_widget_type ps_widget_type_wave; /* Modal. For instrument
 extern const struct ps_widget_type ps_widget_type_editsong;
 extern const struct ps_widget_type ps_widget_type_editblueprint;
 extern const struct ps_widget_type ps_widget_type_editsprdef;
+extern const struct ps_widget_type ps_widget_type_editplrdef;
 
 // TODO:
-// editplrdef
 // editregion
 
 extern const struct ps_widget_type ps_widget_type_sfxchan;
@@ -42,6 +43,9 @@ extern const struct ps_widget_type ps_widget_type_editpoi; // Modal dialogue.
 extern const struct ps_widget_type ps_widget_type_editsolution; // Modal dialogue.
 extern const struct ps_widget_type ps_widget_type_tileselect; // Modal dialogue.
 extern const struct ps_widget_type ps_widget_type_editgrpmask; // Modal dialogue.
+extern const struct ps_widget_type ps_widget_type_palette; // List item for plrdef
+extern const struct ps_widget_type ps_widget_type_editpalette; // Modal dialogue.
+extern const struct ps_widget_type ps_widget_type_rgbslider;
 
 /* Edithome.
  *****************************************************************************/
@@ -246,5 +250,28 @@ int ps_widget_tileselect_set_callback(struct ps_widget *widget,struct ps_callbac
 int ps_widget_editgrpmask_set_grpmask(struct ps_widget *widget,uint32_t grpmask);
 uint32_t ps_widget_editgrpmask_get_grpmask(const struct ps_widget *widget);
 int ps_widget_editgrpmask_set_callback(struct ps_widget *widget,struct ps_callback cb);
+
+/* Editplrdef.
+ *****************************************************************************/
+
+int ps_widget_editplrdef_set_resource(struct ps_widget *widget,int id,struct ps_plrdef *plrdef,const char *name);
+
+int ps_widget_palette_setup(struct ps_widget *widget,uint32_t rgba_head,uint32_t rgba_body);
+
+int ps_widget_editpalette_setup(
+  struct ps_widget *widget,
+  uint8_t tileid_head,uint8_t tileid_body,
+  uint32_t rgba_head,uint32_t rgba_body,
+  struct ps_callback cb
+);
+uint32_t ps_widget_editpalette_get_rgba_head(const struct ps_widget *widget);
+uint32_t ps_widget_editpalette_get_rgba_body(const struct ps_widget *widget);
+int ps_widget_editpalette_set_refnum1(struct ps_widget *widget,int v);
+int ps_widget_editpalette_get_refnum1(const struct ps_widget *widget);
+
+int ps_widget_rgbslider_set_channel(struct ps_widget *widget,int chid);
+int ps_widget_rgbslider_set_callback(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_rgbslider_set_rgba(struct ps_widget *widget,uint32_t rgba);
+uint32_t ps_widget_rgbslider_get_rgba(const struct ps_widget *widget);
 
 #endif

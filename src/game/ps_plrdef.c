@@ -2,6 +2,7 @@
 #include "ps_plrdef.h"
 #include "util/ps_text.h"
 #include "util/ps_enums.h"
+#include "util/ps_buffer.h"
 
 /* Object lifecycle.
  */
@@ -29,6 +30,18 @@ static int ps_plrdef_palette_require(struct ps_plrdef *plrdef) {
   if (!nv) return -1;
   plrdef->palettev=nv;
   plrdef->palettea=na;
+  return 0;
+}
+
+/* Add palette.
+ */
+ 
+int ps_plrdef_add_palette(struct ps_plrdef *plrdef,uint32_t rgba_head,uint32_t rgba_body) {
+  if (!plrdef) return -1;
+  if (ps_plrdef_palette_require(plrdef)<0) return -1;
+  struct ps_plrdef_palette *palette=plrdef->palettev+plrdef->palettec++;
+  palette->rgba_head=rgba_head;
+  palette->rgba_body=rgba_body;
   return 0;
 }
 
@@ -168,4 +181,37 @@ int ps_plrdef_decode(struct ps_plrdef *plrdef,const void *src,int srcc) {
   }
   
   return 0;
+}
+
+/* Encode.
+ */
+
+static int ps_plrdef_encode_to_buffer(struct ps_buffer *buffer,const struct ps_plrdef *plrdef) {
+  if (ps_buffer_appendf(buffer,"head 0x%02x\n",plrdef->tileid_head)<0) return -1;
+  if (ps_buffer_appendf(buffer,"body 0x%02x\n",plrdef->tileid_body)<0) return -1;
+  if (plrdef->head_on_top_always) {
+    if (ps_buffer_append(buffer,"head_on_top_always\n",-1)<0) return -1;
+  }
+  uint16_t mask=1;
+  int i; for (i=0;i<16;i++,mask<<=1) {
+    if (plrdef->skills&mask) {
+      if (ps_buffer_appendf(buffer,"skill %s\n",ps_skill_repr(mask))<0) return -1;
+    }
+  }
+  const struct ps_plrdef_palette *palette=plrdef->palettev;
+  for (i=0;i<plrdef->palettec;i++,palette++) {
+    if (ps_buffer_appendf(buffer,"colors %08x %08x\n",palette->rgba_head,palette->rgba_body)<0) return -1;
+  }
+  return 0;
+}
+ 
+int ps_plrdef_encode(void *dstpp,const struct ps_plrdef *plrdef) {
+  if (!dstpp||!plrdef) return -1;
+  struct ps_buffer buffer={0};
+  if (ps_plrdef_encode_to_buffer(&buffer,plrdef)<0) {
+    ps_buffer_cleanup(&buffer);
+    return -1;
+  }
+  *(void**)dstpp=buffer.v;
+  return buffer.c;
 }

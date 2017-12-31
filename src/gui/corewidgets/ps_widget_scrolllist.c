@@ -350,6 +350,13 @@ int ps_widget_scrolllist_set_selection(struct ps_widget *widget,int p) {
   return ps_scrolllist_set_selection(widget,p);
 }
 
+int ps_widget_scrolllist_set_selection_without_callback(struct ps_widget *widget,int childp) {
+  if ((childp<0)||(childp>=widget->childc)) childp=-1;
+  if (!WIDGET->cb_select.fn) return -1;
+  WIDGET->selp=childp;
+  return 0;
+}
+
 const char *ps_widget_scrolllist_get_text(const struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_scrolllist)) return 0;
   if ((WIDGET->selp<0)||(WIDGET->selp>=widget->childc)) return 0;

@@ -1,6 +1,8 @@
 #include "ps.h"
 #include "ps_text.h"
 #include "ps_enums.h"
+#include "game/ps_sprite.h"
+#include "game/ps_game.h"
 
 /* Generic integer properties.
  */
@@ -9,6 +11,67 @@ static int ps_int_is_single_bit_16(int n) {
   int q=0x8000;
   for (;q;q>>=1) if (n==q) return 1;
   return 0;
+}
+
+/* Eval multiple.
+ */
+
+static int ps_enum_is_ident(char ch) {
+  if ((ch>='a')&&(ch<='z')) return 1;
+  if ((ch>='A')&&(ch<='Z')) return 1;
+  if ((ch>='0')&&(ch<='9')) return 1;
+  if (ch=='_') return 1;
+  return 0;
+}
+ 
+int ps_enum_eval_multiple(int *dst,const char *src,int srcc,int values_are_mask,int (*eval1)(const char *word,int wordc)) {
+  if (!dst||!eval1) return -1;
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  *dst=0;
+  int srcp=0;
+  while (srcp<srcc) {
+    if (!ps_enum_is_ident(src[srcp])) {
+      srcp++;
+      continue;
+    }
+    const char *token=src+srcp;
+    int tokenc=1;
+    srcp++;
+    while ((srcp<srcc)&&ps_enum_is_ident(src[srcp])) { srcp++; tokenc++; }
+    int value=eval1(token,tokenc);
+    if (value<0) {
+      ps_log(TEXT,ERROR,"Unexpected token '%.*s'.",tokenc,token);
+      return -1;
+    }
+    if (!values_are_mask) value=1<<value;
+    (*dst)|=value;
+  }
+  return 0;
+}
+
+/* Represent multiple.
+ */
+ 
+int ps_enum_repr_multiple(char *dst,int dsta,int src,int values_are_mask,const char *(*repr1)(int bit)) {
+  if (!repr1) return -1;
+  if (!dst||(dsta<0)) dsta=0;
+  int dstc=0;
+  if (src) {
+    int mask=1,index=0;
+    for (;index<32;mask<<=1,index++) {
+      if (src&mask) {
+        if (dstc) {
+          if (dstc<dsta) dst[dstc]=' ';
+          dstc++;
+        }
+        const char *name=repr1(values_are_mask?mask:index);
+        if (!name) return -1;
+        dstc+=ps_strcpy(dst+dstc,dsta-dstc,name,-1);
+      }
+    }
+  }
+  if (dstc<dsta) dst[dstc]=0;
+  return dstc;
 }
 
 /* Hero skills.
@@ -67,6 +130,121 @@ const char *ps_skill_repr(uint16_t skill) {
     case PS_SKILL_WEIGHT: return "WEIGHT";
     case PS_SKILL_FROG: return "FROG";
     case PS_SKILL_COMBAT: return "COMBAT";
+  }
+  return 0;
+}
+
+/* sprdef extra keys.
+ */
+ 
+int ps_sprdef_fld_k_eval(const char *src,int srcc) {
+  if (!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  switch (srcc) {
+    case 4: {
+        if (!ps_memcasecmp(src,"type",4)) return PS_SPRDEF_FLD_type;
+      } break;
+    case 5: {
+        if (!ps_memcasecmp(src,"layer",5)) return PS_SPRDEF_FLD_layer;
+        if (!ps_memcasecmp(src,"shape",5)) return PS_SPRDEF_FLD_shape;
+      } break;
+    case 6: {
+        if (!ps_memcasecmp(src,"radius",6)) return PS_SPRDEF_FLD_radius;
+        if (!ps_memcasecmp(src,"tileid",6)) return PS_SPRDEF_FLD_tileid;
+      } break;
+    case 7: {
+        if (!ps_memcasecmp(src,"grpmask",7)) return PS_SPRDEF_FLD_grpmask;
+      } break;
+  }
+  return -1;
+}
+
+const char *ps_sprdef_fld_k_repr(int k) {
+  switch (k) {
+    case PS_SPRDEF_FLD_layer: return "layer";
+    case PS_SPRDEF_FLD_grpmask: return "grpmask";
+    case PS_SPRDEF_FLD_radius: return "radius";
+    case PS_SPRDEF_FLD_shape: return "shape";
+    case PS_SPRDEF_FLD_type: return "type";
+    case PS_SPRDEF_FLD_tileid: return "tileid";
+  }
+  return 0;
+}
+
+/* Built-in sprite groups.
+ */
+ 
+int ps_sprgrp_eval(const char *src,int srcc) {
+  if (!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  switch (srcc) {
+    case 4: {
+        if (!ps_memcasecmp(src,"HERO",4)) return PS_SPRGRP_HERO;
+      } break;
+    case 5: {
+        if (!ps_memcasecmp(src,"LATCH",5)) return PS_SPRGRP_LATCH;
+        if (!ps_memcasecmp(src,"SOLID",5)) return PS_SPRGRP_SOLID;
+        if (!ps_memcasecmp(src,"PRIZE",5)) return PS_SPRGRP_PRIZE;
+      } break;
+    case 6: {
+        if (!ps_memcasecmp(src,"UPDATE",6)) return PS_SPRGRP_UPDATE;
+        if (!ps_memcasecmp(src,"HAZARD",6)) return PS_SPRGRP_HAZARD;
+      } break;
+    case 7: {
+        if (!ps_memcasecmp(src,"VISIBLE",7)) return PS_SPRGRP_VISIBLE;
+        if (!ps_memcasecmp(src,"PHYSICS",7)) return PS_SPRGRP_PHYSICS;
+        if (!ps_memcasecmp(src,"FRAGILE",7)) return PS_SPRGRP_FRAGILE;
+      } break;
+    case 8: {
+        if (!ps_memcasecmp(src,"DEATHROW",8)) return PS_SPRGRP_DEATHROW;
+        if (!ps_memcasecmp(src,"TREASURE",8)) return PS_SPRGRP_TREASURE;
+      } break;
+    case 9: {
+        if (!ps_memcasecmp(src,"KEEPALIVE",9)) return PS_SPRGRP_KEEPALIVE;
+      } break;
+    case 10: {
+        if (!ps_memcasecmp(src,"HEROHAZARD",10)) return PS_SPRGRP_HEROHAZARD;
+      } break;
+  }
+  return -1;
+}
+
+const char *ps_sprgrp_repr(int grpindex) {
+  switch (grpindex) {
+    #define _(tag) case PS_SPRGRP_##tag: return #tag;
+    _(KEEPALIVE)
+    _(DEATHROW)
+    _(VISIBLE)
+    _(UPDATE)
+    _(PHYSICS)
+    _(HERO)
+    _(HAZARD)
+    _(HEROHAZARD)
+    _(FRAGILE)
+    _(TREASURE)
+    _(LATCH)
+    _(SOLID)
+    _(PRIZE)
+    #undef _
+  }
+  return 0;
+}
+
+/* Sprite shape.
+ */
+ 
+int ps_sprite_shape_eval(const char *src,int srcc) {
+  if (!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  if ((srcc==6)&&!ps_memcasecmp(src,"SQUARE",6)) return PS_SPRITE_SHAPE_SQUARE;
+  if ((srcc==6)&&!ps_memcasecmp(src,"CIRCLE",6)) return PS_SPRITE_SHAPE_CIRCLE;
+  return -1;
+}
+
+const char *ps_sprite_shape_repr(int shape) {
+  switch (shape) {
+    case PS_SPRITE_SHAPE_SQUARE: return "SQUARE";
+    case PS_SPRITE_SHAPE_CIRCLE: return "CIRCLE";
   }
   return 0;
 }

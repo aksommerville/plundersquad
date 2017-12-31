@@ -19,6 +19,7 @@ shape SOLID 100 0x04 FAT
 
 # Trees
 shape LATCH 100 0x4b FAT ROUND
+shape LATCH 100 0x6e SINGLE ROUND
 
 # Water
 shape HOLE 100 0x84 SKINNY ROUND

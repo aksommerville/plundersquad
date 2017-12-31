@@ -2,6 +2,8 @@
 #include "ps_sprite.h"
 #include "ps_game.h"
 #include "util/ps_text.h"
+#include "util/ps_enums.h"
+#include "util/ps_buffer.h"
 
 /* Object lifecycle.
  */
@@ -115,200 +117,239 @@ struct ps_sprite *ps_sprdef_instantiate(struct ps_game *game,struct ps_sprdef *s
   return spr;
 }
 
-//TODO the text stuff below, lots should be moved into util/ps_enums.c
-
-/* Evaluate field key.
+/* Encode or decode field value as text.
  */
 
-static int ps_sprdef_fld_k_eval(const char *src,int srcc) {
-  if (!src) return -1;
-  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  
-  if ((srcc==5)&&!memcmp(src,"layer",5)) return PS_SPRDEF_FLD_layer;
-  if ((srcc==7)&&!memcmp(src,"grpmask",7)) return PS_SPRDEF_FLD_grpmask;
-  if ((srcc==6)&&!memcmp(src,"radius",6)) return PS_SPRDEF_FLD_radius;
-  if ((srcc==5)&&!memcmp(src,"shape",5)) return PS_SPRDEF_FLD_shape;
-  
-  return -1;
-}
-
-/* Evaluate value for extended field.
- * Integers are always acceptable, and some keys have special processing first.
- */
-
-static int ps_sprite_grpmask_eval_1(int *dst,const char *src,int srcc) {
-  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!ps_memcasecmp(src,#tag,srcc)) { *dst=1<<PS_SPRGRP_##tag; return 0; }
-  //_(KEEPALIVE) // Can't explicitly request KEEPALIVE; they all get it
-  //_(DEATHROW) // Can't explicitly request DEATHROW; it's not that kind of group
-  _(VISIBLE)
-  _(UPDATE)
-  _(PHYSICS)
-  _(HERO)
-  _(HAZARD)
-  _(HEROHAZARD)
-  _(FRAGILE)
-  _(TREASURE)
-  _(LATCH)
-  _(SOLID)
-  _(PRIZE)
-  #undef _
-  return ps_int_eval(dst,src,srcc);
-}
-
-static int ps_sprite_grpmask_eval(int *dst,const char *src,int srcc) {
-  *dst=0;
-  int srcp=0;
-  while (srcp<srcc) {
-    if ((unsigned char)src[srcp]<=0x20) { srcp++; continue; }
-    const char *token=src+srcp;
-    int tokenc=0;
-    while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)) { srcp++; tokenc++; }
-    int mask1;
-    if (ps_sprite_grpmask_eval_1(&mask1,token,tokenc)<0) {
-      ps_log(RES,ERROR,"'%.*s' is not a valid sprite group mask component",tokenc,token);
-      return -1;
-    }
-    *dst|=mask1;
-  }
-  return 0;
-}
-
-static int ps_sprite_shape_eval(int *dst,const char *src,int srcc) {
-  if ((srcc==6)&&!ps_memcasecmp(src,"SQUARE",6)) { *dst=PS_SPRITE_SHAPE_SQUARE; return 0; }
-  if ((srcc==6)&&!ps_memcasecmp(src,"CIRCLE",6)) { *dst=PS_SPRITE_SHAPE_CIRCLE; return 0; }
-  return -1;
-}
-
-static int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc) {
+int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc) {
+  if (!dst) return -1;
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
   switch (k) {
-    case PS_SPRDEF_FLD_layer: break;
-    case PS_SPRDEF_FLD_grpmask: if (ps_sprite_grpmask_eval(dst,src,srcc)>=0) return 0; break;
-    case PS_SPRDEF_FLD_radius: break;
-    case PS_SPRDEF_FLD_shape: if (ps_sprite_shape_eval(dst,src,srcc)>=0) return 0; break;
+    case PS_SPRDEF_FLD_layer: return ps_int_eval(dst,src,srcc);
+    case PS_SPRDEF_FLD_grpmask: return ps_enum_eval_multiple(dst,src,srcc,0,ps_sprgrp_eval);
+    case PS_SPRDEF_FLD_radius: return ps_int_eval(dst,src,srcc);
+    case PS_SPRDEF_FLD_shape: {
+        if ((*dst=ps_sprite_shape_eval(src,srcc))<0) return -1;
+        return 0;
+      }
+    case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
+    case PS_SPRDEF_FLD_tileid: return ps_int_eval(dst,src,srcc);
   }
-  return ps_int_eval(dst,src,srcc);
-}
-
-/* Set base field (not in fldv).
- */
-
-static int ps_sprdef_set_fld_type(struct ps_sprdef *sprdef,const char *src,int srcc) {
-  const struct ps_sprtype *type=ps_sprtype_by_name(src,srcc);
-  if (!type) {
-    ps_log(RES,ERROR,"No sprite type '%.*s'.",srcc,src);
-    return -1;
-  }
-  sprdef->type=type;
-  return 0;
-}
-
-static int ps_sprdef_set_fld_tileid(struct ps_sprdef *sprdef,const char *src,int srcc) {
-  int v; 
-  if (ps_int_eval_interactive(&v,src,srcc,0,0xffff,"tileid")<0) return -1;
-  sprdef->tileid=v;
-  return 0;
-}
-
-static int ps_sprdef_set_base_field(struct ps_sprdef *sprdef,const char *k,int kc,const char *v,int vc) {
-  if ((kc==4)&&!memcmp(k,"type",4)) return ps_sprdef_set_fld_type(sprdef,v,vc);
-  if ((kc==6)&&!memcmp(k,"tileid",6)) return ps_sprdef_set_fld_tileid(sprdef,v,vc);
-  ps_log(RES,ERROR,"Unexpected key '%.*s' in sprdef.",kc,k);
   return -1;
 }
 
-/* Count fields in encoded sprdef.
+int ps_sprdef_fld_v_repr(char *dst,int dsta,int k,int v) {
+  if (!dst||(dsta<0)) dsta=0;
+  switch (k) {
+    case PS_SPRDEF_FLD_layer: return ps_decsint_repr(dst,dsta,v);
+    case PS_SPRDEF_FLD_grpmask: return ps_enum_repr_multiple(dst,dsta,v,0,ps_sprgrp_repr);
+    case PS_SPRDEF_FLD_radius: return ps_decsint_repr(dst,dsta,v);
+    case PS_SPRDEF_FLD_shape: {
+        const char *src=ps_sprite_shape_repr(v);
+        if (!src) return -1;
+        return ps_strcpy(dst,dsta,src,-1);
+      }
+    case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
+    case PS_SPRDEF_FLD_tileid: return ps_hexuint_repr(dst,dsta,v);
+  }
+  return -1;
+}
+
+/* Which keys are extra?
  */
 
-static int ps_sprdef_decode_count_fields(const char *src,int srcc) {
+static int ps_sprdef_k_is_extra(int k) {
+  switch (k) {
+    case PS_SPRDEF_FLD_type:
+    case PS_SPRDEF_FLD_tileid:
+      return 0;
+  }
+  return 1;
+}
+
+/* Split line into key and value.
+ */
+
+static int ps_sprdef_split_line(int *kp,int *kc,int *vp,int *vc,const char *src,int srcc) {
+  int srcp=0;
+  while ((srcc>0)&&((unsigned char)src[srcc-1]<=0x20)) srcc--;
+  while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
+  *kp=srcp;
+  *kc=0;
+  while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)) { srcp++; (*kc)++; }
+  while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
+  *vp=srcp;
+  *vc=srcc-srcp;
+  return 0;
+}
+
+/* Count extra fields in encoded sprdef.
+ * We have to do this before allocating the object.
+ */
+
+static int ps_sprdef_count_extra_fields_in_text(const char *src,int srcc) {
   int fldc=0;
-  struct ps_line_reader reader;
+  struct ps_line_reader reader={0};
   if (ps_line_reader_begin(&reader,src,srcc,1)<0) return -1;
-  while (1) {
-    int err=ps_line_reader_next(&reader);
-    if (err<0) return -1;
-    if (!err) break;
-    if (!reader.linec) continue;
-    int kwc=0;
-    while ((kwc<reader.linec)&&((unsigned char)reader.line[kwc]>0x20)) kwc++;
-    if (ps_sprdef_fld_k_eval(reader.line,kwc)>=0) fldc++;
+  while (ps_line_reader_next(&reader)>0) {
+    int kp,kc,vp,vc;
+    if (ps_sprdef_split_line(&kp,&kc,&vp,&vc,reader.line,reader.linec)<0) return -1;
+    if (!kc) continue;
+    int k=ps_sprdef_fld_k_eval(reader.line+kp,kc);
+    if (ps_sprdef_k_is_extra(k)) fldc++;
   }
   return fldc;
 }
 
-/* Deocde sprdef, single line.
+/* Sort extra fields in place.
  */
 
-static int ps_sprdef_decode_line(struct ps_sprdef *sprdef,const char *src,int srcc) {
-  int srcp=0;
-  while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
-  if (srcp>=srcc) return 0;
-  const char *k=src+srcp;
-  int kc=0;
-  while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)) { srcp++; kc++; }
-  while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
-  const char *v=src+srcp;
-  int vc=srcc-srcp;
-  while (vc&&((unsigned char)v[vc-1]<=0x20)) vc--;
+static int ps_sprdef_sort_fields(struct ps_sprdef *sprdef) {
 
-  int fldk=ps_sprdef_fld_k_eval(k,kc);
-  if (fldk>=0) {
-    int p=ps_sprdef_fld_search(sprdef,fldk);
-    if (p>=0) {
-      ps_log(RES,ERROR,"Duplicate sprdef field '%.*s'.",kc,k);
-      return -1;
+  int lo=0,hi=sprdef->fldc-1,d=1;
+  while (lo<hi) {
+    int first,last,i,done=1;
+    if (d>0) { first=lo; last=hi; }
+    else { first=hi; last=lo; }
+    for (i=first;i!=last;i+=d) {
+      int cmp;
+           if (sprdef->fldv[i].k<sprdef->fldv[i+d].k) cmp=-1;
+      else if (sprdef->fldv[i].k>sprdef->fldv[i+d].k) cmp=1;
+      else return -1; // Duplicates not permitted.
+      if (cmp==d) {
+        done=0;
+        struct ps_sprdef_fld tmp=sprdef->fldv[i];
+        sprdef->fldv[i]=sprdef->fldv[i+d];
+        sprdef->fldv[i+d]=tmp;
+      }
     }
-    p=-p-1;
-    memmove(sprdef->fldv+p+1,sprdef->fldv+p,sizeof(struct ps_sprdef_fld)*(sprdef->fldc-p));
-    sprdef->fldc++;
-    sprdef->fldv[p].k=fldk;
-    if (ps_sprdef_fld_v_eval(&sprdef->fldv[p].v,fldk,v,vc)<0) {
-      ps_log(RES,ERROR,"Failed to evalute '%.*s' for sprdef field '%.*s'.",vc,v,kc,k);
-      return -1;
-    }
-  } else {
-    if (ps_sprdef_set_base_field(sprdef,k,kc,v,vc)<0) return -1;
+    if (done) break;
+    if (d==1) { d=-1; hi--; }
+    else { d=1; lo++; }
   }
   return 0;
 }
 
-/* Decode sprdef, split lines.
+/* Decode sprdef.
  */
 
-static int ps_sprdef_decode_inner(struct ps_sprdef *sprdef,const char *src,int srcc) {
-  sprdef->fldc=0;
-  struct ps_line_reader reader;
+static int ps_sprdef_decode_to_object(struct ps_sprdef *sprdef,const char *src,int srcc) {
+  struct ps_line_reader reader={0};
   if (ps_line_reader_begin(&reader,src,srcc,1)<0) return -1;
-  while (1) {
-    int err=ps_line_reader_next(&reader);
-    if (err<0) return -1;
-    if (!err) break;
-    if (!reader.linec) continue;
-    if (ps_sprdef_decode_line(sprdef,reader.line,reader.linec)<0) return -1;
+  int fldc=0;
+  while (ps_line_reader_next(&reader)>0) {
+    int kp,kc,vp,vc;
+    if (ps_sprdef_split_line(&kp,&kc,&vp,&vc,reader.line,reader.linec)<0) return -1;
+    if (!kc) continue;
+    int k=ps_sprdef_fld_k_eval(reader.line+kp,kc);
+    if (k<0) {
+      ps_log(RES,ERROR,"%d: Unknown sprdef key '%.*s'",reader.lineno,kc,reader.line+kp);
+      return -1;
+    }
+    switch (k) {
+    
+      case PS_SPRDEF_FLD_type: {
+          const struct ps_sprtype *type=ps_sprtype_by_name(reader.line+vp,vc);
+          if (!type) {
+            ps_log(RES,ERROR,"%d: Unknown sprite type '%.*s'.",reader.lineno,vc,reader.line+vp);
+            return -1;
+          }
+          sprdef->type=type;
+        } break;
+        
+      case PS_SPRDEF_FLD_tileid: {
+          int v;
+          if (ps_sprdef_fld_v_eval(&v,k,reader.line+vp,vc)<0) {
+            ps_log(RES,ERROR,"%d: Failed to evaluate '%.*s' for sprdef field %d.",reader.lineno,vc,reader.line+vp,k);
+            return -1;
+          }
+          if ((v<0)||(v>0xffff)) {
+            ps_log(RES,ERROR,"%d: Tile ID must be in 0..65535.",reader.lineno);
+            return -1;
+          }
+          sprdef->tileid=v;
+        } break;
+        
+      default: {
+          if (fldc>=sprdef->fldc) {
+            ps_log(RES,ERROR,"Sprdef generic field miscount.");
+            return -1;
+          }
+          int v;
+          if (ps_sprdef_fld_v_eval(&v,k,reader.line+vp,vc)<0) {
+            ps_log(RES,ERROR,"%d: Failed to evaluate '%.*s' for sprdef field %d.",reader.lineno,vc,reader.line+vp,k);
+            return -1;
+          }
+          sprdef->fldv[fldc].k=k;
+          sprdef->fldv[fldc].v=v;
+          fldc++;
+        }
+        
+    }
   }
+  if (fldc<sprdef->fldc) {
+    ps_log(RES,ERROR,"Sprdef generic field miscount.");
+    return -1;
+  }
+  if (!sprdef->type) {
+    ps_log(RES,ERROR,"Sprdef must declare a type.");
+    return -1;
+  }
+  if (ps_sprdef_sort_fields(sprdef)<0) return -1;
   return 0;
 }
-
-/* Decode.
- */
  
 struct ps_sprdef *ps_sprdef_decode(const void *src,int srcc) {
-  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (((char*)src)[srcc]) srcc++; }
-  int fldc=ps_sprdef_decode_count_fields(src,srcc);
+  int fldc=ps_sprdef_count_extra_fields_in_text(src,srcc);
   if (fldc<0) return 0;
-
   struct ps_sprdef *sprdef=ps_sprdef_new(fldc);
   if (!sprdef) return 0;
-
-  if (ps_sprdef_decode_inner(sprdef,src,srcc)<0) {
+  if (ps_sprdef_decode_to_object(sprdef,src,srcc)<0) {
     ps_sprdef_del(sprdef);
     return 0;
   }
-
-  if (!sprdef->type) {
-    ps_log(RES,ERROR,"sprdef did not declare a type.");
-    ps_sprdef_del(sprdef);
-    return 0;
-  }
-  
   return sprdef;
+}
+
+/* Encode sprdef.
+ */
+
+static int ps_sprdef_encode_to_buffer(struct ps_buffer *buffer,const struct ps_sprdef *sprdef) {
+
+  /* Two built-in fields. */
+  if (sprdef->type) {
+    if (ps_buffer_appendf(buffer,"type %s\n",sprdef->type->name)<0) return -1;
+  }
+  if (ps_buffer_appendf(buffer,"tileid 0x%04x\n",sprdef->tileid)<0) return -1;
+
+  /* Everything else is generic. */
+  const struct ps_sprdef_fld *fld=sprdef->fldv;
+  int i=sprdef->fldc; for (;i-->0;fld++) {
+    const char *k=ps_sprdef_fld_k_repr(fld->k);
+    if (!k) return -1;
+    if (ps_buffer_append(buffer,k,-1)<0) return -1;
+    if (ps_buffer_append(buffer," ",1)<0) return -1;
+    while (1) {
+      int addc=ps_sprdef_fld_v_repr(buffer->v+buffer->c,buffer->a-buffer->c,fld->k,fld->v);
+      if (addc<0) return -1;
+      if (buffer->c<=buffer->a-addc) {
+        buffer->c+=addc;
+        break;
+      }
+      if (ps_buffer_require(buffer,addc)<0) return -1;
+    }
+    if (ps_buffer_append(buffer,"\n",1)<0) return -1;
+  }
+
+  return 0;
+}
+ 
+int ps_sprdef_encode(void *dstpp,const struct ps_sprdef *sprdef) {
+  if (!dstpp||!sprdef) return -1;
+  struct ps_buffer buffer={0};
+  if (ps_sprdef_encode_to_buffer(&buffer,sprdef)<0) {
+    ps_buffer_cleanup(&buffer);
+    return -1;
+  }
+  *(void**)dstpp=buffer.v;
+  return buffer.c;
 }

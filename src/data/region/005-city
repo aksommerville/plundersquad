@@ -21,6 +21,7 @@ shape SOLID 100 0x60 SINGLE ROUND
 
 # Latchable object, not yet drawn. Probably will be trees.
 shape LATCH 100 0x4b FAT ROUND
+shape LATCH 100 0x6e SINGLE ROUND
 
 # Holes, not yet drawn. Probably will be water.
 shape HOLE 100 0x84 SKINNY ROUND

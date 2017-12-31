@@ -14,15 +14,16 @@ struct ps_sem;
 struct ps_blueprint;
 struct ps_blueprint_poi;
 struct ps_blueprint_solution;
+struct ps_sprdef;
 
 extern const struct ps_widget_type ps_widget_type_edithome;
 extern const struct ps_widget_type ps_widget_type_editsoundeffect;
 extern const struct ps_widget_type ps_widget_type_wave; /* Modal. For instruments and ipcm voices. */
 extern const struct ps_widget_type ps_widget_type_editsong;
 extern const struct ps_widget_type ps_widget_type_editblueprint;
+extern const struct ps_widget_type ps_widget_type_editsprdef;
 
 // TODO:
-// editsprdef
 // editplrdef
 // editregion
 
@@ -39,6 +40,8 @@ extern const struct ps_widget_type ps_widget_type_songevent; // Modal dialogue.
 extern const struct ps_widget_type ps_widget_type_bpchart;
 extern const struct ps_widget_type ps_widget_type_editpoi; // Modal dialogue.
 extern const struct ps_widget_type ps_widget_type_editsolution; // Modal dialogue.
+extern const struct ps_widget_type ps_widget_type_tileselect; // Modal dialogue.
+extern const struct ps_widget_type ps_widget_type_editgrpmask; // Modal dialogue.
 
 /* Edithome.
  *****************************************************************************/
@@ -224,5 +227,24 @@ int ps_widget_editsolution_set_callback(struct ps_widget *widget,struct ps_callb
 int ps_widget_editsolution_set_index(struct ps_widget *widget,int index);
 int ps_widget_editsolution_get_index(const struct ps_widget *widget);
 int ps_widget_editsolution_wants_deleted(const struct ps_widget *widget);
+
+/* Editsprdef.
+ *****************************************************************************/
+
+int ps_widget_editsprdef_set_resource(struct ps_widget *widget,int id,struct ps_sprdef *sprdef,const char *name);
+
+/* Tileselect.
+ *****************************************************************************/
+
+int ps_widget_tileselect_set_tileid(struct ps_widget *widget,uint16_t tileid);
+uint16_t ps_widget_tileselect_get_tileid(const struct ps_widget *widget);
+int ps_widget_tileselect_set_callback(struct ps_widget *widget,struct ps_callback cb);
+
+/* Editgrpmask.
+ *****************************************************************************/
+
+int ps_widget_editgrpmask_set_grpmask(struct ps_widget *widget,uint32_t grpmask);
+uint32_t ps_widget_editgrpmask_get_grpmask(const struct ps_widget *widget);
+int ps_widget_editgrpmask_set_callback(struct ps_widget *widget,struct ps_callback cb);
 
 #endif

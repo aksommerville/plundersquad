@@ -128,6 +128,10 @@ struct ps_sprtype {
 
 const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec);
 
+/* List of all sprite types, terminated with a NULL.
+ */
+extern const struct ps_sprtype *ps_all_sprtypes[];
+
 extern const struct ps_sprtype ps_sprtype_dummy;
 extern const struct ps_sprtype ps_sprtype_hero;
 extern const struct ps_sprtype ps_sprtype_anim2;
@@ -148,6 +152,7 @@ extern const struct ps_sprtype ps_sprtype_prize;
 extern const struct ps_sprtype ps_sprtype_swordswitch;
 extern const struct ps_sprtype ps_sprtype_lobster;
 extern const struct ps_sprtype ps_sprtype_fireworks;
+//INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
  */
@@ -164,6 +169,8 @@ struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p
 #define PS_SPRDEF_FLD_grpmask    2
 #define PS_SPRDEF_FLD_radius     3
 #define PS_SPRDEF_FLD_shape      4
+#define PS_SPRDEF_FLD_type       5 /* Not stored in extension. */
+#define PS_SPRDEF_FLD_tileid     6 /* Not stored in extension. */
 
 struct ps_sprdef_fld {
   int k,v;
@@ -189,6 +196,16 @@ int ps_sprdef_fld_get(const struct ps_sprdef *sprdef,int k,int def); // (def) if
  */
 struct ps_sprite *ps_sprdef_instantiate(struct ps_game *game,struct ps_sprdef *sprdef,const int *argv,int argc,int x,int y);
 
+/* Encoded form is line-oriented "KEY VALUE".
+ * See ps_sprdef_fld_k_{eval,repr} and ps_sprdef_fld_v_{eval,repr}.
+ */
 struct ps_sprdef *ps_sprdef_decode(const void *src,int srcc);
+int ps_sprdef_encode(void *dstpp,const struct ps_sprdef *sprdef);
+
+/* Represent or evaluate value for most sprdef fields.
+ * The only exception is "type", whose value is a type name or pointer to ps_sprtype.
+ */
+int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc);
+int ps_sprdef_fld_v_repr(char *dst,int dsta,int k,int v);
 
 #endif

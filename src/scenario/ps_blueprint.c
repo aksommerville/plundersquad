@@ -549,7 +549,7 @@ int ps_blueprint_decode(struct ps_blueprint *blueprint,const void *src,int srcc)
     uint8_t phi=SRC[srcp++];
     uint8_t difficulty=SRC[srcp++];
     uint8_t preference=SRC[srcp++];
-    uint8_t skills=(SRC[srcp]<<8)|SRC[srcp+1]; srcp+=2;
+    uint16_t skills=(SRC[srcp]<<8)|SRC[srcp+1]; srcp+=2;
     if (ps_blueprint_add_solution(blueprint,plo,phi,difficulty,preference,skills)<0) return -1;
   }
 

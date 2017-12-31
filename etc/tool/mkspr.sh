@@ -25,7 +25,18 @@ fi
 
 sed -E s/dummy/$NAME/g $SRCPATH > $DSTPATH
 
-echo "OK. Remember to add to src/game/ps_sprite.h and src/game/ps_sprtype.c"
+# Took some help from Stack Overflow to automatically rewrite the sources:
+# https://stackoverflow.com/questions/6111679/insert-linefeed-in-sed-mac-os-x
+
+sed -E '/^\/\/INSERT SPRTYPE DEFINITION HERE$/{x;s/$/extern const struct ps_sprtype ps_sprtype_'$NAME'\;/;G;}' src/game/ps_sprite.h >mkspr-temp
+mv mkspr-temp src/game/ps_sprite.h
+
+NAMELEN=${#NAME}
+sed -E '/^\/\/INSERT SPRTYPE NAME TEST HERE$/{x;s/$/  if ((namec=='$NAMELEN')\&\&!memcmp(name,"'$NAME'",'$NAMELEN')) return \&ps_sprtype_'$NAME'\;/;G;}' src/game/ps_sprtype.c >mkspr-temp
+mv mkspr-temp src/game/ps_sprtype.c
+
+sed -E '/^\/\/INSERT SPRTYPE REFERENCE HERE$/{x;s/$/  \&ps_sprtype_'$NAME',/;G;}' src/game/ps_sprtype.c >mkspr-temp
+mv mkspr-temp src/game/ps_sprtype.c
 
 if [ -n "$EDITOR" ] ; then
   $EDITOR $DSTPATH

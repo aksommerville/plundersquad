@@ -15,6 +15,7 @@
 #include "res/ps_restype.h"
 #include "input/ps_input.h"
 #include "scenario/ps_blueprint.h"
+#include "game/ps_sprite.h"
 
 static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typeindex);
 static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int resindex);
@@ -241,7 +242,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
 }
 
 //XXX stub resource editors -- If we substitute ps_widget_type_dialogue, the user will see a friendly error message.
-#define ps_widget_type_editsprdef ps_widget_type_dialogue
 #define ps_widget_type_editplrdef ps_widget_type_dialogue
 #define ps_widget_type_editregion ps_widget_type_dialogue
 
@@ -355,6 +355,10 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
     return ps_widget_editblueprint_set_resource(widget,id,obj,name);
   }
 
+  if (widget->type==&ps_widget_type_editsprdef) {
+    return ps_widget_editsprdef_set_resource(widget,id,obj,name);
+  }
+
   //TODO load resource to specific types.
 
   return -1;
@@ -410,14 +414,29 @@ static int ps_edithome_create_blueprint(struct ps_widget *widget) {
   if (!restype) return -1;
   int resp=restype->rescontigc;
   int resid=resp;
-  ps_log(EDIT,DEBUG,"resp=%d resid=%d c=%d contigc=%d",resp,resid,restype->resc,restype->rescontigc);
 
   struct ps_blueprint *blueprint=ps_blueprint_new();
   if (!blueprint) return -1;
 
-  ps_log(EDIT,DEBUG,"insert...");
   if (ps_restype_res_insert(restype,resp,resid,blueprint)<0) return -1;
-  ps_log(EDIT,DEBUG,"OK");
+  return 0;
+}
+
+/* Create new sprdef.
+ */
+
+static int ps_edithome_create_sprdef(struct ps_widget *widget) {
+  struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_SPRDEF);
+  if (!restype) return -1;
+  int resp=restype->rescontigc;
+  int resid=resp;
+
+  struct ps_sprdef *sprdef=ps_sprdef_new(0);
+  if (!sprdef) return -1;
+  sprdef->type=&ps_sprtype_dummy;
+  sprdef->tileid=0x0400;
+
+  if (ps_restype_res_insert(restype,resp,resid,sprdef)<0) return -1;
   return 0;
 }
 
@@ -438,7 +457,7 @@ static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget)
     case 0: if (ps_edithome_create_song(widget)<0) return -1; break;
     case 1: if (ps_edithome_create_sound_effect(widget)<0) return -1; break;
     case 2: if (ps_edithome_create_blueprint(widget)<0) return -1; break;
-    case 3: return 0;//TODO new sprdef
+    case 3: if (ps_edithome_create_sprdef(widget)<0) return -1; break;
     case 4: return 0;//TODO new plrdef
     case 5: return 0;//TODO new region
   }

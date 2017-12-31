@@ -23,6 +23,7 @@ extern const struct ps_widget_type ps_widget_type_packer; /* Lines children up i
 extern const struct ps_widget_type ps_widget_type_menu; /* List of selectable options. */
 extern const struct ps_widget_type ps_widget_type_scrolllist; /* Vertically scrolling list of arbitrary widgets. */
 extern const struct ps_widget_type ps_widget_type_dialogue; /* Box with optional message, input, and buttons. */
+extern const struct ps_widget_type ps_widget_type_plaindialogue; /* Agnostic dialogue box, put whatever you want in it. */
 extern const struct ps_widget_type ps_widget_type_menubar; /* Horizontal bar of buttons. */
 extern const struct ps_widget_type ps_widget_type_scrollbar; /* General-purpose scrollbar. */
 
@@ -147,6 +148,7 @@ struct ps_widget *ps_widget_scrolllist_add_label(struct ps_widget *widget,const 
 int ps_widget_scrolllist_enable_selection(struct ps_widget *widget,struct ps_callback cb);
 int ps_widget_scrolllist_get_selection(const struct ps_widget *widget);
 int ps_widget_scrolllist_set_selection(struct ps_widget *widget,int p);
+int ps_widget_scrolllist_set_selection_without_callback(struct ps_widget *widget,int p);
 const char *ps_widget_scrolllist_get_text(const struct ps_widget *widget);
 
 /* Dialogue.
@@ -185,6 +187,12 @@ struct ps_widget *ps_widget_spawn_dialogue_number(
   int input,
   int (*cb)(struct ps_widget *button,struct ps_widget *dialogue)
 );
+
+/* Plaindialogue.
+ *****************************************************************************/
+
+// Kill the plaindialogue. You may provide any descendant of it.
+int ps_widget_plaindialogue_dismiss(struct ps_widget *widget);
 
 /* Menubar.
  *****************************************************************************/

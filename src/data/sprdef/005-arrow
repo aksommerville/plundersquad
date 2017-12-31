@@ -1,7 +1,3 @@
 type arrow
 tileid 0x034f
-
-# Arrow has an unusual shape so we do not put it in group HAZARD.
-# Likewise, its physics are a little differenty. 
-# "type arrow" handles it all.
-grpmask visible update
+grpmask VISIBLE UPDATE

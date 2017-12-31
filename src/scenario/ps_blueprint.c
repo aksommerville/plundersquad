@@ -574,20 +574,3 @@ int ps_blueprint_decode(struct ps_blueprint *blueprint,const void *src,int srcc)
 
   return 0;
 }
-
-/* Evaluate cell name.
- */
- 
-int ps_blueprint_cell_eval(const char *src,int srcc) {
-  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_BLUEPRINT_CELL_##tag;
-  _(VACANT)
-  _(SOLID)
-  _(HOLE)
-  _(LATCH)
-  _(HEROONLY)
-  _(HAZARD)
-  _(HEAL)
-  #undef _
-  return -1;
-}

@@ -16,6 +16,8 @@ struct ps_blueprint_poi;
 struct ps_blueprint_solution;
 struct ps_sprdef;
 struct ps_plrdef;
+struct ps_region;
+struct ps_region_shape;
 
 extern const struct ps_widget_type ps_widget_type_edithome;
 extern const struct ps_widget_type ps_widget_type_editsoundeffect;
@@ -24,9 +26,7 @@ extern const struct ps_widget_type ps_widget_type_editsong;
 extern const struct ps_widget_type ps_widget_type_editblueprint;
 extern const struct ps_widget_type ps_widget_type_editsprdef;
 extern const struct ps_widget_type ps_widget_type_editplrdef;
-
-// TODO:
-// editregion
+extern const struct ps_widget_type ps_widget_type_editregion;
 
 extern const struct ps_widget_type ps_widget_type_sfxchan;
 extern const struct ps_widget_type ps_widget_type_sfxgraph;
@@ -46,6 +46,7 @@ extern const struct ps_widget_type ps_widget_type_editgrpmask; // Modal dialogue
 extern const struct ps_widget_type ps_widget_type_palette; // List item for plrdef
 extern const struct ps_widget_type ps_widget_type_editpalette; // Modal dialogue.
 extern const struct ps_widget_type ps_widget_type_rgbslider;
+extern const struct ps_widget_type ps_widget_type_regionshape;
 
 /* Edithome.
  *****************************************************************************/
@@ -273,5 +274,15 @@ int ps_widget_rgbslider_set_channel(struct ps_widget *widget,int chid);
 int ps_widget_rgbslider_set_callback(struct ps_widget *widget,struct ps_callback cb);
 int ps_widget_rgbslider_set_rgba(struct ps_widget *widget,uint32_t rgba);
 uint32_t ps_widget_rgbslider_get_rgba(const struct ps_widget *widget);
+
+/* Editregion.
+ *****************************************************************************/
+
+int ps_widget_editregion_set_resource(struct ps_widget *widget,int id,struct ps_region *region,const char *name);
+
+int ps_widget_regionshape_set_shape(struct ps_widget *widget,const struct ps_region_shape *shape);
+int ps_widget_regionshape_get_shape(struct ps_region_shape *shape,const struct ps_widget *widget);
+int ps_widget_regionshape_set_tsid(struct ps_widget *widget,uint8_t tsid);
+int ps_widget_regionshape_set_cb_delete(struct ps_widget *widget,struct ps_callback cb_delete); // sender will be button, not regionshape
 
 #endif

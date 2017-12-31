@@ -2,6 +2,10 @@
 #include "ps_region.h"
 #include "ps_blueprint.h"
 #include "util/ps_text.h"
+#include "util/ps_buffer.h"
+#include "util/ps_enums.h"
+#include "res/ps_resmgr.h"
+#include "res/ps_restype.h"
 
 /* New.
  */
@@ -175,6 +179,36 @@ int ps_region_add_monster(struct ps_region *region,int sprdefid) {
   return -1;
 }
 
+/* Add any monster ID.
+ */
+
+int ps_region_add_any_valid_monster(struct ps_region *region) {
+  if (!region) return -1;
+  int p=-1;
+  int highest=0;
+  int i=PS_REGION_MONSTER_LIMIT; while (i-->0) {
+    if (!region->monster_sprdefidv[i]) {
+      p=i;
+    } else if (region->monster_sprdefidv[i]>highest) {
+      highest=region->monster_sprdefidv[i];
+    }
+  }
+  if (p<0) return -1; // Can't add; already full.
+  if (ps_res_get(PS_RESTYPE_SPRDEF,highest+1)) { // Easiest solution is take the first ID above the current highest.
+    return region->monster_sprdefidv[p]=highest+1;
+  }
+  // The hard way: Scan all sprdef resources until we find one not in use.
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_SPRDEF);
+  if (!restype) return -1;
+  const struct ps_res *res=restype->resv;
+  for (i=restype->resc;i-->0;res++) {
+    if (!ps_region_has_monster(region,res->id)) {
+      return region->monster_sprdefidv[p]=res->id;
+    }
+  }
+  return -1; // We are already using every sprdef...?
+}
+
 /* Decode shape declaration.
  */
 
@@ -323,28 +357,43 @@ struct ps_region *ps_region_decode(const char *src,int srcc) {
   return region;
 }
 
-/* Evaluate shape style.
+/* Encode resource.
  */
- 
-int ps_region_shape_style_eval(const char *src,int srcc) {
-  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_REGION_SHAPE_STYLE_##tag;
-  _(SINGLE)
-  _(ALT4)
-  _(ALT8)
-  _(EVEN4)
-  _(SKINNY)
-  _(FAT)
-  _(3X3)
-  _(ALT16)
-  #undef _
-  return -1;
+
+static int ps_region_encode_to_buffer(struct ps_buffer *buffer,const struct ps_region *region) {
+
+  if (ps_buffer_appendf(buffer,"tilesheet %d\n",region->tsid)<0) return -1;
+  if (ps_buffer_appendf(buffer,"song %d\n",region->songid)<0) return -1;
+
+  const int *sprdefid=region->monster_sprdefidv;
+  int i=PS_REGION_MONSTER_LIMIT; for (;i-->0;sprdefid++) {
+    if (*sprdefid) {
+      if (ps_buffer_appendf(buffer,"monster %d\n",*sprdefid)<0) return -1;
+    }
+  }
+
+  const struct ps_region_shape *shape=region->shapev;
+  for (i=region->shapec;i-->0;shape++) {
+    const char *physics=ps_blueprint_cell_repr(shape->physics);
+    const char *style=ps_region_shape_style_repr(shape->style);
+    const char *flags=ps_region_shape_flag_repr(shape->flags); //TODO must change if we add a second flag
+    if (!physics||!style||!flags) {
+      ps_log(RES,ERROR,"Unable to represent region shape (%d,%d,%d) = (%s,%s,%s)",shape->physics,shape->style,shape->flags,physics,style,flags);
+      return -1;
+    }
+    if (ps_buffer_appendf(buffer,"shape %s %d %d %s %s\n",physics,shape->weight,shape->tileid,style,flags)<0) return -1;
+  }
+  
+  return 0;
 }
 
-int ps_region_shape_flag_eval(const char *src,int srcc) {
-  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_REGION_SHAPE_FLAG_##tag;
-  _(ROUND)
-  #undef _
-  return -1;
+int ps_region_encode(void *dstpp,const struct ps_region *region) {
+  if (!dstpp||!region) return -1;
+  struct ps_buffer buffer={0};
+  if (ps_region_encode_to_buffer(&buffer,region)<0) {
+    ps_buffer_cleanup(&buffer);
+    return -1;
+  }
+  *(void**)dstpp=buffer.v;
+  return buffer.c;
 }

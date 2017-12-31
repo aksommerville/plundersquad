@@ -40,4 +40,22 @@ const char *ps_sprgrp_repr(int grpindex);
 int ps_sprite_shape_eval(const char *src,int srcc);
 const char *ps_sprite_shape_repr(int shape);
 
+/* ps_region.h:PS_REGION_SHAPE_STYLE_*
+ * Zero-based integer.
+ */
+int ps_region_shape_style_eval(const char *src,int srcc);
+const char *ps_region_shape_style_repr(int style);
+
+/* ps_region.h:PS_REGION_SHAPE_FLAG_*
+ * 8-bit mask.
+ */
+int ps_region_shape_flag_eval(const char *src,int srcc);
+const char *ps_region_shape_flag_repr(int flag);
+
+/* ps_blueprint.h:PS_BLUEPRINT_CELL_*
+ * Zero-based integer.
+ */
+int ps_blueprint_cell_eval(const char *src,int srcc);
+const char *ps_blueprint_cell_repr(int cell);
+
 #endif

@@ -15,6 +15,7 @@
 #include "res/ps_restype.h"
 #include "input/ps_input.h"
 #include "scenario/ps_blueprint.h"
+#include "scenario/ps_region.h"
 #include "game/ps_sprite.h"
 
 static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typeindex);
@@ -241,9 +242,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
   return 0;
 }
 
-//XXX stub resource editors -- If we substitute ps_widget_type_dialogue, the user will see a friendly error message.
-#define ps_widget_type_editregion ps_widget_type_dialogue
-
 /* Open song.
  */
 
@@ -333,15 +331,6 @@ static int ps_edithome_cb_dismiss(struct ps_widget *button,struct ps_widget *dia
 int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,const char *name) {
   if (!widget||(id<0)||!obj) return -1;
 
-  if (widget->type==&ps_widget_type_dialogue) {
-    char msg[256];
-    int msgc=snprintf(msg,sizeof(msg),"Failed to load resource '%s', ID %d (%p). Editor not yet implemented.",name,id,obj);
-    if ((msgc<0)||(msgc>=sizeof(msg))) msgc=snprintf(msg,sizeof(msg),"Editor not implemented.");
-    if (ps_widget_dialogue_set_message(widget,msg,msgc)<0) return -1;
-    if (ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(ps_edithome_cb_dismiss,0,widget))<0) return -1;
-    return 0;
-  }
-
   if (widget->type==&ps_widget_type_editsoundeffect) {
     return ps_widget_editsoundeffect_set_resource(widget,id,obj,name);
   }
@@ -362,7 +351,9 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
     return ps_widget_editplrdef_set_resource(widget,id,obj,name);
   }
 
-  //TODO load resource to specific types.
+  if (widget->type==&ps_widget_type_editregion) {
+    return ps_widget_editregion_set_resource(widget,id,obj,name);
+  }
 
   return -1;
 }
@@ -443,6 +434,22 @@ static int ps_edithome_create_sprdef(struct ps_widget *widget) {
   return 0;
 }
 
+/* Create new region.
+ */
+
+static int ps_edithome_create_region(struct ps_widget *widget) {
+  struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_REGION);
+  if (!restype) return -1;
+  int resp=restype->rescontigc;
+  int resid=resp;
+
+  struct ps_region *region=ps_region_new(0);
+  if (!region) return -1;
+
+  if (ps_restype_res_insert(restype,resp,resid,region)<0) return -1;
+  return 0;
+}
+
 /* Menubar callbacks.
  */
  
@@ -462,7 +469,7 @@ static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget)
     case 2: if (ps_edithome_create_blueprint(widget)<0) return -1; break;
     case 3: if (ps_edithome_create_sprdef(widget)<0) return -1; break;
     case 4: return 0; // plrdef: We've already got the complete set, by the time I wrote this.
-    case 5: return 0;//TODO new region
+    case 5: if (ps_edithome_create_region(widget)<0) return -1; break;
   }
 
   if (ps_edithome_rebuild_resource_list(widget,typeindex)<0) return -1;

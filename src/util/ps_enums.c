@@ -3,6 +3,8 @@
 #include "ps_enums.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "scenario/ps_region.h"
+#include "scenario/ps_blueprint.h"
 
 /* Generic integer properties.
  */
@@ -245,6 +247,91 @@ const char *ps_sprite_shape_repr(int shape) {
   switch (shape) {
     case PS_SPRITE_SHAPE_SQUARE: return "SQUARE";
     case PS_SPRITE_SHAPE_CIRCLE: return "CIRCLE";
+  }
+  return 0;
+}
+
+/* Region shape style.
+ */
+ 
+int ps_region_shape_style_eval(const char *src,int srcc) {
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_REGION_SHAPE_STYLE_##tag;
+  _(SINGLE)
+  _(ALT4)
+  _(ALT8)
+  _(EVEN4)
+  _(SKINNY)
+  _(FAT)
+  _(3X3)
+  _(ALT16)
+  #undef _
+  return -1;
+}
+
+const char *ps_region_shape_style_repr(int shape) {
+  switch (shape) {
+    #define _(tag) case PS_REGION_SHAPE_STYLE_##tag: return #tag;
+    _(SINGLE)
+    _(ALT4)
+    _(ALT8)
+    _(EVEN4)
+    _(SKINNY)
+    _(FAT)
+    _(3X3)
+    _(ALT16)
+    #undef _
+  }
+  return 0;
+}
+
+/* Region shape flag.
+ */
+
+int ps_region_shape_flag_eval(const char *src,int srcc) {
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_REGION_SHAPE_FLAG_##tag;
+  _(ROUND)
+  #undef _
+  return -1;
+}
+
+const char *ps_region_shape_flag_repr(int flag) {
+  switch (flag) {
+    case 0: return "";
+    case PS_REGION_SHAPE_FLAG_ROUND: return "ROUND";
+  }
+  return 0;
+}
+
+/* Blueprint cell.
+ */
+ 
+int ps_blueprint_cell_eval(const char *src,int srcc) {
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_BLUEPRINT_CELL_##tag;
+  _(VACANT)
+  _(SOLID)
+  _(HOLE)
+  _(LATCH)
+  _(HEROONLY)
+  _(HAZARD)
+  _(HEAL)
+  #undef _
+  return -1;
+}
+
+const char *ps_blueprint_cell_repr(int cell) {
+  switch (cell) {
+    #define _(tag) case PS_BLUEPRINT_CELL_##tag: return #tag;
+  _(VACANT)
+  _(SOLID)
+  _(HOLE)
+  _(LATCH)
+  _(HEROONLY)
+  _(HAZARD)
+  _(HEAL)
+    #undef _
   }
   return 0;
 }

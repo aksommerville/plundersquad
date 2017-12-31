@@ -39,6 +39,7 @@ struct ps_region {
 
 /* The size of the region's shape list is fixed at construction.
  * These are built to be instantiated from a resource, not for programmatic construction.
+ * [Update, some months later: That previous guy was a jackass and should not have done it this way]
  */
 struct ps_region *ps_region_new(int shapec);
 void ps_region_del(struct ps_region *region);
@@ -61,6 +62,7 @@ int ps_region_count_monsters(const struct ps_region *region);
 int ps_region_get_monster(const struct ps_region *region,int p); // (p) in (0..count-1), sparseness managed for you.
 int ps_region_has_monster(const struct ps_region *region,int sprdefid);
 int ps_region_add_monster(struct ps_region *region,int sprdefid); // Fallible, as there is a constant limit.
+int ps_region_add_any_valid_monster(struct ps_region *region); // Add any valid sprdefid not yet used. Returns sprdefid.
 
 /* Region resource is line-oriented text.
  * '#' begins a line comment.
@@ -68,7 +70,6 @@ int ps_region_add_monster(struct ps_region *region,int sprdefid); // Fallible, a
  * Numbers are all unsigned and decimal or hexadecimal.
  * First word is the command:
  *   tilesheet ID                      # required once
- *   region ID                         # required once
  *   song ID
  *   shape PHYSICS WEIGHT TILEID STYLE [FLAGS...] # any count
  *     PHYSICS: ps_blueprint_cell_eval() (VACANT,SOLID,HOLE,LATCH,HAZARD,HEAL,HEROONLY)
@@ -79,8 +80,6 @@ int ps_region_add_monster(struct ps_region *region,int sprdefid); // Fallible, a
  *   monster SPRDEFID                  # 0..8
  */
 struct ps_region *ps_region_decode(const char *src,int srcc);
-
-int ps_region_shape_style_eval(const char *src,int srcc);
-int ps_region_shape_flag_eval(const char *src,int srcc);
+int ps_region_encode(void *dstpp,const struct ps_region *region);
 
 #endif

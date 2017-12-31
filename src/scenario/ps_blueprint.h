@@ -179,6 +179,4 @@ int ps_blueprint_add_solution(
 int ps_blueprint_encode(void *dst,int dsta,const struct ps_blueprint *blueprint);
 int ps_blueprint_decode(struct ps_blueprint *blueprint,const void *src,int srcc);
 
-int ps_blueprint_cell_eval(const char *src,int srcc);
-
 #endif

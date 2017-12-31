@@ -249,16 +249,21 @@ static int ps_screen_populate_grid_north_margin(struct ps_screen *screen,const s
   if (!direct) {
     int dstp=(refp+srcp)>>1;
     int dstc=((refp+refc+srcp+srcc)>>1)-dstp;
-    refp=dstp;
-    refc=dstc;
+    int lop=(refp<dstp)?refp:dstp;
+    int hip=refp+refc;
+    if (dstp+dstc>hip) hip=dstp+dstc;
+    refp=lop;
+    refc=hip-lop;
   }
 
   ps_grid_set_physics(screen->grid,2,0,refp-2,1,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,refp+refc,0,PS_GRID_COLC-2-refc-refp,1,PS_BLUEPRINT_CELL_SOLID);
 
-  refc=(refp+refc+srcp+srcc)>>1;
-  refp=(refp+srcp)>>1;
-  refc-=refp;
+  int lop=(refp<srcp)?refp:srcp;
+  int hip=refp+refc;
+  if (srcp+srcc>hip) hip=srcp+srcc;
+  refp=lop;
+  refc=hip-lop;
 
   ps_grid_set_physics(screen->grid,2,1,refp-2,1,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,refp+refc,1,PS_GRID_COLC-2-refc-refp,1,PS_BLUEPRINT_CELL_SOLID);
@@ -282,16 +287,21 @@ static int ps_screen_populate_grid_south_margin(struct ps_screen *screen,const s
   if (!direct) {
     int dstp=(refp+srcp)>>1;
     int dstc=((refp+refc+srcp+srcc)>>1)-dstp;
-    refp=dstp;
-    refc=dstc;
+    int lop=(refp<dstp)?refp:dstp;
+    int hip=refp+refc;
+    if (dstp+dstc>hip) hip=dstp+dstc;
+    refp=lop;
+    refc=hip-lop;
   }
 
   ps_grid_set_physics(screen->grid,2,PS_GRID_ROWC-1,refp-2,1,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,refp+refc,PS_GRID_ROWC-1,PS_GRID_COLC-2-refc-refp,1,PS_BLUEPRINT_CELL_SOLID);
 
-  refc=(refp+refc+srcp+srcc)>>1;
-  refp=(refp+srcp)>>1;
-  refc-=refp;
+  int lop=(refp<srcp)?refp:srcp;
+  int hip=refp+refc;
+  if (srcp+srcc>hip) hip=srcp+srcc;
+  refp=lop;
+  refc=hip-lop;
 
   ps_grid_set_physics(screen->grid,2,PS_GRID_ROWC-2,refp-2,1,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,refp+refc,PS_GRID_ROWC-2,PS_GRID_COLC-2-refc-refp,1,PS_BLUEPRINT_CELL_SOLID);
@@ -315,16 +325,21 @@ static int ps_screen_populate_grid_west_margin(struct ps_screen *screen,const st
   if (!direct) {
     int dstp=(refp+srcp)>>1;
     int dstc=((refp+refc+srcp+srcc)>>1)-dstp;
-    refp=dstp;
-    refc=dstc;
+    int lop=(refp<dstp)?refp:dstp;
+    int hip=refp+refc;
+    if (dstp+dstc>hip) hip=dstp+dstc;
+    refp=lop;
+    refc=hip-lop;
   }
 
   ps_grid_set_physics(screen->grid,0,2,1,refp-2,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,0,refp+refc,1,PS_GRID_ROWC-2-refc-refp,PS_BLUEPRINT_CELL_SOLID);
 
-  refc=(refp+refc+srcp+srcc)>>1;
-  refp=(refp+srcp)>>1;
-  refc-=refp;
+  int lop=(refp<srcp)?refp:srcp;
+  int hip=refp+refc;
+  if (srcp+srcc>hip) hip=srcp+srcc;
+  refp=lop;
+  refc=hip-lop;
 
   ps_grid_set_physics(screen->grid,1,2,1,refp-2,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,1,refp+refc,1,PS_GRID_ROWC-2-refc-refp,PS_BLUEPRINT_CELL_SOLID);
@@ -348,16 +363,21 @@ static int ps_screen_populate_grid_east_margin(struct ps_screen *screen,const st
   if (!direct) {
     int dstp=(refp+srcp)>>1;
     int dstc=((refp+refc+srcp+srcc)>>1)-dstp;
-    refp=dstp;
-    refc=dstc;
+    int lop=(refp<dstp)?refp:dstp;
+    int hip=refp+refc;
+    if (dstp+dstc>hip) hip=dstp+dstc;
+    refp=lop;
+    refc=hip-lop;
   }
 
   ps_grid_set_physics(screen->grid,PS_GRID_COLC-1,2,1,refp-2,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,PS_GRID_COLC-1,refp+refc,1,PS_GRID_ROWC-2-refc-refp,PS_BLUEPRINT_CELL_SOLID);
 
-  refc=(refp+refc+srcp+srcc)>>1;
-  refp=(refp+srcp)>>1;
-  refc-=refp;
+  int lop=(refp<srcp)?refp:srcp;
+  int hip=refp+refc;
+  if (srcp+srcc>hip) hip=srcp+srcc;
+  refp=lop;
+  refc=hip-lop;
 
   ps_grid_set_physics(screen->grid,PS_GRID_COLC-2,2,1,refp-2,PS_BLUEPRINT_CELL_SOLID);
   ps_grid_set_physics(screen->grid,PS_GRID_COLC-2,refp+refc,1,PS_GRID_ROWC-2-refc-refp,PS_BLUEPRINT_CELL_SOLID);

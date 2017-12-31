@@ -23,6 +23,7 @@ void ps_physics_del(struct ps_physics *physics) {
   if (!physics) return;
   ps_sprgrp_del(physics->grp_physics);
   ps_sprgrp_del(physics->grp_solid);
+  ps_sprgrp_del(physics->grp_hero);
   ps_grid_del(physics->grid);
   if (physics->collv) free(physics->collv);
   if (physics->eventv) free(physics->eventv);
@@ -45,6 +46,14 @@ int ps_physics_set_sprgrp_solid(struct ps_physics *physics,struct ps_sprgrp *grp
   if (grp&&(ps_sprgrp_ref(grp)<0)) return -1;
   ps_sprgrp_del(physics->grp_solid);
   physics->grp_solid=grp;
+  return 0;
+}
+ 
+int ps_physics_set_sprgrp_hero(struct ps_physics *physics,struct ps_sprgrp *grp) {
+  if (!physics) return -1;
+  if (grp&&(ps_sprgrp_ref(grp)<0)) return -1;
+  ps_sprgrp_del(physics->grp_hero);
+  physics->grp_hero=grp;
   return 0;
 }
 
@@ -203,13 +212,15 @@ static int ps_physics_recheck_sprites(struct ps_physics *physics,struct ps_coll 
 /* Which grid cells do we care about?
  */
 
-static inline int ps_physics_cell_is_solid(uint8_t cell_physics,int include_hole) {
+static inline int ps_physics_cell_is_solid(uint8_t cell_physics,int include_hole,int include_heroonly) {
   switch (cell_physics) {
     case PS_BLUEPRINT_CELL_SOLID:
     case PS_BLUEPRINT_CELL_LATCH:
       return 1;
     case PS_BLUEPRINT_CELL_HOLE:
       return include_hole;
+    case PS_BLUEPRINT_CELL_HEROONLY:
+      return include_heroonly;
   }
   return 0;
 }
@@ -255,6 +266,8 @@ static int ps_physics_check_grid(struct ps_physics *physics,struct ps_sprite *sp
   int rowa=ya/PS_TILESIZE; if (ya<0) rowa--;
   int rowz=yz/PS_TILESIZE; if (yz<0) rowz--;
 
+  int include_heroonly=!ps_sprgrp_has_sprite(physics->grp_hero,spr);
+
   /* Iterate over the covered cells.
    * We need the true (col,row), ie possibly OOB, to compare pixelwise against the sprite.
    * But the cell data we'll use is more complicated:
@@ -280,7 +293,7 @@ static int ps_physics_check_grid(struct ps_physics *physics,struct ps_sprite *sp
       }
       const struct ps_grid_cell *effective_cell=physics->grid->cellv+effective_row*PS_GRID_COLC+effective_col;
 
-      if (!ps_physics_cell_is_solid(effective_cell->physics,spr->collide_hole)) continue;
+      if (!ps_physics_cell_is_solid(effective_cell->physics,spr->collide_hole,include_heroonly)) continue;
 
       struct ps_fbox cellbox=ps_fbox(col*PS_TILESIZE,(col+1)*PS_TILESIZE,row*PS_TILESIZE,(row+1)*PS_TILESIZE);
       struct ps_circle cellcircle=ps_circle(col*PS_TILESIZE+(PS_TILESIZE>>1),row*PS_TILESIZE+(PS_TILESIZE>>1),PS_TILESIZE>>1);

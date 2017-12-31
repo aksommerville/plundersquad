@@ -86,11 +86,11 @@ struct ps_game *ps_game_new() {
     ps_game_del(game);
     return 0;
   }
-  if (ps_physics_set_sprgrp_physics(game->physics,game->grpv+PS_SPRGRP_PHYSICS)<0) {
-    ps_game_del(game);
-    return 0;
-  }
-  if (ps_physics_set_sprgrp_solid(game->physics,game->grpv+PS_SPRGRP_SOLID)<0) {
+  if (
+    (ps_physics_set_sprgrp_physics(game->physics,game->grpv+PS_SPRGRP_PHYSICS)<0)||
+    (ps_physics_set_sprgrp_solid(game->physics,game->grpv+PS_SPRGRP_SOLID)<0)||
+    (ps_physics_set_sprgrp_hero(game->physics,game->grpv+PS_SPRGRP_HERO)<0)
+  ) {
     ps_game_del(game);
     return 0;
   }

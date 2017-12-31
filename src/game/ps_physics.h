@@ -27,6 +27,7 @@ struct ps_physics_event {
 struct ps_physics {
   struct ps_sprgrp *grp_physics;
   struct ps_sprgrp *grp_solid;
+  struct ps_sprgrp *grp_hero;
   struct ps_grid *grid;
   struct ps_coll *collv;
   int collc,colla;
@@ -39,6 +40,7 @@ void ps_physics_del(struct ps_physics *physics);
 
 int ps_physics_set_sprgrp_physics(struct ps_physics *physics,struct ps_sprgrp *grp);
 int ps_physics_set_sprgrp_solid(struct ps_physics *physics,struct ps_sprgrp *grp);
+int ps_physics_set_sprgrp_hero(struct ps_physics *physics,struct ps_sprgrp *grp);
 int ps_physics_set_grid(struct ps_physics *physics,struct ps_grid *grid);
 
 int ps_physics_update(struct ps_physics *physics);

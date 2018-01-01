@@ -85,8 +85,10 @@ int akau_mixer_stop_channel(struct akau_mixer *mixer,int chanid);
 
 /* Begin fading out all channels, and mark them to terminate when we reach silence.
  * This is the graceful way to cut off all output, if your updates are still running.
+ * 'stop_all_instruments' ignores IPCM channels, maybe nice for ending music but not sound effects.
  */
 int akau_mixer_stop_all(struct akau_mixer *mixer,int duration);
+int akau_mixer_stop_all_instruments(struct akau_mixer *mixer,int duration);
 
 /* Set a song to play automatically by this mixer.
  * (song) may be null to end playback.

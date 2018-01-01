@@ -548,13 +548,40 @@ int akau_mixer_stop_all(struct akau_mixer *mixer,int duration) {
   }
   return 0;
 }
+ 
+int akau_mixer_stop_all_instruments(struct akau_mixer *mixer,int duration) {
+  if (!mixer) return -1;
+  if (duration>0) {
+    struct akau_mixer_chan *chan=mixer->chanv;
+    int i=mixer->chanc; for (;i-->0;chan++) {
+      if (chan->mode!=AKAU_MIXER_CHAN_MODE_TUNED) continue;
+      chan->stop_at_silence=1;
+      chan->trima=chan->trim;
+      chan->trimz=0;
+      chan->trimp=0;
+      chan->trimc=duration;
+    }
+  } else {
+    struct akau_mixer_chan *chan=mixer->chanv;
+    int i=mixer->chanc; for (;i-->0;chan++) {
+      if (chan->mode!=AKAU_MIXER_CHAN_MODE_TUNED) continue;
+      akau_mixer_chan_cleanup(chan);
+    }
+  }
+  return 0;
+}
 
 /* Set song.
- * TODO: Should we silence channels started by the prior song when switching? How to do that?
  */
  
 int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart) {
   if (!mixer) return -1;
+
+  /* Abort quick if we won't be doing anything. */
+  if ((song==mixer->song)&&!restart) return 0;
+
+  /* Begin winding down all current tuned channels. */
+  if (akau_mixer_stop_all_instruments(mixer,250)<0) return -1;
 
   /* Only stop current song? */
   if (!song) {

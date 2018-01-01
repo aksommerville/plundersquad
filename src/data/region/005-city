@@ -1,42 +1,15 @@
-# XXX This is copied directly from 001-outdoors (which is not even complete)
-# Just need some sane data while I test the generator.
-
-tilesheet 2
-song 3
-
-monster  9 # purple spider
-monster 13 # dragon bug
-monster 14 # bumblebat
-
-# Only one VACANT shape. VACANT is a special case for gridgen.
-shape VACANT 100 0x00 ALT16
-
-# Columns 4..15 in rows 0..3 contain some old VACANTs that I'm not using anymore.
-
-# Only three SOLID actually in use: A SKINNY, a FAT, and a SINGLE.
-# There's room for more and we should probably use it.
-shape SOLID 100 0x41 SKINNY ROUND
-shape SOLID 100 0x45 FAT ROUND
-shape SOLID 100 0x60 SINGLE ROUND
-
-# Latchable object, not yet drawn. Probably will be trees.
-shape LATCH 100 0x4b FAT ROUND
-shape LATCH 100 0x6e SINGLE ROUND
-
-# Holes, not yet drawn. Probably will be water.
-shape HOLE 100 0x84 SKINNY ROUND
-shape HOLE 100 0x88 FAT ROUND
-
-# Hazards.
-shape HAZARD 100 0xc5 FAT
-shape HAZARD 100 0xca SINGLE
-shape HAZARD 100 0xda SINGLE
-shape HAZARD 100 0xea SINGLE
-shape HAZARD 100 0xfa SINGLE
-shape HAZARD 100 0xf9 SINGLE
-shape HAZARD 100 0xf5 ALT4
-
-# The heal zone will always use the same 3x3 picture.
-# Provide at least one SINGLE too, just in case.
-shape HEAL 100 0xcd 3X3
-shape HEAL   1 0xcc SINGLE
+tilesheet 8
+song 5
+monster 9
+monster 13
+monster 14
+shape VACANT 100 0 ALT16 
+shape SOLID 100 9 SKINNY 
+shape SOLID 100 4 FAT 
+shape SOLID 100 52 SINGLE 
+shape SOLID 100 53 SINGLE 
+shape HOLE 100 64 FAT ROUND
+shape HOLE 100 99 SINGLE ROUND
+shape LATCH 100 54 SINGLE ROUND
+shape LATCH 100 55 SINGLE ROUND
+shape HEAL 100 13 3X3 

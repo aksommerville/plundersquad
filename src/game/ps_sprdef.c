@@ -135,6 +135,7 @@ int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc) {
     case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
     case PS_SPRDEF_FLD_tileid: return ps_int_eval(dst,src,srcc);
     case PS_SPRDEF_FLD_impassable: return ps_enum_eval_multiple(dst,src,srcc,0,ps_blueprint_cell_eval);
+    case PS_SPRDEF_FLD_difficulty: return ps_int_eval(dst,src,srcc);
   }
   return -1;
 }
@@ -153,6 +154,7 @@ int ps_sprdef_fld_v_repr(char *dst,int dsta,int k,int v) {
     case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
     case PS_SPRDEF_FLD_tileid: return ps_hexuint_repr(dst,dsta,v);
     case PS_SPRDEF_FLD_impassable: return ps_enum_repr_multiple(dst,dsta,v,0,ps_blueprint_cell_repr);
+    case PS_SPRDEF_FLD_difficulty: return ps_decsint_repr(dst,dsta,v);
   }
   return -1;
 }

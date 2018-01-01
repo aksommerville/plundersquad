@@ -89,6 +89,13 @@ int ps_blueprint_list_match_resources(
   int i; for (i=0;i<restype->resc;i++) {
     struct ps_blueprint *blueprint=restype->resv[i].obj;
     uint8_t bpdiff;
+    
+    int basedifficulty=ps_blueprint_get_base_difficulty(blueprint);
+    if (basedifficulty>difficulty) {
+      //ps_log(GENERATOR,DEBUG,"Rejecting blueprint:%d due to difficulty %d>%d",restype->resv[i].id,basedifficulty,difficulty);
+      continue;
+    }
+    
     if (ps_blueprint_is_solvable(&bpdiff,blueprint,playerc,skills)) {
       if (difficulty>=bpdiff) {
 

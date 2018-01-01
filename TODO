@@ -1,5 +1,4 @@
 - More projectile-throwing monsters.
-- Random monster selection and count based on difficulty.
 - Swapping of input assignments. Happened with 2 players. -- Input assignment was changed. I think this won't happen now.
 - Tab key in GUI: Go backwards with Shift, and keep a sane focus ring instead of the sloppy guesswork we have now.
 - Envelope view displays unpacked above presets in wave editor.
@@ -7,3 +6,4 @@
 - Bloodhound. At low difficulties, after some idle trigger, dog walks on screen and points to nearest treasure.
 - Map or treasures view on home screen.
 - Binary formats for all resources.
+- Grid skinner can produce FAT shapes with diagonal corners missing (renders badly)

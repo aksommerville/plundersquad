@@ -120,6 +120,11 @@ uint8_t ps_blueprint_get_preference(
   int playerc,uint16_t skills
 );
 
+/* Ignoring solutions, what is the baseline difficulty for this blueprint?
+ * This only considers explicit sprites with a 'difficulty' property, and returns the highest.
+ */
+int ps_blueprint_get_base_difficulty(const struct ps_blueprint *blueprint);
+
 int ps_blueprint_clear(struct ps_blueprint *blueprint);
 
 /* Create a new POI of straight zeroes, add it to the list.

@@ -2,6 +2,8 @@
 #include "ps_blueprint.h"
 #include "util/ps_text.h"
 #include "util/ps_enums.h"
+#include "res/ps_resmgr.h"
+#include "game/ps_sprite.h"
 
 /* New.
  */
@@ -144,6 +146,23 @@ uint8_t ps_blueprint_get_preference(
     }
   }
   return preference;
+}
+
+/* Get base difficulty.
+ */
+ 
+int ps_blueprint_get_base_difficulty(const struct ps_blueprint *blueprint) {
+  if (!blueprint) return PS_DIFFICULTY_MAX+1; // Playing a null blueprint would be infinitely difficult.
+  int difficulty=PS_DIFFICULTY_MIN;
+  const struct ps_blueprint_poi *poi=blueprint->poiv;
+  int i=blueprint->poic; for (;i-->0;poi++) {
+    if (poi->type!=PS_BLUEPRINT_POI_SPRITE) continue;
+    const struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,poi->argv[0]);
+    if (!sprdef) continue; // Serious problem, but not *my* serious problem.
+    int sprdef_difficulty=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_difficulty,0);
+    if (sprdef_difficulty>difficulty) difficulty=sprdef_difficulty;
+  }
+  return difficulty;
 }
 
 /* Clear.

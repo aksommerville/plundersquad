@@ -172,6 +172,7 @@ struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p
 #define PS_SPRDEF_FLD_type       5 /* Not stored in extension. */
 #define PS_SPRDEF_FLD_tileid     6 /* Not stored in extension. */
 #define PS_SPRDEF_FLD_impassable 7
+#define PS_SPRDEF_FLD_difficulty 8
 
 struct ps_sprdef_fld {
   int k,v;

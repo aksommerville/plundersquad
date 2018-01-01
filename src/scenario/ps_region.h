@@ -64,6 +64,14 @@ int ps_region_has_monster(const struct ps_region *region,int sprdefid);
 int ps_region_add_monster(struct ps_region *region,int sprdefid); // Fallible, as there is a constant limit.
 int ps_region_add_any_valid_monster(struct ps_region *region); // Add any valid sprdefid not yet used. Returns sprdefid.
 
+/* Count and get with a difficulty filter.
+ * These are used by the game when it generates the random monsters.
+ * Any sprite which does not declare a difficulty is presumed valid.
+ * Otherwise the argument you provide must be greater or equal to the sprite's difficulty.
+ */
+int ps_region_count_monsters_at_difficulty(const struct ps_region *region,int difficulty);
+int ps_region_get_monster_at_difficulty(const struct ps_region *region,int p,int difficulty); // (p) in (0..count-1), sparseness managed for you.
+
 /* Region resource is line-oriented text.
  * '#' begins a line comment.
  * Words are separated by whitespace.

@@ -6,6 +6,7 @@
 #include "util/ps_enums.h"
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
+#include "game/ps_sprite.h"
 
 /* New.
  */
@@ -133,6 +134,19 @@ int ps_region_count_monsters(const struct ps_region *region) {
   while (i-->0) if (region->monster_sprdefidv[i]) c++;
   return c;
 }
+ 
+int ps_region_count_monsters_at_difficulty(const struct ps_region *region,int difficulty) {
+  if (!region) return 0;
+  int i=PS_REGION_MONSTER_LIMIT,c=0;
+  while (i-->0) if (region->monster_sprdefidv[i]) {
+    const struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,region->monster_sprdefidv[i]);
+    if (!sprdef) continue; // This is a seriaus error, but we can sweep it under the carpet.
+    int sprdef_difficulty=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_difficulty,0);
+    if (sprdef_difficulty>difficulty) continue;
+    c++;
+  }
+  return c;
+}
 
 /* Get a monster ID by its index.
  */
@@ -143,6 +157,22 @@ int ps_region_get_monster(const struct ps_region *region,int p) {
   int i=PS_REGION_MONSTER_LIMIT;
   while (i-->0) {
     if (region->monster_sprdefidv[i]) {
+      if (!p--) return region->monster_sprdefidv[i];
+    }
+  }
+  return -1;
+}
+ 
+int ps_region_get_monster_at_difficulty(const struct ps_region *region,int p,int difficulty) {
+  if (!region) return -1;
+  if (p<0) return -1;
+  int i=PS_REGION_MONSTER_LIMIT;
+  while (i-->0) {
+    if (region->monster_sprdefidv[i]) {
+      const struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,region->monster_sprdefidv[i]);
+      if (!sprdef) continue; // This is a seriaus error, but we can sweep it under the carpet.
+      int sprdef_difficulty=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_difficulty,0);
+      if (sprdef_difficulty>difficulty) continue;
       if (!p--) return region->monster_sprdefidv[i];
     }
   }

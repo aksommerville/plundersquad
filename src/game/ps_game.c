@@ -401,7 +401,7 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
   if (!game->grid->monsterc_max) return 0; // No monsters here please.
   if (game->grid->monsterc_min>game->grid->monsterc_max) return -1;
 
-  int defc=ps_region_count_monsters(game->grid->region);
+  int defc=ps_region_count_monsters_at_difficulty(game->grid->region,game->difficulty);
   if (defc<1) return 0; // Perfectly fine if the region doesn't want random monsters.
 
   //TODO Adjust limits based on difficulty or other live things? Hmm, I guess difficulty isn't actually live.
@@ -412,7 +412,7 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
 
   int i=monsterc; while (i-->0) {
     int defp=rand()%defc;
-    int sprdefid=ps_region_get_monster(game->grid->region,defp);
+    int sprdefid=ps_region_get_monster_at_difficulty(game->grid->region,defp,game->difficulty);
     if (sprdefid<1) {
       ps_log(GAME,ERROR,"Unexpected error: ps_region_count_monsters()==%d, ps_region_get_monster(%d)==%d",defc,defp,sprdefid);
       return -1;

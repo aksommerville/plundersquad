@@ -159,6 +159,7 @@ int ps_sprdef_fld_k_eval(const char *src,int srcc) {
       } break;
     case 10: {
         if (!ps_memcasecmp(src,"impassable",10)) return PS_SPRDEF_FLD_impassable;
+        if (!ps_memcasecmp(src,"difficulty",10)) return PS_SPRDEF_FLD_difficulty;
       } break;
   }
   return -1;
@@ -173,6 +174,7 @@ const char *ps_sprdef_fld_k_repr(int k) {
     case PS_SPRDEF_FLD_type: return "type";
     case PS_SPRDEF_FLD_tileid: return "tileid";
     case PS_SPRDEF_FLD_impassable: return "impassable";
+    case PS_SPRDEF_FLD_difficulty: return "difficulty";
   }
   return 0;
 }
@@ -260,7 +262,7 @@ const char *ps_sprite_shape_repr(int shape) {
  
 int ps_region_shape_style_eval(const char *src,int srcc) {
   if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_REGION_SHAPE_STYLE_##tag;
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!ps_memcasecmp(src,#tag,srcc)) return PS_REGION_SHAPE_STYLE_##tag;
   _(SINGLE)
   _(ALT4)
   _(ALT8)
@@ -294,7 +296,7 @@ const char *ps_region_shape_style_repr(int shape) {
 
 int ps_region_shape_flag_eval(const char *src,int srcc) {
   if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_REGION_SHAPE_FLAG_##tag;
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!ps_memcasecmp(src,#tag,srcc)) return PS_REGION_SHAPE_FLAG_##tag;
   _(ROUND)
   #undef _
   return -1;
@@ -313,7 +315,7 @@ const char *ps_region_shape_flag_repr(int flag) {
  
 int ps_blueprint_cell_eval(const char *src,int srcc) {
   if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_BLUEPRINT_CELL_##tag;
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!ps_memcasecmp(src,#tag,srcc)) return PS_BLUEPRINT_CELL_##tag;
   _(VACANT)
   _(SOLID)
   _(HOLE)

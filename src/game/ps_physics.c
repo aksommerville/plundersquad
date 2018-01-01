@@ -435,7 +435,7 @@ static int ps_physics_resolve_collision(struct ps_physics *physics,struct ps_col
   if (!coll->b) { // Grid collision; A takes the whole impact.
     ashare=1.0;
     bshare=0.0;
-  } else { // Split between sprites based on weight. TODO For now, split evenly.
+  } else { // Force splits evenly. We could add per-sprite mass here if we felt like it.
     ashare=0.5;
     bshare=0.5;
   }

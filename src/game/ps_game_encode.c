@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "ps_game.h"
+#include "ps_stats.h"
 #include "ps_player.h"
 #include "ps_plrdef.h"
 #include "scenario/ps_scenario.h"
@@ -24,10 +25,10 @@ static int ps_game_encode_header(struct ps_buffer *dst,const struct ps_game *gam
   tmp[21]=treasurebits>>16;
   tmp[22]=treasurebits>>8;
   tmp[23]=treasurebits;
-  tmp[24]=game->playtime>>24;
-  tmp[25]=game->playtime>>16;
-  tmp[26]=game->playtime>>8;
-  tmp[27]=game->playtime;
+  tmp[24]=game->stats->playtime>>24;
+  tmp[25]=game->stats->playtime>>16;
+  tmp[26]=game->stats->playtime>>8;
+  tmp[27]=game->stats->playtime;
   tmp[28]=game->gridx;
   tmp[29]=game->gridy;
 
@@ -164,7 +165,7 @@ static int ps_game_decode_header(struct ps_game *game,const uint8_t *src,int src
     game->treasurev[i]=(treasurebits&mask)?1:0;
   }
 
-  game->playtime=(src[24]<<24)|(src[25]<<16)|(src[26]<<8)|src[27];
+  game->stats->playtime=(src[24]<<24)|(src[25]<<16)|(src[26]<<8)|src[27];
   game->gridx=src[28];
   game->gridy=src[29];
 

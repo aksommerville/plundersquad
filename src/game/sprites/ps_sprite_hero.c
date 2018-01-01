@@ -4,6 +4,7 @@
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
 #include "game/ps_game.h"
+#include "game/ps_stats.h"
 #include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
@@ -583,6 +584,11 @@ int ps_hero_become_ghost(struct ps_game *game,struct ps_sprite *spr) {
   if (!game||!spr||(spr->type!=&ps_sprtype_hero)) return -1;
   ps_log(GAME,INFO,"Hero %p becomes ghost.",spr);
 
+  if (SPR->player&&(SPR->player->playerid>=1)&&(SPR->player->playerid<=PS_PLAYER_LIMIT)) {
+    struct ps_stats_player *pstats=game->stats->playerv+SPR->player->playerid-1;
+    pstats->deathc++;
+  }
+
   if (ps_hero_action_end(spr,game)<0) return -1;
   if (ps_hero_auxaction_end(spr,game)<0) return -1;
 
@@ -652,6 +658,7 @@ static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sp
     PS_SFX_HERO_DEAD
     SPR->hp=0;
     if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
+    if (ps_game_report_kill(game,assailant,spr)<0) return -1;
     return ps_hero_become_ghost(game,spr);
   }
 

@@ -3,6 +3,7 @@
 #include "ps_sprite_hookshot.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_stats.h"
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
 #include "game/ps_sound_effects.h"
@@ -60,6 +61,12 @@ static int ps_hero_check_swordswitch(struct ps_sprite *spr,struct ps_game *game,
     if (hazardbox.w>=fragilebox.e) return 0;
 
     if (ps_swordswitch_activate(fragile,game,spr,force)<0) return -1;
+
+    if (SPR->player&&(SPR->player->playerid>=1)&&(SPR->player->playerid<=PS_PLAYER_LIMIT)) {
+      struct ps_stats_player *pstats=game->stats->playerv+SPR->player->playerid-1;
+      pstats->switchc++;
+    }
+    
   }
   return 0;
 }
@@ -285,7 +292,7 @@ static int ps_hero_martyr(struct ps_sprite *spr,struct ps_game *game) {
 }
 
 /* Frog.
- * TODO This probably doesn't need to exist.
+ * TODO Frog skill probably doesn't need to exist.
  */
 
 static int ps_hero_frog(struct ps_sprite *spr,struct ps_game *game) {
@@ -357,6 +364,9 @@ int ps_hero_action_continue(struct ps_sprite *spr,struct ps_game *game) {
 }
  
 int ps_hero_auxaction_begin(struct ps_sprite *spr,struct ps_game *game) {
+  if (1) { //XXX TEMP dump stats on aux button press
+    ps_game_dump_stats(game);
+  }
   return ps_hero_action_begin_1(spr,game,ps_hero_get_auxiliary_action(spr));
 }
  

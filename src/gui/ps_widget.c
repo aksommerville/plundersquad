@@ -289,6 +289,7 @@ int ps_widget_get_property_type(const struct ps_widget *widget,int k) {
 
 int ps_widget_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (!widget) return -1;
+  if ((widget->w<1)||(widget->h<1)) return 0;
   if (widget->type->draw) {
     if (widget->type->draw(widget,parentx,parenty)<0) return -1;
   } else {

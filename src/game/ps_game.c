@@ -4,6 +4,7 @@
 #include "ps_sprite.h"
 #include "ps_physics.h"
 #include "ps_plrdef.h"
+#include "ps_stats.h"
 #include "ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
@@ -33,7 +34,7 @@ static int ps_game_draw_hud(struct ps_game *game) {
   if (ps_video_text_addf(12,0x000000ff,6,7,
     "%d/%d  %02d:%02d",
     ps_game_count_collected_treasures(game),game->treasurec,
-    game->playtime/3600,(game->playtime/60)%60
+    game->stats->playtime/3600,(game->stats->playtime/60)%60
   )<0) return -1;
   if (ps_video_text_end(0)<0) return -1;
   return 0;
@@ -77,6 +78,11 @@ struct ps_game *ps_game_new() {
 
   game->grpv[PS_SPRGRP_VISIBLE].order=PS_SPRGRP_ORDER_RENDER;
 
+  if (!(game->stats=ps_stats_new())) {
+    ps_game_del(game);
+    return 0;
+  }
+
   if (ps_game_init_video(game)<0) {
     ps_game_del(game);
     return 0;
@@ -113,6 +119,7 @@ void ps_game_del(struct ps_game *game) {
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
   for (i=PS_SPRGRP_COUNT;i-->0;) ps_sprgrp_cleanup(game->grpv+i);
+  ps_stats_del(game->stats);
   
   free(game);
 }
@@ -404,7 +411,6 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
   int defc=ps_region_count_monsters_at_difficulty(game->grid->region,game->difficulty);
   if (defc<1) return 0; // Perfectly fine if the region doesn't want random monsters.
 
-  //TODO Adjust limits based on difficulty or other live things? Hmm, I guess difficulty isn't actually live.
   int monsterc_min=game->grid->monsterc_min;
   int monsterc_max=game->grid->monsterc_max;
   int monsterc=monsterc_min+rand()%(monsterc_max-monsterc_min+1);
@@ -564,8 +570,8 @@ int ps_game_restart(struct ps_game *game) {
   PS_SFX_BEGIN_PLAY
 
   game->finished=0;
-  game->playtime=0;
   game->paused=0;
+  if (ps_stats_clear(game->stats)<0) return -1;
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;
@@ -855,6 +861,41 @@ static int ps_game_check_completion(struct ps_game *game) {
   return 0;
 }
 
+/* Update stats, polling for routine events.
+ */
+
+static int ps_game_update_stats(struct ps_game *game) {
+
+  game->stats->playtime++;
+  
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *hero=grp->sprv[i];
+    if (hero->type!=&ps_sprtype_hero) continue;
+    struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)hero;
+    if (!HERO->player) continue;
+    if ((HERO->player->playerid<1)||(HERO->player->playerid>PS_PLAYER_LIMIT)) continue;
+    struct ps_stats_player *pstats=game->stats->playerv+HERO->player->playerid-1;
+    
+    if (HERO->walk_in_progress) {
+      pstats->stepc++;
+    }
+    if (HERO->hp) {
+      pstats->framec_alive++;
+      pstats->framec_since_rebirth++;
+      if (HERO->walk_in_progress) {
+        pstats->stepc_since_rebirth++;
+      }
+    } else {
+      pstats->framec_since_rebirth=0;
+      pstats->stepc_since_rebirth=0;
+    }
+    
+  }
+  
+  return 0;
+}
+
 /* Update.
  */
 
@@ -863,13 +904,14 @@ int ps_game_update(struct ps_game *game) {
 
   if (game->finished) return 0;
 
-  game->playtime++;
-
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
   int i=0; for (i=0;i<grp->sprc;i++) {
     if (ps_sprite_update(grp->sprv[i],game)<0) return -1;
   }
+
+  /* Poll routine events and record stats. */
+  if (ps_game_update_stats(game)<0) return -1;
 
   /* Update physics, then consider any hazardous collisions. */
   if (ps_physics_update(game->physics)<0) return -1;
@@ -939,6 +981,14 @@ int ps_game_collect_treasure(struct ps_game *game,struct ps_sprite *collector,in
   
   game->treasurev[treasureid]=1;
 
+  if (collector&&(collector->type==&ps_sprtype_hero)) {
+    struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)collector;
+    if (HERO->player&&(HERO->player->playerid>=1)&&(HERO->player->playerid<=PS_PLAYER_LIMIT)) {
+      struct ps_stats_player *pstats=game->stats->playerv+HERO->player->playerid-1;
+      pstats->treasurec++;
+    }
+  }
+
   return 1;
 }
 
@@ -953,6 +1003,47 @@ int ps_game_count_collected_treasures(const struct ps_game *game) {
   int c=0,i=game->treasurec;
   while (i-->0) if (game->treasurev[i]) c++;
   return c;
+}
+
+/* Report statistics for kill.
+ */
+ 
+int ps_game_report_kill(struct ps_game *game,struct ps_sprite *assailant,struct ps_sprite *victim) {
+  if (!game||!assailant||!victim) return 0;
+  
+  if (assailant->type==&ps_sprtype_hero) {
+    struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)assailant;
+    if (HERO->player&&(HERO->player->playerid>=1)&&(HERO->player->playerid<=PS_PLAYER_LIMIT)) {
+      struct ps_stats_player *pstats=game->stats->playerv+HERO->player->playerid-1;
+      if (victim->type==&ps_sprtype_hero) {
+        pstats->killc_hero++;
+      } else {
+        pstats->killc_monster++;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ps_game_report_switch(struct ps_game *game,struct ps_sprite *presser) {
+  if (!game||!presser) return 0;
+  if (presser->type==&ps_sprtype_hero) {
+    struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)presser;
+    if (HERO->player&&(HERO->player->playerid>=1)&&(HERO->player->playerid<=PS_PLAYER_LIMIT)) {
+      struct ps_stats_player *pstats=game->stats->playerv+HERO->player->playerid-1;
+      pstats->switchc++;
+    }
+  }
+  return 0;
+}
+
+/* Dump statistics.
+ */
+ 
+void ps_game_dump_stats(const struct ps_game *game) {
+  if (!game) return;
+  ps_stats_dump(game->stats);
 }
 
 /* Create fireworks when something dies.

@@ -42,7 +42,7 @@ static const char *_ps_switch_get_configure_argument_name(int argp) {
 /* Poll for desired state.
  */
 
-static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game) {
+static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite **presser) {
   double left=spr->x-spr->radius;
   double right=spr->x+spr->radius;
   double top=spr->y-spr->radius;
@@ -54,6 +54,7 @@ static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game) {
     if (hero->x>=right) continue;
     if (hero->y<=top) continue;
     if (hero->y>=bottom) continue;
+    *presser=hero;
     return 1;
   }
   return 0;
@@ -62,18 +63,17 @@ static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game) {
 /* Toggle.
  */
 
-static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game) {
+static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *presser) {
   if (SPR->state) return 0;
   SPR->state=1;
-//  spr->tileid++;
   if (ps_grid_open_barrier(game->grid,SPR->barrierid)<0) return -1;
+  if (ps_game_report_switch(game,presser)<0) return -1;
   return 0;
 }
 
 static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->state) return 0;
   SPR->state=0;
-//  spr->tileid--;
   if (ps_grid_close_barrier(game->grid,SPR->barrierid)<0) return -1;
   return 0;
 }
@@ -84,7 +84,8 @@ static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
 static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Terminate if weight upon me hasn't changed. */
-  int state=ps_switch_poll_state(spr,game);
+  struct ps_sprite *presser=0;
+  int state=ps_switch_poll_state(spr,game,&presser);
   if (state==SPR->press) return 0;
 
   /* Newly pressed. */
@@ -95,10 +96,10 @@ static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
       if (SPR->state) {
         if (ps_switch_disengage(spr,game)<0) return -1;
       } else {
-        if (ps_switch_engage(spr,game)<0) return -1;
+        if (ps_switch_engage(spr,game,presser)<0) return -1;
       }
     } else {
-      if (ps_switch_engage(spr,game)<0) return -1;
+      if (ps_switch_engage(spr,game,presser)<0) return -1;
     }
 
   /* Newly released. */

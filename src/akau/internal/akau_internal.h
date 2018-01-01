@@ -1,11 +1,22 @@
 #ifndef AKAU_INTERNAL_H
 #define AKAU_INTERNAL_H
 
-/* Byte order -- platform-specific. (TODO) */
-#if __APPLE__
+#include "ps_config.h"
+
+/* Byte order. */
+#if PS_ARCH==PS_ARCH_macos
   #include <machine/endian.h>
+#elif PS_ARCH==PS_ARCH_linux
+  #include <endian.h>
+#elif PS_ARCH==PS_ARCH_raspi
+  #include <endian.h>
+#elif PS_ARCH==PS_ARCH_mswin
+  /* MinGW doesn't seem to have endian.h, but I think Windows only runs on little-endian systems. */
+  #define BIG_ENDIAN    4321
+  #define LITTLE_ENDIAN 1234
+  #define BYTE_ORDER LITTLE_ENDIAN
 #else
-  #error "Unable to detect host byte order."
+  #error "Unable to guess byte order."
 #endif
 
 int akau_error(const char *fmt,...);

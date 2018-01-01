@@ -14,6 +14,7 @@
 #include "ps_menus.h"
 #include "gui/corewidgets/ps_corewidgets.h"
 #include "game/ps_game.h"
+#include "game/ps_stats.h"
 #include "util/ps_buffer.h"
 
 /* Object definition.
@@ -139,9 +140,9 @@ const struct ps_widget_type ps_widget_type_report={
 
 static int ps_report_compose_text(struct ps_buffer *buffer,const struct ps_game *game) {
 
-  int playtime_f=game->playtime%60;
+  int playtime_f=game->stats->playtime%60;
   int playtime_ms=(playtime_f*1000)/60;
-  int playtime_s=game->playtime/60;
+  int playtime_s=game->stats->playtime/60;
   int playtime_m=playtime_s/60;
   playtime_s%=60;
   int playtime_h=playtime_m/60;

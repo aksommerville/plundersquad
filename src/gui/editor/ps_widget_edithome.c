@@ -22,7 +22,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
 static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int resindex);
 static int ps_edithome_cb_quit(struct ps_widget *button,struct ps_widget *widget);
 static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget);
-static int ps_edithome_cb_delete(struct ps_widget *button,struct ps_widget *widget);
 
 /* Object definition.
  */
@@ -71,7 +70,6 @@ static int _ps_edithome_init(struct ps_widget *widget) {
   { struct ps_widget *button;
     if (!(button=ps_widget_menubar_add_button(child,"Quit",4,ps_callback(ps_edithome_cb_quit,0,widget)))) return -1;
     if (!(button=ps_widget_menubar_add_button(child,"New",3,ps_callback(ps_edithome_cb_new,0,widget)))) return -1;
-    if (!(button=ps_widget_menubar_add_button(child,"Delete",6,ps_callback(ps_edithome_cb_delete,0,widget)))) return -1;
   }
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_scrolllist))) return -1;
@@ -473,10 +471,5 @@ static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget)
   }
 
   if (ps_edithome_rebuild_resource_list(widget,typeindex)<0) return -1;
-  return 0;
-}
-
-static int ps_edithome_cb_delete(struct ps_widget *button,struct ps_widget *widget) {
-  ps_log(GUI,DEBUG,"%s TODO",__func__); // Delete resource is not critical, it can wait
   return 0;
 }

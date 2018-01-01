@@ -542,6 +542,7 @@ static int _ps_lobster_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps
   if (ps_game_create_prize(game,spr->x,spr->y)<0) return -1;
   if (ps_sprite_kill_later(spr,game)<0) return -1;
   if (ps_game_check_deathgate(game)<0) return -1;
+  if (ps_game_report_kill(game,assailant,spr)<0) return -1;
 
   return 0;
 }

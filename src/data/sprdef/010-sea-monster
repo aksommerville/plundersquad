@@ -1,6 +1,7 @@
 type seamonster
 tileid 0x0460
-grpmask VISIBLE UPDATE
-shape CIRCLE
-radius 7
 layer 90
+grpmask VISIBLE UPDATE
+radius 7
+shape CIRCLE
+impassable VACANT SOLID LATCH HEROONLY HAZARD HEAL

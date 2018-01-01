@@ -17,6 +17,9 @@
 #ifndef PS_BLUEPRINT_H
 #define PS_BLUEPRINT_H
 
+/* Blueprint cell symbols are used by blueprint and grid.
+ * The first 16 values can be used in a mask for each sprite as "impassable" physics.
+ */
 #define PS_BLUEPRINT_CELL_VACANT       0x00 /* Pass through freely. */
 #define PS_BLUEPRINT_CELL_SOLID        0x01 /* Nothing may pass. */
 #define PS_BLUEPRINT_CELL_HOLE         0x02 /* Pass aerially only. */
@@ -24,6 +27,11 @@
 #define PS_BLUEPRINT_CELL_HEROONLY     0x04 /* VACANT, but monsters may not pass. */
 #define PS_BLUEPRINT_CELL_HAZARD       0x05 /* VACANT, but harmful to heroes. Illegal as an edge. */
 #define PS_BLUEPRINT_CELL_HEAL         0x06 /* VACANT, but resuccitates heroes. */
+
+#define PS_PHYSICS_IMPASSABLE_HERO     0x000e /* SOLID|HOLE|LATCH */
+#define PS_PHYSICS_IMPASSABLE_MONSTER  0x001e /* SOLID|HOLE|LATCH|HEROONLY */
+#define PS_PHYSICS_IMPASSABLE_FLYING   0x000a /* SOLID|LATCH */
+#define PS_PHYSICS_IMPASSABLE_AQUATIC  0xfffb /* Everything except HOLE */
 
 #define PS_BLUEPRINT_POI_NOOP          0x00
 #define PS_BLUEPRINT_POI_SPRITE        0x01 /* [0]=sprdefid, [1,2]=argv */

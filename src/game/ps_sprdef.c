@@ -88,6 +88,7 @@ static int ps_sprite_initialize(struct ps_sprite *spr,struct ps_game *game,struc
   spr->layer=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_layer,spr->layer);
   spr->radius=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_radius,spr->radius);
   spr->shape=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_shape,spr->shape);
+  spr->impassable=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_impassable,spr->impassable);
 
   if (spr->type->configure) {
     if (spr->type->configure(spr,game,argv,argc)<0) return -1;
@@ -133,6 +134,7 @@ int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc) {
       }
     case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
     case PS_SPRDEF_FLD_tileid: return ps_int_eval(dst,src,srcc);
+    case PS_SPRDEF_FLD_impassable: return ps_enum_eval_multiple(dst,src,srcc,0,ps_blueprint_cell_eval);
   }
   return -1;
 }
@@ -150,6 +152,7 @@ int ps_sprdef_fld_v_repr(char *dst,int dsta,int k,int v) {
       }
     case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
     case PS_SPRDEF_FLD_tileid: return ps_hexuint_repr(dst,dsta,v);
+    case PS_SPRDEF_FLD_impassable: return ps_enum_repr_multiple(dst,dsta,v,0,ps_blueprint_cell_repr);
   }
   return -1;
 }

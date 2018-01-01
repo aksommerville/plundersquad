@@ -212,6 +212,7 @@ static int ps_physics_recheck_sprites(struct ps_physics *physics,struct ps_coll 
 /* Which grid cells do we care about?
  */
 
+#if 0//XXX
 static inline int ps_physics_cell_is_solid(uint8_t cell_physics,int include_hole,int include_heroonly) {
   switch (cell_physics) {
     case PS_BLUEPRINT_CELL_SOLID:
@@ -224,6 +225,11 @@ static inline int ps_physics_cell_is_solid(uint8_t cell_physics,int include_hole
   }
   return 0;
 }
+#else
+static inline int ps_physics_cell_is_solid(uint8_t cell_physics,uint16_t impassable) {
+  return (impassable&(1<<cell_physics));
+}
+#endif
 
 /* Get effective shape of a grid cell based on sprite's position.
  * (dx,dy) is the sprite's position relative to the cell's center.
@@ -253,6 +259,7 @@ static int ps_physics_get_effective_cell_shape(uint8_t shape,double dx,double dy
  */
 
 static int ps_physics_check_grid(struct ps_physics *physics,struct ps_sprite *spr) {
+  if (!spr->impassable) return 0;
 
   /* Find the sprite's bounding box and convert to cells.
    * It's OK if these exceed the grid boundaries.
@@ -266,7 +273,8 @@ static int ps_physics_check_grid(struct ps_physics *physics,struct ps_sprite *sp
   int rowa=ya/PS_TILESIZE; if (ya<0) rowa--;
   int rowz=yz/PS_TILESIZE; if (yz<0) rowz--;
 
-  int include_heroonly=!ps_sprgrp_has_sprite(physics->grp_hero,spr);
+  //XXX This isn't enough. We should add a field to ps_sprite that indicates which physics this sprite can walk on.
+  //int include_heroonly=!ps_sprgrp_has_sprite(physics->grp_hero,spr);
 
   /* Iterate over the covered cells.
    * We need the true (col,row), ie possibly OOB, to compare pixelwise against the sprite.
@@ -293,7 +301,7 @@ static int ps_physics_check_grid(struct ps_physics *physics,struct ps_sprite *sp
       }
       const struct ps_grid_cell *effective_cell=physics->grid->cellv+effective_row*PS_GRID_COLC+effective_col;
 
-      if (!ps_physics_cell_is_solid(effective_cell->physics,spr->collide_hole,include_heroonly)) continue;
+      if (!ps_physics_cell_is_solid(effective_cell->physics,spr->impassable)) continue;
 
       struct ps_fbox cellbox=ps_fbox(col*PS_TILESIZE,(col+1)*PS_TILESIZE,row*PS_TILESIZE,(row+1)*PS_TILESIZE);
       struct ps_circle cellcircle=ps_circle(col*PS_TILESIZE+(PS_TILESIZE>>1),row*PS_TILESIZE+(PS_TILESIZE>>1),PS_TILESIZE>>1);

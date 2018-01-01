@@ -9,6 +9,7 @@
 #include "util/ps_geometry.h"
 #include "input/ps_input_button.h"
 #include "res/ps_resmgr.h"
+#include "scenario/ps_blueprint.h"
 
 #define PS_HERO_MARTYR_EXPLOSION_SPRDEFID 7
 
@@ -162,8 +163,8 @@ static int ps_hero_hookshot_continue(struct ps_sprite *spr,struct ps_game *game)
 int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
   if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
   if (SPR->hp) {
-    // Hookshot may be abort becuase we just died -- in that case, collide_hole stays false.
-    spr->collide_hole=1;
+    // Hookshot may be abort becuase we just died -- in that case, do not restore HOLE collisions.
+    spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
   }
   return ps_hero_hookshot_end(spr,game);
 }
@@ -246,7 +247,8 @@ static int ps_hero_fly_begin(struct ps_sprite *spr,struct ps_game *game) {
   PS_SFX_TRANSFORM
   SPR->fly_in_progress=1;
   SPR->fly_counter=0;
-  spr->collide_hole=0;//TODO conflict with hookshot pumpkin? I think there is a narrow error case there, but not sure how to find it.
+  //TODO I don't like this willy-nilly modification of (impassable). Does it conflict with hookshot, or something else?
+  spr->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   return 0;
 }
 
@@ -254,7 +256,7 @@ static int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->fly_in_progress) return 0;
   PS_SFX_UNTRANSFORM
   SPR->fly_in_progress=0;
-  spr->collide_hole=1;
+  spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
   return 0;
 }
 

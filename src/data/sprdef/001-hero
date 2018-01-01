@@ -1,4 +1,5 @@
 type hero
 tileid 0x0300
-grpmask visible update physics hero fragile latch solid
-shape circle
+grpmask VISIBLE UPDATE PHYSICS HERO FRAGILE LATCH SOLID
+shape CIRCLE
+impassable SOLID HOLE LATCH

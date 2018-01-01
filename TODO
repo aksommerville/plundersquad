@@ -8,3 +8,4 @@
 - Map or treasures view on home screen.
 - Binary formats for all resources.
 - Stop music channels on change.
+- HEROONLY prevents movement of non-monster physical things (eg dictionary)

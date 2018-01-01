@@ -1,7 +1,6 @@
 type rabbit
 tileid 0x0446
-
-grpmask visible update fragile physics solid latch herohazard
-
-shape circle
+grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH SOLID
 radius 12
+shape CIRCLE
+impassable SOLID HOLE LATCH HEROONLY

@@ -3,6 +3,7 @@
 #include "game/ps_game.h"
 #include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
+#include "scenario/ps_blueprint.h"
 
 /* Private sprite object.
  */
@@ -48,7 +49,7 @@ static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game) {
   double bottom=spr->y+spr->radius;
   int i; for (i=0;i<game->grpv[PS_SPRGRP_PHYSICS].sprc;i++) {
     struct ps_sprite *hero=game->grpv[PS_SPRGRP_PHYSICS].sprv[i];
-    if (!hero->collide_hole) continue; // Feet not touching ground.
+    if (!(hero->impassable&(1<<PS_BLUEPRINT_CELL_HOLE))) continue; // Feet not touching ground.
     if (hero->x<=left) continue;
     if (hero->x>=right) continue;
     if (hero->y<=top) continue;

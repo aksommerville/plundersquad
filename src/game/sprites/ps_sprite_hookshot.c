@@ -33,8 +33,9 @@ struct ps_sprite_hookshot {
   double dx,dy; // Direction of throw, regardless of current phase.
   struct ps_sprgrp *user; // Should contain one sprite, the hero using me.
   struct ps_sprgrp *pumpkin;
-  int pumpkin_restore_collide_hole;
   int phase;
+  uint16_t restore_user_impassable;
+  uint16_t restore_pumpkin_impassable;
 };
 
 #define SPR ((struct ps_sprite_hookshot*)spr)
@@ -89,7 +90,8 @@ static int ps_hookshot_begin_pull(struct ps_sprite *spr) {
   SPR->phase=PS_HOOKSHOT_PHASE_PULL;
   if (SPR->user&&(SPR->user->sprc==1)) {
     struct ps_sprite *user=SPR->user->sprv[0];
-    user->collide_hole=0;
+    SPR->restore_user_impassable=user->impassable;
+    user->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   }
   return 0;
 }
@@ -97,21 +99,21 @@ static int ps_hookshot_begin_pull(struct ps_sprite *spr) {
 static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *pumpkin) {
   PS_SFX_HOOKSHOT_GRAB
   SPR->phase=PS_HOOKSHOT_PHASE_DELIVER;
-  SPR->pumpkin_restore_collide_hole=pumpkin->collide_hole;
-  pumpkin->collide_hole=0;
+  SPR->restore_pumpkin_impassable=pumpkin->impassable;
+  pumpkin->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   if (ps_sprgrp_add_sprite(SPR->pumpkin,pumpkin)<0) return -1;
   return 0;
 }
 
 static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->user&&(SPR->user->sprc==1)) ps_hero_abort_hookshot(SPR->user->sprv[0],game);
-  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) SPR->pumpkin->sprv[0]->collide_hole=SPR->pumpkin_restore_collide_hole;
+  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) SPR->pumpkin->sprv[0]->impassable=SPR->restore_pumpkin_impassable;
   return ps_sprite_kill_later(spr,game);
 }
 
 static int ps_hookshot_finish(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->user&&(SPR->user->sprc==1)) ps_hero_abort_hookshot(SPR->user->sprv[0],game);
-  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) SPR->pumpkin->sprv[0]->collide_hole=SPR->pumpkin_restore_collide_hole;
+  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) SPR->pumpkin->sprv[0]->impassable=SPR->restore_pumpkin_impassable;
   return ps_sprite_kill_later(spr,game);
 }
 

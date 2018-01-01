@@ -234,8 +234,8 @@ static int _ps_blueberry_hurt(struct ps_game *game,struct ps_sprite *spr,struct 
   other->y=spr->y;
   other->radius=spr->radius;
   other->shape=spr->shape;
-  other->collide_hole=spr->collide_hole;
   other->collide_sprites=spr->collide_sprites;
+  other->impassable=spr->impassable;
   other->tsid=spr->tsid;
   other->layer=spr->layer;
   other->tileid=spr->tileid;

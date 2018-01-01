@@ -40,7 +40,6 @@ static int _ps_prize_init(struct ps_sprite *spr) {
   spr->tileid=SPR->tileid_base;
   SPR->ttl=PS_PRIZE_TTL;
   SPR->unflingable=PS_PRIZE_UNFLINGABLE_TIME;
-  spr->collide_hole=0;
 
   return 0;
 }

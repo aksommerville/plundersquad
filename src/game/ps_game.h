@@ -109,6 +109,9 @@ int ps_game_create_fireworks(struct ps_game *game,int x,int y);
 int ps_game_create_prize(struct ps_game *game,int x,int y);
 int ps_game_check_deathgate(struct ps_game *game);
 
+// For test/debug builds, restore all heroes to life.
+int ps_game_heal_all_heroes(struct ps_game *game);
+
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"
  *  0008   4 Game Serial Version: 1

@@ -1013,3 +1013,16 @@ int ps_game_check_deathgate(struct ps_game *game) {
   }
   return 0;
 }
+
+/* Heal all heroes.
+ */
+ 
+int ps_game_heal_all_heroes(struct ps_game *game) {
+  if (!game) return -1;
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *hero=grp->sprv[i];
+    if (ps_hero_become_living(game,hero)<0) return -1;
+  }
+  return 0;
+}

@@ -1,5 +1,6 @@
 type blueberry
 tileid 0x04a0
-grpmask visible update herohazard fragile physics solid latch
-shape circle
+grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH SOLID
 radius 7
+shape CIRCLE
+impassable SOLID HOLE LATCH HEROONLY

@@ -1,5 +1,6 @@
 type bug
 tileid 0x0450
-grpmask visible update herohazard fragile physics solid latch
-shape circle
+grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH SOLID
 radius 7
+shape CIRCLE
+impassable SOLID HOLE LATCH HEROONLY

@@ -1,8 +1,11 @@
 tilesheet 8
 song 5
-monster 9
-monster 13
+monster 15
+monster 16
+monster 20
 monster 14
+monster 13
+monster 9
 shape VACANT 100 0 ALT16 
 shape SOLID 100 9 SKINNY 
 shape SOLID 100 4 FAT 

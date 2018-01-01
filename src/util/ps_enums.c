@@ -157,6 +157,9 @@ int ps_sprdef_fld_k_eval(const char *src,int srcc) {
     case 7: {
         if (!ps_memcasecmp(src,"grpmask",7)) return PS_SPRDEF_FLD_grpmask;
       } break;
+    case 10: {
+        if (!ps_memcasecmp(src,"impassable",10)) return PS_SPRDEF_FLD_impassable;
+      } break;
   }
   return -1;
 }
@@ -169,6 +172,7 @@ const char *ps_sprdef_fld_k_repr(int k) {
     case PS_SPRDEF_FLD_shape: return "shape";
     case PS_SPRDEF_FLD_type: return "type";
     case PS_SPRDEF_FLD_tileid: return "tileid";
+    case PS_SPRDEF_FLD_impassable: return "impassable";
   }
   return 0;
 }

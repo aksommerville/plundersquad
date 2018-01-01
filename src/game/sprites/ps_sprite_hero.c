@@ -246,7 +246,7 @@ static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
       } break;
     case PS_BLUEPRINT_CELL_HOLE: {
         // Landing on a hole is unusal, but can easily be done with a hookshot.
-        if (spr->collide_hole) {
+        if (spr->impassable&(1<<PS_BLUEPRINT_CELL_HOLE)) {
           return ps_hero_become_ghost(game,spr);
         }
       } break;
@@ -588,7 +588,7 @@ int ps_hero_become_ghost(struct ps_game *game,struct ps_sprite *spr) {
 
   SPR->hp=0;
   spr->collide_sprites=0;
-  spr->collide_hole=0;
+  spr->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)<0) return -1;
   if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_LATCH,spr)<0) return -1;
@@ -606,7 +606,7 @@ int ps_hero_become_living(struct ps_game *game,struct ps_sprite *spr) {
   SPR->healtime=PS_HERO_HEAL_TIME;
   SPR->hp=PS_HERO_DEFAULT_HP;
   spr->collide_sprites=1;
-  spr->collide_hole=1;
+  spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
   if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)<0) return -1;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_LATCH,spr)<0) return -1;

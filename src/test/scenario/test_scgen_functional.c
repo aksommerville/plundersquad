@@ -344,6 +344,42 @@ static void write_grids_graphics_to_image_file(const struct ps_scenario *scenari
   free(src);
 }
 
+/* Dump grid graphics (for troubleshooting).
+ */
+
+static void dump_grid_graphics(struct ps_scenario *scenario,int x,int y) {
+  if ((x<0)||(y<0)||(x>=scenario->w)||(y>=scenario->h)) {
+    PS_LOG("Can't dump grid (%d,%d). Scenario size (%d,%d).",x,y,scenario->w,scenario->h);
+    return;
+  }
+  struct ps_grid *grid=scenario->screenv[y*scenario->w+x].grid;
+  if (!grid) return;
+  PS_LOG("Dumping grid (%d,%d)...",x,y);
+  const struct ps_grid_cell *cell=grid->cellv;
+  int row=0; for (;row<PS_GRID_ROWC;row++) {
+    int col=0; for (;col<PS_GRID_COLC;col++,cell++) {
+      switch (cell->tileid) {
+        case 0x45: printf(" \x1b[32mFF\x1b[0m"); break;
+        case 0x46: printf(" \x1b[32mTT\x1b[0m"); break;
+        case 0x47: printf(" \x1b[32m77\x1b[0m"); break;
+        case 0x48: printf(" \x1b[32m|/\x1b[0m"); break;
+        case 0x49: printf(" \x1b[32m\\|\x1b[0m"); break;
+        case 0x55: printf(" \x1b[32mEE\x1b[0m"); break;
+        case 0x56: printf(" \x1b[32mXX\x1b[0m"); break;
+        case 0x57: printf(" \x1b[32m33\x1b[0m"); break;
+        case 0x58: printf(" \x1b[32m|\\\x1b[0m"); break;
+        case 0x59: printf(" \x1b[32m/|\x1b[0m"); break;
+        case 0x65: printf(" \x1b[32mLL\x1b[0m"); break;
+        case 0x66: printf(" \x1b[32mWW\x1b[0m"); break;
+        case 0x67: printf(" \x1b[32mJJ\x1b[0m"); break;
+        case 0x68: printf(" \x1b[32mOO\x1b[0m"); break;
+        default: printf(" %02x",cell->tileid); break;
+      }
+    }
+    printf("\n");
+  }
+}
+
 /* Load resources and generate a scenario.
  */
 
@@ -361,11 +397,11 @@ PS_TEST(test_scgen_functional,scgen,functional,ignore) {
   scgen->playerc=3;
   scgen->skills=PS_SKILL_HOOKSHOT|PS_SKILL_ARROW|PS_SKILL_SWORD|PS_SKILL_COMBAT;
   scgen->difficulty=5;
-  scgen->length=5; // 6 seems to fit in my console pretty good.
+  scgen->length=4; // 6 seems to fit in my console pretty good.
 
   /* Set random seed. */
   int seed=time(0);
-  //seed=1504374193;
+  //seed=1514852782;
   PS_LOG("Random seed %d",seed);
   srand(seed);
 
@@ -379,6 +415,7 @@ PS_TEST(test_scgen_functional,scgen,functional,ignore) {
     dump_scenario(scgen->scenario);
     write_grids_to_image_file(scgen->scenario);
     write_grids_graphics_to_image_file(scgen->scenario);
+    //dump_grid_graphics(scgen->scenario,1,3);
   }
 
   ps_scgen_del(scgen);

@@ -108,6 +108,10 @@ static int ps_zone_cell_is_FAT_compatible(const struct ps_zone_cell *cell) {
 static int ps_zone_sort_cells_by_FAT_compatibility(struct ps_zone *good,struct ps_zone *bad,const struct ps_zone *zone) {
   const struct ps_zone_cell *cell=zone->cellv;
   int i=0; for (;i<zone->cellc;i++,cell++) {
+
+    // There is a new, earlier pass that may drop cells into (bad) before this. Ignore those.
+    if (ps_zone_has_cell(bad,cell->x,cell->y)) continue;
+    
     if (ps_zone_cell_is_FAT_compatible(cell)) {
       if (ps_zone_add_cell(good,cell->x,cell->y)<0) return -1;
     } else {
@@ -164,8 +168,56 @@ static int ps_zone_transfer_contiguous_cells(struct ps_zone *dst,struct ps_zone 
   return 0;
 }
 
+/* Locate isthmi and break them by adding to (bad) zone and altering neighbor masks.
+ * An isthmus is a cell with opposite diagonal neighbors missing from the zone.
+ * For example:
+ *   +---+---+---+
+ *   |   | X | X |
+ *   +---+---+---+
+ *   | X | X | X | <-- Our skins don't accomodate the middle cell.
+ *   +---+---+---+
+ *   | X | X |   |
+ *   +---+---+---+
+ * HYPOTHESIS: If a neighbor mask contains exactly 2 opposite diagonals, it is an isthmus.
+ */
+
+static int ps_zone_mask_is_isthmus(uint8_t neighbors) {
+  // All we need is the diagonals.
+  neighbors&=0xa5;
+  if (neighbors==0x81) return 1;
+  if (neighbors==0x24) return 1;
+  return 0;
+}
+
+static void ps_zone_remove_cell_from_neighbors(struct ps_zone *zone,int x,int y) {
+  uint8_t mask=1;
+  int dy; for (dy=-1;dy<=1;dy++) {
+    int dx; for (dx=-1;dx<=1;dx++) {
+      if (!dx&&!dy) continue;
+      int p=ps_zone_search_cell(zone,x+dx,y+dy);
+      if (p>=0) {
+        struct ps_zone_cell *cell=zone->cellv+p;
+        cell->neighbors&=~mask;
+      }
+      mask<<=1;
+    }
+  }
+}
+
+static int ps_zone_break_isthmi(struct ps_zone *zone,struct ps_zone *bad) {
+  int i=0; for (;i<zone->cellc;i++) {
+    struct ps_zone_cell *cell=zone->cellv+i;
+    if (!ps_zone_mask_is_isthmus(cell->neighbors)) continue;
+    if (ps_zone_add_cell(bad,cell->x,cell->y)<0) return -1;
+    cell->neighbors=0x00;
+    ps_zone_remove_cell_from_neighbors(zone,cell->x,cell->y);
+  }
+  return 0;
+}
+
 /* Force FAT compatibility.
  * The basic strategy:
+ *   - If we have an isthmus (see above), carefully remove it.
  *   - Visit each cell and sort them into two temporary zones: good (foursquare) and bad (skinny).
  *   - Identify any contiguous set from the good zone and replace ourself with that.
  *   - Spawn a new zone for each remaining contiguous 'good' set.
@@ -180,6 +232,12 @@ int ps_zone_force_FAT_compatibility(struct ps_zone *zone,struct ps_zones *zones)
   if (!good) return -1;
   struct ps_zone *bad=ps_zone_new();
   if (!bad) { ps_zone_del(good); return -1; }
+
+  if (ps_zone_break_isthmi(zone,bad)<0) {
+    ps_zone_del(good);
+    ps_zone_del(bad);
+    return -1;
+  }
 
   if (ps_zone_sort_cells_by_FAT_compatibility(good,bad,zone)<0) {
     ps_zone_del(good);

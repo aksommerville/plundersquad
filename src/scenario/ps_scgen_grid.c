@@ -125,8 +125,12 @@ static int ps_gridgen_select_shape_for_zone(struct ps_scgen *scgen,struct ps_scr
     }
   }
 
-  /* If we contain foursquares and are FAT-compatible and a FAT shape exists, use it. */
+  /* If we contain foursquares and are FAT-compatible and a FAT shape exists, use it. 
+   * We must still force FAT compatibility because the first pass doesn't detect isthmi.
+   */
   if (zone->foursquarec&&!zone->fatfailc) {
+    if (ps_zone_force_FAT_compatibility(zone,scgen->zones)<0) return -1;
+    if (ps_zone_analyze(zone)<0) return -1;
     if (zone->shape=ps_gridgen_select_shape_of_style(scgen,shapev,shapec,PS_REGION_SHAPE_STYLE_FAT)) {
       return 0;
     }
@@ -375,6 +379,35 @@ static int ps_gridgen_skin_cells(struct ps_scgen *scgen,struct ps_screen *screen
     if (ps_gridgen_skin_cells_for_zone(scgen,screen,scgen->zones->zonev[i])<0) return -1;
   }
   return 0;
+}
+
+/* Dump zones to console for troubleshooting.
+ */
+
+static void TEMP_dump_zones(const struct ps_zones *zones) {
+  int row=0; for (;row<PS_GRID_ROWC;row++) {
+    int col=0; for (;col<PS_GRID_COLC;col++) {
+      const struct ps_zone *zone=0;
+      int zonep=-1;
+      int i=zones->zonec; while (i-->0) {
+        struct ps_zone *qzone=zones->zonev[i];
+        if (ps_zone_has_cell(qzone,col,row)) {
+          if (zone) {
+            printf("!!");
+          } else {
+            zone=qzone;
+            zonep=i;
+          }
+        }
+      }
+      if (!zone) {
+        printf("??");
+      } else {
+        printf("%2d",zonep);
+      }
+    }
+    printf("\n");
+  }
 }
 
 /* Generate grid for one screen.

@@ -366,6 +366,7 @@ int ps_hero_action_continue(struct ps_sprite *spr,struct ps_game *game) {
 int ps_hero_auxaction_begin(struct ps_sprite *spr,struct ps_game *game) {
   if (1) { //XXX TEMP dump stats on aux button press
     ps_game_dump_stats(game);
+    if (ps_game_summon_bloodhound(game)<0) return -1;
   }
   return ps_hero_action_begin_1(spr,game,ps_hero_get_auxiliary_action(spr));
 }

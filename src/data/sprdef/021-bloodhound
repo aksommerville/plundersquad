@@ -1,0 +1,6 @@
+type bloodhound
+tileid 0x0427
+grpmask VISIBLE UPDATE PHYSICS FRAGILE LATCH SOLID
+radius 7
+shape CIRCLE
+impassable SOLID HOLE LATCH

@@ -14,6 +14,7 @@ struct ps_video_layer;
 struct ps_physics;
 struct ps_input_device;
 struct ps_stats;
+struct ps_path;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -118,6 +119,23 @@ int ps_game_check_deathgate(struct ps_game *game);
 
 // For test/debug builds, restore all heroes to life.
 int ps_game_heal_all_heroes(struct ps_game *game);
+
+// Make a bloodhound sprite which will run onscreen and tell the players which way to go.
+int ps_game_summon_bloodhound(struct ps_game *game);
+
+// Helpers for the bloodhound. See generalized form below.
+int ps_game_get_direction_to_nearest_treasure(const struct ps_game *game);
+int ps_game_measure_distance_between_screens(int *distance,int *direction,const struct ps_game *game,int dstx,int dsty,int srcx,int srcy);
+
+// Wipe (path) and replace with the shortest path linking (srcx,srcy) to (dstx,dsty) based on the screens' door flags.
+int ps_game_compose_world_path(struct ps_path *path,const struct ps_game *game,int dstx,int dsty,int srcx,int srcy);
+
+/* Wipe (path) and replace with the shortest path from (srcx,srcy) to (dstx,dsty) in the given grid.
+ * If successful, the returned path will not contain any cells in (impassable).
+ * OOB cells are generally legal; they take the value of the nearest valid cell.
+ * However, to prevent infinite recursion, we enforce a sanity OOB limit of one screen's worth.
+ */
+int ps_game_compose_grid_path(struct ps_path *path,const struct ps_grid *grid,int dstx,int dsty,int srcx,int srcy,uint16_t impassable);
 
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"

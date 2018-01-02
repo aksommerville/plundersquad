@@ -152,6 +152,7 @@ extern const struct ps_sprtype ps_sprtype_prize;
 extern const struct ps_sprtype ps_sprtype_swordswitch;
 extern const struct ps_sprtype ps_sprtype_lobster;
 extern const struct ps_sprtype ps_sprtype_fireworks;
+extern const struct ps_sprtype ps_sprtype_bloodhound;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
@@ -194,6 +195,7 @@ int ps_sprdef_fld_search(const struct ps_sprdef *sprdef,int k);
 int ps_sprdef_fld_get(const struct ps_sprdef *sprdef,int k,int def); // (def) if not found.
 
 /* Sprites created this way are always a member of the KEEPALIVE group.
+ * (x,y) are in pixels, not cells.
  * This returns a WEAK reference.
  */
 struct ps_sprite *ps_sprdef_instantiate(struct ps_game *game,struct ps_sprdef *sprdef,const int *argv,int argc,int x,int y);

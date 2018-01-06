@@ -343,3 +343,37 @@ int ps_game_compose_grid_path(struct ps_path *path,const struct ps_grid *grid,in
   ps_path_cleanup(&blacklist);
   return err;
 }
+
+/* Locate contiguous physical rect.
+ */
+
+static int ps_game_row_physics_match(const struct ps_grid_cell *cell,int y,int x,int w,uint8_t physics) {
+  cell+=y*PS_GRID_COLC;
+  cell+=x;
+  for (;w-->0;cell++) {
+    if (cell->physics!=physics) return 0;
+  }
+  return 1;
+}
+ 
+int ps_game_get_contiguous_physical_rect_in_grid(int *dstx,int *dsty,int *dstw,int *dsth,const struct ps_grid *grid,int x,int y) {
+  if (!dstx||!dsty||!dstw||!dsth||!grid) return -1;
+  if ((x<0)||(x>=PS_GRID_COLC)) return -1;
+  if ((y<0)||(y>=PS_GRID_ROWC)) return -1;
+
+  *dstx=x;
+  *dsty=y;
+  *dstw=1;
+  *dsth=1;
+  uint8_t physics=grid->cellv[y*PS_GRID_COLC+x].physics;
+
+  /* Expand along the row. */
+  while ((*dstx>0)&&(grid->cellv[(*dsty)*PS_GRID_COLC+(*dstx)-1].physics==physics)) { (*dstx)--; (*dstw)++; }
+  while ((*dstx+(*dstw)<PS_GRID_COLC)&&(grid->cellv[(*dsty)*PS_GRID_COLC+(*dstx)+(*dstw)].physics==physics)) (*dstw)++;
+
+  /* Consume additional rows if they match entirely. */
+  while ((*dsty>0)&&ps_game_row_physics_match(grid->cellv,(*dsty)-1,*dstx,*dstw,physics)) { (*dsty)--; (*dsth)++; }
+  while ((*dsty+(*dsth)<PS_GRID_ROWC)&&ps_game_row_physics_match(grid->cellv,(*dsty)+(*dsth),*dstx,*dstw,physics)) (*dsth)++;
+  
+  return 0;
+}

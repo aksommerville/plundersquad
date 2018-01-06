@@ -6,6 +6,7 @@
 #include "ps_plrdef.h"
 #include "ps_stats.h"
 #include "ps_bloodhound_activator.h"
+#include "ps_statusreport.h"
 #include "ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
@@ -45,6 +46,9 @@ static int ps_game_layer_draw(struct ps_video_layer *layer) {
   struct ps_game *game=((struct ps_game_layer*)layer)->game;
   if (game&&game->grid) {
     if (ps_video_draw_grid(game->grid)<0) return -1;
+    if (game->statusreport) {
+      if (ps_statusreport_draw(game->statusreport)<0) return -1;
+    }
     if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE)<0) return -1;
     if (ps_game_draw_hud(game)<0) return -1;
   }
@@ -121,6 +125,7 @@ void ps_game_del(struct ps_game *game) {
   ps_video_layer_del(game->layer_scene);
 
   ps_physics_del(game->physics);
+  ps_statusreport_del(game->statusreport);
 
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
@@ -563,6 +568,42 @@ static int ps_game_setup_deathgate(struct ps_game *game) {
   return 0;
 }
 
+/* Rebuild status report or kill it.
+ */
+
+static struct ps_blueprint_poi *ps_game_find_status_report_poi(const struct ps_game *game) {
+  if (!game->grid) return 0;
+  struct ps_blueprint_poi *poi=game->grid->poiv;
+  int i=game->grid->poic; for (;i-->0;poi++) {
+    if (poi->type==PS_BLUEPRINT_POI_STATUSREPORT) return poi;
+  }
+  return 0;
+}
+
+static int ps_game_check_status_report(struct ps_game *game) {
+
+  if (game->statusreport) {
+    ps_statusreport_del(game->statusreport);
+    game->statusreport=0;
+  }
+  
+  const struct ps_blueprint_poi *poi=ps_game_find_status_report_poi(game);
+  if (!poi) return 0;
+
+  int x,y,w,h;
+  if (ps_game_get_contiguous_physical_rect_in_grid(&x,&y,&w,&h,game->grid,poi->x,poi->y)<0) return -1;
+
+  if (!(game->statusreport=ps_statusreport_new())) return -1;
+  if (ps_statusreport_setup(game->statusreport,game,x,y,w,h)<0) {
+    ps_log(GAME,ERROR,"Failed to initialize status report.");
+    ps_statusreport_del(game->statusreport);
+    game->statusreport=0;
+    return -1;
+  }
+  
+  return 0;
+}
+
 /* Hard restart.
  */
 
@@ -585,6 +626,7 @@ int ps_game_restart(struct ps_game *game) {
   game->gridx=game->scenario->homex;
   game->gridy=game->scenario->homey;
   game->grid=PS_SCENARIO_SCREEN(game->scenario,game->gridx,game->gridy)->grid;
+  game->grid->visited=1;
   if (ps_grid_close_all_barriers(game->grid)<0) return -1;
   if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
 
@@ -599,6 +641,7 @@ int ps_game_restart(struct ps_game *game) {
   }
 
   if (ps_bloodhound_activator_reset(game->bloodhound_activator)<0) return -1;
+  if (ps_game_check_status_report(game)<0) return -1;
 
   return 0;
 }
@@ -633,6 +676,8 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
   }
+  
+  if (ps_game_check_status_report(game)<0) return -1;
 
   return 0;
 }
@@ -660,6 +705,7 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
   game->grid=grid;
   game->gridx+=dx;
   game->gridy+=dy;
+  game->grid->visited=1;
   if (ps_grid_close_all_barriers(game->grid)<0) return -1;
   if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
   if (ps_game_kill_nonhero_sprites(game)<0) return -1;
@@ -682,6 +728,8 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
   }
+  
+  if (ps_game_check_status_report(game)<0) return -1;
 
   ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
   

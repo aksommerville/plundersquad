@@ -16,6 +16,7 @@ struct ps_input_device;
 struct ps_stats;
 struct ps_path;
 struct ps_bloodhound_activator;
+struct ps_statusreport;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -44,6 +45,7 @@ struct ps_game {
   int treasurec;
   struct ps_stats *stats;
   struct ps_bloodhound_activator *bloodhound_activator;
+  struct ps_statusreport *statusreport; // optional
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];
   struct ps_grid *grid; // WEAK
@@ -138,6 +140,11 @@ int ps_game_compose_world_path(struct ps_path *path,const struct ps_game *game,i
  * However, to prevent infinite recursion, we enforce a sanity OOB limit of one screen's worth.
  */
 int ps_game_compose_grid_path(struct ps_path *path,const struct ps_grid *grid,int dstx,int dsty,int srcx,int srcy,uint16_t impassable);
+
+/* Return a rectangle containing (x,y) where all cells have the same physics.
+ * Precise behavior is undefined if the region is not rectangular.
+ */
+int ps_game_get_contiguous_physical_rect_in_grid(int *dstx,int *dsty,int *dstw,int *dsth,const struct ps_grid *grid,int x,int y);
 
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"

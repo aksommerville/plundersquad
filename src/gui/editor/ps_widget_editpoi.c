@@ -380,6 +380,17 @@ static int ps_editpoi_populate_sprite_argument_labels(struct ps_widget *arg1labe
   return 0;
 }
 
+/* Is this a home screen?
+ */
+
+static int ps_editpoi_is_home_screen(const struct ps_widget *widget) {
+  const struct ps_blueprint_poi *poi=WIDGET->blueprint->poiv;
+  int i=WIDGET->blueprint->poic; for (;i-->0;poi++) {
+    if (poi->type==PS_BLUEPRINT_POI_HERO) return 1;
+  }
+  return 0;
+}
+
 /* Refresh UI from model.
  */
 
@@ -468,6 +479,17 @@ static int ps_editpoi_refresh_ui(struct ps_widget *widget,int populate_fields) {
           if (ps_widget_label_set_text(messagelabel,"No effect if same tiles.",-1)<0) return -1;
         } else {
           if (ps_widget_label_set_text(messagelabel,"Looks OK.",-1)<0) return -1;
+        }
+      } break;
+    case PS_BLUEPRINT_POI_STATUSREPORT: {
+        if (ps_widget_label_set_text(typedesclabel,"STATUSREPORT",12)<0) return -1;
+        if (ps_widget_label_set_text(arg0label,"unused",6)<0) return -1;
+        if (ps_widget_label_set_text(arg1label,"unused",6)<0) return -1;
+        if (ps_widget_label_set_text(arg2label,"unused",6)<0) return -1;
+        if (!ps_editpoi_is_home_screen(widget)) {
+          if (ps_widget_label_set_text(messagelabel,"Use only on HOME screen.",-1)<0) return -1;
+        } else {
+          if (ps_widget_label_set_text(messagelabel,"",0)<0) return -1;
         }
       } break;
     default: {

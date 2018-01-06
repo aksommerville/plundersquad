@@ -265,3 +265,16 @@ int ps_video_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc) {
 
   return 0;
 }
+
+/* Draw entire texture into framebuffer.
+ */
+ 
+int ps_video_draw_texture(struct akgl_texture *texture,int x,int y,int w,int h) {
+  struct akgl_vtx_tex vtxv[4]={
+    {x  ,y  ,0,0},
+    {x  ,y+h,0,1},
+    {x+w,y  ,1,0},
+    {x+w,y+h,1,1},
+  };
+  return akgl_program_tex_draw(ps_video.program_tex,texture,vtxv,4);
+}

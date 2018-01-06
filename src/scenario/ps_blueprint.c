@@ -371,6 +371,9 @@ static int ps_blueprint_decode_poi_type(int *dst,const char *src,int srcc,int li
     case 9: {
         if (!memcmp(sub,"DEATHGATE",9)) { *dst=PS_BLUEPRINT_POI_DEATHGATE; break; }
       } break;
+    case 12: {
+        if (!memcmp(sub,"STATUSREPORT",12)) { *dst=PS_BLUEPRINT_POI_STATUSREPORT; break; }
+      } break;
   }
   
   if (*dst<0) {

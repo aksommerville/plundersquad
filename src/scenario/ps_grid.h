@@ -36,6 +36,7 @@ struct ps_grid {
   int poic;
   struct ps_region *region; // WEAK, optional
   uint8_t monsterc_min,monsterc_max; // Copied from blueprint.
+  int visited; // Set by game first time player sees this grid.
   struct ps_grid_cell cellv[PS_GRID_SIZE];
 };
 

@@ -1,4 +1,5 @@
 type dummy
 tileid 0x0401
-shape square
-grpmask visible physics solid
+grpmask VISIBLE PHYSICS SOLID
+shape SQUARE
+impassable SOLID HOLE LATCH

@@ -258,8 +258,9 @@ int ps_game_compose_world_path(struct ps_path *path,const struct ps_game *game,i
  *      our result          ideal
  */
  
-static int ps_game_compose_grid_path_1(struct ps_path *path,const struct ps_grid *grid,int dstx,int dsty,int srcx,int srcy,uint16_t impassable) {
+static int ps_game_compose_grid_path_1(struct ps_path *path,const struct ps_grid *grid,int dstx,int dsty,int srcx,int srcy,uint16_t impassable,struct ps_path *blacklist) {
   if (ps_path_has(path,srcx,srcy)) return -1;
+  if (ps_path_has(blacklist,srcx,srcy)) return -1;
   if ((srcx<-PS_GRID_COLC)||(srcx>PS_GRID_COLC<<1)) return -1;
   if ((srcy<-PS_GRID_ROWC)||(srcy>PS_GRID_ROWC<<1)) return -1;
 
@@ -322,9 +323,12 @@ static int ps_game_compose_grid_path_1(struct ps_path *path,const struct ps_grid
   int i; for (i=0;i<dirc;i++) {
     struct ps_vector d=ps_vector_from_direction(dirv[i]);
     path->c=c0;
-    int err=ps_game_compose_grid_path_1(path,grid,dstx,dsty,srcx+d.dx,srcy+d.dy,impassable);
+    int err=ps_game_compose_grid_path_1(path,grid,dstx,dsty,srcx+d.dx,srcy+d.dy,impassable,blacklist);
     if (err>=0) return 0;
   }
+
+  /* Can't get there from here; ensure that we don't re-enter this cell. */
+  if (ps_path_add(blacklist,srcx,srcy)<0) return -1;
   
   return -1;
 }
@@ -333,7 +337,9 @@ int ps_game_compose_grid_path(struct ps_path *path,const struct ps_grid *grid,in
   if (!path||!grid) return -1;
   if ((dstx<-PS_SCREENW)||(dstx>PS_SCREENW<<1)) return -1;
   if ((dsty<-PS_SCREENH)||(dsty>PS_SCREENH<<1)) return -1;
+  struct ps_path blacklist={0};
   path->c=0;
-  int err=ps_game_compose_grid_path_1(path,grid,dstx,dsty,srcx,srcy,impassable);
+  int err=ps_game_compose_grid_path_1(path,grid,dstx,dsty,srcx,srcy,impassable,&blacklist);
+  ps_path_cleanup(&blacklist);
   return err;
 }

@@ -45,6 +45,7 @@ void ps_stats_dump(const struct ps_stats *stats) {
   ps_log(GAME,DEBUG,"----- begin stats dump -----");
   
   ps_log(GAME,DEBUG,"  playtime: %d",stats->playtime);
+  ps_log(GAME,DEBUG,"  framec_since_treasure: %d",stats->framec_since_treasure);
 
   struct ps_stats_player zeroplayer={0};
   const struct ps_stats_player *player=stats->playerv;

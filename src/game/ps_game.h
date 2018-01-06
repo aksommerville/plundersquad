@@ -15,6 +15,7 @@ struct ps_physics;
 struct ps_input_device;
 struct ps_stats;
 struct ps_path;
+struct ps_bloodhound_activator;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -42,6 +43,7 @@ struct ps_game {
   int treasurev[PS_TREASURE_LIMIT];
   int treasurec;
   struct ps_stats *stats;
+  struct ps_bloodhound_activator *bloodhound_activator;
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];
   struct ps_grid *grid; // WEAK

@@ -5,6 +5,7 @@
 #include "ps_physics.h"
 #include "ps_plrdef.h"
 #include "ps_stats.h"
+#include "ps_bloodhound_activator.h"
 #include "ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
@@ -97,6 +98,11 @@ struct ps_game *ps_game_new() {
     (ps_physics_set_sprgrp_solid(game->physics,game->grpv+PS_SPRGRP_SOLID)<0)||
     (ps_physics_set_sprgrp_hero(game->physics,game->grpv+PS_SPRGRP_HERO)<0)
   ) {
+    ps_game_del(game);
+    return 0;
+  }
+
+  if (!(game->bloodhound_activator=ps_bloodhound_activator_new())) {
     ps_game_del(game);
     return 0;
   }
@@ -592,6 +598,8 @@ int ps_game_restart(struct ps_game *game) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
   }
 
+  if (ps_bloodhound_activator_reset(game->bloodhound_activator)<0) return -1;
+
   return 0;
 }
 
@@ -867,6 +875,7 @@ static int ps_game_check_completion(struct ps_game *game) {
 static int ps_game_update_stats(struct ps_game *game) {
 
   game->stats->playtime++;
+  game->stats->framec_since_treasure++;
   
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
   int i=grp->sprc; while (i-->0) {
@@ -903,6 +912,9 @@ int ps_game_update(struct ps_game *game) {
   if (!game) return -1;
 
   if (game->finished) return 0;
+
+  /* Externalized game logic. */
+  if (ps_bloodhound_activator_update(game->bloodhound_activator,game)<0) return -1;
 
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
@@ -980,6 +992,7 @@ int ps_game_collect_treasure(struct ps_game *game,struct ps_sprite *collector,in
   PS_SFX_TREASURE
   
   game->treasurev[treasureid]=1;
+  game->stats->framec_since_treasure=0;
 
   if (collector&&(collector->type==&ps_sprtype_hero)) {
     struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)collector;
@@ -1079,7 +1092,6 @@ int ps_game_create_prize(struct ps_game *game,int x,int y) {
 static int ps_game_remove_deathgate(struct ps_game *game) {
   if (!game) return -1;
   if (!game->grid) return -1;
-  ps_log(GAME,DEBUG,"%s...",__func__);
   int removec=0;
   int i=game->grid->poic;
   const struct ps_blueprint_poi *poi=game->grid->poiv;

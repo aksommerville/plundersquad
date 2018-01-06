@@ -23,6 +23,7 @@ struct ps_stats_player {
 struct ps_stats {
   int refc;
   int playtime; // Count of updates.
+  int framec_since_treasure;
   struct ps_stats_player playerv[PS_PLAYER_LIMIT];
 };
 

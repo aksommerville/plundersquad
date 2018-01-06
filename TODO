@@ -1,6 +1,5 @@
 - More projectile-throwing monsters.
 - Tab key in GUI: Go backwards with Shift, and keep a sane focus ring instead of the sloppy guesswork we have now.
-- Bloodhound. At low difficulties, after some idle trigger, dog walks on screen and points to nearest treasure.
 - Map or treasures view on home screen.
 - Binary formats for all resources.
 - Interactive input config at assemblepage.

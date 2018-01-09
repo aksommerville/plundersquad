@@ -2,18 +2,22 @@
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
 #include "game/ps_path.h"
+#include "game/ps_sound_effects.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_grid.h"
 #include "akgl/akgl.h"
 #include "util/ps_geometry.h"
 
 #define PS_BLOODHOUND_PHASE_SUMMON   0
-#define PS_BLOODHOUND_PHASE_SPIN     1
-#define PS_BLOODHOUND_PHASE_COMPLETE 2
+#define PS_BLOODHOUND_PHASE_BARK     1
+#define PS_BLOODHOUND_PHASE_SPIN     2
+#define PS_BLOODHOUND_PHASE_COMPLETE 3
 
 #define PS_BLOODHOUND_SUMMON_TIME  240
 #define PS_BLOODHOUND_WALK_SPEED 1
 #define PS_BLOODHOUND_FRAME_TIME 8
+
+#define PS_BLOODHOUND_BARK_TIME 30
 
 #define PS_BLOODHOUND_SPIN_TIME_MIN 60
 #define PS_BLOODHOUND_SPIN_SPEED 5
@@ -122,6 +126,16 @@ static int ps_bloodhound_generate_path(struct ps_sprite *spr,struct ps_game *gam
   return 0;
 }
 
+/* Enter BARK phase.
+ */
+
+static int ps_bloodhound_begin_BARK(struct ps_sprite *spr,struct ps_game *game) {
+  PS_SFX_WOOF
+  SPR->phase=PS_BLOODHOUND_PHASE_BARK;
+  SPR->phase_counter=PS_BLOODHOUND_BARK_TIME;
+  return 0;
+}
+
 /* Enter SPIN phase.
  */
 
@@ -208,17 +222,27 @@ static int ps_bloodhound_update_SUMMON(struct ps_sprite *spr,struct ps_game *gam
 
   SPR->phase_counter++;
   if (SPR->phase_counter>=PS_BLOODHOUND_SUMMON_TIME) {
-    if (ps_bloodhound_begin_SPIN(spr,game)<0) return -1;
+    if (ps_bloodhound_begin_BARK(spr,game)<0) return -1;
   } else {
     if (SPR->pathp<SPR->path.c) {
       if (ps_bloodhound_walk_to_cell(spr,game,SPR->path.v[SPR->pathp].x,SPR->path.v[SPR->pathp].y)<0) return -1;
     } else if (!SPR->path.c) {
       if (ps_bloodhound_walk_unguided(spr,game)<0) return -1;
     } else {
-      if (ps_bloodhound_begin_SPIN(spr,game)<0) return -1;
+      if (ps_bloodhound_begin_BARK(spr,game)<0) return -1;
     }
   }
   
+  return 0;
+}
+
+/* Update, in BARK phase.
+ */
+
+static int ps_bloodhound_update_BARK(struct ps_sprite *spr,struct ps_game *game) {
+  if (SPR->phase_counter--<0) {
+    return ps_bloodhound_begin_SPIN(spr,game);
+  }
   return 0;
 }
 
@@ -247,6 +271,7 @@ static int _ps_bloodhound_update(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,DEBUG,"bloodhound %p (%d,%d) phase=%d",spr,(int)spr->x,(int)spr->y,SPR->phase);
   switch (SPR->phase) {
     case PS_BLOODHOUND_PHASE_SUMMON: if (ps_bloodhound_update_SUMMON(spr,game)<0) return -1; break;
+    case PS_BLOODHOUND_PHASE_BARK: if (ps_bloodhound_update_BARK(spr,game)<0) return -1; break;
     case PS_BLOODHOUND_PHASE_SPIN: if (ps_bloodhound_update_SPIN(spr,game)<0) return -1; break;
   }
   return 0;
@@ -259,7 +284,11 @@ static int ps_bloodhound_draw_walking(struct akgl_vtx_maxtile *vtxv,int vtxa,str
   if (vtxa<1) return 1;
   vtxv->x=spr->x;
   vtxv->y=spr->y;
-  vtxv->tileid=spr->tileid+1+SPR->animframe;
+  if (SPR->phase==PS_BLOODHOUND_PHASE_BARK) {
+    vtxv->tileid=spr->tileid;
+  } else {
+    vtxv->tileid=spr->tileid+1+SPR->animframe;
+  }
   vtxv->size=PS_TILESIZE;
   vtxv->ta=0;
   vtxv->pr=vtxv->pg=vtxv->pb=0x80;
@@ -294,7 +323,8 @@ static int ps_bloodhound_draw_sitting(struct akgl_vtx_maxtile *vtxv,int vtxa,str
 
 static int _ps_bloodhound_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr) {
   switch (SPR->phase) {
-    case PS_BLOODHOUND_PHASE_SUMMON: return ps_bloodhound_draw_walking(vtxv,vtxa,spr);
+    case PS_BLOODHOUND_PHASE_SUMMON: 
+    case PS_BLOODHOUND_PHASE_BARK: return ps_bloodhound_draw_walking(vtxv,vtxa,spr);
     case PS_BLOODHOUND_PHASE_SPIN:
     case PS_BLOODHOUND_PHASE_COMPLETE: return ps_bloodhound_draw_sitting(vtxv,vtxa,spr);
   }

@@ -391,6 +391,32 @@ static int ps_editpoi_is_home_screen(const struct ps_widget *widget) {
   return 0;
 }
 
+/* Is this grid position ok for a status report?
+ */
+
+static int ps_editpoi_4_statusreports(const uint8_t *cellv) {
+  if (cellv[0]!=PS_BLUEPRINT_CELL_STATUSREPORT) return 0;
+  if (cellv[1]!=PS_BLUEPRINT_CELL_STATUSREPORT) return 0;
+  if (cellv[2]!=PS_BLUEPRINT_CELL_STATUSREPORT) return 0;
+  if (cellv[3]!=PS_BLUEPRINT_CELL_STATUSREPORT) return 0;
+  return 1;
+}
+
+static int ps_editpoi_ok_statusreport_position(const struct ps_widget *widget) {
+  const struct ps_blueprint_poi *poi=&WIDGET->poi;
+  if ((poi->x<0)||(poi->x>=PS_BLUEPRINT_COLC)) return 0;
+  if ((poi->y<0)||(poi->y>=PS_BLUEPRINT_ROWC)) return 0;
+  int x=poi->x,y=poi->y,w=1,h=1;
+  if (WIDGET->blueprint->cellv[y*PS_BLUEPRINT_COLC+x]!=PS_BLUEPRINT_CELL_STATUSREPORT) return 0;
+  while ((x>0)&&(WIDGET->blueprint->cellv[y*PS_BLUEPRINT_COLC+(x-1)]==PS_BLUEPRINT_CELL_STATUSREPORT)) { x--; w++; }
+  while ((x+w<PS_GRID_COLC)&&(WIDGET->blueprint->cellv[y*PS_BLUEPRINT_COLC+x+w]==PS_BLUEPRINT_CELL_STATUSREPORT)) w++;
+  if (w!=4) return 0;
+  while ((y>0)&&ps_editpoi_4_statusreports(WIDGET->blueprint->cellv+(y-1)*PS_BLUEPRINT_COLC+x)) { y--; h++; }
+  while ((y+h<PS_GRID_ROWC)&&ps_editpoi_4_statusreports(WIDGET->blueprint->cellv+(y+h)*PS_BLUEPRINT_COLC+x)) h++;
+  if (h!=3) return 0;
+  return 1;
+}
+
 /* Refresh UI from model.
  */
 
@@ -488,6 +514,8 @@ static int ps_editpoi_refresh_ui(struct ps_widget *widget,int populate_fields) {
         if (ps_widget_label_set_text(arg2label,"unused",6)<0) return -1;
         if (!ps_editpoi_is_home_screen(widget)) {
           if (ps_widget_label_set_text(messagelabel,"Use only on HOME screen.",-1)<0) return -1;
+        } else if (!ps_editpoi_ok_statusreport_position(widget)) {
+          if (ps_widget_label_set_text(messagelabel,"Must be in 4x3 STATUSREPORT cells.",-1)<0) return -1;
         } else {
           if (ps_widget_label_set_text(messagelabel,"",0)<0) return -1;
         }

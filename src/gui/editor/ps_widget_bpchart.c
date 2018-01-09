@@ -89,7 +89,7 @@ static uint32_t ps_bpchart_color_for_cell(uint8_t cell) {
     case 4: return 0x00ffffff; // HEROONLY
     case 5: return 0xff0000ff; // HAZARD
     case 6: return 0x00ff00ff; // HEAL
-    case 7: return 0xc0c0c0ff;
+    case 7: return 0xffff00ff; // STATUSREPORT
   }
   return 0x000000ff;
 }
@@ -317,9 +317,9 @@ static int _ps_bpchart_mousewheel(struct ps_widget *widget,int dx,int dy) {
       if (!blueprint) return 0;
       uint8_t *cell=blueprint->cellv+(WIDGET->mouserow*PS_BLUEPRINT_COLC)+WIDGET->mousecol;
       if ((dx>0)||(dy>0)) {
-        if (++(*cell)>6) *cell=0;
+        if (++(*cell)>7) *cell=0;
       } else {
-        if (*cell==0) *cell=6; else (*cell)--;
+        if (*cell==0) *cell=7; else (*cell)--;
       }
     }
   }

@@ -410,6 +410,20 @@ static void TEMP_dump_zones(const struct ps_zones *zones) {
   }
 }
 
+/* Remove transient physics.
+ * Any STATUSREPORT becomes SOLID.
+ */
+
+static int ps_gridgen_remove_transient_physics(struct ps_scgen *scgen,struct ps_screen *screen) {
+  struct ps_grid_cell *cell=screen->grid->cellv;
+  int i=PS_GRID_SIZE; for (;i-->0;cell++) {
+    switch (cell->physics) {
+      case PS_BLUEPRINT_CELL_STATUSREPORT: cell->physics=PS_BLUEPRINT_CELL_SOLID; break;
+    }
+  }
+  return 0;
+}
+
 /* Generate grid for one screen.
  */
 
@@ -424,6 +438,8 @@ static int ps_scgen_generate_grid(struct ps_scgen *scgen,struct ps_screen *scree
   if (ps_gridgen_select_shapes_for_zones(scgen,screen)<0) return -1;
 
   if (ps_gridgen_skin_cells(scgen,screen)<0) return -1;
+
+  if (ps_gridgen_remove_transient_physics(scgen,screen)<0) return -1;
 
   return 0;
 }

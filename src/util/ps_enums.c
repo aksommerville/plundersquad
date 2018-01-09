@@ -323,6 +323,7 @@ int ps_blueprint_cell_eval(const char *src,int srcc) {
   _(HEROONLY)
   _(HAZARD)
   _(HEAL)
+  _(STATUSREPORT)
   #undef _
   return -1;
 }
@@ -330,13 +331,14 @@ int ps_blueprint_cell_eval(const char *src,int srcc) {
 const char *ps_blueprint_cell_repr(int cell) {
   switch (cell) {
     #define _(tag) case PS_BLUEPRINT_CELL_##tag: return #tag;
-  _(VACANT)
-  _(SOLID)
-  _(HOLE)
-  _(LATCH)
-  _(HEROONLY)
-  _(HAZARD)
-  _(HEAL)
+    _(VACANT)
+    _(SOLID)
+    _(HOLE)
+    _(LATCH)
+    _(HEROONLY)
+    _(HAZARD)
+    _(HEAL)
+    _(STATUSREPORT)
     #undef _
   }
   return 0;

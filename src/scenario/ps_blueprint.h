@@ -27,6 +27,7 @@
 #define PS_BLUEPRINT_CELL_HEROONLY     0x04 /* VACANT, but monsters may not pass. */
 #define PS_BLUEPRINT_CELL_HAZARD       0x05 /* VACANT, but harmful to heroes. Illegal as an edge. */
 #define PS_BLUEPRINT_CELL_HEAL         0x06 /* VACANT, but resuccitates heroes. */
+#define PS_BLUEPRINT_CELL_STATUSREPORT 0x07 /* Placeholder for status report sign; becomes SOLID at grid skinning. */
 
 #define PS_PHYSICS_IMPASSABLE_HERO     0x000e /* SOLID|HOLE|LATCH */
 #define PS_PHYSICS_IMPASSABLE_MONSTER  0x001e /* SOLID|HOLE|LATCH|HEROONLY */

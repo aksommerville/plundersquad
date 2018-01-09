@@ -26,6 +26,12 @@
 #define PS_HERO_HEAL_TIME 60
 #define PS_HERO_FLY_FRAME_TIME 10
 
+#define PS_HERO_IMPASSABLE_DEFAULT ( \
+  (1<<PS_BLUEPRINT_CELL_SOLID)| \
+  (1<<PS_BLUEPRINT_CELL_LATCH)| \
+  (1<<PS_BLUEPRINT_CELL_HOLE)| \
+0)
+
 #define SPR ((struct ps_sprite_hero*)spr)
 
 /* Reset blink time.
@@ -594,9 +600,10 @@ int ps_hero_become_ghost(struct ps_game *game,struct ps_sprite *spr) {
 
   SPR->hp=0;
   spr->collide_sprites=0;
-  spr->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
+  spr->impassable=PS_HERO_IMPASSABLE_DEFAULT&~(1<<PS_BLUEPRINT_CELL_HOLE);
   if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)<0) return -1;
+  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_PHYSICS,spr)<0) return -1;
   if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_LATCH,spr)<0) return -1;
 
   return 0;
@@ -612,10 +619,12 @@ int ps_hero_become_living(struct ps_game *game,struct ps_sprite *spr) {
   SPR->healtime=PS_HERO_HEAL_TIME;
   SPR->hp=PS_HERO_DEFAULT_HP;
   spr->collide_sprites=1;
-  spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
+  spr->impassable=PS_HERO_IMPASSABLE_DEFAULT;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
   if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)<0) return -1;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_LATCH,spr)<0) return -1;
+  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_SOLID,spr)<0) return -1;
+  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_PHYSICS,spr)<0) return -1;
 
   return 0;
 }

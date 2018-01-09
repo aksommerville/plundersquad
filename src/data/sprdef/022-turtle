@@ -1,0 +1,4 @@
+type turtle
+tileid 0x0437
+grpmask VISIBLE UPDATE PHYSICS
+impassable VACANT SOLID LATCH HAZARD HEAL

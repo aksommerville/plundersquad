@@ -133,6 +133,19 @@ static struct ps_coll *ps_physics_add_coll(struct ps_physics *physics) {
   return coll;
 }
 
+/* Unset sprite flags, before all cycles.
+ */
+
+static int ps_physics_unset_sprite_flags(struct ps_physics *physics) {
+  if (physics->grp_physics) {
+    int i=physics->grp_physics->sprc; while (i-->0) {
+      struct ps_sprite *spr=physics->grp_physics->sprv[i];
+      spr->collided_grid=0;
+    }
+  }
+  return 0;
+}
+
 /* Begin an update cycle.
  */
 
@@ -212,24 +225,9 @@ static int ps_physics_recheck_sprites(struct ps_physics *physics,struct ps_coll 
 /* Which grid cells do we care about?
  */
 
-#if 0//XXX
-static inline int ps_physics_cell_is_solid(uint8_t cell_physics,int include_hole,int include_heroonly) {
-  switch (cell_physics) {
-    case PS_BLUEPRINT_CELL_SOLID:
-    case PS_BLUEPRINT_CELL_LATCH:
-      return 1;
-    case PS_BLUEPRINT_CELL_HOLE:
-      return include_hole;
-    case PS_BLUEPRINT_CELL_HEROONLY:
-      return include_heroonly;
-  }
-  return 0;
-}
-#else
 static inline int ps_physics_cell_is_solid(uint8_t cell_physics,uint16_t impassable) {
   return (impassable&(1<<cell_physics));
 }
-#endif
 
 /* Get effective shape of a grid cell based on sprite's position.
  * (dx,dy) is the sprite's position relative to the cell's center.
@@ -272,9 +270,6 @@ static int ps_physics_check_grid(struct ps_physics *physics,struct ps_sprite *sp
   int colz=xz/PS_TILESIZE; if (xz<0) colz--;
   int rowa=ya/PS_TILESIZE; if (ya<0) rowa--;
   int rowz=yz/PS_TILESIZE; if (yz<0) rowz--;
-
-  //XXX This isn't enough. We should add a field to ps_sprite that indicates which physics this sprite can walk on.
-  //int include_heroonly=!ps_sprgrp_has_sprite(physics->grp_hero,spr);
 
   /* Iterate over the covered cells.
    * We need the true (col,row), ie possibly OOB, to compare pixelwise against the sprite.
@@ -322,6 +317,7 @@ static int ps_physics_check_grid(struct ps_physics *physics,struct ps_sprite *sp
       if (overlap.penetration<=PS_PHYSICS_EPSILON) continue;
 
       /* Record it. */
+      spr->collided_grid=1;
       struct ps_coll *coll=ps_physics_add_coll(physics);
       if (!coll) return -1;
       coll->a=spr;
@@ -470,6 +466,7 @@ int ps_physics_update(struct ps_physics *physics) {
   if (!physics) return -1;
 
   physics->eventc=0;
+  if (ps_physics_unset_sprite_flags(physics)<0) return -1;
 
   int repp=PS_PHYSICS_REPC;
   while (repp-->0) {

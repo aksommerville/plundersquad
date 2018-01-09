@@ -146,6 +146,12 @@ int ps_game_compose_grid_path(struct ps_path *path,const struct ps_grid *grid,in
  */
 int ps_game_get_contiguous_physical_rect_in_grid(int *dstx,int *dsty,int *dstw,int *dsth,const struct ps_grid *grid,int x,int y);
 
+/* The standard groups owned by ps_game can be expressed as a 32-bit mask.
+ * Sprites can use this to modify and restore another sprite's groups.
+ */
+uint32_t ps_game_get_group_mask_for_sprite(const struct ps_game *game,const struct ps_sprite *spr);
+int ps_game_set_group_mask_for_sprite(struct ps_game *game,struct ps_sprite *spr,uint32_t grpmask);
+
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"
  *  0008   4 Game Serial Version: 1

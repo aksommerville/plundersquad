@@ -42,6 +42,7 @@ struct ps_sprite {
   uint8_t opacity;
 
   int phreconsider; // For transient use by physics.
+  int collided_grid; // Reset each frame for physics sprites.
   
 };
 
@@ -153,6 +154,7 @@ extern const struct ps_sprtype ps_sprtype_swordswitch;
 extern const struct ps_sprtype ps_sprtype_lobster;
 extern const struct ps_sprtype ps_sprtype_fireworks;
 extern const struct ps_sprtype ps_sprtype_bloodhound;
+extern const struct ps_sprtype ps_sprtype_turtle;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

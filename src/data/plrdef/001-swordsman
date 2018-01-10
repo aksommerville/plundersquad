@@ -1,5 +1,5 @@
 head 0x00
-body 0x80
+body 0xc6
 skill SWORD
 skill COMBAT
 colors 604020ff ff0000ff

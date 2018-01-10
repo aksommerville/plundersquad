@@ -107,7 +107,7 @@ const struct ps_widget_type ps_widget_type_pausepage={
 
 static int ps_pausepage_resume(struct ps_widget *widget) {
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
-  if (ps_game_toggle_pause(game)<0) return -1;
+  if (ps_game_pause(game,0)<0) return -1;
   if (ps_widget_kill(widget)<0) return -1;
   return 0;
 }
@@ -156,7 +156,7 @@ static int ps_pausepage_quit(struct ps_widget *widget) {
 static int ps_pausepage_heal_all(struct ps_widget *widget) {
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
   if (ps_game_heal_all_heroes(game)<0) return -1;
-  if (ps_game_toggle_pause(game)<0) return -1;
+  if (ps_game_pause(game,0)<0) return -1;
   if (ps_widget_kill(widget)<0) return -1;
   return 0;
 }

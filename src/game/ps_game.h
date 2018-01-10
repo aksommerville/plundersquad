@@ -59,6 +59,9 @@ struct ps_game {
   
 };
 
+/* Game lifecycle and configuration.
+ *****************************************************************************/
+
 struct ps_game *ps_game_new();
 void ps_game_del(struct ps_game *game);
 
@@ -74,18 +77,15 @@ int ps_game_set_difficulty(struct ps_game *game,int difficulty);
 int ps_game_set_length(struct ps_game *game,int length);
 int ps_game_generate(struct ps_game *game);
 
-/* XXX These functions were used by earlier setup UI, but probably not needed anymore.
- */
-int ps_game_eliminate_player(struct ps_game *game,int playerid); // Removes a player and drops the playerid of any above it; IDs must be contiguous
-int ps_game_set_player_definition(struct ps_game *game,int playerid,int plrdefid);
-int ps_game_adjust_player_definition(struct ps_game *game,int playerid,int d);
-int ps_game_adjust_player_palette(struct ps_game *game,int playerid,int d);
-
 /* For a test scenario, follow the same process but use this instead of ps_game_generate().
  * We will generate a scenario with one explicit region and only the blueprint IDs you provide.
+ * There is some hacky logic to permit test games with no treasure; they will run until aborted.
  */
 int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...);
 #define ps_game_generate_test(game,regionid,...) _ps_game_generate_test(game,regionid,##__VA_ARGS__,-1)
+
+/* Broad controls of game state during play.
+ *****************************************************************************/
 
 /* With a scenario generated, call this to reset the transient state and begin play.
  */
@@ -98,7 +98,12 @@ int ps_game_return_to_start_screen(struct ps_game *game);
 
 int ps_game_update(struct ps_game *game);
 
-int ps_game_toggle_pause(struct ps_game *game);
+/* Pause game and cause our owner to load the pause menu.
+ */
+int ps_game_pause(struct ps_game *game,int pause);
+
+/* High-level game events and troubleshooting support.
+ *****************************************************************************/
 
 int ps_game_collect_treasure(struct ps_game *game,struct ps_sprite *collector,int treasureid);
 int ps_game_get_treasure_state(const struct ps_game *game,int treasureid); // 0=uncollected, 1=collected
@@ -124,7 +129,9 @@ int ps_game_check_deathgate(struct ps_game *game);
 // For test/debug builds, restore all heroes to life.
 int ps_game_heal_all_heroes(struct ps_game *game);
 
-// Make a bloodhound sprite which will run onscreen and tell the players which way to go.
+/* Make a bloodhound sprite which will run onscreen and tell the players which way to go.
+ * There is an object 'bloodhound_activator' devoted to this; one doesn't normally call this function.
+ */
 int ps_game_summon_bloodhound(struct ps_game *game);
 
 // Helpers for the bloodhound. See generalized form below.
@@ -134,10 +141,9 @@ int ps_game_measure_distance_between_screens(int *distance,int *direction,const 
 // Wipe (path) and replace with the shortest path linking (srcx,srcy) to (dstx,dsty) based on the screens' door flags.
 int ps_game_compose_world_path(struct ps_path *path,const struct ps_game *game,int dstx,int dsty,int srcx,int srcy);
 
-/* Wipe (path) and replace with the shortest path from (srcx,srcy) to (dstx,dsty) in the given grid.
+/* Wipe (path) and replace with a path from (srcx,srcy) to (dstx,dsty) in the given grid.
  * If successful, the returned path will not contain any cells in (impassable).
- * OOB cells are generally legal; they take the value of the nearest valid cell.
- * However, to prevent infinite recursion, we enforce a sanity OOB limit of one screen's worth.
+ * The algorithm is fast and reliable but does not necessarily produce optimal results (there may be a shorter path).
  */
 int ps_game_compose_grid_path(struct ps_path *path,const struct ps_grid *grid,int dstx,int dsty,int srcx,int srcy,uint16_t impassable);
 

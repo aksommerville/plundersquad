@@ -176,71 +176,14 @@ int ps_game_configure_player(struct ps_game *game,int playerid,int plrdefid,int 
     ps_log(GAME,ERROR,"Invalid plrdef, id %d",plrdefid);
     return -1;
   }
-  if ((palette<0)||(palette>=player->plrdef->palettec)) palette=0;
+  if (palette<0) palette=0;
+  else if (palette>=player->plrdef->palettec) palette%=player->plrdef->palettec;
   player->palette=palette;
 
-  if (ps_input_force_device_assignment(device,playerid)<0) return -1;
-  
-  return 0;
-}
-
-/* XXX Old, unused (?) player configuration.
- */
-
-int ps_game_eliminate_player(struct ps_game *game,int playerid) {
-  if (!game) return -1;
-  if ((playerid<1)||(playerid>game->playerc)) return 0;
-
-  int p=playerid-1;
-  ps_player_del(game->playerv[p]);
-  game->playerc--;
-  memmove(game->playerv+p,game->playerv+p+1,sizeof(void*)*(game->playerc-p));
-
-  int i; for (i=p;i<game->playerc;i++) {
-    game->playerv[i]->playerid=i+1;
+  if (device) {
+    if (ps_input_force_device_assignment(device,playerid)<0) return -1;
   }
-
-  return 0;
-}
-
-int ps_game_set_player_definition(struct ps_game *game,int playerid,int plrdefid) {
-  if (!game) return -1;
-  if ((playerid<1)||(playerid>game->playerc)) return -1;
-  struct ps_plrdef *plrdef=ps_res_get(PS_RESTYPE_PLRDEF,plrdefid);
-  if (!plrdef) return -1;
-  struct ps_player *player=game->playerv[playerid-1];
-  player->plrdef=plrdef;
-  player->palette=0;
-  return 0;
-}
-
-int ps_game_adjust_player_definition(struct ps_game *game,int playerid,int d) {
-  if (!game) return -1;
-  if ((playerid<1)||(playerid>game->playerc)) return -1;
-  const struct ps_restype *restype=PS_RESTYPE(PLRDEF);
-  if (!restype||(restype->resc<1)) return -1;
-  struct ps_player *player=game->playerv[playerid-1];
-  int p;
-  if (player->plrdef) {
-    if ((p=ps_restype_index_by_object(restype,player->plrdef))<0) p=0;
-    else p+=d;
-  } else p=0;
-  if (p<0) p=restype->resc-1;
-  else if (p>=restype->resc) p=0;
-  player->plrdef=restype->resv[p].obj;
-  player->palette=0;
-  return 0;
-}
-
-int ps_game_adjust_player_palette(struct ps_game *game,int playerid,int d) {
-  if (!game) return -1;
-  if ((playerid<1)||(playerid>game->playerc)) return -1;
-  struct ps_player *player=game->playerv[playerid-1];
-  if (!player->plrdef) return -1;
-  int p=player->palette+d;
-  if (p<0) p=player->plrdef->palettec-1;
-  else if (p>=player->plrdef->palettec) p=0;
-  player->palette=p;
+  
   return 0;
 }
 
@@ -999,10 +942,16 @@ int ps_game_update(struct ps_game *game) {
 
 /* Pause.
  */
- 
-int ps_game_toggle_pause(struct ps_game *game) {
+
+int ps_game_pause(struct ps_game *game,int pause) {
   if (!game) return -1;
-  if (game->paused=game->paused?0:1) {
+  if (pause) {
+    if (game->paused) return 0;
+    game->paused=1;
+    PS_SFX_PAUSE
+  } else {
+    if (!game->paused) return 0;
+    game->paused=0;
     PS_SFX_PAUSE
   }
   return 0;

@@ -47,7 +47,7 @@ static int _ps_prize_init(struct ps_sprite *spr) {
 /* Configure.
  */
 
-static int _ps_prize_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+static int _ps_prize_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   SPR->tileid_base=spr->tileid;
   return 0;
 }

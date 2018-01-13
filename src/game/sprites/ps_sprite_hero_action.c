@@ -171,8 +171,14 @@ static int ps_hero_hookshot_continue(struct ps_sprite *spr,struct ps_game *game)
 int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
   if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
   if (SPR->hp) {
-    // Hookshot may be abort becuase we just died -- in that case, do not restore HOLE collisions.
-    spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
+  
+    // Hookshot may be aborting because we just died -- in that case, do not restore HOLE collisions.
+    // Also, we might be on the back of a turtle. Detect that case by looking for (impassable==0).
+    // I'm not crazy about any of this.
+
+    if (spr->impassable) {
+      spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
+    }
   }
   return ps_hero_hookshot_end(spr,game);
 }

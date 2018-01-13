@@ -153,9 +153,13 @@ int ps_sprdef_fld_k_eval(const char *src,int srcc) {
     case 6: {
         if (!ps_memcasecmp(src,"radius",6)) return PS_SPRDEF_FLD_radius;
         if (!ps_memcasecmp(src,"tileid",6)) return PS_SPRDEF_FLD_tileid;
+        if (!ps_memcasecmp(src,"framec",6)) return PS_SPRDEF_FLD_framec;
       } break;
     case 7: {
         if (!ps_memcasecmp(src,"grpmask",7)) return PS_SPRDEF_FLD_grpmask;
+      } break;
+    case 9: {
+        if (!ps_memcasecmp(src,"frametime",9)) return PS_SPRDEF_FLD_frametime;
       } break;
     case 10: {
         if (!ps_memcasecmp(src,"impassable",10)) return PS_SPRDEF_FLD_impassable;
@@ -175,6 +179,8 @@ const char *ps_sprdef_fld_k_repr(int k) {
     case PS_SPRDEF_FLD_tileid: return "tileid";
     case PS_SPRDEF_FLD_impassable: return "impassable";
     case PS_SPRDEF_FLD_difficulty: return "difficulty";
+    case PS_SPRDEF_FLD_framec: return "framec";
+    case PS_SPRDEF_FLD_frametime: return "frametime";
   }
   return 0;
 }

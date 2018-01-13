@@ -21,7 +21,7 @@ struct ps_sprite_switch {
 /* Configure.
  */
 
-static int _ps_switch_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+static int _ps_switch_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   if (argc>=1) {
     SPR->barrierid=argv[0];
     if (argc>=2) {

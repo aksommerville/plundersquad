@@ -76,6 +76,25 @@ static struct ps_sprite *ps_hookshot_find_pumpkin(struct ps_sprite *spr,struct p
   return 0;
 }
 
+/* Just dropped the pumpkin at my feet.
+ * If it's in a HOLE, do something special.
+ */
+
+static int ps_hookshot_check_pumpkin_final_position(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *pumpkin) {
+
+  int col=pumpkin->x/PS_TILESIZE;
+  int row=pumpkin->y/PS_TILESIZE;
+  if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
+    const struct ps_grid_cell *cell=game->grid->cellv+row*PS_GRID_COLC+col;
+    if (cell->physics==PS_BLUEPRINT_CELL_HOLE) {
+      if (ps_game_create_splash(game,pumpkin->x,pumpkin->y)<0) return -1;
+      ps_sprite_kill_later(pumpkin,game);
+    }
+  }
+  
+  return 0;
+}
+
 /* Status changes.
  */
 
@@ -85,11 +104,12 @@ static int ps_hookshot_begin_empty(struct ps_sprite *spr) {
   return 0;
 }
 
-static int ps_hookshot_begin_pull(struct ps_sprite *spr) {
+static int ps_hookshot_begin_pull(struct ps_sprite *spr,struct ps_game *game) {
   PS_SFX_HOOKSHOT_GRAB
   SPR->phase=PS_HOOKSHOT_PHASE_PULL;
   if (SPR->user&&(SPR->user->sprc==1)) {
     struct ps_sprite *user=SPR->user->sprv[0];
+    if (ps_sprite_release_from_turtle(user,game)<0) return -1;
     SPR->restore_user_impassable=user->impassable;
     user->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   }
@@ -113,7 +133,11 @@ static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_hookshot_finish(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->user&&(SPR->user->sprc==1)) ps_hero_abort_hookshot(SPR->user->sprv[0],game);
-  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) SPR->pumpkin->sprv[0]->impassable=SPR->restore_pumpkin_impassable;
+  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
+    SPR->pumpkin->sprv[0]->impassable=SPR->restore_pumpkin_impassable;
+    if (ps_hookshot_check_pumpkin_final_position(spr,game,SPR->pumpkin->sprv[0])<0) return -1;
+    ps_sprgrp_remove_sprite(SPR->pumpkin,SPR->pumpkin->sprv[0]);
+  }
   return ps_sprite_kill_later(spr,game);
 }
 
@@ -130,7 +154,7 @@ static int ps_hookshot_check_grab(struct ps_sprite *spr,struct ps_game *game) {
     uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
     switch (physics) {
       case PS_BLUEPRINT_CELL_SOLID: return ps_hookshot_begin_empty(spr);
-      case PS_BLUEPRINT_CELL_LATCH: return ps_hookshot_begin_pull(spr);
+      case PS_BLUEPRINT_CELL_LATCH: return ps_hookshot_begin_pull(spr,game);
     }
   }
 
@@ -139,7 +163,7 @@ static int ps_hookshot_check_grab(struct ps_sprite *spr,struct ps_game *game) {
   if (pumpkin=ps_hookshot_find_pumpkin(spr,game->grpv+PS_SPRGRP_LATCH)) {
     return ps_hookshot_begin_deliver(spr,game,pumpkin);
   }
-  if (pumpkin=ps_hookshot_find_pumpkin(spr,game->grpv+PS_SPRGRP_PHYSICS)) {
+  if (pumpkin=ps_hookshot_find_pumpkin(spr,game->grpv+PS_SPRGRP_SOLID)) {
     return ps_hookshot_begin_empty(spr);
   }
 
@@ -173,6 +197,21 @@ static int ps_hookshot_check_abortion(struct ps_sprite *spr,struct ps_game *game
   struct ps_sprite_hero *hero=(struct ps_sprite_hero*)user;
   if (hero->hp<1) return ps_hookshot_abort(spr,game);
   if (!hero->hookshot_in_progress) return ps_hookshot_abort(spr,game);
+  return 0;
+}
+
+/* Ensure that we are in line with the user.
+ * He can't walk while firing, but he might be riding a turtle or something.
+ */
+
+static int ps_hookshot_keep_line_straight(struct ps_sprite *spr,struct ps_game *game) {
+  if (SPR->user->sprc!=1) return 0;
+  struct ps_sprite *user=SPR->user->sprv[0];
+  if (SPR->dx) {
+    spr->y=user->y;
+  } else if (SPR->dy) {
+    spr->x=user->x;
+  }
   return 0;
 }
 
@@ -213,6 +252,7 @@ static int _ps_hookshot_update(struct ps_sprite *spr,struct ps_game *game) {
         if (ps_hookshot_check_return(spr,game)<0) return -1;
       } break;
   }
+  if (ps_hookshot_keep_line_straight(spr,game)<0) return -1;
   if (ps_hookshot_check_abortion(spr,game)<0) return -1;
   return 0;
 }

@@ -46,7 +46,7 @@ static int _ps_treasurechest_init(struct ps_sprite *spr) {
 /* Configure.
  */
 
-static int _ps_treasurechest_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+static int _ps_treasurechest_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   if (argc>=1) SPR->treasureid=argv[0];
   else SPR->treasureid=-1;
   SPR->collected=ps_game_get_treasure_state(game,SPR->treasureid);

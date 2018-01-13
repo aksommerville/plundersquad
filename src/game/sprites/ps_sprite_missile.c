@@ -57,7 +57,7 @@ static int ps_missile_set_destination(struct ps_sprite *spr,double dstx,double d
 /* Configure.
  */
 
-static int _ps_missile_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+static int _ps_missile_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   return 0;
 }
 

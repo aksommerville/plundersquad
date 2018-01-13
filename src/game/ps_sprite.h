@@ -116,7 +116,7 @@ struct ps_sprtype {
   int (*init)(struct ps_sprite *spr);
   void (*del)(struct ps_sprite *spr);
 
-  int (*configure)(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc);
+  int (*configure)(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef);
   const char *(*get_configure_argument_name)(int argp);
 
   int (*update)(struct ps_sprite *spr,struct ps_game *game);
@@ -156,6 +156,7 @@ extern const struct ps_sprtype ps_sprtype_fireworks;
 extern const struct ps_sprtype ps_sprtype_bloodhound;
 extern const struct ps_sprtype ps_sprtype_turtle;
 extern const struct ps_sprtype ps_sprtype_dragon;
+extern const struct ps_sprtype ps_sprtype_toast;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
@@ -166,18 +167,26 @@ int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps
 struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p,int c);
 int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_game *game);
 
+/* Search the game for turtles. If (spr) is riding one, force it to drop.
+ * This is a lousy way to do business.
+ */
+int ps_sprite_release_from_turtle(struct ps_sprite *spr,struct ps_game *game);
+int ps_sprite_turtle_drop_rider(struct ps_sprite *spr,struct ps_game *game);
+
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.
  *****************************************************************************/
 
-#define PS_SPRDEF_FLD_layer      1
-#define PS_SPRDEF_FLD_grpmask    2
-#define PS_SPRDEF_FLD_radius     3
-#define PS_SPRDEF_FLD_shape      4
-#define PS_SPRDEF_FLD_type       5 /* Not stored in extension. */
-#define PS_SPRDEF_FLD_tileid     6 /* Not stored in extension. */
-#define PS_SPRDEF_FLD_impassable 7
-#define PS_SPRDEF_FLD_difficulty 8
+#define PS_SPRDEF_FLD_layer        1
+#define PS_SPRDEF_FLD_grpmask      2
+#define PS_SPRDEF_FLD_radius       3
+#define PS_SPRDEF_FLD_shape        4
+#define PS_SPRDEF_FLD_type         5 /* Not stored in extension. */
+#define PS_SPRDEF_FLD_tileid       6 /* Not stored in extension. */
+#define PS_SPRDEF_FLD_impassable   7
+#define PS_SPRDEF_FLD_difficulty   8
+#define PS_SPRDEF_FLD_framec       9 /* not used generically */
+#define PS_SPRDEF_FLD_frametime   10 /* not used generically */
 
 struct ps_sprdef_fld {
   int k,v;

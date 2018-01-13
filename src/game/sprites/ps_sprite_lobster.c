@@ -117,7 +117,7 @@ static int _ps_lobster_init(struct ps_sprite *spr) {
 /* Configure.
  */
 
-static int _ps_lobster_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc) {
+static int _ps_lobster_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   return 0;
 }
 

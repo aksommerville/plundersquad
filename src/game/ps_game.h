@@ -35,6 +35,13 @@ struct ps_dragoncharger;
 #define PS_SPRGRP_PRIZE           12 /* Hearts for the heroes to pick up. */
 #define PS_SPRGRP_COUNT           13
 
+/* Non-persistent grid change (internal use; don't worry about it)
+ */
+struct ps_game_npgc { 
+  uint8_t col,row;
+  uint8_t tileid,physics,shape;
+};
+
 struct ps_game {
 
   struct ps_scenario *scenario;
@@ -58,6 +65,9 @@ struct ps_game {
 
   int finished; // Signal to owner that you should drop this and return to the menus.
   int paused;
+
+  struct ps_game_npgc *npgcv;
+  int npgcc,npgca;
   
 };
 
@@ -126,6 +136,7 @@ int ps_game_force_next_screen(struct ps_game *game,int dx,int dy);
 
 int ps_game_create_fireworks(struct ps_game *game,int x,int y);
 int ps_game_create_prize(struct ps_game *game,int x,int y);
+int ps_game_create_splash(struct ps_game *game,int x,int y);
 int ps_game_check_deathgate(struct ps_game *game);
 
 // For test/debug builds, restore all heroes to life.
@@ -159,6 +170,13 @@ int ps_game_get_contiguous_physical_rect_in_grid(int *dstx,int *dsty,int *dstw,i
  */
 uint32_t ps_game_get_group_mask_for_sprite(const struct ps_game *game,const struct ps_sprite *spr);
 int ps_game_set_group_mask_for_sprite(struct ps_game *game,struct ps_sprite *spr,uint32_t grpmask);
+
+/* Set cell (col,row) in the current grid to the given values.
+ * Remember prior values and magically restore them when the grid unloads.
+ * Use anything OOB (eg -1) to keep that field the same.
+ */
+int ps_game_apply_nonpersistent_grid_change(struct ps_game *game,int col,int row,int tileid,int physics,int shape);
+int ps_game_reverse_nonpersistent_grid_change(struct ps_game *game,int col,int row);
 
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"

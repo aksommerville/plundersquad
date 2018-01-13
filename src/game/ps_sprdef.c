@@ -91,7 +91,7 @@ static int ps_sprite_initialize(struct ps_sprite *spr,struct ps_game *game,struc
   spr->impassable=ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_impassable,spr->impassable);
 
   if (spr->type->configure) {
-    if (spr->type->configure(spr,game,argv,argc)<0) return -1;
+    if (spr->type->configure(spr,game,argv,argc,sprdef)<0) return -1;
   }
 
   return 0;
@@ -125,17 +125,14 @@ int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc) {
   if (!dst) return -1;
   if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
   switch (k) {
-    case PS_SPRDEF_FLD_layer: return ps_int_eval(dst,src,srcc);
     case PS_SPRDEF_FLD_grpmask: return ps_enum_eval_multiple(dst,src,srcc,0,ps_sprgrp_eval);
-    case PS_SPRDEF_FLD_radius: return ps_int_eval(dst,src,srcc);
     case PS_SPRDEF_FLD_shape: {
         if ((*dst=ps_sprite_shape_eval(src,srcc))<0) return -1;
         return 0;
       }
     case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
-    case PS_SPRDEF_FLD_tileid: return ps_int_eval(dst,src,srcc);
     case PS_SPRDEF_FLD_impassable: return ps_enum_eval_multiple(dst,src,srcc,0,ps_blueprint_cell_eval);
-    case PS_SPRDEF_FLD_difficulty: return ps_int_eval(dst,src,srcc);
+    default: return ps_int_eval(dst,src,srcc);
   }
   return -1;
 }
@@ -143,9 +140,7 @@ int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc) {
 int ps_sprdef_fld_v_repr(char *dst,int dsta,int k,int v) {
   if (!dst||(dsta<0)) dsta=0;
   switch (k) {
-    case PS_SPRDEF_FLD_layer: return ps_decsint_repr(dst,dsta,v);
     case PS_SPRDEF_FLD_grpmask: return ps_enum_repr_multiple(dst,dsta,v,0,ps_sprgrp_repr);
-    case PS_SPRDEF_FLD_radius: return ps_decsint_repr(dst,dsta,v);
     case PS_SPRDEF_FLD_shape: {
         const char *src=ps_sprite_shape_repr(v);
         if (!src) return -1;
@@ -154,7 +149,7 @@ int ps_sprdef_fld_v_repr(char *dst,int dsta,int k,int v) {
     case PS_SPRDEF_FLD_type: return -1; // Type is special, it's not an integer.
     case PS_SPRDEF_FLD_tileid: return ps_hexuint_repr(dst,dsta,v);
     case PS_SPRDEF_FLD_impassable: return ps_enum_repr_multiple(dst,dsta,v,0,ps_blueprint_cell_repr);
-    case PS_SPRDEF_FLD_difficulty: return ps_decsint_repr(dst,dsta,v);
+    default: return ps_decsint_repr(dst,dsta,v);
   }
   return -1;
 }

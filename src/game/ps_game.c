@@ -21,8 +21,12 @@
 #include "video/ps_video.h"
 #include "video/ps_video_layer.h"
 #include "input/ps_input.h"
+#include "util/ps_enums.h"
 
 #define PS_PRIZE_SPRDEF_ID 17
+#define PS_SPLASH_SPRDEF_ID 24
+
+static int ps_game_npgc_pop(struct ps_game *game);
 
 /* Game layer.
  */
@@ -126,6 +130,7 @@ void ps_game_del(struct ps_game *game) {
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
   for (i=PS_SPRGRP_COUNT;i-->0;) ps_sprgrp_cleanup(game->grpv+i);
   ps_stats_del(game->stats);
+  if (game->npgcv) free(game->npgcv);
   
   free(game);
 }
@@ -234,6 +239,7 @@ int ps_game_generate(struct ps_game *game) {
     ps_scenario_del(game->scenario);
     game->scenario=0;
   }
+  game->npgcc=0; // Don't pop them; we just deleted the grids.
 
   struct ps_scgen *scgen=ps_scgen_new();
   if (!scgen) return -1;
@@ -557,6 +563,7 @@ int ps_game_restart(struct ps_game *game) {
   game->finished=0;
   game->paused=0;
   if (ps_stats_clear(game->stats)<0) return -1;
+  ps_game_npgc_pop(game); // Just to be safe.
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;
@@ -598,6 +605,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
 
   game->finished=0;
   game->paused=0;
+  ps_game_npgc_pop(game);
 
   game->gridx=game->scenario->homex;
   game->gridy=game->scenario->homey;
@@ -640,6 +648,7 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
 
   PS_SFX_SHIFT_SCREEN
 
+  ps_game_npgc_pop(game);
   game->grid=grid;
   game->gridx+=dx;
   game->gridy+=dy;
@@ -1086,6 +1095,18 @@ int ps_game_create_prize(struct ps_game *game,int x,int y) {
   return 0;
 }
 
+/* Create splash when something falls in the water.
+ */
+ 
+int ps_game_create_splash(struct ps_game *game,int x,int y) {
+  if (!game) return -1;
+  struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_SPLASH_SPRDEF_ID);
+  if (!sprdef) return -1;
+  struct ps_sprite *splash=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
+  if (!splash) return -1;
+  return 0;
+}
+
 /* Check whether all monsters are dead and remove DEATHGATE cells if so.
  */
 
@@ -1129,5 +1150,89 @@ int ps_game_heal_all_heroes(struct ps_game *game) {
       if (ps_hero_become_living(game,hero)<0) return -1;
     }
   }
+  return 0;
+}
+
+/* Non-persistent grid change.
+ */
+
+static int ps_game_npgc_require(struct ps_game *game) {
+  if (game->npgcc<game->npgca) return 0;
+  int na=game->npgca+16;
+  if (na>INT_MAX/sizeof(struct ps_game_npgc)) return -1;
+  void *nv=realloc(game->npgcv,sizeof(struct ps_game_npgc)*na);
+  if (!nv) return -1;
+  game->npgcv=nv;
+  game->npgca=na;
+  return 0;
+}
+ 
+int ps_game_apply_nonpersistent_grid_change(struct ps_game *game,int col,int row,int tileid,int physics,int shape) {
+  if (!game) return -1;
+  if (!game->grid) return -1;
+  if ((col<0)||(col>=PS_GRID_COLC)) return -1;
+  if ((row<0)||(row>=PS_GRID_ROWC)) return -1;
+
+  /* Acquire the cell and terminate if redundant. */
+  struct ps_grid_cell *cell=game->grid->cellv+row*PS_GRID_COLC+col;
+  if ((tileid<0)||(tileid>=256)) tileid=cell->tileid;
+  if ((physics<0)||(physics>=256)) physics=cell->physics;
+  if ((shape<0)||(shape>=256)) shape=cell->shape;
+  if ((tileid==cell->tileid)&&(physics==cell->physics)&&(shape==cell->shape)) return 0;
+
+  /* Add the restoration record. */
+  if (ps_game_npgc_require(game)<0) return -1;
+  struct ps_game_npgc *npgc=game->npgcv+game->npgcc++;
+  npgc->col=col;
+  npgc->row=row;
+  npgc->tileid=cell->tileid;
+  npgc->physics=cell->physics;
+  npgc->shape=cell->shape;
+
+  /* Finally, modify the live cell. */
+  cell->tileid=tileid;
+  cell->physics=physics;
+  cell->shape=shape;
+  
+  return 0;
+}
+
+static int ps_game_npgc_pop(struct ps_game *game) {
+  if (!game||!game->grid) return -1;
+  while (game->npgcc>0) {
+    struct ps_game_npgc *npgc=game->npgcv+(--(game->npgcc));
+    struct ps_grid_cell *cell=game->grid->cellv+npgc->row*PS_GRID_COLC+npgc->col;
+    cell->tileid=npgc->tileid;
+    cell->physics=npgc->physics;
+    cell->shape=npgc->shape;
+  }
+  return 0;
+}
+
+int ps_game_reverse_nonpersistent_grid_change(struct ps_game *game,int col,int row) {
+  if (!game||!game->grid) return -1;
+  if ((col<0)||(col>=PS_GRID_COLC)) return 0;
+  if ((row<0)||(row>=PS_GRID_ROWC)) return 0;
+
+  /* We only care about the last npgc on this cell, and it's OK if there's none. */
+  struct ps_game_npgc npgc;
+  int found=0;
+  int i=game->npgcc; while (i-->0) {
+    struct ps_game_npgc *ck=game->npgcv+i;
+    if ((ck->col==col)&&(ck->row==row)) {
+      memcpy(&npgc,ck,sizeof(struct ps_game_npgc));
+      found=1;
+      game->npgcc--;
+      memmove(game->npgcv+i,game->npgcv+i+1,sizeof(struct ps_game_npgc)*(game->npgcc-i));
+      break;
+    }
+  }
+  if (!found) return 0;
+
+  struct ps_grid_cell *cell=game->grid->cellv+row*PS_GRID_COLC+col;
+  cell->tileid=npgc.tileid;
+  cell->physics=npgc.physics;
+  cell->shape=npgc.shape;
+
   return 0;
 }

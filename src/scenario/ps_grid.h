@@ -50,4 +50,8 @@ int ps_grid_open_barrier(struct ps_grid *grid,int barrierid);
 int ps_grid_close_barrier(struct ps_grid *grid,int barrierid);
 int ps_grid_close_all_barriers(struct ps_grid *grid);
 
+/* Given a rectangle in pixels, is there any cell matching (impassable) within it?
+ */
+int ps_grid_test_rect_physics(const struct ps_grid *grid,int x,int y,int w,int h,uint16_t impassable);
+
 #endif

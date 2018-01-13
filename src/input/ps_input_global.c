@@ -52,6 +52,10 @@ void ps_input_quit() {
 int ps_input_update() {
   if (!ps_input.init) return 0;
 
+  if (ps_input.suppress_player_buttons>0) {
+    ps_input.suppress_player_buttons--;
+  }
+
   int i=0; for (;i<ps_input.providerc;i++) {
     struct ps_input_provider *provider=ps_input.providerv[i];
     if (provider->update) {
@@ -184,7 +188,19 @@ int ps_input_load_configuration(const char *path) {
  
 uint16_t ps_get_player_buttons(int plrid) {
   if ((plrid<0)||(plrid>PS_PLAYER_LIMIT)) return 0;
+  if (ps_input.suppress_player_buttons) {
+    return ps_input.plrbtnv[plrid]&PS_PLRBTN_ALWAYS_AVAILABLE;
+  }
   return ps_input.plrbtnv[plrid];
+}
+
+/* Suppress player buttons.
+ */
+ 
+int ps_input_suppress_player_actions(int duration) {
+  if (duration<ps_input.suppress_player_buttons) return 0;
+  ps_input.suppress_player_buttons=duration;
+  return 0;
 }
 
 /* Call function for each connected device.

@@ -3,6 +3,6 @@
 - Binary formats for all resources.
 - Interactive input config at assemblepage.
 - Ghosts resurrect as dragons.
-- Remove old setup API from ps_game.
 - Check turtle/gadgeteer interation.
-- Don't fire action when dismissing pause menu.
+- Search for problem cases of 'dragon' sprites in 'hero' group.
+- Review dragoncharger with multiple real players.

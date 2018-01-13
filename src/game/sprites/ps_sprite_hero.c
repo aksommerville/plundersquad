@@ -159,9 +159,6 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
   } else if (!(input&PS_PLRBTN_B)&&(SPR->input&PS_PLRBTN_B)) {
     if (ps_hero_auxaction_end(spr,game)<0) return -1;
   }
-  if ((input&PS_PLRBTN_START)&&!(SPR->input&PS_PLRBTN_START)) {
-    if (ps_game_pause(game,1)<0) return -1;
-  }
 
   SPR->input=input;
   if (SPR->reexamine_dpad) {
@@ -200,6 +197,11 @@ static int ps_hero_animate(struct ps_sprite *spr) {
   /* Flames. */
   if (SPR->flame_in_progress) {
     SPR->flame_counter++;
+  }
+
+  /* Dragon charger. */
+  if (SPR->dragoncharge>0) {
+    SPR->dragoncharge--;
   }
 
   return 0;
@@ -323,6 +325,14 @@ static int ps_hero_draw_ghost(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_s
   vtxv->pr=rgba>>24;
   vtxv->pg=rgba>>16;
   vtxv->pb=rgba>>8;
+
+  if (SPR->dragoncharge) {
+    vtxv->tr=0xff;
+    vtxv->tg=0xff;
+    vtxv->tb=0xff;
+    if (SPR->dragoncharge<0x30) vtxv->ta=0x30;
+    else vtxv->ta=SPR->dragoncharge;
+  }
   
   vtxv->a=0xff;
   vtxv->t=0;
@@ -707,5 +717,26 @@ int ps_hero_set_player(struct ps_sprite *spr,struct ps_player *player) {
   if (player&&(ps_player_ref(player)<0)) return -1;
   ps_player_del(SPR->player);
   SPR->player=player;
+  return 0;
+}
+
+int ps_hero_get_playerid(const struct ps_sprite *spr) {
+  if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
+  if (!SPR->player) return 0;
+  return SPR->player->playerid;
+}
+
+/* Set dragon charge.
+ */
+ 
+int ps_hero_set_dragon_charge(struct ps_sprite *spr,int p,int c) {
+  if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
+  if (c<1) {
+    SPR->dragoncharge=0;
+  } else {
+    if (p<0) p=0;
+    if (p>=c) p=c-1;
+    SPR->dragoncharge=(p*255)/c;
+  }
   return 0;
 }

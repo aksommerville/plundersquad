@@ -8,6 +8,7 @@
 #include "ps_bloodhound_activator.h"
 #include "ps_statusreport.h"
 #include "ps_sound_effects.h"
+#include "ps_dragoncharger.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -77,40 +78,32 @@ static int ps_game_init_video(struct ps_game *game) {
 /* New game.
  */
 
-struct ps_game *ps_game_new() {
-  struct ps_game *game=calloc(1,sizeof(struct ps_game));
-  if (!game) return 0;
+static int ps_game_initialize(struct ps_game *game) {
 
   game->grpv[PS_SPRGRP_VISIBLE].order=PS_SPRGRP_ORDER_RENDER;
 
-  if (!(game->stats=ps_stats_new())) {
-    ps_game_del(game);
-    return 0;
-  }
+  if (!(game->stats=ps_stats_new())) return -1;
+  
+  if (ps_game_init_video(game)<0) return -1;
 
-  if (ps_game_init_video(game)<0) {
-    ps_game_del(game);
-    return 0;
-  }
+  if (!(game->physics=ps_physics_new())) return -1;
+  if (ps_physics_set_sprgrp_physics(game->physics,game->grpv+PS_SPRGRP_PHYSICS)<0) return -1;
+  if (ps_physics_set_sprgrp_solid(game->physics,game->grpv+PS_SPRGRP_SOLID)<0) return -1;
+  if (ps_physics_set_sprgrp_hero(game->physics,game->grpv+PS_SPRGRP_HERO)<0) return -1;
+    
+  if (!(game->bloodhound_activator=ps_bloodhound_activator_new())) return -1;
+  if (!(game->dragoncharger=ps_dragoncharger_new())) return -1;
 
-  if (!(game->physics=ps_physics_new())) {
-    ps_game_del(game);
-    return 0;
-  }
-  if (
-    (ps_physics_set_sprgrp_physics(game->physics,game->grpv+PS_SPRGRP_PHYSICS)<0)||
-    (ps_physics_set_sprgrp_solid(game->physics,game->grpv+PS_SPRGRP_SOLID)<0)||
-    (ps_physics_set_sprgrp_hero(game->physics,game->grpv+PS_SPRGRP_HERO)<0)
-  ) {
-    ps_game_del(game);
-    return 0;
-  }
+  return 0;
+}
 
-  if (!(game->bloodhound_activator=ps_bloodhound_activator_new())) {
+struct ps_game *ps_game_new() {
+  struct ps_game *game=calloc(1,sizeof(struct ps_game));
+  if (!game) return 0;
+  if (ps_game_initialize(game)<0) {
     ps_game_del(game);
     return 0;
   }
-
   return game;
 }
 
@@ -126,6 +119,8 @@ void ps_game_del(struct ps_game *game) {
 
   ps_physics_del(game->physics);
   ps_statusreport_del(game->statusreport);
+  ps_dragoncharger_del(game->dragoncharger);
+  ps_bloodhound_activator_del(game->bloodhound_activator);
 
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
@@ -904,8 +899,16 @@ int ps_game_update(struct ps_game *game) {
 
   if (game->finished) return 0;
 
+  /* Check for PAUSE key from any player. */
+  uint16_t input=ps_get_player_buttons(0);
+  if (input&PS_PLRBTN_START) {
+    if (ps_game_pause(game,1)<0) return -1;
+    return 0;
+  }
+
   /* Externalized game logic. */
   if (ps_bloodhound_activator_update(game->bloodhound_activator,game)<0) return -1;
+  if (ps_dragoncharger_update(game->dragoncharger,game)<0) return -1;
 
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
@@ -1122,7 +1125,9 @@ int ps_game_heal_all_heroes(struct ps_game *game) {
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *hero=grp->sprv[i];
-    if (ps_hero_become_living(game,hero)<0) return -1;
+    if (hero->type==&ps_sprtype_hero) {
+      if (ps_hero_become_living(game,hero)<0) return -1;
+    }
   }
   return 0;
 }

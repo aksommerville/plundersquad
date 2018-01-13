@@ -17,6 +17,7 @@ struct ps_stats;
 struct ps_path;
 struct ps_bloodhound_activator;
 struct ps_statusreport;
+struct ps_dragoncharger;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -46,6 +47,7 @@ struct ps_game {
   struct ps_stats *stats;
   struct ps_bloodhound_activator *bloodhound_activator;
   struct ps_statusreport *statusreport; // optional
+  struct ps_dragoncharger *dragoncharger;
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];
   struct ps_grid *grid; // WEAK

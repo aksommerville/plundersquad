@@ -62,6 +62,11 @@ int ps_input_unwatch_devices(int watchid);
 
 uint16_t ps_get_player_buttons(int plrid);
 
+/* Force all A, B, and START buttons to read zero for so many frames.
+ * The internal state is not affected; we apply this filter in ps_get_player_buttons().
+ */
+int ps_input_suppress_player_actions(int duration);
+
 /* Events for providers to trigger.
  *****************************************************************************/
 

@@ -366,6 +366,7 @@ static int ps_rabbit_update_LICK(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Look for lickable sprites.
    * We'll only lick heroes for now. No problem to revisit this decision and include others later.
+   * Rabbits *can* eat dragons, and it's hilarious.
    */
   struct ps_sprgrp *lickable=game->grpv+PS_SPRGRP_HERO;
   if (lickable->sprc>0) {

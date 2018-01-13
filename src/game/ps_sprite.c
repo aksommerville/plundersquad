@@ -17,8 +17,8 @@ struct ps_sprite *ps_sprite_new(const struct ps_sprtype *type) {
   spr->type=type;
   spr->refc=1;
   spr->layer=type->layer;
-  spr->radius=PS_TILESIZE>>1;
-  spr->shape=PS_SPRITE_SHAPE_SQUARE;
+  spr->radius=type->radius;
+  spr->shape=type->shape;
   spr->collide_sprites=1;
   spr->impassable=0;
   spr->opacity=0xff;

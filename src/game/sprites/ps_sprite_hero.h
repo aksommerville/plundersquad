@@ -16,6 +16,7 @@ struct ps_sprite_hero {
   int walktime; // Counts up, reset to zero when walk status changes
   int hurttime; // Counts down, impervious while nonzero.
   int healtime; // Counts down after healing.
+  uint8_t dragoncharge; // Highlight when ghost charges into dragonhood.
 
   struct ps_player *player;
   uint16_t input;
@@ -39,6 +40,7 @@ struct ps_sprite_hero {
 };
 
 int ps_hero_set_player(struct ps_sprite *spr,struct ps_player *player);
+int ps_hero_get_playerid(const struct ps_sprite *spr);
 
 int ps_hero_become_ghost(struct ps_game *game,struct ps_sprite *spr);
 int ps_hero_become_living(struct ps_game *game,struct ps_sprite *spr);
@@ -61,6 +63,8 @@ int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game);
  * assemblepage uses this.
  */
 int ps_hero_accept_fake_input(struct ps_sprite *spr,uint16_t input,struct ps_game *game);
+
+int ps_hero_set_dragon_charge(struct ps_sprite *spr,int p,int c);
 
 /* Actions mostly correspond to skills. */
 #define PS_HERO_ACTION_NONE         0

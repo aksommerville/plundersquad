@@ -1,0 +1,4 @@
+type dragon
+tileid 0x0474
+grpmask VISIBLE UPDATE PHYSICS HERO FRAGILE SOLID
+impassable SOLID HOLE LATCH

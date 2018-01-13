@@ -105,3 +105,26 @@ int ps_grid_close_all_barriers(struct ps_grid *grid) {
   }
   return 0;
 }
+
+/* Test rectangle.
+ */
+ 
+int ps_grid_test_rect_physics(const struct ps_grid *grid,int x,int y,int w,int h,uint16_t impassable) {
+  if (!grid) return 0;
+  int cola=x/PS_TILESIZE; if (cola<0) cola=0;
+  int rowa=y/PS_TILESIZE; if (rowa<0) rowa=0;
+  int colz=(x+w-1)/PS_TILESIZE; if (colz>=PS_GRID_COLC) colz=PS_GRID_COLC-1;
+  int rowz=(y+h-1)/PS_TILESIZE; if (rowz>=PS_GRID_ROWC) rowz=PS_GRID_ROWC-1;
+  int colc=colz-cola+1;
+  int rowc=rowz-rowa+1;
+
+  const struct ps_grid_cell *row=grid->cellv+rowa*PS_GRID_COLC+cola;
+  for (;rowc-->0;row+=PS_GRID_COLC) {
+    const struct ps_grid_cell *cell=row;
+    int i=colc; for (;i-->0;cell++) {
+      if (impassable&(1<<cell->physics)) return 1;
+    }
+  }
+
+  return 0;
+}

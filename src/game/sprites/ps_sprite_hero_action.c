@@ -7,6 +7,7 @@
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
 #include "game/ps_sound_effects.h"
+#include "game/ps_dragoncharger.h"
 #include "util/ps_geometry.h"
 #include "input/ps_input_button.h"
 #include "res/ps_resmgr.h"
@@ -305,14 +306,14 @@ static int ps_hero_frog(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_hero_action_begin_1(struct ps_sprite *spr,struct ps_game *game,int action) {
 
-  //XXX TEMP: If we're dead, press the buton to heal.
-  if (0) {
-    if (!SPR->hp) {
-      return ps_hero_heal(spr,game);
-    }
+  /* If we're dead, there are no actions.
+   * Whatever this would have been, now all it can do is Charge the Dragon.
+   */
+  if (!SPR->hp) {
+    if (ps_dragoncharger_charge(game->dragoncharger,game,SPR->player->playerid)<0) return -1;
+    return 0;
   }
 
-  if (!SPR->hp) return 0; // Ghosts can't do anything.
   switch (action) {
     case PS_HERO_ACTION_SWORD: return ps_hero_sword_begin(spr,game);
     case PS_HERO_ACTION_ARROW: return ps_hero_arrow(spr,game);
@@ -364,10 +365,6 @@ int ps_hero_action_continue(struct ps_sprite *spr,struct ps_game *game) {
 }
  
 int ps_hero_auxaction_begin(struct ps_sprite *spr,struct ps_game *game) {
-  if (0) { //XXX TEMP dump stats on aux button press
-    ps_game_dump_stats(game);
-    if (ps_game_summon_bloodhound(game)<0) return -1;
-  }
   return ps_hero_action_begin_1(spr,game,ps_hero_get_auxiliary_action(spr));
 }
  

@@ -14,6 +14,8 @@
 #define PS_PLRBTN_START  0x0040
 #define PS_PLRBTN_CD     0x8000
 
+#define PS_PLRBTN_ALWAYS_AVAILABLE 0x800f /* Immune to player button suppression. */
+
 // These aggregate markers are only for ps_input_btncfg.default_usage
 #define PS_PLRBTN_HORZ   (PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT)
 #define PS_PLRBTN_VERT   (PS_PLRBTN_UP|PS_PLRBTN_DOWN)

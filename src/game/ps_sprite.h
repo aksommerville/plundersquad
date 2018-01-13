@@ -155,6 +155,7 @@ extern const struct ps_sprtype ps_sprtype_lobster;
 extern const struct ps_sprtype ps_sprtype_fireworks;
 extern const struct ps_sprtype ps_sprtype_bloodhound;
 extern const struct ps_sprtype ps_sprtype_turtle;
+extern const struct ps_sprtype ps_sprtype_dragon;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
@@ -163,6 +164,7 @@ extern const struct ps_sprtype ps_sprtype_turtle;
 int ps_prize_fling(struct ps_sprite *spr,int dir);
 int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero,int force);
 struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p,int c);
+int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_game *game);
 
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.

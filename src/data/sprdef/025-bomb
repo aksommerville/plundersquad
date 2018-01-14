@@ -1,0 +1,5 @@
+type bomb
+tileid 0x04b0
+grpmask VISIBLE UPDATE PHYSICS FRAGILE LATCH SOLID
+shape CIRCLE
+impassable SOLID LATCH

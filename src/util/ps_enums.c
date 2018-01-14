@@ -90,12 +90,12 @@ int ps_skill_eval(const char *src,int srcc) {
     case 4: {
         if (!ps_memcasecmp(src,"HEAL",4)) return PS_SKILL_HEAL;
         if (!ps_memcasecmp(src,"FROG",4)) return PS_SKILL_FROG;
+        if (!ps_memcasecmp(src,"BOMB",4)) return PS_SKILL_BOMB;
       } break;
     case 5: {
         if (!ps_memcasecmp(src,"SWORD",5)) return PS_SKILL_SWORD;
         if (!ps_memcasecmp(src,"ARROW",5)) return PS_SKILL_ARROW;
         if (!ps_memcasecmp(src,"FLAME",5)) return PS_SKILL_FLAME;
-        if (!ps_memcasecmp(src,"CARRY",5)) return PS_SKILL_CARRY;
         if (!ps_memcasecmp(src,"SPEED",5)) return PS_SKILL_SPEED;
       } break;
     case 6: {
@@ -125,7 +125,7 @@ const char *ps_skill_repr(uint16_t skill) {
     case PS_SKILL_FLAME: return "FLAME";
     case PS_SKILL_HEAL: return "HEAL";
     case PS_SKILL_IMMORTAL: return "IMMORTAL";
-    case PS_SKILL_CARRY: return "CARRY";
+    case PS_SKILL_BOMB: return "BOMB";
     case PS_SKILL_FLY: return "FLY";
     case PS_SKILL_MARTYR: return "MARTYR";
     case PS_SKILL_SPEED: return "SPEED";

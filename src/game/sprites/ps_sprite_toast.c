@@ -75,6 +75,7 @@ static int _ps_toast_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprit
   vtxv->pr=vtxv->pg=vtxv->pb=0x80;
   vtxv->a=0xff;
   vtxv->xform=AKGL_XFORM_NONE;
+  vtxv->t=0;
   return 1;
 }
 

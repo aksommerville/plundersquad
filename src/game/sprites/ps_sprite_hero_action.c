@@ -14,6 +14,7 @@
 #include "scenario/ps_blueprint.h"
 
 #define PS_HERO_MARTYR_EXPLOSION_SPRDEFID 7
+#define PS_HERO_BOMB_SPRDEFID 25
 
 #define SPR ((struct ps_sprite_hero*)spr)
 
@@ -304,6 +305,32 @@ static int ps_hero_martyr(struct ps_sprite *spr,struct ps_game *game) {
   return 0;
 }
 
+/* Bomb.
+ */
+
+static int ps_hero_bomb(struct ps_sprite *spr,struct ps_game *game) {
+
+  struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_HERO_BOMB_SPRDEFID);
+  if (!sprdef) {
+    ps_log(GAME,ERROR,"sprdef:%d not found for bomb",PS_HERO_BOMB_SPRDEFID);
+    return -1;
+  }
+  
+  int x=spr->x;
+  int y=spr->y;
+  switch (SPR->facedir) {
+    case PS_DIRECTION_NORTH: y-=PS_TILESIZE; break;
+    case PS_DIRECTION_SOUTH: y+=PS_TILESIZE; break;
+    case PS_DIRECTION_WEST: x-=PS_TILESIZE; break;
+    case PS_DIRECTION_EAST: x+=PS_TILESIZE; break;
+  }
+  
+  struct ps_sprite *bomb=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
+  if (!bomb) return -1;
+
+  return 0;
+}
+
 /* Frog.
  * TODO Frog skill probably doesn't need to exist.
  */
@@ -332,7 +359,7 @@ static int ps_hero_action_begin_1(struct ps_sprite *spr,struct ps_game *game,int
     case PS_HERO_ACTION_HOOKSHOT: return ps_hero_hookshot_begin(spr,game);
     case PS_HERO_ACTION_FLAME: return ps_hero_flame_begin(spr,game);
     case PS_HERO_ACTION_HEAL: return ps_hero_action_heal(spr,game);
-    case PS_HERO_ACTION_CARRY: return ps_hero_carry_begin(spr,game);
+    case PS_HERO_ACTION_BOMB: return ps_hero_bomb(spr,game);
     case PS_HERO_ACTION_FLY: return ps_hero_fly_begin(spr,game);
     case PS_HERO_ACTION_MARTYR: return ps_hero_martyr(spr,game);
     case PS_HERO_ACTION_FROG: return ps_hero_frog(spr,game);
@@ -345,7 +372,6 @@ static int ps_hero_action_end_1(struct ps_sprite *spr,struct ps_game *game,int a
     case PS_HERO_ACTION_SWORD: return ps_hero_sword_end(spr,game);
     case PS_HERO_ACTION_HOOKSHOT: return ps_hero_hookshot_end(spr,game);
     case PS_HERO_ACTION_FLAME: return ps_hero_flame_end(spr,game);
-    case PS_HERO_ACTION_CARRY: return ps_hero_carry_end(spr,game);
     case PS_HERO_ACTION_FLY: return ps_hero_fly_end(spr,game);
   }
   return 0;
@@ -398,7 +424,7 @@ int ps_hero_auxaction_continue(struct ps_sprite *spr,struct ps_game *game) {
   PS_SKILL_HOOKSHOT| \
   PS_SKILL_FLAME| \
   PS_SKILL_HEAL| \
-  PS_SKILL_CARRY| \
+  PS_SKILL_BOMB| \
   PS_SKILL_FLY| \
   PS_SKILL_MARTYR| \
   PS_SKILL_FROG| \
@@ -413,7 +439,7 @@ int ps_hero_get_principal_action(const struct ps_sprite *spr) {
     case PS_SKILL_HOOKSHOT: return PS_HERO_ACTION_HOOKSHOT;
     case PS_SKILL_FLAME: return PS_HERO_ACTION_FLAME;
     case PS_SKILL_HEAL: return PS_HERO_ACTION_HEAL;
-    case PS_SKILL_CARRY: return PS_HERO_ACTION_CARRY;
+    case PS_SKILL_BOMB: return PS_HERO_ACTION_BOMB;
     case PS_SKILL_FLY: return PS_HERO_ACTION_FLY;
     case PS_SKILL_MARTYR: return PS_HERO_ACTION_MARTYR;
     case PS_SKILL_FROG: return PS_HERO_ACTION_FROG;
@@ -430,7 +456,7 @@ int ps_hero_get_auxiliary_action(const struct ps_sprite *spr) {
     case PS_SKILL_HOOKSHOT: return PS_HERO_ACTION_HOOKSHOT;
     case PS_SKILL_FLAME: return PS_HERO_ACTION_FLAME;
     case PS_SKILL_HEAL: return PS_HERO_ACTION_HEAL;
-    case PS_SKILL_CARRY: return PS_HERO_ACTION_CARRY;
+    case PS_SKILL_BOMB: return PS_HERO_ACTION_BOMB;
     case PS_SKILL_FLY: return PS_HERO_ACTION_FLY;
     case PS_SKILL_MARTYR: return PS_HERO_ACTION_MARTYR;
     case PS_SKILL_FROG: return PS_HERO_ACTION_FROG;

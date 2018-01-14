@@ -73,7 +73,7 @@ int ps_hero_set_dragon_charge(struct ps_sprite *spr,int p,int c);
 #define PS_HERO_ACTION_HOOKSHOT     3
 #define PS_HERO_ACTION_FLAME        4
 #define PS_HERO_ACTION_HEAL         5
-#define PS_HERO_ACTION_CARRY        6
+#define PS_HERO_ACTION_BOMB         6
 #define PS_HERO_ACTION_FLY          7
 #define PS_HERO_ACTION_MARTYR       8
 #define PS_HERO_ACTION_FROG         9

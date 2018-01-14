@@ -58,7 +58,7 @@
 #define PS_SKILL_FLAME       0x0008
 #define PS_SKILL_HEAL        0x0010
 #define PS_SKILL_IMMORTAL    0x0020
-#define PS_SKILL_CARRY       0x0040 /* Not implemented, might be removed. */
+#define PS_SKILL_BOMB        0x0040
 #define PS_SKILL_FLY         0x0080
 #define PS_SKILL_MARTYR      0x0100
 #define PS_SKILL_SPEED       0x0200

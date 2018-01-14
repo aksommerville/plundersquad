@@ -37,6 +37,12 @@ int ps_input_maptm_set_namepattern(struct ps_input_maptm *maptm,const char *src,
     if (!(nv=malloc(srcc+1))) return -1;
     memcpy(nv,src,srcc);
     nv[srcc]=0;
+
+    /* When we read this back from the file, '#' is a line comment, even if it's quoted.
+     * Maybe this isn't really the correct place to fix it, but it seems expedient.
+     */
+    int i=srcc; while (i-->0) if (nv[i]=='#') nv[i]='*';
+    
   }
   if (maptm->namepattern) free(maptm->namepattern);
   maptm->namepattern=nv;

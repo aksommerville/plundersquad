@@ -118,7 +118,7 @@ int ps_video_text_end(int resid) {
 /* Draw grid.
  */
  
-int ps_video_draw_grid(const struct ps_grid *grid) {
+int ps_video_draw_grid(const struct ps_grid *grid,int offx,int offy) {
   if (!grid) return -1;
   if (ps_video_vtxv_reset(sizeof(struct akgl_vtx_mintile))<0) return -1;
   struct akgl_vtx_mintile *vtxv=ps_video_vtxv_add(PS_GRID_SIZE);
@@ -131,6 +131,8 @@ int ps_video_draw_grid(const struct ps_grid *grid) {
   }
 
   int x=PS_TILESIZE>>1,y=PS_TILESIZE>>1;
+  x+=offx;
+  y+=offy;
   struct akgl_vtx_mintile *vtx=vtxv;
   const struct ps_grid_cell *cell=grid->cellv;
   int i=PS_GRID_SIZE; for (;i-->0;vtx++,cell++) {
@@ -138,8 +140,8 @@ int ps_video_draw_grid(const struct ps_grid *grid) {
     vtx->x=x;
     vtx->y=y;
     x+=PS_TILESIZE;
-    if (x>PS_SCREENW) {
-      x=PS_TILESIZE>>1;
+    if (x>PS_SCREENW+offx) {
+      x=(PS_TILESIZE>>1)+offx;
       y+=PS_TILESIZE;
     }
   }
@@ -171,7 +173,7 @@ static int ps_video_commit_sprites(int tsid) {
   return 0;
 }
  
-int ps_video_draw_sprites(const struct ps_sprgrp *grp) {
+int ps_video_draw_sprites(const struct ps_sprgrp *grp,int offx,int offy) {
   if (!grp) return -1;
   if (grp->sprc<1) return 0;
   if (ps_video_vtxv_reset(sizeof(struct akgl_vtx_maxtile))<0) return -1;
@@ -207,6 +209,12 @@ int ps_video_draw_sprites(const struct ps_sprgrp *grp) {
       ps_video.vtxa=na;
       goto _again_;
     }
+
+    int j=vtxc; while (j-->0) {
+      vtxv[j].x+=offx;
+      vtxv[j].y+=offy;
+    }
+    
     ps_video.vtxc+=vtxc;
   }
 

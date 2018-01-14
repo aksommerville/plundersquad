@@ -9,6 +9,7 @@
 #include "ps_statusreport.h"
 #include "ps_sound_effects.h"
 #include "ps_dragoncharger.h"
+#include "ps_game_renderer.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -28,57 +29,6 @@
 
 static int ps_game_npgc_pop(struct ps_game *game);
 
-/* Game layer.
- */
-
-struct ps_game_layer {
-  struct ps_video_layer hdr;
-  struct ps_game *game; // WEAK
-};
-
-static int ps_game_draw_hud(struct ps_game *game) {
-  if (ps_video_text_begin()<0) return -1;
-  if (ps_video_text_addf(12,0x000000ff,6,7,
-    "%d/%d  %02d:%02d",
-    ps_game_count_collected_treasures(game),game->treasurec,
-    game->stats->playtime/3600,(game->stats->playtime/60)%60
-  )<0) return -1;
-  if (ps_video_text_end(0)<0) return -1;
-  return 0;
-}
-
-static int ps_game_layer_draw(struct ps_video_layer *layer) {
-  struct ps_game *game=((struct ps_game_layer*)layer)->game;
-  if (game&&game->grid) {
-    if (ps_video_draw_grid(game->grid)<0) return -1;
-    if (game->statusreport) {
-      if (ps_statusreport_draw(game->statusreport)<0) return -1;
-    }
-    if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE)<0) return -1;
-    if (ps_game_draw_hud(game)<0) return -1;
-  }
-  return 0;
-}
-
-/* Initialize video layers.
- */
-
-static int ps_game_init_video(struct ps_game *game) {
-
-  if (!(game->layer_scene=ps_video_layer_new(sizeof(struct ps_game_layer)))) {
-    ps_game_del(game);
-    return -1;
-  }
-
-  game->layer_scene->blackout=1;
-  game->layer_scene->draw=ps_game_layer_draw;
-  ((struct ps_game_layer*)game->layer_scene)->game=game;
-
-  if (ps_video_install_layer(game->layer_scene,-1)<0) return -1;
-
-  return 0;
-}
-
 /* New game.
  */
 
@@ -88,7 +38,8 @@ static int ps_game_initialize(struct ps_game *game) {
 
   if (!(game->stats=ps_stats_new())) return -1;
   
-  if (ps_game_init_video(game)<0) return -1;
+  if (!(game->renderer=ps_game_renderer_new())) return -1;
+  if (ps_game_renderer_setup(game->renderer,game)<0) return -1;
 
   if (!(game->physics=ps_physics_new())) return -1;
   if (ps_physics_set_sprgrp_physics(game->physics,game->grpv+PS_SPRGRP_PHYSICS)<0) return -1;
@@ -118,13 +69,11 @@ void ps_game_del(struct ps_game *game) {
   int i;
   if (!game) return;
 
-  ps_video_uninstall_layer(game->layer_scene);
-  ps_video_layer_del(game->layer_scene);
-
   ps_physics_del(game->physics);
   ps_statusreport_del(game->statusreport);
   ps_dragoncharger_del(game->dragoncharger);
   ps_bloodhound_activator_del(game->bloodhound_activator);
+  ps_game_renderer_del(game->renderer);
 
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
@@ -647,6 +596,8 @@ static int ps_game_kill_nonhero_sprites(struct ps_game *game) {
 static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,int dx,int dy) {
 
   PS_SFX_SHIFT_SCREEN
+
+  if (ps_game_renderer_begin_slide(game->renderer,dx,dy)<0) return -1;
 
   ps_game_npgc_pop(game);
   game->grid=grid;

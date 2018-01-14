@@ -151,6 +151,37 @@ int ps_video_update() {
   return 0;
 }
 
+int ps_video_draw_to_framebuffer() {
+  if (!ps_video.init) return -1;
+
+  if (akgl_framebuffer_use(ps_video.framebuffer)<0) return -1;
+  if (ps_video_draw_layers()<0) return -1;
+  if (akgl_framebuffer_use(0)<0) return -1;
+  
+  return 0;
+}
+
+/* Capture framebuffer to new texture.
+ */
+ 
+struct akgl_texture *ps_video_capture_framebuffer() {
+  if (!ps_video.init) return 0;
+
+  if (akgl_framebuffer_use(ps_video.framebuffer)<0) return 0;
+ 	uint8_t pixels[PS_SCREENW*PS_SCREENH*4];
+ 	glReadPixels(0,0,PS_SCREENW,PS_SCREENH,GL_RGBA,GL_UNSIGNED_BYTE,pixels);
+  if (akgl_framebuffer_use(0)<0) return 0;
+
+ 	struct akgl_texture *texture=akgl_texture_new();
+ 	if (!texture) return 0;
+ 	if (akgl_texture_load(texture,pixels,AKGL_FMT_RGBA8,PS_SCREENW,PS_SCREENH)<0) {
+ 	  akgl_texture_del(texture);
+ 	  return 0;
+ 	}
+  
+  return texture;
+}
+
 /* Recalculate destination rect for final framebuffer transfer.
  * We modify (dstx,dsty,dstw,dsth) based on (winw,winh).
  */

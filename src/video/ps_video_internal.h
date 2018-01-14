@@ -6,6 +6,13 @@
 #include "ps_video_layer.h"
 #include "akgl/akgl.h"
 
+#if __APPLE__
+  #include <OpenGL/gl.h>
+  #include <OpenGL/glu.h>
+#else
+  #include <gl/gl.h>
+#endif
+
 /* Include provider. */
 #if PS_USE_macwm
   #include "opt/macwm/ps_macwm.h"

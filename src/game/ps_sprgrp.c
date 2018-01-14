@@ -176,6 +176,25 @@ int ps_sprgrp_remove_sprite(struct ps_sprgrp *grp,struct ps_sprite *spr) {
   return 1;
 }
 
+/* Mass addition and removal.
+ */
+ 
+int ps_sprgrp_add_all(struct ps_sprgrp *dst,const struct ps_sprgrp *src) {
+  if (!dst||!src) return -1;
+  int i=src->sprc; while (i-->0) {
+    if (ps_sprgrp_add_sprite(dst,src->sprv[i])<0) return -1;
+  }
+  return 0;
+}
+
+int ps_sprgrp_remove_all(struct ps_sprgrp *dst,const struct ps_sprgrp *src) {
+  if (!dst||!src) return -1;
+  int i=src->sprc; while (i-->0) {
+    if (ps_sprgrp_remove_sprite(dst,src->sprv[i])<0) return -1;
+  }
+  return 0;
+}
+
 /* Remove all groups from sprite.
  */
 

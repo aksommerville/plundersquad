@@ -21,6 +21,6 @@ int ps_statusreport_ref(struct ps_statusreport *report);
 
 int ps_statusreport_setup(struct ps_statusreport *report,const struct ps_game *game,int x,int y,int w,int h);
 
-int ps_statusreport_draw(struct ps_statusreport *report);
+int ps_statusreport_draw(struct ps_statusreport *report,int offx,int offy);
 
 #endif

@@ -2,5 +2,4 @@
 - Tab key in GUI: Go backwards with Shift, and keep a sane focus ring instead of the sloppy guesswork we have now.
 - Binary formats for all resources.
 - Review dragoncharger with multiple real players.
-- Screen transition
 - Live modify of input config (eg from pause menu)

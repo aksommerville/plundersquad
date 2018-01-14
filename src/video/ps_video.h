@@ -19,6 +19,12 @@ int ps_video_is_init();
 
 int ps_video_update();
 
+/* Draw one frame as usual but stop after filling the framebuffer.
+ */
+int ps_video_draw_to_framebuffer();
+
+struct akgl_texture *ps_video_capture_framebuffer();
+
 /* Backend should call this when the window size changes.
  * This is not a request to resize; we don't do that.
  */
@@ -45,8 +51,8 @@ int ps_video_text_addf(int size,uint32_t rgba,int x,int y,const char *fmt,...);
 int ps_video_text_addfv(int size,uint32_t rgba,int x,int y,const char *fmt,va_list vargs);
 int ps_video_text_end(int resid);
 
-int ps_video_draw_grid(const struct ps_grid *grid);
-int ps_video_draw_sprites(const struct ps_sprgrp *grp);
+int ps_video_draw_grid(const struct ps_grid *grid,int offx,int offy);
+int ps_video_draw_sprites(const struct ps_sprgrp *grp,int offx,int offy);
 
 int ps_video_draw_mintile(const struct akgl_vtx_mintile *vtxv,int vtxc,uint8_t tsid);
 int ps_video_draw_maxtile(const struct akgl_vtx_maxtile *vtxv,int vtxc,uint8_t tsid);

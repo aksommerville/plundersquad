@@ -96,6 +96,9 @@ int ps_sprgrp_remove_sprite(struct ps_sprgrp *grp,struct ps_sprite *spr);
 #define ps_sprite_add_sprgrp(spr,grp) ps_sprgrp_add_sprite(grp,spr)
 #define ps_sprite_remove_sprgrp(spr,grp) ps_sprgrp_remove_sprite(grp,spr)
 
+int ps_sprgrp_add_all(struct ps_sprgrp *dst,const struct ps_sprgrp *src);
+int ps_sprgrp_remove_all(struct ps_sprgrp *dst,const struct ps_sprgrp *src);
+
 int ps_sprite_kill(struct ps_sprite *spr); // Remove all groups.
 int ps_sprgrp_clear(struct ps_sprgrp *grp); // Remove all sprites.
 int ps_sprgrp_kill(struct ps_sprgrp *grp); // Remove all groups from all sprites.

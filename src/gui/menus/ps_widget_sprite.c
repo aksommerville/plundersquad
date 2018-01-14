@@ -108,7 +108,7 @@ static int _ps_sprite_draw(struct ps_widget *widget,int parentx,int parenty) {
 
   if (WIDGET->grp&&(WIDGET->grp->sprc>0)) {
     ps_sprite_position_all(WIDGET->grp,parentx+widget->x+(widget->w>>1),parenty+widget->y+(widget->h>>1));
-    int err=ps_video_draw_sprites(WIDGET->grp);
+    int err=ps_video_draw_sprites(WIDGET->grp,0,0);
     if (err<0) return err;
   }
   

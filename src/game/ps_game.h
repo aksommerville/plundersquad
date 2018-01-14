@@ -62,7 +62,8 @@ struct ps_game {
   int gridx,gridy; // Grid's position in world.
   struct ps_physics *physics;
 
-  struct ps_video_layer *layer_scene;
+  struct ps_video_layer *layer_scene;//XXX
+  struct ps_game_renderer *renderer;
 
 // Signals to owner that GUI activity is necessary:
   const struct ps_res_trdef *got_treasure;

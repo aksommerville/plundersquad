@@ -295,23 +295,6 @@ static int ps_statusreport_compose_image(void *pixels,int w,int h,const struct p
   }
 
   return ps_statusreport_compose_image_treasure_only(pixels,w,h,report,game);
-
-  //XXX TEMP Before figuring out what goes into this image, get somthing on screen to verify the delivery process.
-
-  uint8_t *dst=pixels;
-  int y=0; for (;y<h;y++) {
-    uint8_t r=(y*255)/h;
-    uint8_t b=255-r;
-    int x=0; for (;x<w;x++,dst+=4) {
-      uint8_t g=(x*255)/w;
-      dst[0]=r;
-      dst[1]=g;
-      dst[2]=b;
-      dst[3]=0xc0;
-    }
-  }
-
-  return 0;
 }
 
 /* Set up.
@@ -363,7 +346,7 @@ int ps_statusreport_setup(struct ps_statusreport *report,const struct ps_game *g
 /* Draw.
  */
 
-int ps_statusreport_draw(struct ps_statusreport *report) {
+int ps_statusreport_draw(struct ps_statusreport *report,int offx,int offy) {
   if (!report) return -1;
-  return ps_video_draw_texture(report->texture,report->dstx,report->dsty,report->dstw,report->dsth);
+  return ps_video_draw_texture(report->texture,report->dstx+offx,report->dsty+offy,report->dstw,report->dsth);
 }

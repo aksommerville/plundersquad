@@ -53,14 +53,16 @@
 
 #define PS_RABBIT_INVINCIBLE_TIME 60
 
+#define PS_RABBIT_GRPMASK_BELLY ( \
+  (1<<PS_SPRGRP_KEEPALIVE)| \
+0)
+
 /* Private sprite object.
  */
 
 struct ps_sprite_rabbit {
   struct ps_sprite hdr;
   int phase;
-  struct ps_sprgrp *belly; // 0 or 1 member; what's in my belly
-  struct ps_sprgrp *pumpkin; // 0 or 1 member; only in LICK phase; what will be in my belly
   int counter;
   int flameanimcounter;
   int flameanimframe;
@@ -69,6 +71,9 @@ struct ps_sprite_rabbit {
   double dx,dy; // In HOP phase.
   int hp;
   int invincible;
+  struct ps_sprgrp *slave; // 0 or 1 member. Content of tongue or belly, depending on my phase.
+  uint32_t slave_grpmask;
+  uint16_t slave_impassable;
 };
 
 #define SPR ((struct ps_sprite_rabbit*)spr)
@@ -77,10 +82,8 @@ struct ps_sprite_rabbit {
  */
 
 static void _ps_rabbit_del(struct ps_sprite *spr) {
-  ps_sprgrp_clear(SPR->belly);
-  ps_sprgrp_del(SPR->belly);
-  ps_sprgrp_clear(SPR->pumpkin);
-  ps_sprgrp_del(SPR->pumpkin);
+  ps_sprgrp_clear(SPR->slave);
+  ps_sprgrp_del(SPR->slave);
 }
 
 /* Initialize.
@@ -91,8 +94,7 @@ static int _ps_rabbit_init(struct ps_sprite *spr) {
   SPR->hp=5; // TODO Should rabbit HP be configurable?
   SPR->phase=PS_RABBIT_PHASE_IDLE;
   SPR->counter=PS_RABBIT_COUNTER_INIT;
-  if (!(SPR->belly=ps_sprgrp_new())) return -1;
-  if (!(SPR->pumpkin=ps_sprgrp_new())) return -1;
+  if (!(SPR->slave=ps_sprgrp_new())) return -1;
 
   return 0;
 }
@@ -119,7 +121,7 @@ static int ps_rabbit_begin_IDLE(struct ps_sprite *spr,struct ps_game *game) {
   int leftc=0,rightc=0,i;
   for (i=game->grpv[PS_SPRGRP_HERO].sprc;i-->0;) {
     struct ps_sprite *hero=game->grpv[PS_SPRGRP_HERO].sprv[i];
-    if (SPR->belly->sprc&&(SPR->belly->sprv[0]==hero)) ; // Ignore hero if it's in my belly.
+    if (SPR->slave->sprc&&(SPR->slave->sprv[0]==hero)) ; // Ignore hero if it's in my belly.
     else if (hero->x<spr->x) leftc++;
     else rightc++;
   }
@@ -205,17 +207,10 @@ static int ps_rabbit_begin_SPIT(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phase=PS_RABBIT_PHASE_SPIT;
   SPR->counter=PS_RABBIT_SPIT_TIME;
 
-  if (SPR->belly->sprc>0) {
-    struct ps_sprite *pumpkin=SPR->belly->sprv[0];
+  if (SPR->slave->sprc>0) {
+    struct ps_sprite *pumpkin=SPR->slave->sprv[0];
 
     PS_SFX_RABBIT_SPIT
-
-    // Restore basic groups.
-    if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_VISIBLE,pumpkin)<0) return -1;
-    if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_UPDATE,pumpkin)<0) return -1;
-    if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_PHYSICS,pumpkin)<0) return -1;
-    if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_SOLID,pumpkin)<0) return -1;
-    if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_FRAGILE,pumpkin)<0) return -1;
 
     pumpkin->y=spr->y;
     if (SPR->flop) {
@@ -224,7 +219,7 @@ static int ps_rabbit_begin_SPIT(struct ps_sprite *spr,struct ps_game *game) {
       pumpkin->x=spr->x-PS_TILESIZE*2;
     }
 
-    if (ps_sprgrp_remove_sprite(SPR->belly,pumpkin)<0) return -1;
+    if (ps_sprite_rabbit_drop_slave(spr,game)<0) return -1;
   }
 
   return 0;
@@ -236,7 +231,7 @@ static int ps_rabbit_begin_SPIT(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_rabbit_choose_phase(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Full belly: HOP, SPIT, IDLE. */
-  if (SPR->belly->sprc) {
+  if (SPR->slave->sprc) {
     const int odds_total=PS_RABBIT_FODDS_HOP+PS_RABBIT_FODDS_SPIT+PS_RABBIT_FODDS_IDLE;
     int odds_selection=rand()%odds_total;
     if ((odds_selection-=PS_RABBIT_FODDS_HOP)<0) return ps_rabbit_begin_HOP(spr,game);
@@ -256,26 +251,15 @@ static int ps_rabbit_choose_phase(struct ps_sprite *spr,struct ps_game *game) {
 }
 
 /* Leaving LICK phase, if something is on our tongue we must swallow it.
- * ie transfer from (pumpkin) to (belly).
  */
 
 static int ps_rabbit_swallow_pumpkin(struct ps_sprite *spr,struct ps_game *game) {
-  if (SPR->pumpkin->sprc<1) return 0;
-  if (SPR->belly->sprc) return -1;
-  struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
+  if (SPR->slave->sprc<1) return 0;
+  struct ps_sprite *pumpkin=SPR->slave->sprv[0];
 
   PS_SFX_RABBIT_SWALLOW
 
-  if (ps_sprgrp_add_sprite(SPR->belly,pumpkin)<0) return -1;
-  if (ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin)<0) return -1;
-
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_VISIBLE,pumpkin)<0) return -1;
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_UPDATE,pumpkin)<0) return -1;
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_PHYSICS,pumpkin)<0) return -1;
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_SOLID,pumpkin)<0) return -1;
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,pumpkin)<0) return -1;
-  //TODO Do we need to remove from other groups? Hazard etc? Should we track the groups it was in initially?
-  //TODO I think we need functions to return the sprite's set of standard groups as a mask.
+  if (ps_game_set_group_mask_for_sprite(game,pumpkin,PS_RABBIT_GRPMASK_BELLY)<0) return -1;
   
   return 0;
 }
@@ -338,9 +322,13 @@ static int ps_rabbit_get_extension(const struct ps_sprite *spr) {
 
 static int ps_rabbit_grab_pumpkin(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *pumpkin) {
 
-  if (SPR->pumpkin->sprc) return -1;
-  if (ps_sprgrp_add_sprite(SPR->pumpkin,pumpkin)<0) return -1;
+  if (SPR->slave->sprc) return -1;
+  if (ps_sprgrp_add_sprite(SPR->slave,pumpkin)<0) return -1;
+  if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
   PS_SFX_RABBIT_GRAB
+
+  SPR->slave_grpmask=ps_game_get_group_mask_for_sprite(game,pumpkin);
+  SPR->slave_impassable=pumpkin->impassable;
 
   // Experimentally, remove the FRAGILE group now instead of waiting to swallow. So we don't accidentally kill it ourselves.
   if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,pumpkin)<0) return -1;
@@ -357,8 +345,8 @@ static int ps_rabbit_update_LICK(struct ps_sprite *spr,struct ps_game *game) {
 
   /* If we have a pumpkin already, set its position and we're done.
    */
-  if (SPR->pumpkin->sprc) {
-    struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
+  if (SPR->slave->sprc) {
+    struct ps_sprite *pumpkin=SPR->slave->sprv[0];
     pumpkin->x=ps_rabbit_get_extension(spr);
     pumpkin->y=spr->y+PS_RABBIT_FLAME_ANCHOR_Y;
     return 0;
@@ -517,11 +505,11 @@ static void ps_rabbit_draw_body(struct akgl_vtx_maxtile *vtxv,const struct ps_sp
   vtxv->x=spr->x+PS_RABBIT_RENDER_OFFSET_X;
   vtxv->y=spr->y+PS_RABBIT_RENDER_OFFSET_Y;
   switch (SPR->phase) {
-    case PS_RABBIT_PHASE_HOP: if (SPR->belly->sprc) vtxv->tileid=spr->tileid+0x08; else vtxv->tileid=spr->tileid+0x02; break;
+    case PS_RABBIT_PHASE_HOP: if (SPR->slave->sprc) vtxv->tileid=spr->tileid+0x08; else vtxv->tileid=spr->tileid+0x02; break;
     case PS_RABBIT_PHASE_BURN: vtxv->tileid=spr->tileid+0x04; break;
     case PS_RABBIT_PHASE_LICK: vtxv->tileid=spr->tileid+0x04; break;
     case PS_RABBIT_PHASE_SPIT: vtxv->tileid=spr->tileid+0x04; break;
-    default: if (SPR->belly->sprc) vtxv->tileid=spr->tileid+0x06; else vtxv->tileid=spr->tileid;
+    default: if (SPR->slave->sprc) vtxv->tileid=spr->tileid+0x06; else vtxv->tileid=spr->tileid;
   }
   if (SPR->invincible) {
     vtxv->tr=0xff; vtxv->tg=0x00; vtxv->tb=0x00;
@@ -571,7 +559,7 @@ static int _ps_rabbit_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_
     PS_SFX_MONSTER_DEAD
   
     /* IMPORTANT! If we have something in the belly at the moment of death, spit it out. */
-    if (SPR->belly->sprc) ps_rabbit_begin_SPIT(spr,game);
+    ps_sprite_rabbit_drop_slave(spr,game);
 
     SPR->invincible=INT_MAX;
     if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
@@ -609,3 +597,17 @@ const struct ps_sprtype ps_sprtype_rabbit={
   .hurt=_ps_rabbit_hurt,
 
 };
+
+/* Drop slave.
+ */
+ 
+int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game) {
+  if (!spr||(spr->type!=&ps_sprtype_rabbit)) return -1;
+  if (SPR->slave&&(SPR->slave->sprc>0)) {
+    struct ps_sprite *slave=SPR->slave->sprv[0];
+    if (ps_game_set_group_mask_for_sprite(game,slave,SPR->slave_grpmask)<0) return -1;
+    slave->impassable=SPR->slave_impassable;
+    if (ps_sprgrp_clear(SPR->slave)<0) return -1;
+  }
+  return 0;
+}

@@ -44,6 +44,9 @@ void ps_sprite_del(struct ps_sprite *spr) {
 
   ps_sprdef_del(spr->def);
 
+  ps_sprgrp_clear(spr->master);
+  ps_sprgrp_del(spr->master);
+
   if (spr->grpc) ps_log(SPRITE,ERROR,"Deleting sprite %p (type '%s'), grpc==%d.",spr,spr->type->name,spr->grpc);
   if (spr->grpv) {
     while (spr->grpc-->0) ps_sprgrp_del(spr->grpv[spr->grpc]);
@@ -132,4 +135,55 @@ int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struc
   if (ps_game_report_kill(game,assailant,victim)<0) return -1;
 
   return 0;
+}
+
+/* Master.
+ */
+
+int ps_sprite_set_master(struct ps_sprite *slave,struct ps_sprite *master,struct ps_game *game) {
+  if (!slave) return -1;
+  if (master) {
+    if (!slave->master&&!(slave->master=ps_sprgrp_new())) return -1;
+    if (slave->master->sprc>0) {
+      if (slave->master->sprv[0]==master) return 0;
+      if (ps_sprite_release_from_master(slave,game)<0) return -1;
+    }
+    if (ps_sprgrp_clear(slave->master)<0) return -1;
+    if (ps_sprgrp_add_sprite(slave->master,master)<0) return -1;
+  } else {
+    ps_sprgrp_clear(slave->master);
+  }
+  return 0;
+}
+
+struct ps_sprite *ps_sprite_get_master(const struct ps_sprite *slave) {
+  if (!slave) return 0;
+  if (!slave->master) return 0;
+  if (slave->master->sprc<1) return 0;
+  return slave->master->sprv[0];
+}
+
+int ps_sprite_release_from_master(struct ps_sprite *slave,struct ps_game *game) {
+  if (!slave) return -1;
+  if (!slave->master) return 0;
+  if (slave->master->sprc<1) return 0;
+  struct ps_sprite *master=slave->master->sprv[0];
+
+  if (master->type==&ps_sprtype_turtle) {
+    if (ps_sprite_turtle_drop_slave(master,game)<0) return -1;
+    return 0;
+  }
+
+  if (master->type==&ps_sprtype_rabbit) {
+    if (ps_sprite_rabbit_drop_slave(master,game)<0) return -1;
+    return 0;
+  }
+
+  if (master->type==&ps_sprtype_hookshot) {
+    if (ps_sprite_hookshot_drop_slave(master,slave,game)<0) return -1;
+    return 0;
+  }
+
+  ps_log(GAME,ERROR,"ps_sprite_release_from_master() is not aware of type '%s'.",master->type->name);
+  return -1;
 }

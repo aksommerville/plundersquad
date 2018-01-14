@@ -87,8 +87,10 @@ static int ps_hookshot_check_pumpkin_final_position(struct ps_sprite *spr,struct
   if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
     const struct ps_grid_cell *cell=game->grid->cellv+row*PS_GRID_COLC+col;
     if (cell->physics==PS_BLUEPRINT_CELL_HOLE) {
-      if (ps_game_create_splash(game,pumpkin->x,pumpkin->y)<0) return -1;
-      ps_sprite_kill_later(pumpkin,game);
+      if (pumpkin->type!=&ps_sprtype_hero) { // Hero sprites manage this on their own.
+        if (ps_game_create_splash(game,pumpkin->x,pumpkin->y)<0) return -1;
+        ps_sprite_kill_later(pumpkin,game);
+      }
     }
   }
   
@@ -109,7 +111,8 @@ static int ps_hookshot_begin_pull(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phase=PS_HOOKSHOT_PHASE_PULL;
   if (SPR->user&&(SPR->user->sprc==1)) {
     struct ps_sprite *user=SPR->user->sprv[0];
-    if (ps_sprite_release_from_turtle(user,game)<0) return -1;
+    if (ps_sprite_release_from_master(user,game)<0) return -1;
+    if (ps_sprite_set_master(user,spr,game)<0) return -1;
     SPR->restore_user_impassable=user->impassable;
     user->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   }
@@ -119,6 +122,7 @@ static int ps_hookshot_begin_pull(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *pumpkin) {
   PS_SFX_HOOKSHOT_GRAB
   SPR->phase=PS_HOOKSHOT_PHASE_DELIVER;
+  if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
   SPR->restore_pumpkin_impassable=pumpkin->impassable;
   pumpkin->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   if (ps_sprgrp_add_sprite(SPR->pumpkin,pumpkin)<0) return -1;
@@ -127,16 +131,24 @@ static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,
 
 static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->user&&(SPR->user->sprc==1)) ps_hero_abort_hookshot(SPR->user->sprv[0],game);
-  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) SPR->pumpkin->sprv[0]->impassable=SPR->restore_pumpkin_impassable;
+  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
+    struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
+    pumpkin->impassable=SPR->restore_pumpkin_impassable;
+    if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
+    ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin);
+    if (ps_hookshot_check_pumpkin_final_position(spr,game,pumpkin)<0) return -1;
+  }
   return ps_sprite_kill_later(spr,game);
 }
 
 static int ps_hookshot_finish(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->user&&(SPR->user->sprc==1)) ps_hero_abort_hookshot(SPR->user->sprv[0],game);
   if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
-    SPR->pumpkin->sprv[0]->impassable=SPR->restore_pumpkin_impassable;
-    if (ps_hookshot_check_pumpkin_final_position(spr,game,SPR->pumpkin->sprv[0])<0) return -1;
-    ps_sprgrp_remove_sprite(SPR->pumpkin,SPR->pumpkin->sprv[0]);
+    struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
+    pumpkin->impassable=SPR->restore_pumpkin_impassable;
+    if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
+    ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin);
+    if (ps_hookshot_check_pumpkin_final_position(spr,game,pumpkin)<0) return -1;
   }
   return ps_sprite_kill_later(spr,game);
 }
@@ -360,4 +372,21 @@ struct ps_sprite *ps_sprite_hookshot_new(struct ps_sprite *user,struct ps_game *
   SPR->phase=PS_HOOKSHOT_PHASE_THROW;
 
   return spr;
+}
+
+/* Drop a slave sprite, either user or pumpkin.
+ * Beware that (game) may be null.
+ * All we do is empty the group containing (slave); our next update will clean it up.
+ */
+ 
+int ps_sprite_hookshot_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,struct ps_game *game) {
+  if (!spr||(spr->type!=&ps_sprtype_hookshot)) return -1;
+  if (!slave) return 0;
+  if (SPR->user&&SPR->user->sprc&&(SPR->user->sprv[0]==slave)) {
+    if (ps_sprgrp_remove_sprite(SPR->user,slave)<0) return -1;
+  }
+  if (SPR->pumpkin&&SPR->pumpkin->sprc&&(SPR->pumpkin->sprv[0]==slave)) {
+    if (ps_sprgrp_remove_sprite(SPR->pumpkin,slave)<0) return -1;
+  }
+  return 0;
 }

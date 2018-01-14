@@ -43,6 +43,8 @@ struct ps_sprite {
 
   int phreconsider; // For transient use by physics.
   int collided_grid; // Reset each frame for physics sprites.
+
+  struct ps_sprgrp *master; // Optional. Set when some other sprite is controlling this one.
   
 };
 
@@ -60,6 +62,12 @@ int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struc
 int ps_sprites_collide(const struct ps_sprite *a,const struct ps_sprite *b);
 int ps_sprite_collide_fbox(const struct ps_sprite *spr,const struct ps_fbox *fbox);
 int ps_sprite_collide_circle(const struct ps_sprite *spr,const struct ps_circle *circle);
+
+/* Setting a sprite's master also releases it from the existing master if present.
+ */
+int ps_sprite_set_master(struct ps_sprite *slave,struct ps_sprite *master,struct ps_game *game);
+struct ps_sprite *ps_sprite_get_master(const struct ps_sprite *slave);
+int ps_sprite_release_from_master(struct ps_sprite *slave,struct ps_game *game);
 
 /* ps_sprgrp: Mutual collection of sprites.
  *****************************************************************************/
@@ -167,11 +175,9 @@ int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps
 struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p,int c);
 int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_game *game);
 
-/* Search the game for turtles. If (spr) is riding one, force it to drop.
- * This is a lousy way to do business.
- */
-int ps_sprite_release_from_turtle(struct ps_sprite *spr,struct ps_game *game);
-int ps_sprite_turtle_drop_rider(struct ps_sprite *spr,struct ps_game *game);
+int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game);
+int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game);
+int ps_sprite_hookshot_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,struct ps_game *game); // pumpkin or user
 
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.

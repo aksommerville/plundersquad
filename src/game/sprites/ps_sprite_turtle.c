@@ -129,7 +129,7 @@ static int ps_turtle_gather_possible_ferry_directions(int *dirv,const struct ps_
  */
 
 static int ps_turtle_accept_rider(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *rider) {
-  //ps_log(GAME,TRACE,"%s",__func__);
+  if (ps_sprite_set_master(rider,spr,game)<0) return -1;
   if (ps_sprgrp_add_sprite(SPR->rider,rider)<0) return -1;
   SPR->ridergrpmask=ps_game_get_group_mask_for_sprite(game,rider);
   SPR->riderimpassable=rider->impassable;
@@ -157,11 +157,11 @@ static int ps_turtle_accept_rider(struct ps_sprite *spr,struct ps_game *game,str
  */
 
 static int ps_turtle_reject_rider(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *rider) {
-  //ps_log(GAME,TRACE,"%s rider=%p mask=0x%08x",__func__,rider,SPR->ridergrpmask);
   if (rider) {
     rider->impassable=SPR->riderimpassable;
     if (ps_game_set_group_mask_for_sprite(game,rider,SPR->ridergrpmask)<0) return -1;
     if (ps_sprgrp_remove_sprite(SPR->rider,rider)<0) return -1;
+    if (ps_sprite_set_master(rider,0,game)<0) return -1;
   }
   SPR->phase=PS_TURTLE_PHASE_IDLE;
   SPR->wait_for_disembarkment=1;
@@ -319,28 +319,10 @@ const struct ps_sprtype ps_sprtype_turtle={
   
 };
 
-/* Search game for turtles, and drop rider if it matches.
- * (spr) is not a turtle.
- */
- 
-int ps_sprite_release_from_turtle(struct ps_sprite *rider,struct ps_game *game) {
-  if (!rider||!game) return -1;
-  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_PHYSICS; // I think PHYSICS is the smallest group turtles all belong to.
-  int i=grp->sprc; while (i-->0) {
-    struct ps_sprite *spr=grp->sprv[i];
-    if (spr->type!=&ps_sprtype_turtle) continue;
-    if (!SPR->rider) continue;
-    if (SPR->rider->sprc<1) continue;
-    if (SPR->rider->sprv[0]!=rider) continue;
-    return ps_sprite_turtle_drop_rider(spr,game); // Return here, because we can't ride more than one turtle at a time.
-  }
-  return 0;
-}
-
 /* Drop my rider, but don't change phase.
  */
 
-int ps_sprite_turtle_drop_rider(struct ps_sprite *spr,struct ps_game *game) {
+int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game) {
   if (!spr||(spr->type!=&ps_sprtype_turtle)) return -1;
   if (SPR->rider&&(SPR->rider->sprc>0)) {
     struct ps_sprite *rider=SPR->rider->sprv[0];

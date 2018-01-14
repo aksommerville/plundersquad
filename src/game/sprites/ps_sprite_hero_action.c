@@ -170,6 +170,12 @@ static int ps_hero_hookshot_continue(struct ps_sprite *spr,struct ps_game *game)
 
 int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
   if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
+
+  struct ps_sprite *master=ps_sprite_get_master(spr);
+  if (master&&(master->type==&ps_sprtype_hookshot)) {
+    if (ps_sprite_set_master(spr,0,game)<0) return -1;
+  }
+  
   if (SPR->hp) {
   
     // Hookshot may be aborting because we just died -- in that case, do not restore HOLE collisions.

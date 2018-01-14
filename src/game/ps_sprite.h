@@ -178,6 +178,7 @@ int ps_prize_fling(struct ps_sprite *spr,int dir);
 int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero,int force);
 struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p,int c);
 int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_game *game);
+int ps_sprite_bomb_throw(struct ps_sprite *spr,int direction,int magnitude);
 
 int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game);

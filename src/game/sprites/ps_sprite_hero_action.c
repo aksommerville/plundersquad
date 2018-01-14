@@ -328,6 +328,8 @@ static int ps_hero_bomb(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprite *bomb=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
   if (!bomb) return -1;
 
+  if (ps_sprite_bomb_throw(bomb,SPR->facedir,30)<0) return -1;
+
   return 0;
 }
 

@@ -7,11 +7,14 @@
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
 #include "game/ps_sound_effects.h"
+#include "util/ps_geometry.h"
 #include "akgl/akgl.h"
 #include "res/ps_resmgr.h"
 
-#define PS_BOMB_DEFAULT_TIME 120
+#define PS_BOMB_DEFAULT_TIME 140
 #define PS_BOMB_EXPLOSION_SPRDEFID 7
+#define PS_BOMB_SPEED_LIMIT 2.5
+#define PS_BOMB_SLOWDOWN_TIME 30
 
 /* Private sprite object.
  */
@@ -21,6 +24,8 @@ struct ps_sprite_bomb {
   int counter;
   int countermax;
   int finished;
+  int dx,dy;
+  int throwttl;
 };
 
 #define SPR ((struct ps_sprite_bomb*)spr)
@@ -58,7 +63,6 @@ static const char *_ps_bomb_get_configure_argument_name(int argp) {
  */
 
 static int ps_bomb_explode(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,TRACE,"%s",__func__);
   if (SPR->finished) return 0;
   SPR->finished=1;
 
@@ -82,6 +86,16 @@ static int _ps_bomb_update(struct ps_sprite *spr,struct ps_game *game) {
 
   if (++(SPR->counter)>=SPR->countermax) {
     return ps_bomb_explode(spr,game);
+  }
+
+  if (SPR->throwttl>0) {
+    SPR->throwttl--;
+    double speed=PS_BOMB_SPEED_LIMIT;
+    if (SPR->throwttl<PS_BOMB_SLOWDOWN_TIME) {
+      speed=(speed*SPR->throwttl)/PS_BOMB_SLOWDOWN_TIME;
+    }
+    spr->x+=SPR->dx*speed;
+    spr->y+=SPR->dy*speed;
   }
 
   return 0;
@@ -137,3 +151,18 @@ const struct ps_sprtype ps_sprtype_bomb={
   .hurt=_ps_bomb_hurt,
 
 };
+
+/* Throw.
+ */
+
+int ps_sprite_bomb_throw(struct ps_sprite *spr,int direction,int magnitude) {
+  if (!spr||(spr->type!=&ps_sprtype_bomb)) return -1;
+  switch (direction) {
+    case PS_DIRECTION_NORTH: SPR->dx=0; SPR->dy=-1; break;
+    case PS_DIRECTION_SOUTH: SPR->dx=0; SPR->dy=1; break;
+    case PS_DIRECTION_WEST: SPR->dx=-1; SPR->dy=0; break;
+    case PS_DIRECTION_EAST: SPR->dx=1; SPR->dy=0; break;
+  }
+  SPR->throwttl=magnitude;
+  return 0;
+}

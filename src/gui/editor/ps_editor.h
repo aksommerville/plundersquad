@@ -18,6 +18,7 @@ struct ps_sprdef;
 struct ps_plrdef;
 struct ps_region;
 struct ps_region_shape;
+struct ps_res_trdef;
 
 extern const struct ps_widget_type ps_widget_type_edithome;
 extern const struct ps_widget_type ps_widget_type_editsoundeffect;
@@ -27,6 +28,7 @@ extern const struct ps_widget_type ps_widget_type_editblueprint;
 extern const struct ps_widget_type ps_widget_type_editsprdef;
 extern const struct ps_widget_type ps_widget_type_editplrdef;
 extern const struct ps_widget_type ps_widget_type_editregion;
+extern const struct ps_widget_type ps_widget_type_edittrdef;
 
 extern const struct ps_widget_type ps_widget_type_sfxchan;
 extern const struct ps_widget_type ps_widget_type_sfxgraph;
@@ -284,5 +286,10 @@ int ps_widget_regionshape_set_shape(struct ps_widget *widget,const struct ps_reg
 int ps_widget_regionshape_get_shape(struct ps_region_shape *shape,const struct ps_widget *widget);
 int ps_widget_regionshape_set_tsid(struct ps_widget *widget,uint8_t tsid);
 int ps_widget_regionshape_set_cb_delete(struct ps_widget *widget,struct ps_callback cb_delete); // sender will be button, not regionshape
+
+/* Edittrdef.
+ *****************************************************************************/
+
+int ps_widget_edittrdef_set_resource(struct ps_widget *widget,int id,struct ps_res_trdef *trdef,const char *name);
 
 #endif

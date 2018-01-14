@@ -131,7 +131,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
+  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(
@@ -185,11 +185,13 @@ static int ps_main_update() {
   } else if (ps_game) {
     if (ps_game->paused) {
       if (ps_gui_load_page_pause(ps_gui)<0) return -1;
+    } else if (ps_game->got_treasure) {
+      if (ps_gui_load_page_treasure(ps_gui,ps_game->got_treasure)<0) return -1;
+      ps_game->got_treasure=0;
+    } else if (ps_game->finished) {
+      if (ps_gui_load_page_gameover(ps_gui)<0) return -1;
     } else {
       if (ps_game_update(ps_game)<0) return -1;
-      if (ps_game->finished) {
-        if (ps_gui_load_page_gameover(ps_gui)<0) return -1;
-      }
     }
   }
   

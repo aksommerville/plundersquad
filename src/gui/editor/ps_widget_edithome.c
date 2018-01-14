@@ -81,6 +81,7 @@ static int _ps_edithome_init(struct ps_widget *widget) {
   if (!ps_widget_scrolllist_add_label(child,"Sprite",-1)) return -1;
   if (!ps_widget_scrolllist_add_label(child,"Hero",-1)) return -1;
   if (!ps_widget_scrolllist_add_label(child,"Region",-1)) return -1;
+  if (!ps_widget_scrolllist_add_label(child,"Treasure",-1)) return -1;
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_scrolllist))) return -1;
   if (ps_widget_scrolllist_enable_selection(child,ps_callback(ps_edithome_cb_select_resource,0,widget))<0) return -1;
@@ -233,6 +234,7 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
     case 3: if (ps_edithome_list_resources(widget,PS_RESTYPE_SPRDEF)<0) return -1; break;
     case 4: if (ps_edithome_list_resources(widget,PS_RESTYPE_PLRDEF)<0) return -1; break;
     case 5: if (ps_edithome_list_resources(widget,PS_RESTYPE_REGION)<0) return -1; break;
+    case 6: if (ps_edithome_list_resources(widget,PS_RESTYPE_TRDEF)<0) return -1; break;
   }
 
   if (ps_widget_pack(reslist)<0) return -1;
@@ -314,6 +316,7 @@ static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int 
     case 3: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_SPRDEF,resindex,&ps_widget_type_editsprdef,resname);
     case 4: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_PLRDEF,resindex,&ps_widget_type_editplrdef,resname);
     case 5: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_REGION,resindex,&ps_widget_type_editregion,resname);
+    case 6: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_TRDEF,resindex,&ps_widget_type_edittrdef,resname);
   }
 
   return -1;
@@ -351,6 +354,10 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
 
   if (widget->type==&ps_widget_type_editregion) {
     return ps_widget_editregion_set_resource(widget,id,obj,name);
+  }
+
+  if (widget->type==&ps_widget_type_edittrdef) {
+    return ps_widget_edittrdef_set_resource(widget,id,obj,name);
   }
 
   return -1;
@@ -410,7 +417,11 @@ static int ps_edithome_create_blueprint(struct ps_widget *widget) {
   struct ps_blueprint *blueprint=ps_blueprint_new();
   if (!blueprint) return -1;
 
-  if (ps_restype_res_insert(restype,resp,resid,blueprint)<0) return -1;
+  if (ps_restype_res_insert(restype,resp,resid,blueprint)<0) {
+    ps_blueprint_del(blueprint);
+    return -1;
+  }
+  
   return 0;
 }
 
@@ -428,7 +439,11 @@ static int ps_edithome_create_sprdef(struct ps_widget *widget) {
   sprdef->type=&ps_sprtype_dummy;
   sprdef->tileid=0x0400;
 
-  if (ps_restype_res_insert(restype,resp,resid,sprdef)<0) return -1;
+  if (ps_restype_res_insert(restype,resp,resid,sprdef)<0) {
+    ps_sprdef_del(sprdef);
+    return -1;
+  }
+  
   return 0;
 }
 
@@ -444,7 +459,32 @@ static int ps_edithome_create_region(struct ps_widget *widget) {
   struct ps_region *region=ps_region_new(0);
   if (!region) return -1;
 
-  if (ps_restype_res_insert(restype,resp,resid,region)<0) return -1;
+  if (ps_restype_res_insert(restype,resp,resid,region)<0) {
+    ps_region_del(region);
+    return -1;
+  }
+  
+  return 0;
+}
+
+/* Create new treasure.
+ */
+
+static int ps_edithome_create_trdef(struct ps_widget *widget) {
+  struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_TRDEF);
+  if (!restype) return -1;
+  int resp=restype->rescontigc;
+  int resid=resp;
+
+  struct ps_res_trdef *trdef=calloc(1,sizeof(struct ps_res_trdef));
+  if (!trdef) return -1;
+  trdef->thumbnail_tileid=0x0100;
+
+  if (ps_restype_res_insert(restype,resp,resid,trdef)<0) {
+    free(trdef);
+    return -1;
+  }
+
   return 0;
 }
 
@@ -468,6 +508,7 @@ static int ps_edithome_cb_new(struct ps_widget *button,struct ps_widget *widget)
     case 3: if (ps_edithome_create_sprdef(widget)<0) return -1; break;
     case 4: return 0; // plrdef: We've already got the complete set, by the time I wrote this.
     case 5: if (ps_edithome_create_region(widget)<0) return -1; break;
+    case 6: if (ps_edithome_create_trdef(widget)<0) return -1; break;
   }
 
   if (ps_edithome_rebuild_resource_list(widget,typeindex)<0) return -1;

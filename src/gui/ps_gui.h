@@ -10,6 +10,7 @@
 struct ps_gui;
 struct ps_widget;
 struct ps_game;
+struct ps_res_trdef;
 
 /* There should be only one ps_gui, and it should be created by the main unit.
  * The first ps_gui instantiated automatically becomes the global.
@@ -71,6 +72,7 @@ int ps_gui_load_page_assemble(struct ps_gui *gui);
 int ps_gui_load_page_setup(struct ps_gui *gui);
 int ps_gui_load_page_pause(struct ps_gui *gui);
 int ps_gui_load_page_gameover(struct ps_gui *gui);
+int ps_gui_load_page_treasure(struct ps_gui *gui,const struct ps_res_trdef *trdef);
 int ps_gui_load_page_edithome(struct ps_gui *gui);
 
 #endif

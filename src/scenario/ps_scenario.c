@@ -25,6 +25,8 @@ void ps_scenario_del(struct ps_scenario *scenario) {
   if (!scenario) return;
   if (scenario->refc-->1) return;
 
+  if (scenario->treasurev) free(scenario->treasurev);
+
   if (scenario->screenv) {
     int screenc=scenario->w*scenario->h;
     while (screenc-->0) {

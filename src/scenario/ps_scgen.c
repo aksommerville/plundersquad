@@ -1031,6 +1031,45 @@ static int ps_scgen_select_regions(struct ps_scgen *scgen) {
   }
 }
 
+/* Reset (scenario->treasurec,treasurev).
+ * Select trdef resources from the resource manager.
+ */
+
+static struct ps_res_trdef *ps_scgen_select_treasure_resource(const struct ps_restype *restype,struct ps_res_trdef **alreadyv,int alreadyc) {
+  while (1) {
+    int p=rand()%restype->resc;
+    struct ps_res_trdef *trdef=restype->resv[p].obj;
+    int havec=0,i=alreadyc;
+    while (i-->0) if (alreadyv[i]==trdef) havec++;
+    if (havec>alreadyc/restype->resc) continue; // Don't reuse a treasure until all have been selected, evenly
+    return trdef;
+  }
+}
+
+static int ps_scgen_select_treasure_resources(struct ps_scgen *scgen) {
+
+  struct ps_res_trdef **nv=calloc(sizeof(void*),scgen->treasurec);
+  if (!nv) return -1;
+  if (scgen->scenario->treasurev) free(scgen->scenario->treasurev);
+  scgen->scenario->treasurev=nv;
+  scgen->scenario->treasurec=scgen->treasurec;
+
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_TRDEF);
+  if (!restype) return -1;
+  if (restype->resc<1) {
+    ps_log(GENERATOR,ERROR,"No trdef resources found.");
+    return -1;
+  }
+
+  int i=0; for (;i<scgen->treasurec;i++) {
+    if (!(scgen->scenario->treasurev[i]=ps_scgen_select_treasure_resource(
+      restype,scgen->scenario->treasurev,i
+    ))) return -1;
+  }
+
+  return 0;
+}
+
 /* Assign treasureid in the grid POI, and confirm that we have the correct count of treasures.
  */
 
@@ -1099,7 +1138,7 @@ int ps_scgen_generate(struct ps_scgen *scgen) {
   int w,h;
   if (ps_scgen_calculate_world_size(&w,&h,&scgen->treasurec,scgen)<0) return -1;
   if ((scgen->treasurec<1)||(scgen->treasurec>PS_TREASURE_LIMIT)) return ps_scgen_fail(scgen,"treasurec=%d",scgen->treasurec);
-  scgen->scenario->treasurec=scgen->treasurec;
+  if (ps_scgen_select_treasure_resources(scgen)<0) return -1;
   if (ps_scenario_reallocate_screens(scgen->scenario,w,h)<0) return -1;
 
   /* Place the home and treasure screens. */

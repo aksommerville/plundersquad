@@ -156,6 +156,16 @@ static int ps_resmgr_load_file(const char *path) {
   return -1;
 }
 
+/* Link all resources.
+ */
+
+static int ps_resmgr_link() {
+  int i=PS_RESTYPE_COUNT; while (i-->0) {
+    if (ps_restype_link(ps_resmgr.typev+i)<0) return -1;
+  }
+  return 0;
+}
+
 /* Reload resources, main entry point.
  */
 
@@ -179,6 +189,8 @@ int ps_resmgr_reload() {
     ps_log(RES,ERROR,"%.*s: Not a file or directory (mode 0%o)",ps_resmgr.rootpathc,ps_resmgr.rootpath,st.st_mode);
     return -1;
   }
+
+  if (ps_resmgr_link()<0) return -1;
 
   int64_t elapsed=ps_time_now()-starttime;
   ps_log(RES,INFO,"Loaded resources in %d.%06d s.",(int)(elapsed/1000000),(int)(elapsed%1000000));

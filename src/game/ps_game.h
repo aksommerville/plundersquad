@@ -18,6 +18,7 @@ struct ps_path;
 struct ps_bloodhound_activator;
 struct ps_statusreport;
 struct ps_dragoncharger;
+struct ps_res_trdef;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -63,7 +64,9 @@ struct ps_game {
 
   struct ps_video_layer *layer_scene;
 
-  int finished; // Signal to owner that you should drop this and return to the menus.
+// Signals to owner that GUI activity is necessary:
+  const struct ps_res_trdef *got_treasure;
+  int finished;
   int paused;
 
   struct ps_game_npgc *npgcv;

@@ -7,11 +7,13 @@
 #define PS_SCENARIO_H
 
 struct ps_screen;
+struct ps_res_trdef;
 
 struct ps_scenario {
   int refc;
   int homex,homey;
   int treasurec;
+  struct ps_res_trdef **treasurev; // WEAK, owned by resource manager
   int w,h; // World size in screens.
   struct ps_screen *screenv;
 };

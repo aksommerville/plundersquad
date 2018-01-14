@@ -39,6 +39,7 @@ int ps_restype_setup_BLUEPRINT(struct ps_restype *type);
 int ps_restype_setup_SPRDEF(struct ps_restype *type);
 int ps_restype_setup_REGION(struct ps_restype *type);
 int ps_restype_setup_PLRDEF(struct ps_restype *type);
+int ps_restype_setup_TRDEF(struct ps_restype *type);
 
 int ps_restype_clear(struct ps_restype *type);
 
@@ -79,5 +80,17 @@ struct ps_region;
 
 // Defined in <game/ps_plrdef.h>
 struct ps_res_plrdef;
+
+#define PS_TRDEF_NAME_LIMIT 64
+
+struct ps_res_trdef {
+  uint16_t thumbnail_tileid;
+  int full_imageid;
+  struct ps_res_IMAGE *image;
+  int namec;
+  char name[PS_TRDEF_NAME_LIMIT];
+};
+
+int ps_res_trdef_encode(void *dstpp,const struct ps_res_trdef *trdef);
 
 #endif

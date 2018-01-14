@@ -33,6 +33,7 @@ int ps_resmgr_init(const char *path,int edit) {
   SETUPTYPE(SPRDEF)
   SETUPTYPE(REGION)
   SETUPTYPE(PLRDEF)
+  SETUPTYPE(TRDEF)
   #undef SETUPTYPE
 
   if (ps_resmgr_reload()<0) {

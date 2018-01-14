@@ -1011,6 +1011,13 @@ int ps_game_collect_treasure(struct ps_game *game,struct ps_sprite *collector,in
     }
   }
 
+  const struct ps_res_trdef *trdef=0;
+  if (game->scenario&&(treasureid<game->scenario->treasurec)) trdef=game->scenario->treasurev[treasureid];
+  if (trdef) {
+    ps_log(GAME,INFO,"Collected treasure '%.*s'.",trdef->namec,trdef->name);
+    game->got_treasure=trdef;
+  }
+
   return 1;
 }
 

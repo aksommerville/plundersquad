@@ -8,11 +8,14 @@
 
 #include "util/ps_callback.h"
 
+struct akgl_texture;
+
 extern const struct ps_widget_type ps_widget_type_root; /* The master widget. */
 
 extern const struct ps_widget_type ps_widget_type_blotter; /* Solid color, no interaction. */
 extern const struct ps_widget_type ps_widget_type_label; /* Single line text. */
 extern const struct ps_widget_type ps_widget_type_icon; /* Graphic tile. */
+extern const struct ps_widget_type ps_widget_type_texture; /* Large image. */
 extern const struct ps_widget_type ps_widget_type_button; /* Clickable button. */
 extern const struct ps_widget_type ps_widget_type_toggle; /* State-preserving button. */
 extern const struct ps_widget_type ps_widget_type_field; /* Single line text entry. */
@@ -49,6 +52,8 @@ int ps_widget_label_set_size(struct ps_widget *widget,int size);
  *****************************************************************************/
 
 int ps_widget_icon_set_tile(struct ps_widget *widget,uint16_t tileid);
+
+int ps_widget_texture_set_texture(struct ps_widget *widget,struct akgl_texture *texture);
 
 /* Button.
  *****************************************************************************/

@@ -2,6 +2,7 @@
 #include "ps_input_device.h"
 #include "ps_input_map.h"
 #include "ps_input_button.h"
+#include "ps_input_premap.h"
 
 /* Clean up button watcher.
  */
@@ -34,6 +35,7 @@ void ps_input_device_del(struct ps_input_device *device) {
 
   if (device->name) free(device->name);
   if (device->map) ps_input_map_del(device->map);
+  if (device->premap) ps_input_premap_del(device->premap);
 
   if (device->btnwatchv) {
     while (device->btnwatchc-->0) {
@@ -78,6 +80,15 @@ int ps_input_device_set_map(struct ps_input_device *device,struct ps_input_map *
   if (map&&(ps_input_map_ref(map)<0)) return -1;
   ps_input_map_del(device->map);
   device->map=map;
+  return 0;
+}
+
+int ps_input_device_set_premap(struct ps_input_device *device,struct ps_input_premap *premap) {
+  if (!device) return -1;
+  if (device->premap==premap) return 0;
+  if (premap&&(ps_input_premap_ref(premap)<0)) return -1;
+  ps_input_premap_del(device->premap);
+  device->premap=premap;
   return 0;
 }
 

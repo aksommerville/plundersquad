@@ -183,6 +183,13 @@ int ps_input_load_configuration(const char *path) {
   return 0;
 }
 
+/* Get configuration.
+ */
+ 
+struct ps_input_config *ps_input_get_configuration() {
+  return ps_input.config;
+}
+
 /* Report player buttons to the public.
  */
  

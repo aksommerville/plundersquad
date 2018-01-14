@@ -69,4 +69,9 @@ struct ps_input_maptm_fld *ps_input_maptm_fld_insert(struct ps_input_maptm *mapt
 int ps_input_maptm_encode(char *dst,int dsta,const struct ps_input_maptm *maptm);
 int ps_input_maptm_decode(struct ps_input_maptm *maptm,const char *src,int srcc);
 
+/* Create a new template that matches this devices as closely as possible.
+ * If (device->map) is set, each of those live mappings is templatized.
+ */
+struct ps_input_maptm *ps_input_maptm_generate_from_device(const struct ps_input_device *device);
+
 #endif

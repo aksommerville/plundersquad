@@ -9,6 +9,7 @@
 #include "input/ps_input.h"
 #include "input/ps_input_device.h"
 #include "input/ps_input_map.h"
+#include "input/ps_input_premap.h"
 
 #define PS_HEROPACKER_MSGBLINK_TIME_ON     40
 #define PS_HEROPACKER_MSGBLINK_TIME_TOTAL  60
@@ -229,19 +230,6 @@ static int ps_heropacker_animate_children(struct ps_widget *widget) {
  */
 
 static int _ps_heropacker_userinput(struct ps_widget *widget,int plrid,int btnid,int value) {
-  //ps_log(GUI,TRACE,"%s %d.%d=%d",__func__,plrid,btnid,value);
-  //struct ps_widget *heroselect=ps_heropacker_get_heroselect_for_plrid(widget,plrid);
-
-  if (0&&value&&(btnid==1)) {//XXX Create fake input device to test many-player layouts
-    struct ps_input_device *device=ps_input_device_new(sizeof(struct ps_input_device));
-    if (!device) return -1;
-    if (!ps_heropacker_add_player(widget,device)) {
-      ps_input_device_del(device);
-      return -1;
-    }
-    ps_input_device_del(device);
-  }
-  
   return 0;
 }
 
@@ -312,6 +300,22 @@ static int ps_heropacker_remove_player(struct ps_widget *widget,struct ps_input_
   return 0;
 }
 
+/* Examine unmapped input device and decide whether to present config UI or ignore it.
+ */
+
+static int ps_heropacker_premap_usable(const struct ps_input_premap *premap) {
+
+  /* We need two axes and three buttons.
+   * There's a few ways that could be formulated.
+   */
+  if ((premap->axis2c>=2)&&(premap->btnc>=3)) return 1; // The simplest case.
+  if ((premap->axis2c>=2)&&(premap->axis1c+premap->btnc>=3)) return 1; // One-way axis can probably be used as a button.
+  if (premap->btnc>=7) return 1; // Can substitute two buttons for one axis.
+  if (premap->axis1c+premap->btnc>=7) return 1; // ...and I guess one-way axes are also kosher there.
+
+  return 0;
+}
+
 /* Input device callbacks.
  */
  
@@ -319,6 +323,26 @@ static int ps_heropacker_cb_connect(struct ps_input_device *device,void *userdat
   struct ps_widget *widget=userdata;
   if (device->map) {
     if (!ps_heropacker_add_player(widget,device)) return -1;
+  } else {
+  
+    struct ps_input_premap *premap=ps_input_premap_new();
+    if (!premap) return -1;
+    if (ps_input_premap_rebuild(premap,device)<0) {
+      ps_input_premap_del(premap);
+      return -1;
+    }
+    
+    if (ps_heropacker_premap_usable(premap)) {
+      if (ps_input_device_set_premap(device,premap)<0) {
+        ps_input_premap_del(premap);
+        return -1;
+      }
+      ps_input_premap_del(premap);
+      if (!ps_heropacker_add_player(widget,device)) return -1;
+    } else {
+      ps_input_premap_del(premap);
+    }
+    
   }
   return 0;
 }

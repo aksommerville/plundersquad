@@ -22,6 +22,7 @@ void ps_input_config_del(struct ps_input_config *config) {
     while (config->maptmc-->0) ps_input_maptm_del(config->maptmv[config->maptmc]);
     free(config->maptmv);
   }
+  if (config->path) free(config->path);
 
   free(config);
 }
@@ -41,7 +42,7 @@ int ps_input_config_clear(struct ps_input_config *config) {
 /* Install template. HANDOFF
  */
 
-static int ps_input_config_install_maptm(struct ps_input_config *config,struct ps_input_maptm *maptm) {
+int ps_input_config_install_maptm(struct ps_input_config *config,struct ps_input_maptm *maptm) {
   if (!config||!maptm) return -1;
 
   if (config->maptmc>=config->maptma) {
@@ -62,8 +63,22 @@ static int ps_input_config_install_maptm(struct ps_input_config *config,struct p
 /* Save.
  */
 
-int ps_input_config_save(const char *path,const struct ps_input_config *config) {
-  if (!path||!path[0]||!config) return -1;
+int ps_input_config_save(const char *path,struct ps_input_config *config) {
+  if (!config) return -1;
+
+  if (path&&path[0]) {
+    if (!config->path||strcmp(path,config->path)) {
+      char *nv=strdup(path);
+      if (!nv) return -1;
+      if (config->path) free(config->path);
+      config->path=nv;
+    }
+  } else if (!config->path) {
+    return -1;
+  } else {
+    path=config->path;
+  }
+  
   char *src=0;
   int srcc=ps_input_config_encode(&src,config);
   if (srcc<0) return -1;
@@ -82,7 +97,21 @@ int ps_input_config_save(const char *path,const struct ps_input_config *config) 
  */
  
 int ps_input_config_load(struct ps_input_config *config,const char *path) {
-  if (!config||!path||!path[0]) return -1;
+  if (!config) return -1;
+  
+  if (path&&path[0]) {
+    if (!config->path||strcmp(path,config->path)) {
+      char *nv=strdup(path);
+      if (!nv) return -1;
+      if (config->path) free(config->path);
+      config->path=nv;
+    }
+  } else if (!config->path) {
+    return -1;
+  } else {
+    path=config->path;
+  }
+  
   char *src=0;
   int srcc=ps_file_read(&src,path);
   if (srcc<0) {
@@ -116,7 +145,7 @@ int ps_input_config_encode(void *dstpp,const struct ps_input_config *config) {
       }
       if (buffer.c<=buffer.a-err) {
         buffer.c+=err;
-        continue;
+        break;
       }
       if (ps_buffer_require(&buffer,err)<0) {
         ps_buffer_cleanup(&buffer);

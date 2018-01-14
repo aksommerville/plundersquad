@@ -8,6 +8,7 @@
 
 struct ps_input_map;
 struct ps_input_device;
+struct ps_input_premap;
 
 struct ps_input_btncfg {
   int srcbtnid;
@@ -34,6 +35,7 @@ struct ps_input_device {
   uint16_t deviceid; // eg from USB
   
   struct ps_input_map *map; // NULL if detached from manager.
+  struct ps_input_premap *premap; // optional
 
   // Trigger your callback for each button on this device, until you return nonzero.
   int (*report_buttons)(
@@ -54,6 +56,7 @@ int ps_input_device_ref(struct ps_input_device *device);
 
 int ps_input_device_set_name(struct ps_input_device *device,const char *src,int srcc);
 int ps_input_device_set_map(struct ps_input_device *device,struct ps_input_map *map);
+int ps_input_device_set_premap(struct ps_input_device *device,struct ps_input_premap *premap);
 
 // Use some black magic to guess what kind of physical device this is.
 int ps_input_device_is_joystick(const struct ps_input_device *device);

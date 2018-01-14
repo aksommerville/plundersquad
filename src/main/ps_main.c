@@ -131,7 +131,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
+  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

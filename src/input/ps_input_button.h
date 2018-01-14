@@ -15,6 +15,7 @@
 #define PS_PLRBTN_CD     0x8000
 
 #define PS_PLRBTN_ALWAYS_AVAILABLE 0x800f /* Immune to player button suppression. */
+#define PS_PLRBTN_MAPPABLE 0x007f /* Buttons that should be mapped. */
 
 // These aggregate markers are only for ps_input_btncfg.default_usage
 #define PS_PLRBTN_HORZ   (PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT)

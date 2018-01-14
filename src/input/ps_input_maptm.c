@@ -536,8 +536,11 @@ static int ps_input_maptm_decode_line(struct ps_input_maptm *maptm,const char *s
         return -1;
       }
       srcp+=tokenv[tokenc].c;
+    } else if (src[srcp]=='=') {
+      tokenv[tokenc].c=1;
+      srcp++;
     } else {
-      while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)) { srcp++; tokenv[tokenc].c++; }
+      while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)&&(src[srcp]!='=')) { srcp++; tokenv[tokenc].c++; }
     }
     tokenc++;
   }
@@ -609,4 +612,57 @@ int ps_input_maptm_decode(struct ps_input_maptm *maptm,const char *src,int srcc)
     
   }
   return -1; // Unterminated.
+}
+
+/* Generate matching parameters from given device.
+ */
+
+static int ps_input_maptm_generate_match(struct ps_input_maptm *maptm,const struct ps_input_device *device) {
+
+  if (ps_input_maptm_set_namepattern(maptm,device->name,device->namec)<0) return -1;
+
+  maptm->providerid=device->providerid;
+  maptm->vendorid=device->vendorid;
+  maptm->deviceid=device->deviceid;
+
+  return 0;
+}
+
+/* Generate template fields from live map.
+ */
+
+static int ps_input_maptm_generate_fields(struct ps_input_maptm *maptm,const struct ps_input_map *map) {
+  const struct ps_input_map_fld *srcfld=map->fldv;
+  int i=map->fldc; for (;i-->0;srcfld++) {
+    struct ps_input_maptm_fld *dstfld=ps_input_maptm_fld_insert(maptm,-1,srcfld->srcbtnid);
+    if (!dstfld) return -1;
+    dstfld->srcbtnid=srcfld->srcbtnid;
+    dstfld->dstbtnid=srcfld->dstbtnid;
+    dstfld->srclo=srcfld->srclo;
+    dstfld->srchi=srcfld->srchi;
+  }
+  return 0;
+}
+
+/* Generate template from live device.
+ */
+ 
+struct ps_input_maptm *ps_input_maptm_generate_from_device(const struct ps_input_device *device) {
+  if (!device) return 0;
+  struct ps_input_maptm *maptm=ps_input_maptm_new();
+  if (!maptm) return 0;
+
+  if (ps_input_maptm_generate_match(maptm,device)<0) {
+    ps_input_maptm_del(maptm);
+    return 0;
+  }
+
+  if (device->map) {
+    if (ps_input_maptm_generate_fields(maptm,device->map)<0) {
+      ps_input_maptm_del(maptm);
+      return 0;
+    }
+  }
+
+  return maptm;
 }

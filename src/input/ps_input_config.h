@@ -12,6 +12,7 @@ struct ps_input_device;
 struct ps_input_config {
   struct ps_input_maptm **maptmv;
   int maptmc,maptma;
+  char *path;
 };
 
 struct ps_input_config *ps_input_config_new();
@@ -19,7 +20,9 @@ void ps_input_config_del(struct ps_input_config *config);
 
 int ps_input_config_clear(struct ps_input_config *config);
 
-int ps_input_config_save(const char *path,const struct ps_input_config *config);
+/* (path) may be null when saving, and we will use the last path we saw.
+ */
+int ps_input_config_save(const char *path,struct ps_input_config *config);
 int ps_input_config_load(struct ps_input_config *config,const char *path);
 
 int ps_input_config_encode(void *dstpp,const struct ps_input_config *config);
@@ -28,5 +31,7 @@ int ps_input_config_decode(struct ps_input_config *config,const char *src,int sr
 struct ps_input_maptm *ps_input_config_select_maptm_for_device(
   const struct ps_input_config *config,const struct ps_input_device *device
 );
+
+int ps_input_config_install_maptm(struct ps_input_config *config,struct ps_input_maptm *maptm_HANDOFF);
 
 #endif

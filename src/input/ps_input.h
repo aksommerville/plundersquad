@@ -36,6 +36,7 @@ struct ps_input_provider *ps_input_get_provider_by_id(int providerid);
 int ps_input_set_gui(struct ps_gui *gui);
 
 int ps_input_load_configuration(const char *path);
+struct ps_input_config *ps_input_get_configuration();
 
 int ps_input_update();
 

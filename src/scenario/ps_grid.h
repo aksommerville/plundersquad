@@ -54,4 +54,13 @@ int ps_grid_close_all_barriers(struct ps_grid *grid);
  */
 int ps_grid_test_rect_physics(const struct ps_grid *grid,int x,int y,int w,int h,uint16_t impassable);
 
+static inline struct ps_grid_cell *ps_grid_get_cell(struct ps_grid *grid,int x,int y) {
+  if (!grid) return 0;
+  if (x<0) x=0;
+  else if (x>=PS_GRID_COLC) x=PS_GRID_COLC;
+  if (y<0) y=0;
+  else if (y>=PS_GRID_ROWC) y=PS_GRID_ROWC;
+  return grid->cellv+y*PS_GRID_COLC+x;
+}
+
 #endif

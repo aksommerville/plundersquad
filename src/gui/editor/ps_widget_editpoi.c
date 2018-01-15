@@ -520,6 +520,16 @@ static int ps_editpoi_refresh_ui(struct ps_widget *widget,int populate_fields) {
           if (ps_widget_label_set_text(messagelabel,"",0)<0) return -1;
         }
       } break;
+    case PS_BLUEPRINT_POI_SUMMONER: {
+        if (ps_widget_label_set_text(typedesclabel,"SUMMONER",8)<0) return -1;
+        if (ps_widget_label_set_text(arg0label,"sprdefid",8)<0) return -1;
+        if (ps_widget_label_set_text(arg1label,"volume",6)<0) return -1;
+        if (ps_widget_label_set_text(arg2label,"unused",6)<0) return -1;
+        char buf[64];
+        int bufc=ps_editpoi_get_sprdef_name(buf,sizeof(buf),WIDGET->poi.argv[0]);
+        if ((bufc<0)||(bufc>=sizeof(buf))) bufc=0;
+        if (ps_widget_label_set_text(messagelabel,buf,bufc)<0) return -1;
+      } break;
     default: {
         if (ps_widget_label_set_text(typedesclabel,"unknown",7)<0) return -1;
         if (ps_widget_label_set_text(arg0label,"argv[0]",7)<0) return -1;

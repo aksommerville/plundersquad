@@ -329,6 +329,7 @@ static int ps_editblueprint_repr_poi(char *dst,int dsta,const struct ps_blueprin
     case PS_BLUEPRINT_POI_BARRIER: name="BARRIER"; break;
     case PS_BLUEPRINT_POI_DEATHGATE: name="DEATHGATE"; break;
     case PS_BLUEPRINT_POI_STATUSREPORT: name="STATUSREPORT"; break;
+    case PS_BLUEPRINT_POI_SUMMONER: name="SUMMONER"; break;
   }
   if (name) dstc=ps_strcpy(dst,dsta,name,-1);
   else dstc=ps_decsint_repr(dst,dsta,poi->type);

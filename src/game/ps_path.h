@@ -1,6 +1,7 @@
 /* ps_path.h
  * Utility for recording a path through two-dimensional space.
  * For screens in the scenario, or cells in the grid.
+ * This can also be used as a loose set of coordinates.
  */
 
 #ifndef PS_PATH_H

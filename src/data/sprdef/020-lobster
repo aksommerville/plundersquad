@@ -2,7 +2,7 @@ type lobster
 tileid 0x0417
 layer 100
 grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH SOLID
-radius 7
+radius 8
 shape CIRCLE
 impassable SOLID HOLE LATCH HEROONLY
 difficulty 7

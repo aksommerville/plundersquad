@@ -10,6 +10,7 @@
 #include "ps_sound_effects.h"
 #include "ps_dragoncharger.h"
 #include "ps_game_renderer.h"
+#include "ps_summoner.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -48,6 +49,7 @@ static int ps_game_initialize(struct ps_game *game) {
     
   if (!(game->bloodhound_activator=ps_bloodhound_activator_new())) return -1;
   if (!(game->dragoncharger=ps_dragoncharger_new())) return -1;
+  if (!(game->summoner=ps_summoner_new())) return -1;
 
   return 0;
 }
@@ -74,6 +76,7 @@ void ps_game_del(struct ps_game *game) {
   ps_dragoncharger_del(game->dragoncharger);
   ps_bloodhound_activator_del(game->bloodhound_activator);
   ps_game_renderer_del(game->renderer);
+  ps_summoner_del(game->summoner);
 
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
@@ -529,6 +532,7 @@ int ps_game_restart(struct ps_game *game) {
   if (ps_game_spawn_hero_sprites(game)<0) return -1;
   if (ps_game_spawn_sprites(game)<0) return -1;
   if (ps_game_setup_deathgate(game)<0) return -1;
+  if (ps_summoner_reset(game->summoner,game)<0) return -1;
 
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
@@ -567,6 +571,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   if (ps_game_spawn_hero_sprites(game)<0) return -1;
   if (ps_game_spawn_sprites(game)<0) return -1;
   if (ps_game_setup_deathgate(game)<0) return -1;
+  if (ps_summoner_reset(game->summoner,game)<0) return -1;
 
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
@@ -617,11 +622,9 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
     spr->y+=sprdy;
   }
 
-  /* Create sprites for new grid. */
   if (ps_game_spawn_sprites(game)<0) return -1;
-
-  /* Check death gates. */
   if (ps_game_setup_deathgate(game)<0) return -1;
+  if (ps_summoner_reset(game->summoner,game)<0) return -1;
 
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
@@ -869,6 +872,7 @@ int ps_game_update(struct ps_game *game) {
   /* Externalized game logic. */
   if (ps_bloodhound_activator_update(game->bloodhound_activator,game)<0) return -1;
   if (ps_dragoncharger_update(game->dragoncharger,game)<0) return -1;
+  if (ps_summoner_update(game->summoner,game)<0) return -1;
 
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;

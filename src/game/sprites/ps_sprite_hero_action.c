@@ -78,7 +78,7 @@ static int ps_hero_check_swordswitch(struct ps_sprite *spr,struct ps_game *game,
 
 static struct ps_fbox ps_hero_get_sword_bounds(const struct ps_sprite *spr) {
   const double width=PS_TILESIZE/4.0;
-  const double length=(PS_TILESIZE*7.0)/8.0;
+  const double length=(PS_TILESIZE*9.0)/8.0;
   const double top=spr->y-(PS_TILESIZE>>1);
   const double left=spr->x-(PS_TILESIZE>>1);
   switch (SPR->facedir) {

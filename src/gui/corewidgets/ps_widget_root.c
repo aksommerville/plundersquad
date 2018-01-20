@@ -9,6 +9,7 @@
 #include "ps.h"
 #include "../ps_widget.h"
 #include "../ps_gui.h"
+#include "gui/ps_keyfocus.h"
 #include "ps_corewidgets.h"
 #include "video/ps_video.h"
 
@@ -28,9 +29,10 @@ struct ps_widget_root {
   struct ps_gui *gui; // WEAK
   struct ps_widget *track_hover;
   struct ps_widget *track_click;
-  struct ps_widget *track_keyboard;
   int mousex,mousey;
   int dragdx,dragdy; // Position of cursor relative to track_click, if it is draggable.
+  struct ps_keyfocus *keyfocus;
+  int mod_shift;
 };
 
 #define WIDGET ((struct ps_widget_root*)widget)
@@ -41,7 +43,7 @@ struct ps_widget_root {
 static void _ps_root_del(struct ps_widget *widget) {
   ps_widget_del(WIDGET->track_hover);
   ps_widget_del(WIDGET->track_click);
-  ps_widget_del(WIDGET->track_keyboard);
+  ps_keyfocus_del(WIDGET->keyfocus);
 }
 
 /* Initialize.
@@ -51,6 +53,8 @@ static int _ps_root_init(struct ps_widget *widget) {
 
   widget->bgrgba=0x400000ff;
   widget->fgrgba=0x000000c0;
+
+  if (!(WIDGET->keyfocus=ps_keyfocus_new())) return -1;
 
   return 0;
 }
@@ -265,75 +269,30 @@ static int _ps_root_mousewheel(struct ps_widget *widget,int dx,int dy) {
   return 0;
 }
 
-/* Find a widget under the given one that accepts keyboard focus.
- */
-
-static struct ps_widget *ps_root_find_keyboard_widget(struct ps_widget *widget) {
-  if (widget->accept_keyboard_focus) return widget;
-  int i=0; for (;i<widget->childc;i++) {
-    struct ps_widget *child=widget->childv[i];
-    struct ps_widget *found=ps_root_find_keyboard_widget(child);
-    if (found) return found;
-  }
-  return 0;
-}
-
-/* Advance keyboard focus.
- * TODO: This only works if all keyboard focus widgets are peers.
- */
-
-static struct ps_widget *ps_root_advance_keyboard_focus_1(struct ps_widget *widget,const struct ps_widget *find_first) {
-  if (widget->accept_keyboard_focus) {
-    if (find_first) return 0;
-    return widget;
-  }
-  int i=0; for (;i<widget->childc;i++) {
-    struct ps_widget *child=widget->childv[i];
-    if (child==find_first) {
-      find_first=0;
-    } else {
-      struct ps_widget *found=ps_root_advance_keyboard_focus_1(child,find_first);
-      if (found) return found;
-    }
-  }
-  return 0;
-}
-
-static int ps_root_advance_keyboard_focus(struct ps_widget *widget) {
-  struct ps_widget *active=ps_root_get_active_child(widget);
-  if (!active) return 0;
-
-  struct ps_widget *nfocus=ps_root_advance_keyboard_focus_1(active,WIDGET->track_keyboard);
-  if (!nfocus) {
-    if (WIDGET->track_keyboard) {
-      nfocus=ps_root_advance_keyboard_focus_1(active,0);
-    }
-    if (!nfocus) return 0;
-  }
-
-  if (nfocus==WIDGET->track_keyboard) return 0;
-
-  if (WIDGET->track_keyboard) {
-    if (ps_widget_unfocus(WIDGET->track_keyboard)<0) return -1;
-  }
-  if (ps_root_set_track_keyboard(widget,nfocus)<0) return -1;
-  if (ps_widget_focus(WIDGET->track_keyboard)<0) return -1;
-  
-  return 0;
-}
-
 /* Keyboard.
  */
 
 static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int value) {
 
+  /* Track shift key, but don't consume the event. */
+  if (keycode==0x000700e1) {
+    if (value) WIDGET->mod_shift=1;
+    else WIDGET->mod_shift=0;
+  }
+
+  /* Tab, Shift-Tab: Move keyboard focus. */
   if (codepoint==0x09) {
     if (value) {
-      if (ps_root_advance_keyboard_focus(widget)<0) return -1;
+      if (WIDGET->mod_shift) {
+        if (ps_keyfocus_retreat(WIDGET->keyfocus)<0) return -1;
+      } else {
+        if (ps_keyfocus_advance(WIDGET->keyfocus)<0) return -1;
+      }
     }
     return 0;
   }
 
+  /* Enter: Activate topmost child. */
   if ((codepoint==0x0a)||(codepoint==0x0d)) {
     if (value) {
       struct ps_widget *active=ps_root_get_active_child(widget);
@@ -344,6 +303,7 @@ static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int v
     return 0;
   }
 
+  /* Escape: Cancel topmost child. */
   if (codepoint==0x1b) {
     if (value) {
       struct ps_widget *active=ps_root_get_active_child(widget);
@@ -355,16 +315,10 @@ static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int v
   }
 
   /* If there is a keyboard focus, give it the event exclusively. */
-  if (WIDGET->track_keyboard) {
-    if (!ps_widget_is_ancestor(widget,WIDGET->track_keyboard)) {
-      if (ps_root_set_track_keyboard(widget,0)<0) return 0;
-    } else {
-      if (ps_widget_key(WIDGET->track_keyboard,keycode,codepoint,value)<0) return -1;
-    }
-    return 0;
+  struct ps_widget *focus=ps_keyfocus_get_focus(WIDGET->keyfocus);
+  if (focus) {
+    if (ps_widget_key(focus,keycode,codepoint,value)<0) return -1;
   }
-
-  //TODO General keyboard events like activating buttons or cancelling dialogues.
 
   return 0;
 }
@@ -454,13 +408,6 @@ static int ps_root_set_track_click(struct ps_widget *widget,struct ps_widget *tr
   return 0;
 }
 
-static int ps_root_set_track_keyboard(struct ps_widget *widget,struct ps_widget *track) {
-  if (track&&(ps_widget_ref(track)<0)) return -1;
-  ps_widget_del(WIDGET->track_keyboard);
-  WIDGET->track_keyboard=track;
-  return 0;
-}
-
 /* Find the hoverable widget under a given point.
  */
 
@@ -532,24 +479,6 @@ static struct ps_widget *ps_root_find_scroll_widget(const struct ps_widget *widg
  
 static int ps_root_doublecheck_keyboard_focus(struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_root)) return -1;
-  struct ps_widget *active=ps_root_get_active_child(widget);
-
-  /* If we have a focus, ensure that it is part of the active modal. */
-  if (WIDGET->track_keyboard) {
-    if (ps_widget_is_ancestor(active,WIDGET->track_keyboard)) {
-      return 0;
-    }
-    // Don't unfocus it, since it is already orphaned from the UI.
-    //if (ps_widget_unfocus(WIDGET->track_keyboard)<0) return -1;
-    if (ps_root_set_track_keyboard(widget,0)<0) return -1;
-  }
-
-  /* Find a focusable widget in the active modal. */
-  if (!active) return 0;
-  struct ps_widget *focus=ps_root_find_keyboard_widget(active);
-  if (!focus) return 0;
-  if (ps_widget_focus(focus)<0) return -1;
-  if (ps_root_set_track_keyboard(widget,focus)<0) return -1;
-  
+  if (ps_keyfocus_refresh(WIDGET->keyfocus,ps_root_get_active_child(widget))<0) return -1;
   return 0;
 }

@@ -49,6 +49,7 @@ extern const struct ps_widget_type ps_widget_type_palette; // List item for plrd
 extern const struct ps_widget_type ps_widget_type_editpalette; // Modal dialogue.
 extern const struct ps_widget_type ps_widget_type_rgbslider;
 extern const struct ps_widget_type ps_widget_type_regionshape;
+extern const struct ps_widget_type ps_widget_type_songdlg; // Song edit dialogue (dup,del,mod)
 
 /* Edithome.
  *****************************************************************************/
@@ -195,6 +196,20 @@ int ps_widget_editsong_get_voice_visibility(uint8_t *drums,uint8_t *instruments,
 #define PS_EDITSONG_TEST_VOICE(buffer,voiceid) ((buffer)[(voiceid)>>3]&(1<<((voiceid)&7)))
 
 int ps_widget_editsong_voice_visibility_changed(struct ps_widget *widget);
+
+#define PS_WIDGET_SONGDLG_MODE_DUP     1
+#define PS_WIDGET_SONGDLG_MODE_DEL     2
+#define PS_WIDGET_SONGDLG_MODE_MOD     3
+
+/* Songdlg mutates the model and dismisses itself.
+ * Your callback only needs to update your own UI.
+ */
+int ps_widget_songdlg_setup(
+  struct ps_widget *widget,
+  struct ps_widget *editsong,
+  int mode,
+  struct ps_callback cb
+);
 
 /* Editsong components.
  *****************************************************************************/

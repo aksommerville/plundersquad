@@ -67,6 +67,61 @@ static int ps_sem_op_is_end(uint8_t op) {
   return 0;
 }
 
+static uint8_t ps_sem_op_partner(uint8_t op) {
+  switch (op) {
+    case AKAU_SONG_OP_NOTE: return PS_SEM_OP_NOTEEND;
+    case AKAU_SONG_OP_ADJPITCH: return PS_SEM_OP_ADJPITCHEND;
+    case AKAU_SONG_OP_ADJTRIM: return PS_SEM_OP_ADJTRIMEND;
+    case AKAU_SONG_OP_ADJPAN: return PS_SEM_OP_ADJPANEND;
+    case PS_SEM_OP_NOTEEND: return AKAU_SONG_OP_NOTE;
+    case PS_SEM_OP_ADJPITCHEND: return AKAU_SONG_OP_ADJPITCH;
+    case PS_SEM_OP_ADJTRIMEND: return AKAU_SONG_OP_ADJTRIM;
+    case PS_SEM_OP_ADJPANEND: return AKAU_SONG_OP_ADJPAN;
+  }
+  return op;
+}
+
+/* After removing beats, read the entire event list and add or remove events to force integrity.
+ * - Insert missing sentinels at (rmp) if sensible*, or on the same beat as the starting event.
+ * - Remove sentinels whose partner is missing.
+ * * I'm not actually doing this yet, just insert on the same beat.
+ */
+
+static int ps_sem_sanitize_sentinels_after_beat_removal(struct ps_sem *sem,int rmp) {
+  int beatp=0; for (;beatp<sem->beatc;beatp++) {
+    struct ps_sem_beat *beat=sem->beatv+beatp;
+    int eventp=0; while (eventp<beat->eventc) {
+      struct ps_sem_event *event=beat->eventv+eventp;
+      int partnerbeatp,partnereventp;
+      if (ps_sem_find_partner(&partnerbeatp,&partnereventp,sem,beatp,eventp)<0) {
+        if (ps_sem_op_is_end(event->op)) {
+        
+          // Sentinel event, partner missing: remove event.
+          beat->eventc--;
+          memmove(event,event+1,sizeof(struct ps_sem_event)*(beat->eventc-eventp));
+          
+        } else {
+
+          // Starting event, partner missing: insert sentinel.
+          struct ps_sem_event evcopy=*event; // Creating the new one invalidates (event).
+          struct ps_sem_event *end=ps_sem_beat_new_event(beat);
+          if (!end) return -1;
+          memcpy(end,&evcopy,sizeof(struct ps_sem_event));
+          end->op=ps_sem_op_partner(evcopy.op);
+          eventp++;
+          
+        }
+      } else {
+      
+        // Found the partner, all good.
+        eventp++;
+        
+      }
+    }
+  }
+  return 0;
+}
+
 /* Beat list.
  */
 
@@ -100,6 +155,7 @@ int ps_sem_remove_beats(struct ps_sem *sem,int p,int c) {
   int i=c; while (i-->0) ps_sem_beat_cleanup(sem->beatv+p+i);
   sem->beatc-=c;
   memmove(sem->beatv+p,sem->beatv+p+c,sizeof(struct ps_sem_beat)*(sem->beatc-p));
+  if (ps_sem_sanitize_sentinels_after_beat_removal(sem,p)<0) return -1;
   return 0;
 }
 
@@ -175,7 +231,7 @@ int ps_sem_add_note(struct ps_sem *sem,int beatp,uint8_t instrid,uint8_t pitch,u
   ea->trim=ez->trim=trim;
   ea->pan=ez->pan=pan;
 
-  return 0;
+  return noteid;
 }
 
 int ps_sem_add_drum(struct ps_sem *sem,int beatp,uint8_t drumid,uint8_t trim,int8_t pan) {
@@ -417,6 +473,40 @@ int ps_sem_move_event(struct ps_sem *sem,int beatp,int eventp,int dstbeatp) {
   int neventp=nevent-nbeat->eventv;
   
   return neventp;
+}
+
+/* Set note length by noteid.
+ */
+ 
+int ps_sem_set_note_length(struct ps_sem *sem,int noteid,int beatc) {
+  if (!sem) return -1;
+  if (beatc<1) return -1;
+  if (noteid<1) return -1;
+  int startbeatp,starteventp,endbeatp,endeventp;
+  if (ps_sem_find_note_by_noteid(&startbeatp,&starteventp,sem,noteid)<0) return -1;
+  if (ps_sem_find_partner(&endbeatp,&endeventp,sem,startbeatp,starteventp)<0) return -1;
+  if (ps_sem_move_event(sem,endbeatp,endeventp,startbeatp+beatc-1)<0) return -1;
+  return 0;
+}
+
+/* Search for note by noteid.
+ */
+ 
+int ps_sem_find_note_by_noteid(int *beatp,int *eventp,const struct ps_sem *sem,int noteid) {
+  if (!beatp||!eventp||!sem) return -1;
+  if (noteid<1) return -1;
+  const struct ps_sem_beat *beat=sem->beatv;
+  int qbeatp=0; for (;qbeatp<sem->beatc;qbeatp++,beat++) {
+    const struct ps_sem_event *event=beat->eventv;
+    int qeventp=0; for (;qeventp<beat->eventc;qeventp++,event++) {
+      if (event->op!=AKAU_SONG_OP_NOTE) continue;
+      if (event->noteid!=noteid) continue;
+      *beatp=qbeatp;
+      *eventp=qeventp;
+      return 0;
+    }
+  }
+  return -1;
 }
 
 /* Measure movement boundaries.
@@ -670,22 +760,6 @@ int ps_sem_find_note_next(int *dstbeatp,int *dsteventp,const struct ps_sem *sem,
   if (!event->noteid) return -1;
   if (event->op==PS_SEM_OP_NOTEEND) return -1;
   int noteid=event->noteid;
-
-  #if 0//XXX first attempt -- We can't skip right away to the next beat. Also, we need to be STARTs before ENDs.
-  beatp++; beat++;
-  while (beatp<sem->beatc) {
-    event=beat->eventv;
-    eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
-      if (event->noteid==noteid) {
-        *dstbeatp=beatp;
-        *dsteventp=eventp;
-        return 0;
-      }
-    }
-    beatp++;
-    beat++;
-  }
-  #endif
 
   /* If we are looking at a START op, proceed along the beat to the next START if present. */
   if (ps_sem_op_is_start(event->op)) {
@@ -1133,4 +1207,377 @@ void ps_sem_dump(const struct ps_sem *sem) {
     }
   }
   ps_log(EDIT,DEBUG,"END OF SEM DUMP");
+}
+
+/* Read mass objid.
+ */
+ 
+int ps_sem_get_objid_in_range(
+  uint8_t *drumidlo,uint8_t *drumidhi,uint8_t *instridlo,uint8_t *instridhi,
+  const struct ps_sem *sem,int beatp,int beatc,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!drumidlo||!drumidhi||!instridlo||!instridhi) return -1;
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+
+  *drumidlo=*instridlo=0xff;
+  *drumidhi=*instridhi=0x00;
+
+  const struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beat++) {
+    const struct ps_sem_event *event=beat->eventv;
+    int i=beat->eventc; for (;i-->0;event++) {
+      switch (event->op) {
+        case AKAU_SONG_OP_DRUM: {
+            if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+            if (event->objid<*drumidlo) *drumidlo=event->objid;
+            if (event->objid>*drumidhi) *drumidhi=event->objid;
+          } break;
+        case AKAU_SONG_OP_NOTE: {
+            if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+            if (event->objid<*instridlo) *instridlo=event->objid;
+            if (event->objid>*instridhi) *instridhi=event->objid;
+          } break;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ps_sem_get_pitch_in_range(
+  uint8_t *lo,uint8_t *hi,
+  const struct ps_sem *sem,int beatp,int beatc,
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!lo||!hi) return -1;
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+
+  *lo=0xff;
+  *hi=0x00;
+
+  const struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beat++) {
+    const struct ps_sem_event *event=beat->eventv;
+    int i=beat->eventc; for (;i-->0;event++) {
+      switch (event->op) {
+        case PS_SEM_OP_ADJPITCHEND:
+        case AKAU_SONG_OP_NOTE: {
+            if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+            if (event->pitch<*lo) *lo=event->pitch;
+            if (event->pitch>*hi) *hi=event->pitch;
+          } break;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ps_sem_get_trim_in_range(
+  uint8_t *lo,uint8_t *hi,
+  const struct ps_sem *sem,int beatp,int beatc,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!lo||!hi) return -1;
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+
+  *lo=0xff;
+  *hi=0x00;
+
+  const struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beat++) {
+    const struct ps_sem_event *event=beat->eventv;
+    int i=beat->eventc; for (;i-->0;event++) {
+      switch (event->op) {
+        case AKAU_SONG_OP_DRUM: {
+            if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+            if (event->trim<*lo) *lo=event->trim;
+            if (event->trim>*hi) *hi=event->trim;
+          } break;
+        case PS_SEM_OP_ADJTRIMEND:
+        case AKAU_SONG_OP_NOTE: {
+            if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+            if (event->trim<*lo) *lo=event->trim;
+            if (event->trim>*hi) *hi=event->trim;
+          } break;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int ps_sem_get_pan_in_range(
+  int8_t *lo,int8_t *hi,
+  const struct ps_sem *sem,int beatp,int beatc,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!lo||!hi) return -1;
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+
+  *lo=127;
+  *hi=-128;
+
+  const struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beat++) {
+    const struct ps_sem_event *event=beat->eventv;
+    int i=beat->eventc; for (;i-->0;event++) {
+      switch (event->op) {
+        case AKAU_SONG_OP_DRUM: {
+            if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+            if (event->pan<*lo) *lo=event->pan;
+            if (event->pan>*hi) *hi=event->pan;
+          } break;
+        case PS_SEM_OP_ADJPANEND:
+        case AKAU_SONG_OP_NOTE: {
+            if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+            if (event->pan<*lo) *lo=event->pan;
+            if (event->pan>*hi) *hi=event->pan;
+          } break;
+      }
+    }
+  }
+
+  return 0;
+}
+
+/* Set one field in all matching commands in a given range.
+ */
+ 
+int ps_sem_set_objid_in_range(
+  struct ps_sem *sem,int beatp,int beatc,
+  uint8_t drumid,uint8_t instrid,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      switch (event->op) {
+        case AKAU_SONG_OP_DRUM: {
+            if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+            event->objid=drumid;
+          } break;
+        case AKAU_SONG_OP_NOTE: {
+            if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+            if (event->objid==instrid) continue; // Already changed.
+            int mbeatp,meventp;
+            if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) return -1;
+            while (1) {
+              struct ps_sem_event *mevent=sem->beatv[mbeatp].eventv+meventp;
+              mevent->objid=instrid;
+              if (ps_sem_find_note_next(&mbeatp,&meventp,sem,mbeatp,meventp)<0) break;
+            }
+          } break;
+      }
+    }
+  }
+  return 0;
+}
+
+int ps_sem_set_pitch_in_range(
+  struct ps_sem *sem,int beatp,int beatc,
+  uint8_t pitch,
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      if (!event->noteid) continue;
+      if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+      if (ps_sem_adjust_event_pitch(sem,beatp,eventp,pitch)<0) return -1;
+    }
+  }
+  return 0;
+}
+
+int ps_sem_set_trim_in_range(
+  struct ps_sem *sem,int beatp,int beatc,
+  uint8_t trim,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      switch (event->op) {
+        case AKAU_SONG_OP_DRUM: {
+            if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+            event->trim=trim;
+          } break;
+        case AKAU_SONG_OP_NOTE: 
+        case AKAU_SONG_OP_ADJPITCH:
+        case AKAU_SONG_OP_ADJPAN:
+        case AKAU_SONG_OP_ADJTRIM: {
+            if (!event->noteid) continue;
+            if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+            int mbeatp,meventp;
+            if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) return -1;
+            while (1) {
+              struct ps_sem_event *mevent=sem->beatv[mbeatp].eventv+meventp;
+              mevent->trim=trim;
+              if (ps_sem_find_note_next(&mbeatp,&meventp,sem,mbeatp,meventp)<0) break;
+            }
+          } break;
+      }
+    }
+  }
+  return 0;
+}
+
+int ps_sem_set_pan_in_range(
+  struct ps_sem *sem,int beatp,int beatc,
+  int8_t pan,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      switch (event->op) {
+        case AKAU_SONG_OP_DRUM: {
+            if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+            event->pan=pan;
+          } break;
+        case AKAU_SONG_OP_NOTE: 
+        case AKAU_SONG_OP_ADJPITCH:
+        case AKAU_SONG_OP_ADJPAN:
+        case AKAU_SONG_OP_ADJTRIM: {
+            if (!event->noteid) continue;
+            if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+            int mbeatp,meventp;
+            if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) return -1;
+            while (1) {
+              struct ps_sem_event *mevent=sem->beatv[mbeatp].eventv+meventp;
+              mevent->pan=pan;
+              if (ps_sem_find_note_next(&mbeatp,&meventp,sem,mbeatp,meventp)<0) break;
+            }
+          } break;
+      }
+    }
+  }
+  return 0;
+}
+
+/* Adjust one field in all matching commands in a given range.
+ */
+ 
+int ps_sem_adjust_pitch_in_range(
+  struct ps_sem *sem,int beatp,int beatc,
+  int d,
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      if (!event->noteid) continue;
+      if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+      int mbeatp,meventp;
+      if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) return -1;
+      while (1) {
+        struct ps_sem_event *mevent=sem->beatv[mbeatp].eventv+meventp;
+        int nv=mevent->pitch+d;
+        if (nv<0) nv=0; else if (nv>255) nv=255;
+        mevent->pitch=nv;
+        if (ps_sem_find_note_next(&mbeatp,&meventp,sem,mbeatp,meventp)<0) break;
+      }
+    }
+  }
+  return 0;
+}
+
+int ps_sem_adjust_trim_in_range(
+  struct ps_sem *sem,int beatp,int beatc,
+  int d,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      if (event->noteid) {
+        if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+      } else {
+        if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+      }
+      int mbeatp,meventp;
+      if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) return -1;
+      while (1) {
+        struct ps_sem_event *mevent=sem->beatv[mbeatp].eventv+meventp;
+        int nv=mevent->trim+d;
+        if (nv<0) nv=0; else if (nv>255) nv=255;
+        mevent->trim=nv;
+        if (ps_sem_find_note_next(&mbeatp,&meventp,sem,mbeatp,meventp)<0) break;
+      }
+    }
+  }
+  return 0;
+}
+
+int ps_sem_adjust_pan_in_range(
+  struct ps_sem *sem,int beatp,int beatc,
+  int d,
+  int (*filter_drumid)(uint8_t drumid,void *userdata),
+  int (*filter_instrid)(uint8_t instrid,void *userdata),
+  void *userdata
+) {
+  if (!sem) return -1;
+  if ((beatp<0)||(beatc<0)||(beatc>sem->beatc-beatp)) return -1;
+  struct ps_sem_beat *beat=sem->beatv+beatp;
+  for (;beatc-->0;beatp++,beat++) {
+    struct ps_sem_event *event=beat->eventv;
+    int eventp=0; for (;eventp<beat->eventc;eventp++,event++) {
+      if (event->noteid) {
+        if (filter_instrid&&!filter_instrid(event->objid,userdata)) continue;
+      } else {
+        if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
+      }
+      int mbeatp,meventp;
+      if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) return -1;
+      while (1) {
+        struct ps_sem_event *mevent=sem->beatv[mbeatp].eventv+meventp;
+        int nv=mevent->pan+d;
+        if (nv<-128) nv=-128; else if (nv>127) nv=127;
+        mevent->pan=nv;
+        if (ps_sem_find_note_next(&mbeatp,&meventp,sem,mbeatp,meventp)<0) break;
+      }
+    }
+  }
+  return 0;
 }

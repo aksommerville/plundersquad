@@ -362,8 +362,11 @@ struct ps_widget *ps_widget_spawn_dialogue_message(
   struct ps_widget *widget=ps_widget_spawn(parent,&ps_widget_type_dialogue);
   if (!widget) return 0;
   if (!ps_widget_dialogue_set_message(widget,message,messagec)) return 0;
-  if (!ps_widget_dialogue_add_button(widget,"Cancel",6,ps_callback(ps_dialogue_cb_cancel,0,widget))) return 0;
-  if (!ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(cb,0,widget))) return 0;
+  if (cb) {
+    if (!ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(cb,0,widget))) return 0;
+  } else {
+    if (!ps_widget_dialogue_add_button(widget,"OK",2,ps_callback(ps_dialogue_cb_cancel,0,widget))) return 0;
+  }
   if (ps_widget_pack(parent)<0) return 0;
   return widget;
 }

@@ -41,6 +41,7 @@ int ps_widget_root_set_gui(struct ps_widget *widget,struct ps_gui *gui);
 /* Label.
  *****************************************************************************/
 
+struct ps_widget *ps_widget_label_spawn(struct ps_widget *parent,const char *src,int srcc);
 const char *ps_widget_label_get_text(const struct ps_widget *widget);
 int ps_widget_label_set_text(struct ps_widget *widget,const char *src,int srcc);
 int ps_widget_label_set_textfv(struct ps_widget *widget,const char *fmt,va_list vargs);

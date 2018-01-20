@@ -344,6 +344,16 @@ static int _ps_root_key(struct ps_widget *widget,int keycode,int codepoint,int v
     return 0;
   }
 
+  if (codepoint==0x1b) {
+    if (value) {
+      struct ps_widget *active=ps_root_get_active_child(widget);
+      if (active) {
+        if (ps_widget_cancel(active)<0) return -1;
+      }
+    }
+    return 0;
+  }
+
   /* If there is a keyboard focus, give it the event exclusively. */
   if (WIDGET->track_keyboard) {
     if (!ps_widget_is_ancestor(widget,WIDGET->track_keyboard)) {
@@ -529,7 +539,8 @@ static int ps_root_doublecheck_keyboard_focus(struct ps_widget *widget) {
     if (ps_widget_is_ancestor(active,WIDGET->track_keyboard)) {
       return 0;
     }
-    if (ps_widget_unfocus(WIDGET->track_keyboard)<0) return -1;
+    // Don't unfocus it, since it is already orphaned from the UI.
+    //if (ps_widget_unfocus(WIDGET->track_keyboard)<0) return -1;
     if (ps_root_set_track_keyboard(widget,0)<0) return -1;
   }
 

@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "../ps_widget.h"
+#include "ps_corewidgets.h"
 #include "video/ps_video.h"
 
 #define PS_LABEL_SANITY_LIMIT 255
@@ -79,6 +80,19 @@ const struct ps_widget_type ps_widget_type_label={
   .measure=_ps_label_measure,
 
 };
+
+/* Convenience ctor.
+ */
+ 
+struct ps_widget *ps_widget_label_spawn(struct ps_widget *parent,const char *src,int srcc) {
+  struct ps_widget *widget=ps_widget_spawn(parent,&ps_widget_type_label);
+  if (!widget) return 0;
+  if (ps_widget_label_set_text(widget,src,srcc)<0) {
+    ps_widget_kill(widget);
+    return 0;
+  }
+  return widget;
+}
 
 /* Accessors.
  */

@@ -23,6 +23,9 @@ static int ps_editsong_cb_tempo(struct ps_widget *button,struct ps_widget *widge
 static int ps_editsong_cb_add_drum(struct ps_widget *button,struct ps_widget *widget);
 static int ps_editsong_cb_add_instrument(struct ps_widget *button,struct ps_widget *widget);
 static int ps_editsong_cb_len(struct ps_widget *button,struct ps_widget *widget);
+static int ps_editsong_cb_dup(struct ps_widget *button,struct ps_widget *widget);
+static int ps_editsong_cb_del(struct ps_widget *button,struct ps_widget *widget);
+static int ps_editsong_cb_mod(struct ps_widget *button,struct ps_widget *widget);
 static int ps_editsong_stop(struct ps_widget *widget);
 static int ps_editsong_cb_mixer_sync(struct akau_song *song,int beatp,void *userdata);
 
@@ -82,6 +85,9 @@ static int _ps_editsong_init(struct ps_widget *widget) {
   if (!ps_widget_menubar_add_button(child,"+D",2,ps_callback(ps_editsong_cb_add_drum,0,widget))) return -1;
   if (!ps_widget_menubar_add_button(child,"+I",2,ps_callback(ps_editsong_cb_add_instrument,0,widget))) return -1;
   if (!ps_widget_menubar_add_button(child,"Len",3,ps_callback(ps_editsong_cb_len,0,widget))) return -1;
+  if (!ps_widget_menubar_add_button(child,"Dup",3,ps_callback(ps_editsong_cb_dup,0,widget))) return -1;
+  if (!ps_widget_menubar_add_button(child,"Del",3,ps_callback(ps_editsong_cb_del,0,widget))) return -1;
+  if (!ps_widget_menubar_add_button(child,"Mod",3,ps_callback(ps_editsong_cb_mod,0,widget))) return -1;
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_scrolllist))) return -1; // voicelist
   child->bgrgba=0x000000ff;
@@ -490,6 +496,36 @@ static int ps_editsong_cb_len(struct ps_widget *button,struct ps_widget *widget)
   if (ps_widget_dialogue_set_userdata(dialogue,widget,0)<0) return -1;
 
   return 0;
+}
+
+/* Dup, del, mod.
+ */
+
+static int ps_editsong_cb_songdlg_ok(struct ps_widget *songdlg,struct ps_widget *widget) {
+  if (ps_sem_write_song(WIDGET->song,WIDGET->sem)<0) return -1;
+  if (ps_editsong_rebuild_songchart(widget)<0) return -1;
+  return 0;
+}
+
+static int ps_editsong_begin_songdlg(struct ps_widget *widget,int mode) {
+  struct ps_widget *root=ps_widget_get_root(widget);
+  struct ps_widget *songdlg=ps_widget_spawn(root,&ps_widget_type_songdlg);
+  if (!songdlg) return -1;
+  if (ps_widget_songdlg_setup(songdlg,widget,mode,ps_callback(ps_editsong_cb_songdlg_ok,0,widget))<0) return -1;
+  if (ps_widget_pack(root)<0) return -1;
+  return 0;
+}
+
+static int ps_editsong_cb_dup(struct ps_widget *button,struct ps_widget *widget) {
+  return ps_editsong_begin_songdlg(widget,PS_WIDGET_SONGDLG_MODE_DUP);
+}
+
+static int ps_editsong_cb_del(struct ps_widget *button,struct ps_widget *widget) {
+  return ps_editsong_begin_songdlg(widget,PS_WIDGET_SONGDLG_MODE_DEL);
+}
+
+static int ps_editsong_cb_mod(struct ps_widget *button,struct ps_widget *widget) {
+  return ps_editsong_begin_songdlg(widget,PS_WIDGET_SONGDLG_MODE_MOD);
 }
 
 /* Accessors.

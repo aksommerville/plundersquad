@@ -43,6 +43,7 @@ static int _ps_field_init(struct ps_widget *widget) {
 
   widget->bgrgba=0xffffffff;
   widget->fgrgba=0x000000ff;
+  widget->accept_mouse_focus=1;
   WIDGET->font_resid=0;
   WIDGET->size=12;
   
@@ -114,13 +115,12 @@ static int _ps_field_measure(int *w,int *h,struct ps_widget *widget,int maxw,int
 static int _ps_field_pack(struct ps_widget *widget) {
   int i=0; for (;i<widget->childc;i++) {
     struct ps_widget *child=widget->childv[i];
-    // Set child bounds.
     if (ps_widget_pack(child)<0) return -1;
   }
   return 0;
 }
 
-/* Primitive input events.
+/* Keyboard event.
  */
 
 static int _ps_field_key(struct ps_widget *widget,int keycode,int codepoint,int value) {
@@ -146,11 +146,22 @@ static int _ps_field_key(struct ps_widget *widget,int keycode,int codepoint,int 
   return 0;
 }
 
+/* Mouse event.
+ */
+
+static int _ps_field_mousebutton(struct ps_widget *widget,int btnid,int value) {
+  if ((btnid==1)&&value) {
+    if (ps_widget_root_request_keyboard_focus(ps_widget_get_root(widget),widget)<0) return -1;
+  }
+  return 0;
+}
+
 /* Digested input events.
  */
 
 static int _ps_field_focus(struct ps_widget *widget) {
   WIDGET->focus=1;
+  WIDGET->insp_blink=0;
   return 0;
 }
 
@@ -176,6 +187,7 @@ const struct ps_widget_type ps_widget_type_field={
   .pack=_ps_field_pack,
 
   .key=_ps_field_key,
+  .mousebutton=_ps_field_mousebutton,
 
   .focus=_ps_field_focus,
   .unfocus=_ps_field_unfocus,

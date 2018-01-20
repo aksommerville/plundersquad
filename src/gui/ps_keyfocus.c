@@ -243,3 +243,13 @@ int ps_keyfocus_retreat(struct ps_keyfocus *keyfocus) {
 int ps_keyfocus_drop(struct ps_keyfocus *keyfocus) {
   return ps_keyfocus_replace(keyfocus,-1);
 }
+
+int ps_keyfocus_set_focus(struct ps_keyfocus *keyfocus,struct ps_widget *requested) {
+  if (!keyfocus||!requested) return -1;
+  int i=keyfocus->c; while (i-->0) {
+    if (keyfocus->v[i]==requested) {
+      return ps_keyfocus_replace(keyfocus,i);
+    }
+  }
+  return -1;
+}

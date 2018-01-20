@@ -38,6 +38,12 @@ extern const struct ps_widget_type ps_widget_type_scrollbar; /* General-purpose 
 struct ps_gui *ps_widget_root_get_gui(const struct ps_widget *widget);
 int ps_widget_root_set_gui(struct ps_widget *widget,struct ps_gui *gui);
 
+/* Root handles keyboard focus on its own, as far as the Tab key goes.
+ * Root does NOT handle mouse clicks in a keyboard-focusable widget.
+ * For that, you must catch those mouse events yourself and request the keyboard focus manually.
+ */
+int ps_widget_root_request_keyboard_focus(struct ps_widget *widget,struct ps_widget *focus);
+
 /* Label.
  *****************************************************************************/
 

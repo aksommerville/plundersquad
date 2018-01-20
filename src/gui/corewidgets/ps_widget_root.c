@@ -482,3 +482,16 @@ static int ps_root_doublecheck_keyboard_focus(struct ps_widget *widget) {
   if (ps_keyfocus_refresh(WIDGET->keyfocus,ps_root_get_active_child(widget))<0) return -1;
   return 0;
 }
+
+/* Request keyboard focus.
+ */
+ 
+int ps_widget_root_request_keyboard_focus(struct ps_widget *widget,struct ps_widget *focus) {
+  if (!widget||(widget->type!=&ps_widget_type_root)) return -1;
+  if (focus) {
+    if (ps_keyfocus_set_focus(WIDGET->keyfocus,focus)<0) return -1;
+  } else {
+    if (ps_keyfocus_drop(WIDGET->keyfocus)<0) return -1;
+  }
+  return 0;
+}

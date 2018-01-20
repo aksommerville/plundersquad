@@ -39,9 +39,11 @@ struct ps_widget *ps_keyfocus_get_focus(struct ps_keyfocus *keyfocus);
 
 /* Routine change-of-focus events.
  * These trigger callbacks as warranted.
+ * Setting focus manually only works if we already know it as a candidate.
  */
 int ps_keyfocus_advance(struct ps_keyfocus *keyfocus);
 int ps_keyfocus_retreat(struct ps_keyfocus *keyfocus);
 int ps_keyfocus_drop(struct ps_keyfocus *keyfocus);
+int ps_keyfocus_set_focus(struct ps_keyfocus *keyfocus,struct ps_widget *requested);
 
 #endif

@@ -21,7 +21,7 @@ int ps_input_event_connect(struct ps_input_device *device) {
    */
   if (ps_input.preconfig) return 0;
 
-  ps_log(INPUT,INFO,"Connecting input device '%.*s'.",device->namec,device->name);
+  ps_log(INPUT,DEBUG,"Connecting input device '%.*s'.",device->namec,device->name);
   
   ps_input_map_del(device->map);
   device->map=0;
@@ -31,7 +31,7 @@ int ps_input_event_connect(struct ps_input_device *device) {
     char providername[32];
     int providernamec=ps_input_provider_repr(providername,sizeof(providername),device->providerid);
     if (providernamec>(int)sizeof(providername)) providernamec=0;
-    ps_log(INPUT,WARN,
+    ps_log(INPUT,DEBUG,
       "No map template found for input device. provider=%.*s, name='%.*s', vendorid=0x%04x, deviceid=0x%04x",
       providernamec,providername,device->namec,device->name,device->vendorid,device->deviceid
     );
@@ -62,7 +62,7 @@ int ps_input_event_connect(struct ps_input_device *device) {
 int ps_input_event_disconnect(struct ps_input_device *device) {
   if (!device) return -1;
 
-  ps_log(INPUT,INFO,"Disconnecting input device '%.*s'.",device->namec,device->name);
+  ps_log(INPUT,DEBUG,"Disconnecting input device '%.*s'.",device->namec,device->name);
 
   /* Call watchers. */
   int i=0; for (;i<ps_input.watchc;i++) {

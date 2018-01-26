@@ -127,7 +127,8 @@ static int ps_resmgr_load_directory(const char *path) {
     
     struct ps_restype *type=ps_resmgr_get_type_by_name(base,basec);
     if (!type) {
-      ps_log(RES,WARN,"Unexpected file '%s' in resource directory '%s'.",base,path);
+      if ((basec==5)&&!memcmp(base,"audio",5)) ; // We know about this one, ignore it.
+      else ps_log(RES,WARN,"Unexpected file '%s' in resource directory '%s'.",base,path);
       continue;
     }
 

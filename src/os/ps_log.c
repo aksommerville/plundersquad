@@ -7,13 +7,13 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
 #define _(domain,level) [PS_LOG_DOMAIN_##domain]=PS_LOG_LEVEL_##level,
   _(              ,TRACE)
   _(MACIOC        ,TRACE)
-  _(CLOCK         ,TRACE)
+  _(CLOCK         ,DEBUG)
   _(RES           ,INFO)
   _(AUDIO         ,TRACE)
   _(VIDEO         ,TRACE)
   _(GENERATOR     ,TRACE)
-  _(INPUT         ,DEBUG)
-  _(MAIN          ,TRACE)
+  _(INPUT         ,INFO)
+  _(MAIN          ,DEBUG)
   _(EDIT          ,TRACE)
   _(MACWM         ,TRACE)
   _(TEST          ,TRACE) /* TEST log level is also influenced by test verbosity. */

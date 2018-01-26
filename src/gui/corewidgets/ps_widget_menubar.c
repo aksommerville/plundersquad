@@ -27,7 +27,7 @@ static void _ps_menubar_del(struct ps_widget *widget) {
 
 static int _ps_menubar_init(struct ps_widget *widget) {
 
-  widget->bgrgba=0x808080ff;
+  widget->bgrgba=0xc0c0c0ff;
   WIDGET->hpadding=5;
   WIDGET->vpadding=0;
   WIDGET->spacing=5;

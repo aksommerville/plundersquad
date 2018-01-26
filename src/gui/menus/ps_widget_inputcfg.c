@@ -206,6 +206,9 @@ static int ps_inputcfg_commit_map(struct ps_widget *widget) {
     return -1;
   }
 
+  int playerid=0;
+  if (WIDGET->device->map) playerid=WIDGET->device->map->plrid;
+
   if (ps_input_device_set_map(WIDGET->device,map)<0) {
     ps_input_map_del(map);
     return -1;
@@ -234,6 +237,8 @@ static int ps_inputcfg_commit_map(struct ps_widget *widget) {
     ps_log(GUI,ERROR,"Failed to save input configuration.");
     return 0;
   }
+
+  if (ps_input_force_device_assignment(WIDGET->device,playerid)<0) return -1;
 
   return 0;
 }

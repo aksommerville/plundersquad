@@ -46,6 +46,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
   for (i=1;i<=playerc;i++) {
     if (ps_game_configure_player(ps_game,i,i,i,0)<0) return -1;
   }
+  if (ps_input_set_noninteractive_device_assignment()<0) return -1;
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
   if (ps_game_configure_player(ps_game,1,2,0,0)<0) return -1;

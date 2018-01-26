@@ -420,7 +420,7 @@ static int ps_heroselect_advance_input_config(struct ps_widget *widget) {
 
   if (ps_heroselect_rebuild_children_for_phase(widget,PS_HEROSELECT_PHASE_CONFIG)<0) return -1;
   if (ps_widget_pack(widget)<0) return -1;
-    WIDGET->input_delay=ps_time_now()+PS_HEROSELECT_INPUT_DELAY;
+  WIDGET->input_delay=ps_time_now()+PS_HEROSELECT_INPUT_DELAY;
   return 0;
 }
 

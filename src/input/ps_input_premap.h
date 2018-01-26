@@ -31,4 +31,13 @@ int ps_input_premap_search(const struct ps_input_premap *premap,int srcbtnid);
 struct ps_input_btncfg *ps_input_premap_get(const struct ps_input_premap *premap,int srcbtnid);
 struct ps_input_btncfg *ps_input_premap_insert(struct ps_input_premap *premap,int p,int srcbtnid);
 
+/* Nonzero if the device described here could be used as a player input.
+ */
+int ps_input_premap_usable(const struct ps_input_premap *premap);
+
+/* Convenience; Create a new premap for this device and attach it to the device.
+ * If one already exists, we do nothing and report success.
+ */
+int ps_input_premap_build_for_device(struct ps_input_device *device);
+
 #endif

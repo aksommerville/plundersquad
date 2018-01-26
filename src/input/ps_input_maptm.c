@@ -672,3 +672,17 @@ struct ps_input_maptm *ps_input_maptm_generate_from_device(const struct ps_input
 
   return maptm;
 }
+
+/* Compare matching criteria.
+ */
+ 
+int ps_input_maptm_identical_criteria(const struct ps_input_maptm *a,const struct ps_input_maptm *b) {
+  if (a==b) return 1;
+  if (!a||!b) return 0;
+  if (a->providerid!=b->providerid) return 0;
+  if (a->vendorid!=b->vendorid) return 0;
+  if (a->deviceid!=b->deviceid) return 0;
+  if (a->namepatternc!=b->namepatternc) return 0;
+  if (memcmp(a->namepattern,b->namepattern,a->namepatternc)) return 0;
+  return 1;
+}

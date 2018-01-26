@@ -134,3 +134,36 @@ int ps_input_premap_rebuild(struct ps_input_premap *premap,struct ps_input_devic
   
   return 0;
 }
+
+/* Assess usability.
+ */
+ 
+int ps_input_premap_usable(const struct ps_input_premap *premap) {
+  if (!premap) return 0;
+  
+  /* We need two axes and three buttons.
+   * There's a few ways that could be formulated.
+   */
+  if ((premap->axis2c>=2)&&(premap->btnc>=3)) return 1; // The simplest case.
+  if ((premap->axis2c>=2)&&(premap->axis1c+premap->btnc>=3)) return 1; // One-way axis can probably be used as a button.
+  if (premap->btnc>=7) return 1; // Can substitute two buttons for one axis.
+  if (premap->axis1c+premap->btnc>=7) return 1; // ...and I guess one-way axes are also kosher there.
+  
+  return 0;
+}
+
+/* Convenience ctor.
+ */
+
+int ps_input_premap_build_for_device(struct ps_input_device *device) {
+  if (!device) return -1;
+  if (device->premap) return 0;
+  struct ps_input_premap *premap=ps_input_premap_new();
+  if (!premap) return -1;
+  if (ps_input_premap_rebuild(premap,device)<0) {
+    ps_input_premap_del(premap);
+    return -1;
+  }
+  device->premap=premap; // Handoff
+  return 0;
+}

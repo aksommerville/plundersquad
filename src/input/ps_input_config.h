@@ -34,4 +34,9 @@ struct ps_input_maptm *ps_input_config_select_maptm_for_device(
 
 int ps_input_config_install_maptm(struct ps_input_config *config,struct ps_input_maptm *maptm_HANDOFF);
 
+/* Delete any installed maptm which matches the same devices as this new one.
+ * New maptm MUST NOT already be installed, or it will surely be deleted.
+ */
+int ps_input_config_remove_similar_maptm(struct ps_input_config *config,struct ps_input_maptm *maptm);
+
 #endif

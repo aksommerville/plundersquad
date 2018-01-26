@@ -12,12 +12,16 @@ extern const struct ps_widget_type ps_widget_type_assemblepage; /* First screen,
 extern const struct ps_widget_type ps_widget_type_setuppage; /* Second screen, configure scenario generator. */
 extern const struct ps_widget_type ps_widget_type_pausepage; /* Popup menu during game play. */
 extern const struct ps_widget_type ps_widget_type_gameoverpage; /* Post-game report and menu. */
+extern const struct ps_widget_type ps_widget_type_inputcfgpage; /* Reconfigure input devices on the fly. */
 extern const struct ps_widget_type ps_widget_type_treasurealert; /* Splash to show newly-collected treasure. */
 
 extern const struct ps_widget_type ps_widget_type_heropacker; /* Principal component of assemblepage. */
 extern const struct ps_widget_type ps_widget_type_heroselect; /* Single player box in assemblepage. */
 extern const struct ps_widget_type ps_widget_type_sprite; /* General-purpose sprite view. */
 extern const struct ps_widget_type ps_widget_type_report; /* Game-over report. */
+extern const struct ps_widget_type ps_widget_type_inputcfgpacker; /* Principal component of inputcfgpage. */
+extern const struct ps_widget_type ps_widget_type_inputcfg; /* Panel in inputcfgpacker, for one device. */
+extern const struct ps_widget_type ps_widget_type_inputstatus; /* Shows current values from device. */
 
 /* Assemblepage.
  *****************************************************************************/
@@ -50,6 +54,17 @@ int ps_widget_sprite_modify_palette(struct ps_widget *widget,int d);
 
 int ps_widget_gameoverpage_setup(struct ps_widget *widget,const struct ps_game *game);
 int ps_widget_report_generate(struct ps_widget *widget,const struct ps_game *game);
+
+/* Inputcfgpage.
+ *****************************************************************************/
+
+int ps_widget_inputcfg_setup(struct ps_widget *widget,struct ps_input_device *device);
+struct ps_input_device *ps_widget_inputcfg_get_device(const struct ps_widget *widget);
+int ps_inputcfg_cb_begin_reset(struct ps_widget *button,struct ps_widget *widget);
+int ps_widget_inputcfg_set_reset_shortcut_name(struct ps_widget *widget,const char *name);
+int ps_widget_inputstatus_set_device(struct ps_widget *widget,struct ps_input_device *device);
+int ps_widget_inputstatus_set_manual(struct ps_widget *widget,int manual); // Do this to highlight buttons manually.
+int ps_widget_inputstatus_highlight(struct ps_widget *widget,uint16_t btnid,int value);
 
 /* Treasurealert.
  *****************************************************************************/

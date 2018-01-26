@@ -32,7 +32,7 @@ static void _ps_button_del(struct ps_widget *widget) {
 
 static int _ps_button_init(struct ps_widget *widget) {
 
-  widget->bgrgba=0x808080ff;
+  widget->bgrgba=0xc0c0c0ff;
   widget->fgrgba=0x000000ff;
   WIDGET->bevel_width=3; // Always renders 1 pixel, but you can set higher to establish a margin.
   WIDGET->border_width=1;

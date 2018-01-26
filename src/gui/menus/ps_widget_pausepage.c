@@ -53,6 +53,8 @@ static int _ps_pausepage_init(struct ps_widget *widget) {
   label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"End game",8))) return -1;
   label->fgrgba=textcolor;
+  if (!(label=ps_widget_menu_spawn_label(menu,"Input config",-1))) return -1;
+  label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"Quit",4))) return -1;
   label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Heal all",-1))) return -1;
@@ -145,6 +147,15 @@ static int ps_pausepage_cancel(struct ps_widget *widget) {
   return 0;
 }
 
+/* Configure input.
+ */
+
+static int ps_pausepage_input_config(struct ps_widget *widget) {
+  struct ps_gui *gui=ps_widget_get_gui(widget);
+  if (ps_gui_load_page_inputcfg(gui)<0) return -1;
+  return 0;
+}
+
 /* Quit.
  */
 
@@ -174,8 +185,9 @@ static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 1: return ps_pausepage_to_beginning(widget);
     case 2: return ps_pausepage_restart(widget);
     case 3: return ps_pausepage_cancel(widget);
-    case 4: return ps_pausepage_quit(widget);
-    case 5: return ps_pausepage_heal_all(widget);
+    case 4: return ps_pausepage_input_config(widget);
+    case 5: return ps_pausepage_quit(widget);
+    case 6: return ps_pausepage_heal_all(widget);
   }
   return 0;
 }

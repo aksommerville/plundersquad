@@ -60,6 +60,7 @@ static int _ps_setuppage_init(struct ps_widget *widget) {
   if (ps_widget_slider_set_value(child,PS_LENGTH_DEFAULT)<0) return -1;
   
   if (!ps_widget_menu_spawn_label(menu,"Return to player selection",-1)) return -1;
+  if (!ps_widget_menu_spawn_label(menu,"Input config",-1)) return -1;
   if (!ps_widget_menu_spawn_label(menu,"Quit",4)) return -1;
 
   return 0;
@@ -171,6 +172,13 @@ static int ps_setuppage_finish(struct ps_widget *widget) {
   return 0;
 }
 
+/* Launch input configuration.
+ */
+
+static int ps_setuppage_input_config(struct ps_widget *widget) {
+  return ps_gui_load_page_inputcfg(ps_widget_get_gui(widget));
+}
+
 /* Menu callback.
  */
  
@@ -180,7 +188,8 @@ static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 1: break; // difficulty
     case 2: break; // length
     case 3: return ps_setuppage_return_to_assemble(widget);
-    case 4: return ps_input_request_termination();
+    case 4: return ps_setuppage_input_config(widget);
+    case 5: return ps_input_request_termination();
   }
   return 0;
 }

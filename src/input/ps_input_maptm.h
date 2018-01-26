@@ -74,4 +74,8 @@ int ps_input_maptm_decode(struct ps_input_maptm *maptm,const char *src,int srcc)
  */
 struct ps_input_maptm *ps_input_maptm_generate_from_device(const struct ps_input_device *device);
 
+/* Nonzero if (a) and (b) match exactly the same devices.
+ */
+int ps_input_maptm_identical_criteria(const struct ps_input_maptm *a,const struct ps_input_maptm *b);
+
 #endif

@@ -60,6 +60,24 @@ int ps_input_config_install_maptm(struct ps_input_config *config,struct ps_input
   return 0;
 }
 
+/* Remove similar templates.
+ */
+ 
+int ps_input_config_remove_similar_maptm(struct ps_input_config *config,struct ps_input_maptm *maptm) {
+  if (!config||!maptm) return -1;
+  int i=0; while (i<config->maptmc) {
+    struct ps_input_maptm *existing=config->maptmv[i];
+    if (ps_input_maptm_identical_criteria(existing,maptm)) {
+      config->maptmc--;
+      memmove(config->maptmv+i,config->maptmv+i+1,sizeof(void*)*(config->maptmc-i));
+      ps_input_maptm_del(existing);
+    } else {
+      i++;
+    }
+  }
+  return 0;
+}
+
 /* Save.
  */
 

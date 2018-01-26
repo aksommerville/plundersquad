@@ -23,6 +23,7 @@ struct ps_widget_menu {
   struct ps_widget hdr;
   int optionp;
   struct ps_callback cb;
+  int mousex,mousey;
 };
 
 #define WIDGET ((struct ps_widget_menu*)widget)
@@ -73,14 +74,38 @@ static int _ps_menu_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Get option index from vertical position.
+ */
+
+static int ps_menu_get_index_by_vertical(const struct ps_widget *widget,int y) {
+  if (!widget||(widget->childc<2)) return -1;
+  struct ps_widget *packer=widget->childv[1];
+  int i=packer->childc; while (i-->0) {
+    struct ps_widget *option=packer->childv[i];
+    if (y<option->y) continue;
+    if (y>=option->y+option->h) continue;
+    return i;
+  }
+  return -1;
+}
+
 /* Primitive input events.
  */
 
 static int _ps_menu_mousemotion(struct ps_widget *widget,int x,int y) {
+  WIDGET->mousex=x;
+  WIDGET->mousey=y;
   return 0;
 }
 
 static int _ps_menu_mousebutton(struct ps_widget *widget,int btnid,int value) {
+  if ((btnid==1)&&(value==1)) {
+    int childp=ps_menu_get_index_by_vertical(widget,WIDGET->mousey);
+    if (childp>=0) {
+      if (ps_menu_set_thumb_position(widget,1)<0) return -1;
+      WIDGET->optionp=childp;
+    }
+  }
   return 0;
 }
 

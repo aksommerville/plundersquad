@@ -138,7 +138,7 @@ static struct ps_widget *ps_widget_menubar_require_title(struct ps_widget *widge
   if ((widget->childc>0)&&(widget->childv[widget->childc-1]->type==&ps_widget_type_label)) return widget->childv[widget->childc-1];
   struct ps_widget *label=ps_widget_spawn(widget,&ps_widget_type_label);
   if (!label) return 0;
-  label->fgrgba=0xc0c0c0ff;
+  label->fgrgba=0x606060ff;
   return label;
 }
  

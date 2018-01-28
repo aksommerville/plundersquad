@@ -540,7 +540,7 @@ static int ps_editblueprint_highlight_poi(struct ps_widget *metadata,int childp)
 static int ps_editblueprint_unhighlight_poi(struct ps_widget *metadata,int childp) {
   if ((childp<0)||(childp>=metadata->childc)) return -1;
   struct ps_widget *button=metadata->childv[childp];
-  button->bgrgba=0x808080ff;
+  button->bgrgba=0xc0c0c0ff;
   return 0;
 }
  

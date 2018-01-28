@@ -31,8 +31,6 @@ struct ps_sprite_hero {
   int walk_in_progress;
   int sword_in_progress;
   int hookshot_in_progress;
-  int flame_in_progress;
-  int flame_counter;
   int fly_in_progress;
   int fly_counter;
   int carry_in_progress;
@@ -77,10 +75,5 @@ int ps_hero_set_dragon_charge(struct ps_sprite *spr,int p,int c);
 #define PS_HERO_ACTION_FLY          7
 #define PS_HERO_ACTION_MARTYR       8
 #define PS_HERO_ACTION_FROG         9
-
-#define PS_HERO_FLAMES_RAMP_UP_TIME   120
-#define PS_HERO_FLAMES_ORBIT_TIME      60
-#define PS_HERO_FLAMES_ORBIT_DISTANCE PS_TILESIZE
-#define PS_HERO_FLAMES_MARGIN 4.0 /* Physical bounds beyond orbit */
 
 #endif

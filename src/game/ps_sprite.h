@@ -170,6 +170,7 @@ extern const struct ps_sprtype ps_sprtype_dragon;
 extern const struct ps_sprtype ps_sprtype_toast;
 extern const struct ps_sprtype ps_sprtype_bomb;
 extern const struct ps_sprtype ps_sprtype_skeleton;
+extern const struct ps_sprtype ps_sprtype_flames;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
@@ -180,6 +181,8 @@ int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps
 struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p,int c);
 int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_game *game);
 int ps_sprite_bomb_throw(struct ps_sprite *spr,int direction,int magnitude);
+int ps_sprite_flames_throw(struct ps_sprite *spr,int direction);
+struct ps_sprite *ps_sprite_flames_find_for_hero(const struct ps_game *game,const struct ps_sprite *hero); // Does not return moving flames.
 
 int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game);

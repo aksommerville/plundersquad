@@ -16,7 +16,8 @@
 #define PS_SFX_HOOKSHOT_BEGIN akau_play_sound(17,0x80,0);
 #define PS_SFX_HOOKSHOT_BONK akau_play_sound(18,0x80,0);
 #define PS_SFX_HOOKSHOT_GRAB akau_play_sound(19,0x80,0);
-#define PS_SFX_FLAME
+#define PS_SFX_FLAMES_BEGIN akau_play_sound(40,0x80,0);
+#define PS_SFX_FLAMES_THROW akau_play_sound(41,0x80,0);
 #define PS_SFX_HEALMISSILE akau_play_sound(20,0x80,0);
 #define PS_SFX_TRANSFORM akau_play_sound(21,0x80,0);
 #define PS_SFX_UNTRANSFORM akau_play_sound(22,0x80,0);

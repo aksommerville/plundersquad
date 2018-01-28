@@ -194,11 +194,6 @@ static int ps_hero_animate(struct ps_sprite *spr) {
     SPR->healtime--;
   }
 
-  /* Flames. */
-  if (SPR->flame_in_progress) {
-    SPR->flame_counter++;
-  }
-
   /* Dragon charger. */
   if (SPR->dragoncharge>0) {
     SPR->dragoncharge--;
@@ -383,46 +378,6 @@ static int ps_hero_draw_fly(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spr
   return 1;
 }
 
-/* Draw flames.
- */
-
-static void ps_hero_draw_flames(struct ps_sprite *spr,struct akgl_vtx_maxtile *vtxv) {
-
-  double distance;
-  if (SPR->flame_counter<PS_HERO_FLAMES_RAMP_UP_TIME) {
-    distance=(double)(SPR->flame_counter*PS_HERO_FLAMES_ORBIT_DISTANCE)/(double)PS_HERO_FLAMES_RAMP_UP_TIME;
-  } else {
-    distance=PS_HERO_FLAMES_ORBIT_DISTANCE;
-  }
-
-  double angle=(SPR->flame_counter*M_PI*2.0)/PS_HERO_FLAMES_ORBIT_TIME;
-  double dx=cos(angle)*distance;
-  double dy=-sin(angle)*distance;
-  vtxv->x=spr->x+dx;
-  vtxv->y=spr->y+dy;
-  vtxv->size=PS_TILESIZE;
-  vtxv->tileid=0x6f;
-  vtxv->pr=0x80;
-  vtxv->pg=0x80;
-  vtxv->pb=0x80;
-  vtxv->a=0xff;
-  vtxv->ta=0;
-  vtxv->t=0;
-  vtxv->xform=AKGL_XFORM_NONE;
-
-  int i; for (i=1;i<4;i++) {
-    memcpy(vtxv+i,vtxv,sizeof(struct akgl_vtx_maxtile));
-    vtxv[i].tileid+=i*0x10;
-  }
-
-  vtxv[1].x=spr->x+dy;
-  vtxv[1].y=spr->y-dx;
-  vtxv[2].x=spr->x-dx;
-  vtxv[2].y=spr->y-dy;
-  vtxv[3].x=spr->x-dy;
-  vtxv[3].y=spr->y+dx;
-}
-
 /* Draw.
  */
 
@@ -439,7 +394,6 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
    */
   int vtxc=2;
   if (SPR->sword_in_progress) vtxc=3;
-  if (SPR->flame_in_progress) vtxc+=4;
   if (vtxa<vtxc) return vtxc;
   
   /* Enumerate vertices. */
@@ -583,11 +537,6 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
           vtx_sword->x+=PS_TILESIZE;
         }
       } break;
-  }
-
-  /* Make flame sprites. */
-  if (SPR->flame_in_progress) {
-    ps_hero_draw_flames(spr,vtxv+vtxc-4);
   }
   
   return vtxc;

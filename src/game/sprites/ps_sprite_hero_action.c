@@ -194,47 +194,38 @@ int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_hero_flame_begin(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,DEBUG,"%s",__func__);
-  if (SPR->flame_in_progress) return 0;
-  PS_SFX_FLAME
-  SPR->flame_in_progress=1;
-  SPR->flame_counter=0;
+
+  struct ps_sprite *flames=ps_sprite_flames_find_for_hero(game,spr);
+  if (flames) return 0;
+
+  PS_SFX_FLAMES_BEGIN
+
+  if (!(flames=ps_sprite_new(&ps_sprtype_flames))) return -1;
+
+  if (ps_game_set_group_mask_for_sprite(game,flames,
+    (1<<PS_SPRGRP_KEEPALIVE)|
+    (1<<PS_SPRGRP_VISIBLE)|
+    (1<<PS_SPRGRP_UPDATE)
+  )<0) {
+    ps_sprite_del(flames);
+    return -1;
+  }
+  ps_sprite_del(flames);
+
+  if (ps_sprite_set_master(flames,spr,game)<0) return -1;
+
   return 0;
 }
 
 static int ps_hero_flame_end(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,DEBUG,"%s",__func__);
-  if (!SPR->flame_in_progress) return 0;
-  SPR->flame_in_progress=0;
-  //TODO flames draw-down?
+  struct ps_sprite *flames=ps_sprite_flames_find_for_hero(game,spr);
+  if (!flames) return 0;
+  PS_SFX_FLAMES_THROW
+  if (ps_sprite_flames_throw(flames,SPR->facedir)<0) return -1;
   return 0;
 }
 
 static int ps_hero_flame_continue(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,DEBUG,"%s",__func__);
-
-  double distance;
-  if (SPR->flame_counter<PS_HERO_FLAMES_RAMP_UP_TIME) {
-    distance=(double)(SPR->flame_counter*PS_HERO_FLAMES_ORBIT_DISTANCE)/(double)PS_HERO_FLAMES_RAMP_UP_TIME;
-  } else {
-    distance=PS_HERO_FLAMES_ORBIT_DISTANCE;
-  }
-  distance+=PS_HERO_FLAMES_MARGIN;
-  if (distance<=spr->radius) return 0;
-
-  double restore_radius=spr->radius;
-  spr->radius=distance;
-  int i; for (i=0;i<game->grpv[PS_SPRGRP_FRAGILE].sprc;i++) {
-    struct ps_sprite *victim=game->grpv[PS_SPRGRP_FRAGILE].sprv[i];
-    if (victim==spr) continue;
-    if (!ps_sprites_collide(spr,victim)) continue;
-    if (ps_sprite_receive_damage(game,victim,spr)<0) {
-      spr->radius=restore_radius;
-      return -1;
-    }
-  }
-  spr->radius=restore_radius;
-  
   return 0;
 }
 

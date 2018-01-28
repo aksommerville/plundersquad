@@ -11,6 +11,7 @@
 #include "ps_dragoncharger.h"
 #include "ps_game_renderer.h"
 #include "ps_summoner.h"
+#include "ps_switchboard.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -29,6 +30,7 @@
 #define PS_SPLASH_SPRDEF_ID 24
 
 static int ps_game_npgc_pop(struct ps_game *game);
+static int ps_game_cb_switch(int switchid,int value,void *userdata);
 
 /* New game.
  */
@@ -50,6 +52,9 @@ static int ps_game_initialize(struct ps_game *game) {
   if (!(game->bloodhound_activator=ps_bloodhound_activator_new())) return -1;
   if (!(game->dragoncharger=ps_dragoncharger_new())) return -1;
   if (!(game->summoner=ps_summoner_new())) return -1;
+  
+  if (!(game->switchboard=ps_switchboard_new())) return -1;
+  if (ps_switchboard_set_callback(game->switchboard,ps_game_cb_switch,game)<0) return -1;
 
   return 0;
 }
@@ -77,6 +82,7 @@ void ps_game_del(struct ps_game *game) {
   ps_bloodhound_activator_del(game->bloodhound_activator);
   ps_game_renderer_del(game->renderer);
   ps_summoner_del(game->summoner);
+  ps_switchboard_del(game->switchboard);
 
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
@@ -525,6 +531,7 @@ int ps_game_restart(struct ps_game *game) {
   game->grid=PS_SCENARIO_SCREEN(game->scenario,game->gridx,game->gridy)->grid;
   game->grid->visited=1;
   if (ps_grid_close_all_barriers(game->grid)<0) return -1;
+  if (ps_switchboard_clear(game->switchboard,0)<0) return -1;
   if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
 
   ps_sprgrp_kill(game->grpv+PS_SPRGRP_KEEPALIVE);
@@ -559,6 +566,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   game->finished=0;
   game->paused=0;
   ps_game_npgc_pop(game);
+  if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
 
   game->gridx=game->scenario->homex;
   game->gridy=game->scenario->homey;
@@ -605,6 +613,7 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
   if (ps_game_renderer_begin_slide(game->renderer,dx,dy)<0) return -1;
 
   ps_game_npgc_pop(game);
+  if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
   game->grid=grid;
   game->gridx+=dx;
   game->gridy+=dy;
@@ -1197,4 +1206,40 @@ int ps_game_reverse_nonpersistent_grid_change(struct ps_game *game,int col,int r
   cell->shape=npgc.shape;
 
   return 0;
+}
+
+/* Callback from switchboard.
+ */
+ 
+static int ps_game_cb_switch(int switchid,int value,void *userdata) {
+  struct ps_game *game=userdata;
+
+  if (value) {
+    if (ps_grid_open_barrier(game->grid,switchid)<0) return -1;
+  } else {
+    if (ps_grid_close_barrier(game->grid,switchid)<0) return -1;
+  }
+
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_BARRIER;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *barrier=grp->sprv[i];
+    if (barrier->switchid!=switchid) continue;
+    if (barrier->type->set_switch) {
+      if (barrier->type->set_switch(game,barrier,value)<0) return -1;
+    } else {
+      ps_log(GAME,WARN,"No action defined for sprite of type '%s' in BARRIER group.",barrier->type->name);
+    }
+  }
+  
+  return 0;
+}
+
+int ps_game_get_switch(const struct ps_game *game,int switchid) {
+  if (!game) return 0;
+  return ps_switchboard_get_switch(game->switchboard,switchid);
+}
+
+int ps_game_set_switch(struct ps_game *game,int switchid,int value) {
+  if (!game) return -1;
+  return ps_switchboard_set_switch(game->switchboard,switchid,value);
 }

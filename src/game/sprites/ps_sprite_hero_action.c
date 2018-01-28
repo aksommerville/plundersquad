@@ -57,10 +57,10 @@ static int ps_hero_check_swordswitch(struct ps_sprite *spr,struct ps_game *game,
     if (fragile->type!=&ps_sprtype_swordswitch) continue;
     
     struct ps_fbox fragilebox=ps_fbox(fragile->x-fragile->radius,fragile->x+fragile->radius,fragile->y-fragile->radius,fragile->y+fragile->radius);
-    if (hazardbox.s<=fragilebox.n) return 0;
-    if (hazardbox.n>=fragilebox.s) return 0;
-    if (hazardbox.e<=fragilebox.w) return 0;
-    if (hazardbox.w>=fragilebox.e) return 0;
+    if (hazardbox.s<=fragilebox.n) continue;
+    if (hazardbox.n>=fragilebox.s) continue;
+    if (hazardbox.e<=fragilebox.w) continue;
+    if (hazardbox.w>=fragilebox.e) continue;
 
     if (ps_swordswitch_activate(fragile,game,spr,force)<0) return -1;
 

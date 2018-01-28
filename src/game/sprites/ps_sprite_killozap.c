@@ -21,7 +21,6 @@
 
 struct ps_sprite_killozap {
   struct ps_sprite hdr;
-  int barrierid;
   int controller; // Nonzero if I own the laser blast.
   int direction; // Zero initially, which flags update() to properly initialize me.
   int laserc; // Count of cells between me and partner, exclusive.
@@ -51,14 +50,14 @@ static int _ps_killozap_init(struct ps_sprite *spr) {
 
 static int _ps_killozap_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   if (argc>=1) {
-    SPR->barrierid=argv[0];
+    spr->switchid=argv[0];
   }
   return 0;
 }
 
 static const char *_ps_killozap_get_configure_argument_name(int argp) {
   switch (argp) {
-    case 0: return "barrierid";
+    case 0: return "switchid";
   }
   return 0;
 }
@@ -83,7 +82,7 @@ static int ps_killozap_setup(struct ps_sprite *spr,struct ps_game *game) {
     if (partner->type!=&ps_sprtype_killozap) continue;
     if (partner==spr) continue;
     struct ps_sprite_killozap *PARTNER=(struct ps_sprite_killozap*)partner;
-    if (PARTNER->barrierid!=SPR->barrierid) continue;
+    if (partner->switchid!=spr->switchid) continue;
     if (PARTNER->direction) continue; // Partner already initialized, find another one.
     
     int partnercol=partner->x/PS_TILESIZE;
@@ -239,6 +238,14 @@ static int _ps_killozap_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sp
   return vtxc;
 }
 
+/* Set switch.
+ */
+
+static int _ps_killozap_set_switch(struct ps_game *game,struct ps_sprite *spr,int value) {
+  SPR->enable=value?0:1;
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -256,26 +263,6 @@ const struct ps_sprtype ps_sprtype_killozap={
   .get_configure_argument_name=_ps_killozap_get_configure_argument_name,
   .update=_ps_killozap_update,
   .draw=_ps_killozap_draw,
+  .set_switch=_ps_killozap_set_switch,
   
 };
-
-/* Barrier state change.
- */
-
-int ps_sprite_killozap_set_open(struct ps_sprite *spr,int open) {
-  if (!spr||(spr->type!=&ps_sprtype_killozap)) return -1;
-  if (open) {
-    SPR->enable=0;
-  } else {
-    SPR->enable=1;
-  }
-  return 0;
-}
-
-/* Accessors.
- */
- 
-int ps_sprite_killozap_get_barrierid(const struct ps_sprite *spr) {
-  if (!spr||(spr->type!=&ps_sprtype_killozap)) return 0;
-  return SPR->barrierid;
-}

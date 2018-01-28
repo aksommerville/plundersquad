@@ -11,7 +11,6 @@
 
 struct ps_sprite_switch {
   struct ps_sprite hdr;
-  int barrierid;
   int state; // Final answer: Am I on or off?
   int stompbox; // Permanent role: Am I a stompbox or a treadle plate?
   int press; // Is someone standing on me right now?
@@ -24,7 +23,7 @@ struct ps_sprite_switch {
 
 static int _ps_switch_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   if (argc>=1) {
-    SPR->barrierid=argv[0];
+    spr->switchid=argv[0];
     if (argc>=2) {
       SPR->stompbox=argv[1];
     }
@@ -34,7 +33,7 @@ static int _ps_switch_configure(struct ps_sprite *spr,struct ps_game *game,const
 
 static const char *_ps_switch_get_configure_argument_name(int argp) {
   switch (argp) {
-    case 0: return "Barrier ID";
+    case 0: return "switchid";
     case 1: return "Stompbox?";
   }
   return 0;
@@ -67,7 +66,7 @@ static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game,struc
 static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *presser) {
   if (SPR->state) return 0;
   SPR->state=1;
-  if (ps_game_adjust_barrier(game,SPR->barrierid,1)<0) return -1;
+  if (ps_game_set_switch(game,spr->switchid,1)<0) return -1;
   if (ps_game_report_switch(game,presser)<0) return -1;
   return 0;
 }
@@ -75,7 +74,7 @@ static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game,struct ps
 static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->state) return 0;
   SPR->state=0;
-  if (ps_game_adjust_barrier(game,SPR->barrierid,0)<0) return -1;
+  if (ps_game_set_switch(game,spr->switchid,0)<0) return -1;
   return 0;
 }
 
@@ -141,6 +140,14 @@ static int _ps_switch_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spri
   return 1;
 }
 
+/* Set switch.
+ */
+
+static int _ps_switch_set_switch(struct ps_game *game,struct ps_sprite *spr,int value) {
+  SPR->state=value;
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -156,5 +163,6 @@ const struct ps_sprtype ps_sprtype_switch={
   .get_configure_argument_name=_ps_switch_get_configure_argument_name,
   .update=_ps_switch_update,
   .draw=_ps_switch_draw,
+  .set_switch=_ps_switch_set_switch,
 
 };

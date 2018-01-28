@@ -56,6 +56,13 @@ static int _ps_dummy_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_s
   return 0;
 }
 
+/* Set switch.
+ */
+
+static int _ps_dummy_set_switch(struct ps_game *game,struct ps_sprite *spr,int value) {
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -75,5 +82,6 @@ const struct ps_sprtype ps_sprtype_dummy={
   //.draw=_ps_dummy_draw,
   
   //.hurt=_ps_dummy_hurt,
+  //.set_switch=_ps_dummy_set_switch,
 
 };

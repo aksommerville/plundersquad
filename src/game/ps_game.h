@@ -20,6 +20,7 @@ struct ps_statusreport;
 struct ps_dragoncharger;
 struct ps_res_trdef;
 struct ps_summoner;
+struct ps_switchboard;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -59,13 +60,13 @@ struct ps_game {
   struct ps_statusreport *statusreport; // optional
   struct ps_dragoncharger *dragoncharger;
   struct ps_summoner *summoner;
+  struct ps_switchboard *switchboard;
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];
   struct ps_grid *grid; // WEAK
   int gridx,gridy; // Grid's position in world.
   struct ps_physics *physics;
 
-  struct ps_video_layer *layer_scene;//XXX
   struct ps_game_renderer *renderer;
 
 // Signals to owner that GUI activity is necessary:
@@ -189,7 +190,8 @@ int ps_game_reverse_nonpersistent_grid_change(struct ps_game *game,int col,int r
  * Generally, a barrier starts closed and you should call this with (open==1) to change it.
  * (barrierid) must be positive; we quietly ignore anything <1.
  */
-int ps_game_adjust_barrier(struct ps_game *game,int barrierid,int open);
+int ps_game_get_switch(const struct ps_game *game,int switchid);
+int ps_game_set_switch(struct ps_game *game,int switchid,int value);
 
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"

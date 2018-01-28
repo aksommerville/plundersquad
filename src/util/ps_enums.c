@@ -158,6 +158,9 @@ int ps_sprdef_fld_k_eval(const char *src,int srcc) {
     case 7: {
         if (!ps_memcasecmp(src,"grpmask",7)) return PS_SPRDEF_FLD_grpmask;
       } break;
+    case 8: {
+        if (!ps_memcasecmp(src,"switchid",8)) return PS_SPRDEF_FLD_switchid;
+      } break;
     case 9: {
         if (!ps_memcasecmp(src,"frametime",9)) return PS_SPRDEF_FLD_frametime;
       } break;
@@ -181,6 +184,7 @@ const char *ps_sprdef_fld_k_repr(int k) {
     case PS_SPRDEF_FLD_difficulty: return "difficulty";
     case PS_SPRDEF_FLD_framec: return "framec";
     case PS_SPRDEF_FLD_frametime: return "frametime";
+    case PS_SPRDEF_FLD_switchid: return "switchid";
   }
   return 0;
 }

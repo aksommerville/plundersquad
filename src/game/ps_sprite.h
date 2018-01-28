@@ -33,6 +33,7 @@ struct ps_sprite {
   int shape;
   int collide_sprites;
   uint16_t impassable; // Mask of cell physics that I can't walk on.
+  int switchid; // Sprites in BARRIER group can request a callback when a global switch changes.
   
   uint8_t tsid; // Sprites may have multiple tiles, but all from the same sheet.
   int layer; // Low layers are drawn first.
@@ -135,6 +136,7 @@ struct ps_sprtype {
   int (*draw)(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr);
 
   int (*hurt)(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant);
+  int (*set_switch)(struct ps_game *game,struct ps_sprite *spr,int value);
 
 };
 
@@ -185,8 +187,6 @@ int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_gam
 int ps_sprite_bomb_throw(struct ps_sprite *spr,int direction,int magnitude);
 int ps_sprite_flames_throw(struct ps_sprite *spr,int direction);
 struct ps_sprite *ps_sprite_flames_find_for_hero(const struct ps_game *game,const struct ps_sprite *hero); // Does not return moving flames.
-int ps_sprite_killozap_set_open(struct ps_sprite *spr,int open);
-int ps_sprite_killozap_get_barrierid(const struct ps_sprite *spr);
 
 int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game);
@@ -206,6 +206,7 @@ int ps_sprite_hookshot_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,
 #define PS_SPRDEF_FLD_difficulty   8
 #define PS_SPRDEF_FLD_framec       9 /* not used generically */
 #define PS_SPRDEF_FLD_frametime   10 /* not used generically */
+#define PS_SPRDEF_FLD_switchid    11
 
 struct ps_sprdef_fld {
   int k,v;

@@ -58,6 +58,7 @@ int ps_widget_report_generate(struct ps_widget *widget,const struct ps_game *gam
 /* Inputcfgpage.
  *****************************************************************************/
 
+int ps_widget_inputcfgpage_bump(struct ps_widget *widget); // resets the idle counter
 int ps_widget_inputcfg_setup(struct ps_widget *widget,struct ps_input_device *device);
 struct ps_input_device *ps_widget_inputcfg_get_device(const struct ps_widget *widget);
 int ps_inputcfg_cb_begin_reset(struct ps_widget *button,struct ps_widget *widget);

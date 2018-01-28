@@ -6,12 +6,16 @@
  *  [0] title
  *  [1] inputcfgpacker
  *  [2] okbutton
+ *  [3] toastmsg
  */
 
 #include "ps.h"
 #include "../ps_widget.h"
 #include "ps_menus.h"
 #include "gui/corewidgets/ps_corewidgets.h"
+
+#define PS_INPUTCFGPAGE_IDLE_TIME_WARN   600 /* Display warning if no input for so long. */
+#define PS_INPUTCFGPAGE_IDLE_TIME_ABORT 1800 /* Dismiss self so long after warning, if still no input. */
 
 static int ps_inputcfgpage_cb_done(struct ps_widget *button,struct ps_widget *widget);
 static int ps_inputcfgpage_reset_device(struct ps_widget *widget,int childp);
@@ -21,6 +25,7 @@ static int ps_inputcfgpage_reset_device(struct ps_widget *widget,int childp);
 
 struct ps_widget_inputcfgpage {
   struct ps_widget hdr;
+  int idletime;
 };
 
 #define WIDGET ((struct ps_widget_inputcfgpage*)widget)
@@ -43,6 +48,7 @@ static int _ps_inputcfgpage_init(struct ps_widget *widget) {
   child->fgrgba=0xffffffff;
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_inputcfgpacker))) return -1;
   if (!(child=ps_widget_button_spawn(widget,0,"Done [F1]",-1,ps_callback(ps_inputcfgpage_cb_done,0,widget)))) return -1;
+  if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1;
 
   return 0;
 }
@@ -53,13 +59,14 @@ static int _ps_inputcfgpage_init(struct ps_widget *widget) {
 static int ps_inputcfgpage_obj_validate(const struct ps_widget *widget) {
   if (!widget) return -1;
   if (widget->type!=&ps_widget_type_inputcfgpage) return -1;
-  if (widget->childc!=3) return -1;
+  if (widget->childc!=4) return -1;
   return 0;
 }
 
 static struct ps_widget *ps_inputcfgpage_get_title(const struct ps_widget *widget) { return widget->childv[0]; }
 static struct ps_widget *ps_inputcfgpage_get_inputcfgpacker(const struct ps_widget *widget) { return widget->childv[1]; }
 static struct ps_widget *ps_inputcfgpage_get_okbutton(const struct ps_widget *widget) { return widget->childv[2]; }
+static struct ps_widget *ps_inputcfgpage_get_toastmsg(const struct ps_widget *widget) { return widget->childv[3]; }
 
 /* Measure.
  */
@@ -78,6 +85,7 @@ static int _ps_inputcfgpage_pack(struct ps_widget *widget) {
   struct ps_widget *title=ps_inputcfgpage_get_title(widget);
   struct ps_widget *inputcfgpacker=ps_inputcfgpage_get_inputcfgpacker(widget);
   struct ps_widget *okbutton=ps_inputcfgpage_get_okbutton(widget);
+  struct ps_widget *toastmsg=ps_inputcfgpage_get_toastmsg(widget);
   int chw,chh;
 
   if (ps_widget_measure(&chw,&chh,title,widget->w,widget->h)<0) return -1;
@@ -96,10 +104,71 @@ static int _ps_inputcfgpage_pack(struct ps_widget *widget) {
   inputcfgpacker->y=title->y+title->h;
   inputcfgpacker->w=widget->w;
   inputcfgpacker->h=widget->h-inputcfgpacker->y;
+
+  if (ps_widget_measure(&chw,&chh,toastmsg,widget->w,widget->h)<0) return -1;
+  chw+=10;
+  chh+=10;
+  toastmsg->x=(widget->w>>1)-(chw>>1);
+  toastmsg->y=(widget->h>>1)-(chh>>1);
+  toastmsg->w=chw;
+  toastmsg->h=chh;
   
   int i=0; for (;i<widget->childc;i++) {
     struct ps_widget *child=widget->childv[i];
     if (ps_widget_pack(child)<0) return -1;
+  }
+  return 0;
+}
+
+/* Toast for idle time.
+ */
+
+static int ps_inputcfgpage_ensure_no_toast(struct ps_widget *widget) {
+  struct ps_widget *toastmsg=ps_inputcfgpage_get_toastmsg(widget);
+  if (ps_widget_label_set_text(toastmsg,0,0)<0) return -1;
+  toastmsg->bgrgba=0x00000000;
+  return 0;
+}
+
+static int ps_inputcfgpage_create_toast(struct ps_widget *widget) {
+  struct ps_widget *toastmsg=ps_inputcfgpage_get_toastmsg(widget);
+  int seconds=(PS_INPUTCFGPAGE_IDLE_TIME_ABORT-WIDGET->idletime)/60;
+  char msg[256];
+  int msgc=snprintf(msg,sizeof(msg),"Will cancel due to inactivity in %d seconds.",seconds);
+  if (ps_widget_label_set_text(toastmsg,msg,msgc)<0) return -1;
+  toastmsg->bgrgba=0xffc0c0ff;
+  if (ps_widget_pack(widget)<0) return -1;
+  return 0;
+}
+
+static int ps_inputcfgpage_update_toast(struct ps_widget *widget) {
+  struct ps_widget *toastmsg=ps_inputcfgpage_get_toastmsg(widget);
+  int seconds=(PS_INPUTCFGPAGE_IDLE_TIME_ABORT-WIDGET->idletime)/60;
+  char msg[256];
+  int msgc=snprintf(msg,sizeof(msg),"Will cancel due to inactivity in %d second%s.",seconds,(seconds==1)?"":"s");
+  if (ps_widget_label_set_text(toastmsg,msg,msgc)<0) return -1;
+  return 0;
+}
+
+/* Update.
+ */
+
+static int _ps_inputcfgpage_update(struct ps_widget *widget) {
+
+  WIDGET->idletime++;
+  if (WIDGET->idletime==1) {
+    if (ps_inputcfgpage_ensure_no_toast(widget)<0) return -1;
+  } else if (WIDGET->idletime>=PS_INPUTCFGPAGE_IDLE_TIME_ABORT) {
+    return ps_widget_kill(widget);
+  } else if (WIDGET->idletime==PS_INPUTCFGPAGE_IDLE_TIME_WARN) {
+    if (ps_inputcfgpage_create_toast(widget)<0) return -1;
+  } else if (WIDGET->idletime>=PS_INPUTCFGPAGE_IDLE_TIME_WARN) {
+    if (ps_inputcfgpage_update_toast(widget)<0) return -1;
+  }
+
+  int i=widget->childc;
+  while (i-->0) {
+    if (ps_widget_update(widget->childv[i])<0) return -1;
   }
   return 0;
 }
@@ -150,6 +219,7 @@ const struct ps_widget_type ps_widget_type_inputcfgpage={
   .measure=_ps_inputcfgpage_measure,
   .pack=_ps_inputcfgpage_pack,
 
+  .update=_ps_inputcfgpage_update,
   .key=_ps_inputcfgpage_key,
 
 };
@@ -173,5 +243,15 @@ static int ps_inputcfgpage_reset_device(struct ps_widget *widget,int childp) {
   }
   struct ps_widget *inputcfg=inputcfgpacker->childv[childp];
   if (ps_inputcfg_cb_begin_reset(0,inputcfg)<0) return -1;
+  return 0;
+}
+
+/* Reset idle counter.
+ */
+ 
+int ps_widget_inputcfgpage_bump(struct ps_widget *widget) {
+  while (widget&&(widget->type!=&ps_widget_type_inputcfgpage)) widget=widget->parent;
+  if (ps_inputcfgpage_obj_validate(widget)<0) return -1;
+  WIDGET->idletime=0;
   return 0;
 }

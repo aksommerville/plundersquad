@@ -278,6 +278,10 @@ static int ps_inputcfgpacker_add_widget_for_device(struct ps_widget *widget,stru
   if (ps_widget_inputcfg_setup(inputcfg,device)<0) return -1;
   WIDGET->repack=1;
 
+  if (widget->parent) { // Don't bump the config page if we're not installed (does happen during init)
+    if (ps_widget_inputcfgpage_bump(widget)<0) return -1;
+  }
+
   return 0;
 }
 
@@ -290,6 +294,9 @@ static int ps_inputcfgpacker_remove_widget_for_device(struct ps_widget *widget,s
     if (ps_widget_inputcfg_get_device(child)==device) {
       if (ps_widget_remove_child(widget,child)<0) return -1;
       WIDGET->repack=1;
+      if (widget->parent) {
+        if (ps_widget_inputcfgpage_bump(widget)<0) return -1;
+      }
       return 0;
     }
   }

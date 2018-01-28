@@ -57,6 +57,16 @@ static int ps_inputstatus_obj_validate(const struct ps_widget *widget) {
   return 0;
 }
 
+/* We can draw two different ways: 7 discrete tiles in a 4x2-tile space, or 7 tiles on top of each other.
+ * Use the larger view if we're big enough.
+ */
+
+static int ps_inputstatus_should_use_large_view(const struct ps_widget *widget) {
+  if (widget->w<PS_TILESIZE*4) return 0;
+  if (widget->h<PS_TILESIZE*2) return 0;
+  return 1;
+}
+
 /* Draw.
  */
 
@@ -68,36 +78,59 @@ static int ps_inputstatus_prepare_vertices(struct ps_widget *widget,int parentx,
   vtx->y=parenty+widget->y;
   vtx->size=PS_TILESIZE;
   vtx->ta=0;
-  vtx->pr=vtx->pg=vtx->pb=0x80;
+  vtx->pr=0x20; vtx->pg=0x30; vtx->pb=0x50;
   vtx->a=0xff;
   vtx->t=0;
   vtx->xform=AKGL_XFORM_NONE;
   int i=1; for (;i<7;i++) memcpy(WIDGET->vtxv+i,vtx,sizeof(struct akgl_vtx_maxtile));
 
-  /* Set tile and transform for each vertex. */
-  vtx[0].tileid=0x09; vtx[0].xform=AKGL_XFORM_NONE;
-  vtx[1].tileid=0x09; vtx[1].xform=AKGL_XFORM_FLIP;
-  vtx[2].tileid=0x09; vtx[2].xform=AKGL_XFORM_270;
-  vtx[3].tileid=0x09; vtx[3].xform=AKGL_XFORM_90;
-  vtx[4].tileid=0x0a;
-  vtx[5].tileid=0x0b;
-  vtx[6].tileid=0x0c;
+  if (ps_inputstatus_should_use_large_view(widget)) {
 
-  /* Set relative positions.
-   * For now at least, keep the whole structure packed tight, centered in available space. (TODO revisit after seeing it)
-   */
-  int midx=widget->w>>1;
-  int midy=widget->h>>1;
-  int row0=midy-(PS_TILESIZE>>1);
-  int row1=row0+PS_TILESIZE;
-  int dpadx=midx-PS_TILESIZE; // horizontal center of dpad
-  vtx[0].x+=dpadx; vtx[0].y+=row0; // UP
-  vtx[1].x+=dpadx; vtx[1].y+=row1; // DOWN
-  vtx[2].x+=dpadx-(PS_TILESIZE>>1); vtx[2].y+=midy; // LEFT
-  vtx[3].x=vtx[2].x+PS_TILESIZE; vtx[3].y+=midy; // RIGHT
-  vtx[4].x=vtx[2].x+PS_TILESIZE*3; vtx[4].y+=row1; // A (right)
-  vtx[5].x=vtx[4].x-PS_TILESIZE; vtx[5].y+=row1; // B (left)
-  vtx[6].x=vtx[5].x+(PS_TILESIZE>>1); vtx[6].y+=row0; // PAUSE (above A/B, centered between them)
+    /* Set tile and transform for each vertex. */
+    vtx[0].tileid=0x09; vtx[0].xform=AKGL_XFORM_NONE;
+    vtx[1].tileid=0x09; vtx[1].xform=AKGL_XFORM_FLIP;
+    vtx[2].tileid=0x09; vtx[2].xform=AKGL_XFORM_270;
+    vtx[3].tileid=0x09; vtx[3].xform=AKGL_XFORM_90;
+    vtx[4].tileid=0x0a;
+    vtx[5].tileid=0x0b;
+    vtx[6].tileid=0x0c;
+
+    /* Set relative positions.
+     * For now at least, keep the whole structure packed tight, centered in available space.
+     */
+    int midx=widget->w>>1;
+    int midy=widget->h>>1;
+    int row0=midy-(PS_TILESIZE>>1);
+    int row1=row0+PS_TILESIZE;
+    int dpadx=midx-PS_TILESIZE; // horizontal center of dpad
+    vtx[0].x+=dpadx; vtx[0].y+=row0; // UP
+    vtx[1].x+=dpadx; vtx[1].y+=row1; // DOWN
+    vtx[2].x+=dpadx-(PS_TILESIZE>>1); vtx[2].y+=midy; // LEFT
+    vtx[3].x=vtx[2].x+PS_TILESIZE; vtx[3].y+=midy; // RIGHT
+    vtx[4].x=vtx[2].x+PS_TILESIZE*3; vtx[4].y+=row1; // A (right)
+    vtx[5].x=vtx[4].x-PS_TILESIZE; vtx[5].y+=row1; // B (left)
+    vtx[6].x=vtx[5].x+(PS_TILESIZE>>1); vtx[6].y+=row0; // PAUSE (above A/B, centered between them)
+
+  } else {
+
+    vtx[0].tileid=0x80;
+    vtx[1].tileid=0x81;
+    vtx[2].tileid=0x82;
+    vtx[3].tileid=0x83;
+    vtx[4].tileid=0x84;
+    vtx[5].tileid=0x85;
+    vtx[6].tileid=0x86;
+    
+    vtx[0].x+=widget->w>>1;
+    vtx[0].y+=widget->h>>1;
+    vtx[1].x=vtx[0].x; vtx[1].y=vtx[0].y;
+    vtx[2].x=vtx[0].x; vtx[2].y=vtx[0].y;
+    vtx[3].x=vtx[0].x; vtx[3].y=vtx[0].y;
+    vtx[4].x=vtx[0].x; vtx[4].y=vtx[0].y;
+    vtx[5].x=vtx[0].x; vtx[5].y=vtx[0].y;
+    vtx[6].x=vtx[0].x; vtx[6].y=vtx[0].y;
+
+  }
 
   /* Set colors. */
   uint16_t state;

@@ -58,7 +58,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
     if (ps_game_generate_test(ps_game,
       1, // regionid
       // blueprintids. You must provide at least one with a HERO POI.
-      2,1
+      2,30
       //2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
     )<0) return -1;
   } else {
@@ -132,7 +132,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
+  } else if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

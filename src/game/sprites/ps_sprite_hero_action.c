@@ -194,6 +194,7 @@ int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_hero_flame_begin(struct ps_sprite *spr,struct ps_game *game) {
+  ps_log(GAME,DEBUG,"%s",__func__);
   if (SPR->flame_in_progress) return 0;
   PS_SFX_FLAME
   SPR->flame_in_progress=1;
@@ -202,6 +203,7 @@ static int ps_hero_flame_begin(struct ps_sprite *spr,struct ps_game *game) {
 }
 
 static int ps_hero_flame_end(struct ps_sprite *spr,struct ps_game *game) {
+  ps_log(GAME,DEBUG,"%s",__func__);
   if (!SPR->flame_in_progress) return 0;
   SPR->flame_in_progress=0;
   //TODO flames draw-down?
@@ -209,6 +211,7 @@ static int ps_hero_flame_end(struct ps_sprite *spr,struct ps_game *game) {
 }
 
 static int ps_hero_flame_continue(struct ps_sprite *spr,struct ps_game *game) {
+  ps_log(GAME,DEBUG,"%s",__func__);
 
   double distance;
   if (SPR->flame_counter<PS_HERO_FLAMES_RAMP_UP_TIME) {
@@ -380,6 +383,7 @@ static int ps_hero_action_end_1(struct ps_sprite *spr,struct ps_game *game,int a
 }
 
 static int ps_hero_action_continue_1(struct ps_sprite *spr,struct ps_game *game,int action) {
+  if (!SPR->hp) return 0;
   switch (action) {
     case PS_HERO_ACTION_SWORD: return ps_hero_sword_continue(spr,game);
     case PS_HERO_ACTION_HOOKSHOT: return ps_hero_hookshot_continue(spr,game);

@@ -208,6 +208,7 @@ int ps_sprgrp_eval(const char *src,int srcc) {
         if (!ps_memcasecmp(src,"VISIBLE",7)) return PS_SPRGRP_VISIBLE;
         if (!ps_memcasecmp(src,"PHYSICS",7)) return PS_SPRGRP_PHYSICS;
         if (!ps_memcasecmp(src,"FRAGILE",7)) return PS_SPRGRP_FRAGILE;
+        if (!ps_memcasecmp(src,"BARRIER",7)) return PS_SPRGRP_BARRIER;
       } break;
     case 8: {
         if (!ps_memcasecmp(src,"DEATHROW",8)) return PS_SPRGRP_DEATHROW;
@@ -239,6 +240,7 @@ const char *ps_sprgrp_repr(int grpindex) {
     _(LATCH)
     _(SOLID)
     _(PRIZE)
+    _(BARRIER)
     #undef _
   }
   return 0;

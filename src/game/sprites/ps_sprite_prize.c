@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_game.h"
 #include "game/ps_sprite.h"
+#include "game/ps_sound_effects.h"
 #include "ps_sprite_hero.h"
 #include "util/ps_geometry.h"
 
@@ -114,6 +115,25 @@ static int _ps_prize_update(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int _ps_prize_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant) {
+  if (ps_sprite_kill_later(spr,game)<0) return -1;
+  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_PRIZE,spr)<0) return -1;
+
+  PS_SFX_FRY_HEART
+
+  struct ps_sprite *friedheart=ps_sprite_new(&ps_sprtype_friedheart);
+  if (!friedheart) return -1;
+  if (ps_game_set_group_mask_for_sprite(game,friedheart,
+    (1<<PS_SPRGRP_VISIBLE)|
+    (1<<PS_SPRGRP_UPDATE)
+  )<0) {
+    ps_sprite_del(friedheart);
+    return -1;
+  }
+  ps_sprite_del(friedheart);
+
+  friedheart->x=spr->x;
+  friedheart->y=spr->y;
+  
   return 0;
 }
 
@@ -132,9 +152,8 @@ const struct ps_sprtype ps_sprtype_prize={
   .del=_ps_prize_del,
   .configure=_ps_prize_configure,
   .update=_ps_prize_update,
-  //.draw=_ps_prize_draw,
   
-  //.hurt=_ps_prize_hurt,
+  .hurt=_ps_prize_hurt,
 
 };
 

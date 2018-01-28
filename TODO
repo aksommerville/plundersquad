@@ -1,4 +1,8 @@
 - More projectile-throwing monsters.
 - Binary formats for all resources.
 - Review dragoncharger with multiple real players.
-- Input config when no keyboard or mouse.
+- Final boss?
+- Pi backend
+- GLX backend
+- Windows backend
+- Barriers with multiple switches -- maintain single state

@@ -607,9 +607,15 @@ int ps_hero_heal(struct ps_sprite *spr,struct ps_game *game) {
 
 static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant) {
 
-  if (SPR->hurttime) return 0;
-  if (SPR->healtime) return 0;
   if (!SPR->hp) return 0; // Ghost.
+
+  if (assailant&&(assailant->type==&ps_sprtype_killozap)) {
+    // The kill-o-zap is special: It doesn't respect heros' invincibility.
+    // Without this special case, heroes can grab a heart and sneak through the kill-o-zap.
+  } else {
+    if (SPR->hurttime) return 0;
+    if (SPR->healtime) return 0;
+  }
 
   int fragile=ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr);
   if (!fragile) return 0;

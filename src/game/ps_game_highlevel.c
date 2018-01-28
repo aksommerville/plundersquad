@@ -410,3 +410,30 @@ int ps_game_set_group_mask_for_sprite(struct ps_game *game,struct ps_sprite *spr
   ps_sprite_del(spr);
   return 0;
 }
+
+/* Open or close a barrier.
+ */
+ 
+int ps_game_adjust_barrier(struct ps_game *game,int barrierid,int open) {
+  if (!game) return -1;
+  if (barrierid<1) return 0;
+
+  if (open) {
+    if (ps_grid_open_barrier(game->grid,barrierid)<0) return -1;
+  } else {
+    if (ps_grid_close_barrier(game->grid,barrierid)<0) return -1;
+  }
+
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_BARRIER;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *barrier=grp->sprv[i];
+    if (barrier->type==&ps_sprtype_killozap) {
+      if (barrierid!=ps_sprite_killozap_get_barrierid(barrier)) continue;
+      if (ps_sprite_killozap_set_open(barrier,open)<0) return -1;
+    } else {
+      ps_log(GAME,WARN,"No action defined for sprite of type '%s' in BARRIER group.",barrier->type->name);
+    }
+  }
+
+  return 0;
+}

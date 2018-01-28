@@ -66,7 +66,7 @@ static int ps_switch_poll_state(struct ps_sprite *spr,struct ps_game *game,struc
 static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *presser) {
   if (SPR->state) return 0;
   SPR->state=1;
-  if (ps_grid_open_barrier(game->grid,SPR->barrierid)<0) return -1;
+  if (ps_game_adjust_barrier(game,SPR->barrierid,1)<0) return -1;
   if (ps_game_report_switch(game,presser)<0) return -1;
   return 0;
 }
@@ -74,7 +74,7 @@ static int ps_switch_engage(struct ps_sprite *spr,struct ps_game *game,struct ps
 static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->state) return 0;
   SPR->state=0;
-  if (ps_grid_close_barrier(game->grid,SPR->barrierid)<0) return -1;
+  if (ps_game_adjust_barrier(game,SPR->barrierid,0)<0) return -1;
   return 0;
 }
 

@@ -35,7 +35,8 @@ struct ps_summoner;
 #define PS_SPRGRP_LATCH           10 /* Can be picked up by hookshot. */
 #define PS_SPRGRP_SOLID           11 /* Sprites that PHYSICS sprites can't pass through. */
 #define PS_SPRGRP_PRIZE           12 /* Hearts for the heroes to pick up. */
-#define PS_SPRGRP_COUNT           13
+#define PS_SPRGRP_BARRIER         13 /* Can interact with switches. */
+#define PS_SPRGRP_COUNT           14
 
 /* Non-persistent grid change (internal use; don't worry about it)
  */
@@ -183,6 +184,12 @@ int ps_game_set_group_mask_for_sprite(struct ps_game *game,struct ps_sprite *spr
  */
 int ps_game_apply_nonpersistent_grid_change(struct ps_game *game,int col,int row,int tileid,int physics,int shape);
 int ps_game_reverse_nonpersistent_grid_change(struct ps_game *game,int col,int row);
+
+/* Barriers can be part of the grid or managed by a sprite; we take care of the details.
+ * Generally, a barrier starts closed and you should call this with (open==1) to change it.
+ * (barrierid) must be positive; we quietly ignore anything <1.
+ */
+int ps_game_adjust_barrier(struct ps_game *game,int barrierid,int open);
 
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"

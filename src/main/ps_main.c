@@ -49,7 +49,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
   if (ps_input_set_noninteractive_device_assignment()<0) return -1;
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
-  if (ps_game_configure_player(ps_game,1,2,0,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,1,1,0,0)<0) return -1;
   
   if (ps_game_set_difficulty(ps_game,difficulty)<0) return -1;
   if (ps_game_set_length(ps_game,length)<0) return -1;
@@ -58,7 +58,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
     if (ps_game_generate_test(ps_game,
       1, // regionid
       // blueprintids. You must provide at least one with a HERO POI.
-      2,30
+      2,1
       //2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
     )<0) return -1;
   } else {

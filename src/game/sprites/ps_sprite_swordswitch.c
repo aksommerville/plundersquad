@@ -70,12 +70,12 @@ int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps
 
   if (SPR->active^=1) {
     PS_SFX_SWORDSWITCH_UNLOCK
-    if (ps_grid_open_barrier(game->grid,SPR->barrierid)<0) return -1;
+    if (ps_game_adjust_barrier(game,SPR->barrierid,1)<0) return -1;
     spr->tileid++;
 
   } else {
     PS_SFX_SWORDSWITCH_LOCK
-    if (ps_grid_close_barrier(game->grid,SPR->barrierid)<0) return -1;
+    if (ps_game_adjust_barrier(game,SPR->barrierid,0)<0) return -1;
     spr->tileid--;
 
   }

@@ -46,6 +46,9 @@ int ps_grid_ref(struct ps_grid *grid);
 
 int ps_grid_set_physics(struct ps_grid *grid,int x,int y,int w,int h,uint8_t physics);
 
+/* Only ps_game should use these functions.
+ * It has a broader concept of barrier, with its own API (ps_game_adjust_barrier()).
+ */
 int ps_grid_open_barrier(struct ps_grid *grid,int barrierid);
 int ps_grid_close_barrier(struct ps_grid *grid,int barrierid);
 int ps_grid_close_all_barriers(struct ps_grid *grid);

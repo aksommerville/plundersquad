@@ -4,6 +4,7 @@
 #include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
+#include "akgl/akgl.h"
 
 /* Private sprite object.
  */
@@ -114,6 +115,32 @@ static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
   return 0;
 }
 
+/* Draw.
+ * 704924 off
+ * 03f948 on
+ */
+
+static int _ps_switch_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr) {
+  if (vtxa<1) return 1;
+  
+  vtxv[0].x=spr->x;
+  vtxv[0].y=spr->y;
+  vtxv[0].tileid=spr->tileid;
+  vtxv[0].size=PS_TILESIZE;
+  vtxv[0].ta=0;
+  vtxv[0].a=0xff;
+  vtxv[0].t=0;
+  vtxv[0].xform=AKGL_XFORM_NONE;
+
+  if (SPR->state) {
+    vtxv[0].pr=0x03; vtxv[0].pg=0xf9; vtxv[0].pb=0x48;
+  } else {
+    vtxv[0].pr=0x70; vtxv[0].pg=0x49; vtxv[0].pb=0x24;
+  }
+  
+  return 1;
+}
+
 /* Type definition.
  */
 
@@ -128,5 +155,6 @@ const struct ps_sprtype ps_sprtype_switch={
   .configure=_ps_switch_configure,
   .get_configure_argument_name=_ps_switch_get_configure_argument_name,
   .update=_ps_switch_update,
+  .draw=_ps_switch_draw,
 
 };

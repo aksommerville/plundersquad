@@ -59,6 +59,8 @@ static int _ps_pausepage_init(struct ps_widget *widget) {
   label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Heal all",-1))) return -1;
   label->fgrgba=0xff0000ff;
+  if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Swap input",-1))) return -1;
+  label->fgrgba=0xff0000ff;
   
   return 0;
 }
@@ -176,6 +178,18 @@ static int ps_pausepage_heal_all(struct ps_widget *widget) {
   return 0;
 }
 
+/* Swap input (TEMP for testing only)
+ */
+
+static int ps_pausepage_swap_input(struct ps_widget *widget) {
+  struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
+  if (ps_input_swap_assignments()<0) return -1;
+  if (ps_input_suppress_player_actions(30)<0) return -1;
+  if (ps_game_pause(game,0)<0) return -1;
+  if (ps_widget_kill(widget)<0) return -1;
+  return 0;
+}
+
 /* Menu callback.
  */
  
@@ -188,6 +202,7 @@ static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 4: return ps_pausepage_input_config(widget);
     case 5: return ps_pausepage_quit(widget);
     case 6: return ps_pausepage_heal_all(widget);
+    case 7: return ps_pausepage_swap_input(widget);
   }
   return 0;
 }

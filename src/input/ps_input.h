@@ -68,6 +68,11 @@ uint16_t ps_get_player_buttons(int plrid);
  */
 int ps_input_suppress_player_actions(int duration);
 
+/* Not for production use.
+ * Toggle device assignments so we can control multiple heroes with one input device.
+ */
+int ps_input_swap_assignments();
+
 /* Events for providers to trigger.
  *****************************************************************************/
 

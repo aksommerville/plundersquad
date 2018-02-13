@@ -113,6 +113,11 @@ int ps_sprite_kill_later(struct ps_sprite *spr,struct ps_game *game);
 
 int ps_sprgrp_sort(struct ps_sprgrp *grp,int completely);
 
+/* Add to (dst) every sprite which is in both (a) and (b).
+ * Returns count added.
+ */
+int ps_sprgrp_intersect(struct ps_sprgrp *dst,struct ps_sprgrp *a,struct ps_sprgrp *b);
+
 /* ps_sprtype: Definition of a sprite type.
  * These are always statically-allocated and constant.
  *****************************************************************************/

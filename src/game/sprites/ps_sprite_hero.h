@@ -27,6 +27,13 @@ struct ps_sprite_hero {
   int facedir; // PS_DIRECTION_*, which direction to render
   int hp;
 
+  /* If (offscreen) nonzero, we are in a suspended state ready to move to a neighbor grid.
+   * In this state, we are removed from every group except KEEPALIVE and UPDATE.
+   * The only thing we can do is move back onscreen or wait for the rest of the heroes to go this way.
+   */
+  int offscreen;
+  uint32_t offscreen_grpmask_restore;
+
   /* Actions state. */
   int walk_in_progress;
   int sword_in_progress;

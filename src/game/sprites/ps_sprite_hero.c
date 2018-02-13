@@ -133,13 +133,65 @@ static int ps_hero_rcvinput_dpad(struct ps_sprite *spr,uint16_t input) {
   return 0;
 }
 
+/* Go onscreen.
+ */
+
+static int ps_hero_go_onscreen(struct ps_sprite *spr,struct ps_game *game,int dx,int dy) {
+  SPR->offscreen=0;
+  if (ps_game_set_group_mask_for_sprite(game,spr,SPR->offscreen_grpmask_restore)<0) return -1;
+  
+  spr->x+=dx;
+  spr->y+=dy;
+  if (spr->x<1.0) spr->x=1.0;
+  else if (spr->x>PS_SCREENW-1.0) spr->x=PS_SCREENW-1.0;
+  if (spr->y<1.0) spr->y=1.0;
+  else if (spr->y>PS_SCREENH-1.0) spr->y=PS_SCREENH-1.0;
+
+  game->inhibit_screen_switch=0;
+  return 0;
+}
+
+/* Go offscreen.
+ */
+
+static int ps_hero_go_offscreen(struct ps_sprite *spr,struct ps_game *game) {
+  SPR->offscreen=1;
+  SPR->offscreen_grpmask_restore=ps_game_get_group_mask_for_sprite(game,spr);
+  if (ps_game_set_group_mask_for_sprite(game,spr,
+    (1<<PS_SPRGRP_KEEPALIVE)|
+    (1<<PS_SPRGRP_UPDATE)|
+    (1<<PS_SPRGRP_HERO)|
+  0)<0) return -1;
+  return 0;
+}
+
 /* Receive input.
  */
 
 static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game *game) {
+  //ps_log(GAME,DEBUG,"%s %d",__func__,SPR->player->playerid);
   if (!input) SPR->input_ready=1;
   if (!SPR->input_ready) return 0; // Not receiving input yet.
+  if (SPR->reexamine_dpad) {
+    SPR->input&=~(PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT|PS_PLRBTN_UP|PS_PLRBTN_DOWN);
+    SPR->reexamine_dpad=0;
+  }
   if (SPR->input==input) return 0; // No change.
+
+  /* If offscreen, the only thing we can do is go back onscreen. */
+  if (SPR->offscreen) {
+    if (spr->x<0.0) {
+      if (input&PS_PLRBTN_RIGHT) return ps_hero_go_onscreen(spr,game,1,0);
+    } else if (spr->y<0.0) {
+      if (input&PS_PLRBTN_DOWN) return ps_hero_go_onscreen(spr,game,0,1);
+    } else if (spr->x>PS_SCREENW) {
+      if (input&PS_PLRBTN_LEFT) return ps_hero_go_onscreen(spr,game,-1,0);
+    } else if (spr->y>PS_SCREENH) {
+      if (input&PS_PLRBTN_UP) return ps_hero_go_onscreen(spr,game,0,-1);
+    }
+    SPR->input=input;
+    return 0;
+  }
 
   if (SPR->hookshot_in_progress) {
     SPR->indx=0;
@@ -235,6 +287,11 @@ static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
+
+  if ((spr->x<0.0)||(spr->y<0.0)||(spr->x>PS_SCREENW)||(spr->y>PS_SCREENH)) {
+    return ps_hero_go_offscreen(spr,game);
+  }
+
   if (!game->grid) return 0;
   if (spr->x<0.0) return 0;
   if (spr->y<0.0) return 0;
@@ -271,6 +328,9 @@ static int _ps_hero_update(struct ps_sprite *spr,struct ps_game *game) {
   } else {
     if (ps_hero_rcvinput(spr,0,game)<0) return -1;
   }
+
+  /* If we are offscreen, do nothing more. */
+  if (SPR->offscreen) return 0;
 
   /* Continue running actions. */
   if (SPR->input&PS_PLRBTN_A) {

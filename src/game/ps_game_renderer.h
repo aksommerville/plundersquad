@@ -8,6 +8,7 @@
 struct ps_game;
 struct ps_video_layer;
 struct akgl_texture;
+struct ps_sprgrp;
 
 struct ps_game_renderer {
   int refc;
@@ -15,6 +16,7 @@ struct ps_game_renderer {
   struct akgl_texture *capture;
   int slidex,slidey;
   int drawing_for_capture;
+  struct ps_sprgrp *visible_heroes;
 };
 
 struct ps_game_renderer *ps_game_renderer_new();

@@ -312,3 +312,31 @@ int ps_sprgrp_sort(struct ps_sprgrp *grp,int completely) {
   }
   return 0;
 }
+
+/* Get intersection.
+ * This could be optimized when (a) and (b) are both address-sorted.
+ * Since we only currently use it against the unsorted VISIBLE group, I don't bother.
+ */
+ 
+int ps_sprgrp_intersect(struct ps_sprgrp *dst,struct ps_sprgrp *a,struct ps_sprgrp *b) {
+  if (!dst) return -1;
+  if (!a||!b) return 0; // null == empty, done.
+
+  /* Make (a) the smaller group; that's the one we'll iterate. */
+  if (a->sprc>b->sprc) {
+    struct ps_sprgrp *tmp=a;
+    a=b;
+    b=tmp;
+  }
+
+  int addc=0;
+  int i=a->sprc; while (i-->0) {
+    struct ps_sprite *spr=a->sprv[i];
+    if (ps_sprgrp_has_sprite(b,spr)) {
+      if (ps_sprgrp_add_sprite(dst,spr)<0) return -1;
+      addc++;
+    }
+  }
+
+  return addc;
+}

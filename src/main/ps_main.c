@@ -59,7 +59,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
     if (ps_game_generate_test(ps_game,
       1, // regionid
       // blueprintids. You must provide at least one with a HERO POI.
-      2,36
+      1
       //2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
     )<0) return -1;
   } else {

@@ -623,8 +623,8 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
   if (ps_game_kill_nonhero_sprites(game)<0) return -1;
 
   /* Adjust position of heroes. */
-  double sprdx=-dx*PS_SCREENW;
-  double sprdy=-dy*PS_SCREENH;
+  double sprdx=-dx*(PS_SCREENW+PS_TILESIZE);
+  double sprdy=-dy*(PS_SCREENH+PS_TILESIZE);
   int i=game->grpv[PS_SPRGRP_HERO].sprc; while (i-->0) {
     struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
     spr->x+=sprdx;
@@ -641,6 +641,8 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
   
   if (ps_game_check_status_report(game)<0) return -1;
 
+  game->inhibit_screen_switch=1;
+
   ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
   
   return 0;
@@ -650,10 +652,28 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
  */
 
 static int ps_game_get_sprite_grid_change(const struct ps_sprite *spr) {
+
+  if (spr->type==&ps_sprtype_hero) {
+    const struct ps_sprite_hero *hero=(struct ps_sprite_hero*)spr;
+    if (!hero->offscreen) return 0;
+  }
+  
   if (spr->x<=0.0) return PS_DIRECTION_WEST;
   if (spr->y<=0.0) return PS_DIRECTION_NORTH;
   if (spr->x>=PS_SCREENW) return PS_DIRECTION_EAST;
   if (spr->y>=PS_SCREENH) return PS_DIRECTION_SOUTH;
+  return 0;
+}
+
+static int ps_game_wipe_dpads(struct ps_game *game) {
+  int i=game->grpv[PS_SPRGRP_HERO].sprc;
+  while (i-->0) {
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
+    if (spr->type==&ps_sprtype_hero) {
+      struct ps_sprite_hero *hero=(struct ps_sprite_hero*)spr;
+      hero->reexamine_dpad=1;
+    }
+  }
   return 0;
 }
 
@@ -675,6 +695,8 @@ static int ps_game_check_grid_change(struct ps_game *game) {
   int ny=game->gridy+d.dy;
   if ((nx<0)||(ny<0)||(nx>=game->scenario->w)||(ny>=game->scenario->h)) return 0;
   struct ps_grid *ngrid=game->scenario->screenv[ny*game->scenario->w+nx].grid;
+
+  if (ps_game_wipe_dpads(game)<0) return -1;
   
   return ps_game_load_neighbor_grid(game,ngrid,d.dx,d.dy);
 }
@@ -905,7 +927,9 @@ int ps_game_update(struct ps_game *game) {
   if (ps_sprgrp_kill(game->grpv+PS_SPRGRP_DEATHROW)<0) return -1;
 
   /* Change grid if warranted. */
-  if (ps_game_check_grid_change(game)<0) return -1;
+  if (!game->inhibit_screen_switch) {
+    if (ps_game_check_grid_change(game)<0) return -1;
+  }
 
   /* Sort rendering group, one pass. */
   if (ps_sprgrp_sort(game->grpv+PS_SPRGRP_VISIBLE,0)<0) return -1;

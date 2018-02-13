@@ -29,6 +29,11 @@ struct ps_game_renderer *ps_game_renderer_new() {
 
   renderer->refc=1;
 
+  if (!(renderer->visible_heroes=ps_sprgrp_new())) {
+    ps_game_renderer_del(renderer);
+    return 0;
+  }
+
   return renderer;
 }
 
@@ -42,6 +47,9 @@ void ps_game_renderer_del(struct ps_game_renderer *renderer) {
   }
 
   akgl_texture_del(renderer->capture);
+
+  ps_sprgrp_clear(renderer->visible_heroes);
+  ps_sprgrp_del(renderer->visible_heroes);
 
   free(renderer);
 }
@@ -131,6 +139,22 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
   return 0;
 }
 
+/* Cache the set of visible heroes and remove all heroes from visible.
+ */
+
+static int ps_game_renderer_remove_heroes(struct ps_game_renderer *renderer,struct ps_game *game) {
+  if (ps_sprgrp_clear(renderer->visible_heroes)<0) return -1;
+  if (ps_sprgrp_intersect(renderer->visible_heroes,game->grpv+PS_SPRGRP_VISIBLE,game->grpv+PS_SPRGRP_HERO)<0) return -1;
+  if (ps_sprgrp_remove_all(game->grpv+PS_SPRGRP_VISIBLE,renderer->visible_heroes)<0) return -1;
+  return 0;
+}
+
+static int ps_game_renderer_restore_heroes(struct ps_game_renderer *renderer,struct ps_game *game) {
+  if (ps_sprgrp_add_all(game->grpv+PS_SPRGRP_VISIBLE,renderer->visible_heroes)<0) return -1;
+  if (ps_sprgrp_clear(renderer->visible_heroes)<0) return -1;
+  return 0;
+}
+
 /* Begin slide.
  */
  
@@ -144,11 +168,11 @@ int ps_game_renderer_begin_slide(struct ps_game_renderer *renderer,int dx,int dy
     renderer->capture=0;
   }
 
-  if (ps_sprgrp_remove_all(game->grpv+PS_SPRGRP_VISIBLE,game->grpv+PS_SPRGRP_HERO)<0) return -1;
+  if (ps_game_renderer_remove_heroes(renderer,game)<0) return -1;
   renderer->drawing_for_capture=1;
   if (ps_video_draw_to_framebuffer()<0) return -1;
   renderer->drawing_for_capture=0;
-  if (ps_sprgrp_add_all(game->grpv+PS_SPRGRP_VISIBLE,game->grpv+PS_SPRGRP_HERO)<0) return -1;
+  if (ps_game_renderer_restore_heroes(renderer,game)<0) return -1;
   if (!(renderer->capture=ps_video_capture_framebuffer())) return -1;
 
   renderer->slidex=dx*PS_SCREENW;

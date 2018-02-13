@@ -147,6 +147,8 @@ static int ps_hero_go_onscreen(struct ps_sprite *spr,struct ps_game *game,int dx
   if (spr->y<1.0) spr->y=1.0;
   else if (spr->y>PS_SCREENH-1.0) spr->y=PS_SCREENH-1.0;
 
+  if (ps_game_remove_indicator_for_hero(game,spr)<0) return -1;
+
   game->inhibit_screen_switch=0;
   return 0;
 }
@@ -155,6 +157,7 @@ static int ps_hero_go_onscreen(struct ps_sprite *spr,struct ps_game *game,int dx
  */
 
 static int ps_hero_go_offscreen(struct ps_sprite *spr,struct ps_game *game) {
+
   SPR->offscreen=1;
   SPR->offscreen_grpmask_restore=ps_game_get_group_mask_for_sprite(game,spr);
   if (ps_game_set_group_mask_for_sprite(game,spr,
@@ -162,6 +165,9 @@ static int ps_hero_go_offscreen(struct ps_sprite *spr,struct ps_game *game) {
     (1<<PS_SPRGRP_UPDATE)|
     (1<<PS_SPRGRP_HERO)|
   0)<0) return -1;
+
+  if (ps_game_add_indicator_for_hero(game,spr)<0) return -1;
+  
   return 0;
 }
 

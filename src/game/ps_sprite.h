@@ -180,6 +180,7 @@ extern const struct ps_sprtype ps_sprtype_skeleton;
 extern const struct ps_sprtype ps_sprtype_flames;
 extern const struct ps_sprtype ps_sprtype_killozap;
 extern const struct ps_sprtype ps_sprtype_friedheart;
+extern const struct ps_sprtype ps_sprtype_heroindicator;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
@@ -192,6 +193,8 @@ int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_gam
 int ps_sprite_bomb_throw(struct ps_sprite *spr,int direction,int magnitude);
 int ps_sprite_flames_throw(struct ps_sprite *spr,int direction);
 struct ps_sprite *ps_sprite_flames_find_for_hero(const struct ps_game *game,const struct ps_sprite *hero); // Does not return moving flames.
+struct ps_sprite *ps_sprite_heroindicator_get_hero(const struct ps_sprite *spr);
+int ps_sprite_heroindicator_set_hero(struct ps_sprite *spr,struct ps_sprite *hero);
 
 int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game);

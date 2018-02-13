@@ -194,6 +194,11 @@ int ps_game_reverse_nonpersistent_grid_change(struct ps_game *game,int col,int r
 int ps_game_get_switch(const struct ps_game *game,int switchid);
 int ps_game_set_switch(struct ps_game *game,int switchid,int value);
 
+/* Create or destroy a sprite pointing at this hero, for when he is offscreen.
+ */
+int ps_game_add_indicator_for_hero(struct ps_game *game,struct ps_sprite *hero);
+int ps_game_remove_indicator_for_hero(struct ps_game *game,struct ps_sprite *hero);
+
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"
  *  0008   4 Game Serial Version: 1

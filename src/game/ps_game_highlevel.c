@@ -410,3 +410,47 @@ int ps_game_set_group_mask_for_sprite(struct ps_game *game,struct ps_sprite *spr
   ps_sprite_del(spr);
   return 0;
 }
+
+/* Hero indicator management.
+ */
+ 
+int ps_game_add_indicator_for_hero(struct ps_game *game,struct ps_sprite *hero) {
+  if (!game||!hero) return -1;
+  if (hero->type!=&ps_sprtype_hero) return -1;
+
+  struct ps_sprite *spr=ps_sprite_new(&ps_sprtype_heroindicator);
+  if (!spr) return -1;
+  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_KEEPALIVE,spr)<0) {
+    ps_sprite_del(spr);
+    return -1;
+  }
+  ps_sprite_del(spr);
+
+  if (ps_game_set_group_mask_for_sprite(game,spr,
+    (1<<PS_SPRGRP_VISIBLE)|
+    (1<<PS_SPRGRP_UPDATE)|
+    (1<<PS_SPRGRP_HERO)|
+  0)<0) return -1;
+
+  if (ps_sprite_heroindicator_set_hero(spr,hero)<0) {
+    ps_sprite_kill(spr);
+    return -1;
+  }
+
+  if (ps_sprite_update(spr,game)<0) return -1;
+  
+  return 0;
+}
+
+int ps_game_remove_indicator_for_hero(struct ps_game *game,struct ps_sprite *hero) {
+  if (!game||!hero) return -1;
+  int i=game->grpv[PS_SPRGRP_HERO].sprc;
+  while (i-->0) {
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
+    if (spr->type!=&ps_sprtype_heroindicator) continue;
+    if (ps_sprite_heroindicator_get_hero(spr)==hero) {
+      if (ps_sprite_kill_later(spr,game)<0) return -1;
+    }
+  }
+  return 0;
+}

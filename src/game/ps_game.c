@@ -656,6 +656,8 @@ static int ps_game_get_sprite_grid_change(const struct ps_sprite *spr) {
   if (spr->type==&ps_sprtype_hero) {
     const struct ps_sprite_hero *hero=(struct ps_sprite_hero*)spr;
     if (!hero->offscreen) return 0;
+  } else if (spr->type==&ps_sprtype_heroindicator) {
+    return -1;
   }
   
   if (spr->x<=0.0) return PS_DIRECTION_WEST;
@@ -682,12 +684,19 @@ static int ps_game_check_grid_change(struct ps_game *game) {
   /* Short-circuit if no heroes. I don't think this is a valid situation, but whatever. */
   if (game->grpv[PS_SPRGRP_HERO].sprc<1) return 0;
 
-  /* Check changeability of the first sprite, then ensure that others match. */
-  int changedir=ps_game_get_sprite_grid_change(game->grpv[PS_SPRGRP_HERO].sprv[0]);
-  if (!changedir) return 0;
-  int i=game->grpv[PS_SPRGRP_HERO].sprc; while (i-->1) {
-    if (ps_game_get_sprite_grid_change(game->grpv[PS_SPRGRP_HERO].sprv[i])!=changedir) return 0;
+  /* Ensure that all HERO sprites either face the same direction or are exempt.
+   * The heroindicator, flashing arrow showing an offscreen hero, is also in this group, so it's complicated.
+   */
+  int changedir=-1;
+  int i=game->grpv[PS_SPRGRP_HERO].sprc; while (i-->0) {
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
+    int sprchangedir=ps_game_get_sprite_grid_change(spr);
+    if (sprchangedir<0) continue;
+    if (!sprchangedir) return 0;
+    if (changedir<0) changedir=sprchangedir;
+    else if (changedir!=sprchangedir) return 0;
   }
+  if (changedir<0) return 0; // All exempt.
 
   /* OK, we are changing. */
   struct ps_vector d=ps_vector_from_direction(changedir);

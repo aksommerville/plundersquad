@@ -1,0 +1,6 @@
+type giraffe
+tileid 0x0497
+grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH SOLID
+radius 7
+shape CIRCLE
+impassable SOLID HOLE LATCH HEROONLY

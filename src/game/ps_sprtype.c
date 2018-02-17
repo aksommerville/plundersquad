@@ -39,6 +39,7 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==8)&&!memcmp(name,"killozap",8)) return &ps_sprtype_killozap;
   if ((namec==10)&&!memcmp(name,"friedheart",10)) return &ps_sprtype_friedheart;
   if ((namec==13)&&!memcmp(name,"heroindicator",13)) return &ps_sprtype_heroindicator;
+  if ((namec==7)&&!memcmp(name,"giraffe",7)) return &ps_sprtype_giraffe;
 //INSERT SPRTYPE NAME TEST HERE
 
   return 0;
@@ -78,5 +79,6 @@ const struct ps_sprtype *ps_all_sprtypes[]={
   &ps_sprtype_killozap,
   &ps_sprtype_friedheart,
   &ps_sprtype_heroindicator,
+  &ps_sprtype_giraffe,
 //INSERT SPRTYPE REFERENCE HERE
 0};

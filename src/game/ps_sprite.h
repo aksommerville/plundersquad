@@ -181,6 +181,7 @@ extern const struct ps_sprtype ps_sprtype_flames;
 extern const struct ps_sprtype ps_sprtype_killozap;
 extern const struct ps_sprtype ps_sprtype_friedheart;
 extern const struct ps_sprtype ps_sprtype_heroindicator;
+extern const struct ps_sprtype ps_sprtype_giraffe;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

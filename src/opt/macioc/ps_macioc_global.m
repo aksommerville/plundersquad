@@ -152,8 +152,12 @@ int ps_macioc_connect_input() {
 
     /* With 'waitUntilDone:0', we will always be on manual timing.
      * I think that's OK. And window resizing is much more responsive this way.
+     * XXX !!! After upgrading from 10.11 to 10.13, all the timing got fucked.
+     * Switching to 'waitUntilDone:1' seems to fix it.
+     * If the only problem that way in 10.11 was choppy window resizing, so be it.
+     * Resize seems OK with '1' and OS 10.13.
      */
-    [self performSelectorOnMainThread:@selector(updateMain:) withObject:nil waitUntilDone:0];
+    [self performSelectorOnMainThread:@selector(updateMain:) withObject:nil waitUntilDone:1];
   
   }
 }

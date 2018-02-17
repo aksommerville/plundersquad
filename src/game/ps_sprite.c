@@ -118,7 +118,7 @@ int ps_sprite_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr)
 int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struct ps_sprite *assailant) {
   if (!game) return -1;
   if (!victim) return -1;
-  //ps_log(GAME,DEBUG,"Sprite %p(%s) damaged by %p(%s).",victim,victim->type->name,assailant,assailant?assailant->type->name:"null");
+  ps_log(GAME,DEBUG,"Sprite %p(%s) damaged by %p(%s).",victim,victim->type->name,assailant,assailant?assailant->type->name:"null");
 
   /* Sprite controllers may completely override this. */
   if (victim->type->hurt) {
@@ -126,12 +126,9 @@ int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struc
   }
 
   /* Default action for fragile sprites. */
-  PS_SFX_MONSTER_DEAD
-  if (ps_game_create_fireworks(game,victim->x,victim->y)<0) return -1;
-  if (ps_game_create_prize(game,victim->x,victim->y)<0) return -1;
+  if (ps_game_decorate_monster_death(game,victim->x,victim->y)<0) return -1;
   ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,victim);
   if (ps_sprite_kill_later(victim,game)<0) return -1;
-  if (ps_game_check_deathgate(game)<0) return -1;
   if (ps_game_report_kill(game,assailant,victim)<0) return -1;
 
   return 0;

@@ -143,6 +143,12 @@ struct ps_screen *ps_game_get_screen_for_current_grid(const struct ps_game *game
 int ps_game_get_current_blueprint_id(const struct ps_game *game);
 int ps_game_force_next_screen(struct ps_game *game,int dx,int dy);
 
+/* ps_game_decorate_monster_death() creates fireworks and a prize, plays a sound effect, and checks the deathgate.
+ * This is the default behavior for killing any sprite, if it is fragile and doesn't implement hurt().
+ * You can call it manually, eg if your monster has HP or some other hurt condition.
+ * That doesn't kill the victim or report any statistics (duh, we don't have enough information).
+ */
+int ps_game_decorate_monster_death(struct ps_game *game,int x,int y);
 int ps_game_create_fireworks(struct ps_game *game,int x,int y);
 int ps_game_create_prize(struct ps_game *game,int x,int y);
 int ps_game_create_splash(struct ps_game *game,int x,int y);

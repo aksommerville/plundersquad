@@ -6,6 +6,7 @@
 #include "ps_game.h"
 #include "ps_sprite.h"
 #include "ps_path.h"
+#include "ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_scenario.h"
@@ -452,5 +453,16 @@ int ps_game_remove_indicator_for_hero(struct ps_game *game,struct ps_sprite *her
       if (ps_sprite_kill_later(spr,game)<0) return -1;
     }
   }
+  return 0;
+}
+
+/* Events on monster death.
+ */
+ 
+int ps_game_decorate_monster_death(struct ps_game *game,int x,int y) {
+  PS_SFX_MONSTER_DEAD
+  if (ps_game_create_fireworks(game,x,y)<0) return -1;
+  if (ps_game_create_prize(game,x,y)<0) return -1;
+  if (ps_game_check_deathgate(game)<0) return -1;
   return 0;
 }

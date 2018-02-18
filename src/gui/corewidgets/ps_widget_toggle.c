@@ -100,7 +100,7 @@ static int ps_toggle_draw_frame(struct ps_widget *widget,int parentx,int parenty
   uint8_t seb=rgbase>>8;
   uint8_t sea=rgbase;
 
-  const int vtxc=11; // SWo, NWo, NEo, SEo, SWo2, SWi, NWi, NEi, NEi2, SEi, SWi
+  #define vtxc 11 /* SWo, NWo, NEo, SEo, SWo2, SWi, NWi, NEi, NEi2, SEi, SWi */
   struct akgl_vtx_raw vtxv[vtxc]={
     {x0,y3,or,og,ob,oa},
     {x0,y0,or,og,ob,oa},
@@ -117,6 +117,7 @@ static int ps_toggle_draw_frame(struct ps_widget *widget,int parentx,int parenty
 
   if (ps_video_draw_line_strip(vtxv,vtxc)<0) return -1;
   return 0;
+  #undef vtxc
 }
 
 /* Draw.

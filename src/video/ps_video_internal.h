@@ -6,9 +6,12 @@
 #include "ps_video_layer.h"
 #include "akgl/akgl.h"
 
-#if __APPLE__
+#if PS_ARCH==PS_ARCH_macos
   #include <OpenGL/gl.h>
   #include <OpenGL/glu.h>
+#elif PS_ARCH==PS_ARCH_raspi
+  #include <GLES2/gl2.h>
+  #include <GLES2/gl2ext.h>
 #else
   #include <gl/gl.h>
 #endif
@@ -16,6 +19,8 @@
 /* Include provider. */
 #if PS_USE_macwm
   #include "opt/macwm/ps_macwm.h"
+#elif PS_USE_bcm
+  #include "opt/bcm/ps_bcm.h"
 #else
   #error "No video provider unit enabled."
 #endif

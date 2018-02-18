@@ -60,8 +60,12 @@ int ps_input_device_ref(struct ps_input_device *device) {
 
 int ps_input_device_set_name(struct ps_input_device *device,const char *src,int srcc) {
   if (!device) return -1;
+  
   if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
-  if (srcc>1024) return -1;
+  if (srcc>=1024) srcc=1023;
+  while (srcc&&((unsigned char)src[srcc-1]<=0x20)) srcc--;
+  while (srcc&&((unsigned char)src[0]<=0x20)) { src++; srcc--; }
+
   char *nv=0;
   if (srcc) {
     if (!(nv=malloc(srcc+1))) return -1;

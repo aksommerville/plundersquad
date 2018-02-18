@@ -206,6 +206,6 @@ int akgl_program_use(struct akgl_program *program) {
   } else {
     glUseProgram(0);
   }
-  if (akgl_clear_error()<0) return -1;
+  if (akgl_clear_error()) return -1;
   return 0;
 }

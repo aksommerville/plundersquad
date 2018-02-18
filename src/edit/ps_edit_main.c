@@ -55,6 +55,9 @@ static int ps_edit_init() {
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
     if (akau_load_resources("src/data/audio")<0) return -1; //TODO resource path
+  #elif PS_USE_alsa
+    if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
+    if (akau_load_resources("src/data/audio")<0) return -1;
   #endif
   
   if (!(ps_gui=ps_gui_new())) return -1;

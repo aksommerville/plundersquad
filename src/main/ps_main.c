@@ -21,6 +21,9 @@
 #if PS_USE_machid
   #include "opt/machid/ps_machid.h"
 #endif
+#if PS_USE_evdev
+  #include "opt/evdev/ps_evdev.h"
+#endif
 
 /* Globals.
  */
@@ -98,8 +101,10 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
 
+  ps_log(MAIN,TRACE,"Init video...");
   if (ps_video_init()<0) return -1;
 
+  ps_log(MAIN,TRACE,"Init input...");
   if (ps_input_init()<0) return -1;
   #if PS_USE_macioc
     if (ps_macioc_connect_input()<0) return -1;
@@ -114,26 +119,39 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
       if (ps_input_install_provider(provider)<0) return -1;
     }
   #endif
+  #if PS_USE_evdev
+    if (ps_evdev_init_default()<0) return -1;
+  #endif
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
   if (ps_input_update()<0) return -1; // Reassigns input devices and gets the core running.
 
+  ps_log(MAIN,TRACE,"Init resources...");
   if (ps_resmgr_init("src/data",0)<0) return -1; //TODO resource path
 
+  ps_log(MAIN,TRACE,"Init audio...");
+  //TODO Clean up audio init
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
     if (akau_load_resources("src/data/audio")<0) return -1; //TODO resource path
     if (akau_play_song(4,1)<0) return -1;//TODO decide where to change the song. can set here and it plays forever, which gets annoying
+  #elif PS_USE_alsa
+    if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
+    if (akau_load_resources("src/data/audio")<0) return -1;
+    if (akau_play_song(4,1)<0) return -1;
   #endif
 
+  ps_log(MAIN,TRACE,"Create game...");
   if (!(ps_game=ps_game_new())) return -1;
 
+  ps_log(MAIN,TRACE,"Create GUI...");
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
   if (ps_input_set_gui(ps_gui)<0) return -1;
 
+  ps_log(MAIN,TRACE,"Load game or GUI...");
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
+  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(
@@ -166,6 +184,10 @@ static void ps_main_quit() {
   #if PS_USE_machid
     ps_machid_destroy_global_provider();
     ps_machid_quit();
+  #endif
+
+  #if PS_USE_evdev
+    ps_evdev_quit();
   #endif
   
 }

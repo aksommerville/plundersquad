@@ -48,6 +48,11 @@ struct akgl_program *akgl_program_textile_new() {
     akgl_vsrc_textile,sizeof(akgl_vsrc_textile)-1,
     akgl_fsrc_textile,sizeof(akgl_fsrc_textile)-1
   )<0) {
+    const char *log=0;
+    int logc=akgl_program_get_error_log(&log,program);
+    if (log&&(logc>0)) {
+      ps_log(VIDEO,ERROR,"Failed to compile 'textile' shader...\n%.*s\n",logc,log);
+    }
     akgl_program_del(program);
     return 0;
   }
@@ -65,9 +70,13 @@ int akgl_program_textile_draw(struct akgl_program *program,struct akgl_texture *
   
   if (akgl_program_use(program)<0) return -1;
   akgl_set_uniform_screen_size(program->location_screensize);
-  glEnable(GL_TEXTURE_2D);
+  #if PS_ARCH!=PS_ARCH_raspi
+    glEnable(GL_TEXTURE_2D);
+  #endif
   glBindTexture(GL_TEXTURE_2D,texture->texid);
-  glEnable(GL_PROGRAM_POINT_SIZE);
+  #ifdef GL_PROGRAM_POINT_SIZE
+    glEnable(GL_PROGRAM_POINT_SIZE);
+  #endif
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);

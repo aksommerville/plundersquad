@@ -55,7 +55,7 @@ done < $LISTPATH
 cat - >>$DSTPATH <<EOF
 };
 
-static const int ps_testc=sizeof(ps_testv)/sizeof(struct ps_test);
+#define ps_testc (sizeof(ps_testv)/sizeof(struct ps_test))
 
 #endif
 EOF

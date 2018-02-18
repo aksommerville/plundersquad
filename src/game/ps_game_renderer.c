@@ -115,15 +115,17 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
   }
   
   if (game&&game->grid) {
-
+  
     if (ps_video_draw_grid(game->grid,renderer->slidex,renderer->slidey)<0) return -1;
+  
     if (game->statusreport) {
       if (ps_statusreport_draw(game->statusreport,renderer->slidex,renderer->slidey)<0) return -1;
     }
-    if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE,renderer->slidex,renderer->slidey)<0) return -1;
+  
+    if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE,renderer->slidex,renderer->slidey)<0) return -1;//TODO GL error 0x500
 
     if (!renderer->drawing_for_capture&&!renderer->slidex&&!renderer->slidey) {
-      if (ps_game_draw_hud(game)<0) return -1;
+      if (ps_game_draw_hud(game)<0) return -1;//TODO GL error 0x500
     }
 
     if (!renderer->drawing_for_capture&&renderer->capture&&(renderer->slidex||renderer->slidey)) {
@@ -134,7 +136,7 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
       else if (renderer->slidey>0) dsty=renderer->slidey;
       if (ps_video_draw_texture(renderer->capture,dstx,dsty,PS_SCREENW,-PS_SCREENH)<0) return -1;
     }
-    
+  
   }
   return 0;
 }

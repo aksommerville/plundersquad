@@ -2,7 +2,8 @@
 - Binary formats for all resources.
 - Review dragoncharger with multiple real players.
 - Final boss?
-- Pi backend
 - GLX backend
 - Windows backend
 - Rapid switch between screens. Worth fixing, I don't know?
+- Don't delete input config for unknown providers. Probably doesn't matter in production, but it's annoying for me.
+- Rotation edge artifacts (Pi only). Fix by ensuring margins available for any tile that could rotate.

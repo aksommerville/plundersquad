@@ -35,6 +35,11 @@ struct akgl_program *akgl_program_raw_new() {
     akgl_vsrc_raw,sizeof(akgl_vsrc_raw)-1,
     akgl_fsrc_raw,sizeof(akgl_vsrc_raw)-1
   )<0) {
+    const char *log=0;
+    int logc=akgl_program_get_error_log(&log,program);
+    if (log&&(logc>0)) {
+      ps_log(VIDEO,ERROR,"Failed to compile 'raw' shader...\n%.*s\n",logc,log);
+    }
     akgl_program_del(program);
     return 0;
   }
@@ -76,7 +81,11 @@ int akgl_program_raw_draw_line_strip(struct akgl_program *program,const struct a
 
 int akgl_program_raw_draw_points(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int size) {
   if (size<1) return -1;
-  glDisable(GL_PROGRAM_POINT_SIZE);
-  glPointSize(size);
+  #ifdef GL_PROGRAM_POINT_SIZE
+    glDisable(GL_PROGRAM_POINT_SIZE);
+  #endif
+  #if PS_ARCH!=PS_ARCH_raspi
+    glPointSize(size);
+  #endif
   return akgl_program_raw_draw_primitives(program,vtxv,vtxc,GL_POINTS);
 }

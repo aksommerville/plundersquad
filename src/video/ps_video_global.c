@@ -44,12 +44,21 @@ int ps_video_init() {
 
   #if PS_USE_macwm
     if (ps_macwm_init(ps_video.winw,ps_video.winh,0,"Plunder Squad")<0) {
+      ps_log(VIDEO,ERROR,"Failed to create MacOS window.");
+      ps_video_quit();
+      return -1;
+    }
+
+  #elif PS_USE_bcm
+    if (ps_bcm_init()<0) {
+      ps_log(VIDEO,ERROR,"Failed to initialize Broadcom video.");
       ps_video_quit();
       return -1;
     }
   #endif
 
   if (ps_video_init_akgl()<0) {
+    ps_log(VIDEO,ERROR,"Failed to initialize OpenGL.");
     ps_video_quit();
     return -1;
   }
@@ -81,6 +90,8 @@ void ps_video_quit() {
 
   #if PS_USE_macwm
     ps_macwm_quit();
+  #elif PS_USE_bcm
+    ps_bcm_quit();
   #endif
 
   if (ps_video.vtxv) free(ps_video.vtxv);
@@ -131,9 +142,11 @@ int ps_video_update() {
 
   /* Draw scene into the framebuffer. */
   if (akgl_framebuffer_use(ps_video.framebuffer)<0) return -1;
+  
   if (ps_video_draw_layers()<0) return -1;
+  
   if (akgl_framebuffer_use(0)<0) return -1;
-
+  
   /* If the output bounds don't cover the window, black out first. */
   if (ps_video.dstx||ps_video.dsty||(ps_video.dstw<ps_video.winw)||(ps_video.dsth<ps_video.winh)) {
     akgl_clear(0x000000ff);
@@ -146,6 +159,8 @@ int ps_video_update() {
 
   #if PS_USE_macwm
     if (ps_macwm_flush_video()<0) return -1;
+  #elif PS_USE_bcm
+    if (ps_bcm_swap()<0) return -1;
   #endif
   
   return 0;

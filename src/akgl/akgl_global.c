@@ -31,7 +31,9 @@ int akgl_init() {
   akgl.screenh=480;
   akgl.glsl_version=120;
 
-  glEnable(GL_POINT_SPRITE);
+  #ifdef GL_POINT_SPRITE
+    glEnable(GL_POINT_SPRITE);
+  #endif
 
   return 0;
 }

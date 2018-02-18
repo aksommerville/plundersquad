@@ -24,7 +24,7 @@ struct akau_driver {
  * You must include that unit, or linkage will fail.
  */
 extern const struct akau_driver akau_driver_akmacaudio;
-extern const struct akau_driver akau_driver_akalsa;
+extern const struct akau_driver akau_driver_alsa;
 extern const struct akau_driver akau_driver_akmsaudio;
 
 #endif

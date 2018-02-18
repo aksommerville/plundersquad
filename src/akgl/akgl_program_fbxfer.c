@@ -42,6 +42,11 @@ struct akgl_program *akgl_program_fbxfer_new() {
     akgl_vsrc_fbxfer,sizeof(akgl_vsrc_fbxfer)-1,
     akgl_fsrc_fbxfer,sizeof(akgl_fsrc_fbxfer)-1
   )<0) {
+    const char *log=0;
+    int logc=akgl_program_get_error_log(&log,program);
+    if (log&&(logc>0)) {
+      ps_log(VIDEO,ERROR,"Failed to compile 'fbxfer' shader...\n%.*s\n",logc,log);
+    }
     akgl_program_del(program);
     return 0;
   }
@@ -58,7 +63,9 @@ int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffe
   
   if (akgl_program_use(program)<0) return -1;
   akgl_set_uniform_screen_size(program->location_screensize);
-  glEnable(GL_TEXTURE_2D);
+  #if PS_ARCH!=PS_ARCH_raspi
+    glEnable(GL_TEXTURE_2D);
+  #endif
   glBindTexture(GL_TEXTURE_2D,framebuffer->texid);
 
   struct akgl_vtx_fbxfer vtxv[4]={

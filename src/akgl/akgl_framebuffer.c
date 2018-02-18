@@ -12,12 +12,14 @@ struct akgl_framebuffer *akgl_framebuffer_new() {
 
   glGenTextures(1,&framebuffer->texid);
   if (akgl_get_error()) {
+    ps_log(VIDEO,ERROR,"Failed to generate texture for framebuffer.");
     free(framebuffer);
     return 0;
   }
   
   glGenFramebuffers(1,&framebuffer->fbid);
   if (akgl_get_error()) {
+    ps_log(VIDEO,ERROR,"Failed to create framebuffer.");
     glDeleteTextures(1,&framebuffer->texid);
     free(framebuffer);
     return 0;
@@ -33,6 +35,7 @@ struct akgl_framebuffer *akgl_framebuffer_new() {
   glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,framebuffer->texid,0);
   
   if (akgl_clear_error()) {
+    ps_log(VIDEO,ERROR,"Failed to create framebuffer.");
     akgl_framebuffer_del(framebuffer);
     return 0;
   }
@@ -73,6 +76,7 @@ int akgl_framebuffer_resize(struct akgl_framebuffer *framebuffer,int w,int h) {
   if (status!=GL_FRAMEBUFFER_COMPLETE) return -1;
 
   if (akgl_clear_error()) {
+    ps_log(VIDEO,ERROR,"Failed to resize framebuffer.");
     return -1;
   }
   framebuffer->w=w;
@@ -93,7 +97,10 @@ int akgl_framebuffer_use(struct akgl_framebuffer *framebuffer) {
     glBindFramebuffer(GL_FRAMEBUFFER,0);
     glViewport(0,0,akgl.screenw,akgl.screenh);
   }
-  if (akgl_get_error()) return -1;
+  if (akgl_clear_error()) {
+    ps_log(VIDEO,ERROR,"Failed to enter framebuffer %p",framebuffer);
+    return -1;
+  }
   if (framebuffer&&(akgl_framebuffer_ref(framebuffer)<0)) return -1;
   akgl_framebuffer_del(akgl.framebuffer);
   akgl.framebuffer=framebuffer;

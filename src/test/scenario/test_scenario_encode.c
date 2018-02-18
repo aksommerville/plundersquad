@@ -6,6 +6,7 @@
 #include "scenario/ps_grid.h"
 #include "res/ps_resmgr.h"
 #include <sys/time.h>
+#include <time.h>
 
 /* Generate scenario.
  */

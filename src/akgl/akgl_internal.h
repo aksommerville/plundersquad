@@ -1,14 +1,18 @@
 #ifndef AKGL_INTERNAL_H
 #define AKGL_INTERNAL_H
 
+#include "ps.h"
 #include "akgl.h"
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
 
-#if __APPLE__
+#if PS_ARCH==PS_ARCH_macos
   #include <OpenGL/gl.h>
   #include <OpenGL/glu.h>
+#elif PS_ARCH==PS_ARCH_raspi
+  #include <GLES2/gl2.h>
+  #include <GLES2/gl2ext.h>
 #else
   #include <gl/gl.h>
 #endif

@@ -161,7 +161,8 @@ static int ps_game_decode_header(struct ps_game *game,const uint8_t *src,int src
 
   uint32_t treasurebits=(src[20]<<24)|(src[21]<<16)|(src[22]<<8)|src[23];
   uint32_t mask=1;
-  int i=0; for (;i<32;i++,mask<<=1) {
+  int treasurelimit=(PS_TREASURE_LIMIT<32)?PS_TREASURE_LIMIT:32;
+  int i=0; for (;i<treasurelimit;i++,mask<<=1) {
     game->treasurev[i]=(treasurebits&mask)?1:0;
   }
 

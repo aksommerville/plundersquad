@@ -200,12 +200,16 @@ int akgl_texture_load_sub(
 
 int akgl_texture_use(struct akgl_texture *texture) {
   if (texture) {
-    glEnable(GL_TEXTURE_2D);
+    #if PS_ARCH!=PS_ARCH_raspi
+      glEnable(GL_TEXTURE_2D);
+    #endif
     glBindTexture(GL_TEXTURE_2D,texture->texid);
   } else {
-    glDisable(GL_TEXTURE_2D);
+    #if PS_ARCH!=PS_ARCH_raspi
+      glDisable(GL_TEXTURE_2D);
+    #endif
     glBindTexture(GL_TEXTURE_2D,0);
   }
-  if (akgl_get_error()) return -1;
+  if (akgl_clear_error()) return -1;
   return 0;
 }

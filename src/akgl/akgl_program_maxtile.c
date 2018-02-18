@@ -15,7 +15,7 @@ static const char akgl_vsrc_maxtile[]=
   "varying vec2 vtexoffset;\n"
   "varying vec4 vtint;\n"
   "varying vec4 vprimary;\n"
-  "varying mat3x2 vxform;\n"
+  "varying mat2 vxform;\n"
   "varying float vrotation;\n"
   "varying float vvxform;\n"
   "varying vec2 coordfudge;\n" // Ugly hack to get around point clipping. Without this, sprites disappear when halfway off screen.
@@ -47,10 +47,9 @@ static const char akgl_vsrc_maxtile[]=
     "if (rotation>0.0) {\n"
       "gl_PointSize*=1.41421356;\n"
       "float t=rotation*-6.283185307179586;\n"
-      "vxform=mat3x2("
+      "vxform=mat2("
         "cos(t),-sin(t),"
-        "sin(t),cos(t),"
-        "0.0,0.0"
+        "sin(t),cos(t)"
       ");\n"
     "}\n"
     
@@ -64,7 +63,7 @@ static const char akgl_fsrc_maxtile[]=
   "varying vec2 vtexoffset;\n"
   "varying vec4 vtint;\n"
   "varying vec4 vprimary;\n"
-  "varying mat3x2 vxform;\n"
+  "varying mat2 vxform;\n"
   "varying float vrotation;\n"
   "varying float vvxform;\n"
   "varying vec2 coordfudge;\n"
@@ -84,8 +83,8 @@ static const char akgl_fsrc_maxtile[]=
       "texcoord+=0.5;\n"
       "if (texcoord.x<0.0) discard;\n"
       "if (texcoord.y<0.0) discard;\n"
-      "if (texcoord.x>1.0) discard;\n"
-      "if (texcoord.y>1.0) discard;\n"
+      "if (texcoord.x>=1.0) discard;\n"
+      "if (texcoord.y>=1.0) discard;\n"
     "}\n"
 
     /* Adjust texture coordinates for axis transforms. */
@@ -113,7 +112,9 @@ static const char akgl_fsrc_maxtile[]=
       // FLOP270
       "texcoord=vec2(texcoord.y,texcoord.x);\n"
     "}\n"
-
+    
+    "if (texcoord.x<0.0) discard;\n"
+    "if (texcoord.y<0.0) discard;\n"
     "if (texcoord.x>=1.0) discard;\n"
     "if (texcoord.y>=1.0) discard;\n"
 
@@ -146,7 +147,7 @@ static const char akgl_fsrc_maxtile[]=
 
 /* Create shader.
  */
-#include <stdio.h>
+
 struct akgl_program *akgl_program_maxtile_new() {
   struct akgl_program *program=akgl_program_new();
   if (!program) return 0;
@@ -156,7 +157,11 @@ struct akgl_program *akgl_program_maxtile_new() {
     akgl_vsrc_maxtile,sizeof(akgl_vsrc_maxtile)-1,
     akgl_fsrc_maxtile,sizeof(akgl_fsrc_maxtile)-1
   )<0) {
-    printf("%.*s\n",program->error_logc,program->error_log);
+    const char *log=0;
+    int logc=akgl_program_get_error_log(&log,program);
+    if (log&&(logc>0)) {
+      ps_log(VIDEO,ERROR,"Failed to compile 'maxtile' shader...\n%.*s\n",logc,log);
+    }
     akgl_program_del(program);
     return 0;
   }
@@ -173,10 +178,16 @@ int akgl_program_maxtile_draw(struct akgl_program *program,struct akgl_texture *
   if (!vtxv) return -1;
   
   if (akgl_program_use(program)<0) return -1;
-  glEnable(GL_TEXTURE_2D);
+  #if PS_ARCH!=PS_ARCH_raspi
+    glEnable(GL_TEXTURE_2D);
+  #endif
   glBindTexture(GL_TEXTURE_2D,texture->texid);
-  glEnable(GL_PROGRAM_POINT_SIZE);
-  glEnable(GL_POINT_SPRITE);
+  #ifdef GL_PROGRAM_POINT_SIZE
+    glEnable(GL_PROGRAM_POINT_SIZE);
+  #endif
+  #ifdef GL_POINT_SPRITE
+    glEnable(GL_POINT_SPRITE);
+  #endif
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);

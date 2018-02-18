@@ -12,8 +12,8 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(AUDIO         ,TRACE)
   _(VIDEO         ,TRACE)
   _(GENERATOR     ,TRACE)
-  _(INPUT         ,INFO)
-  _(MAIN          ,DEBUG)
+  _(INPUT         ,DEBUG)
+  _(MAIN          ,TRACE)
   _(EDIT          ,TRACE)
   _(MACWM         ,TRACE)
   _(TEST          ,TRACE) /* TEST log level is also influenced by test verbosity. */

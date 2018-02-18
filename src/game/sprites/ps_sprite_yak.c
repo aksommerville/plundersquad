@@ -12,20 +12,33 @@
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
 #include "game/ps_sound_effects.h"
+#include "scenario/ps_grid.h"
+#include "scenario/ps_blueprint.h"
+#include "util/ps_geometry.h"
 #include "akgl/akgl.h"
 #include <math.h>
 
 #define PS_YAK_PHASE_IDLE      0
 #define PS_YAK_PHASE_WALK      1
+#define PS_YAK_PHASE_DRINK     2
+#define PS_YAK_PHASE_SPIT      3
 
-#define PS_YAK_IDLE_TIME_MIN  40
-#define PS_YAK_IDLE_TIME_MAX 200
+#define PS_YAK_IDLE_TIME_MIN  30
+#define PS_YAK_IDLE_TIME_MAX 100
 
 #define PS_YAK_WALK_SPEED 0.7
 #define PS_YAK_WALK_FRAME_TIME 8
 #define PS_YAK_WALK_FRAME_COUNT 4
 #define PS_YAK_WALK_TIME_MIN  40
 #define PS_YAK_WALK_TIME_MAX 200
+
+#define PS_YAK_DRINK_TIME 180
+#define PS_YAK_DRINK_FRAME_TIME 8
+#define PS_YAK_DRINK_FRAME_COUNT 2
+
+#define PS_YAK_SPIT_TIME 120
+#define PS_YAK_SPIT_FRAME_TIME 5
+#define PS_YAK_SPIT_FRAME_COUNT 2
 
 #define PS_YAK_BUTT_EPSILON 0.001
 
@@ -44,6 +57,7 @@ struct ps_sprite_yak {
   double walkdx,walkdy;
   int force_butt_position; // Set nonzero if the butt might have moved wildly, to take it as-is.
   int first_frame;
+  int full_of_water;
 };
 
 #define SPR ((struct ps_sprite_yak*)spr)
@@ -102,6 +116,8 @@ static int ps_yak_create_butt(struct ps_sprite *spr,struct ps_game *game) {
 
   butt->shape=spr->shape;
   butt->radius=spr->radius;
+  butt->collide_sprites=spr->collide_sprites;
+  butt->impassable=spr->impassable;
 
   SPR->force_butt_position=1;
 
@@ -156,6 +172,33 @@ static int ps_yak_position_butt(struct ps_sprite *spr) {
   return 0;
 }
 
+/* Look for any fragile sprites in the path of my waterspout.
+ */
+
+static int ps_yak_check_spit_victims(struct ps_sprite *spr,struct ps_game *game) {
+
+  struct ps_fbox dangerbox;
+  dangerbox.n=spr->y-2.0;
+  dangerbox.s=spr->y+6.0;
+  if (SPR->facedx<0) {
+    dangerbox.w=spr->x-PS_TILESIZE-7.0;
+    dangerbox.e=spr->x-PS_TILESIZE-3.0;
+  } else {
+    dangerbox.w=spr->x+PS_TILESIZE+3.0;
+    dangerbox.e=spr->x+PS_TILESIZE+7.0;
+  }
+
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_FRAGILE;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *victim=grp->sprv[i];
+    if (ps_sprite_collide_fbox(victim,&dangerbox)) {
+      if (ps_sprite_receive_damage(game,victim,spr)<0) return -1;
+    }
+  }
+
+  return 0;
+}
+
 /* Begin IDLE phase.
  */
 
@@ -171,6 +214,7 @@ static int ps_yak_begin_IDLE(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_yak_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phase=PS_YAK_PHASE_WALK;
   SPR->phaselimit=PS_YAK_WALK_TIME_MIN+rand()%(PS_YAK_WALK_TIME_MAX-PS_YAK_WALK_TIME_MIN);
+  SPR->animframe=0;
 
   double t=(rand()%6282)/1000.0;
   SPR->walkdx=cos(t)*PS_YAK_WALK_SPEED;
@@ -206,6 +250,28 @@ static int ps_yak_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   return 0;
 }
 
+/* Begin DRINK phase.
+ */
+
+static int ps_yak_begin_DRINK(struct ps_sprite *spr,struct ps_game *game) {
+  SPR->phase=PS_YAK_PHASE_DRINK;
+  SPR->phaselimit=PS_YAK_DRINK_TIME;
+  SPR->animframe=0;
+  SPR->full_of_water=1;
+  return 0;
+}
+
+/* Begin SPIT phase.
+ */
+
+static int ps_yak_begin_SPIT(struct ps_sprite *spr,struct ps_game *game) {
+  SPR->phase=PS_YAK_PHASE_SPIT;
+  SPR->phaselimit=PS_YAK_SPIT_TIME;
+  SPR->animframe=0;
+  SPR->full_of_water=0;
+  return 0;
+}
+
 /* Update WALK phase.
  */
 
@@ -224,10 +290,87 @@ static int ps_yak_update_WALK(struct ps_sprite *spr,struct ps_game *game) {
   return 0;
 }
 
+/* Update DRINK phase.
+ */
+
+static int ps_yak_update_DRINK(struct ps_sprite *spr,struct ps_game *game) {
+  if (++(SPR->animtime)>=PS_YAK_DRINK_FRAME_TIME) {
+    SPR->animtime=0;
+    if (++(SPR->animframe)>=PS_YAK_DRINK_FRAME_COUNT) {
+      SPR->animframe=0;
+    }
+  }
+  return 0;
+}
+
+/* Update SPIT phase.
+ */
+
+static int ps_yak_update_SPIT(struct ps_sprite *spr,struct ps_game *game) {
+  if (++(SPR->animtime)>=PS_YAK_SPIT_FRAME_TIME) {
+    SPR->animtime=0;
+    if (++(SPR->animframe)>=PS_YAK_SPIT_FRAME_COUNT) {
+      SPR->animframe=0;
+    }
+  }
+  if (ps_yak_check_spit_victims(spr,game)<0) return -1;
+  return 0;
+}
+
+/* Are we standing at water's edge, facing the water?
+ */
+
+static int ps_yak_can_drink_here(const struct ps_sprite *spr,const struct ps_game *game) {
+
+  /* If we are already full, we can't drink anywhere. */
+  if (SPR->full_of_water) return 0;
+
+  if (!game||!game->grid) return 0;
+
+  /* Take a sample point at about where the snout will be if we do drink.
+   * On second thought, take two sample points: One a little high and one a little low.
+   */
+  int x,ya,yz;
+  x=spr->x+((PS_TILESIZE*7)/8)*SPR->facedx;
+  ya=spr->y;
+  yz=spr->y+((PS_TILESIZE*5)/8);
+
+  if ((x<0)||(ya<0)) return 0;
+  int col=x/PS_TILESIZE;
+  int rowa=ya/PS_TILESIZE;
+  int rowz=yz/PS_TILESIZE;
+  if ((col>=PS_GRID_COLC)||(rowz>=PS_GRID_ROWC)) return 0;
+
+  uint8_t physics=game->grid->cellv[rowa*PS_GRID_COLC+col].physics;
+  if (physics!=PS_BLUEPRINT_CELL_HOLE) return 0;
+  physics=game->grid->cellv[rowz*PS_GRID_COLC+col].physics;
+  if (physics!=PS_BLUEPRINT_CELL_HOLE) return 0;
+
+  return 1;
+}
+
 /* Choose a new phase, IDLE or WALK.
  */
 
 static int ps_yak_choose_phase(struct ps_sprite *spr,struct ps_game *game) {
+
+  /* Finding a drink position is kind of rare, since we do nothing to encourage it.
+   * So if it becomes possible, do it.
+   */
+  if (ps_yak_can_drink_here(spr,game)) {
+    return ps_yak_begin_DRINK(spr,game);
+  }
+
+  /* If SPIT is an option, give it 1/4 odds.
+   */
+  if (SPR->full_of_water) {
+    if (!(rand()&3)) {
+      return ps_yak_begin_SPIT(spr,game);
+    }
+  }
+
+  /* Choose randomly between IDLE and WALK.
+   */
   int selection=rand()%10;
   if (selection<5) {
     return ps_yak_begin_IDLE(spr,game);
@@ -243,6 +386,8 @@ static int ps_yak_advance_phase(struct ps_sprite *spr,struct ps_game *game) {
   switch (SPR->phase) {
     case PS_YAK_PHASE_IDLE: return ps_yak_choose_phase(spr,game);
     case PS_YAK_PHASE_WALK: return ps_yak_begin_IDLE(spr,game);
+    case PS_YAK_PHASE_DRINK: return ps_yak_begin_IDLE(spr,game);
+    case PS_YAK_PHASE_SPIT: return ps_yak_begin_IDLE(spr,game);
     default: return ps_yak_begin_IDLE(spr,game);
   }
 }
@@ -253,6 +398,8 @@ static int ps_yak_advance_phase(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_yak_update_phase(struct ps_sprite *spr,struct ps_game *game) {
   switch (SPR->phase) {
     case PS_YAK_PHASE_WALK: return ps_yak_update_WALK(spr,game);
+    case PS_YAK_PHASE_DRINK: return ps_yak_update_DRINK(spr,game);
+    case PS_YAK_PHASE_SPIT: return ps_yak_update_SPIT(spr,game);
   }
   return 0;
 }
@@ -291,10 +438,17 @@ static int _ps_yak_update(struct ps_sprite *spr,struct ps_game *game) {
 
 static int _ps_yak_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr) {
   int vtxc=2;
+  if (SPR->phase==PS_YAK_PHASE_DRINK) {
+    vtxc=3;
+  } else if (SPR->phase==PS_YAK_PHASE_SPIT) {
+    vtxc=3;
+  }
   if (vtxa<vtxc) return vtxc;
 
   struct akgl_vtx_maxtile *vtx_head=vtxv;
   struct akgl_vtx_maxtile *vtx_butt=vtxv+1;
+  struct akgl_vtx_maxtile *vtx_snout=(SPR->phase==PS_YAK_PHASE_DRINK)?(vtxv+2):0;
+  struct akgl_vtx_maxtile *vtx_spout=(SPR->phase==PS_YAK_PHASE_SPIT)?(vtxv+2):0;
 
   vtx_head->x=spr->x;
   vtx_head->y=spr->y;
@@ -315,6 +469,15 @@ static int _ps_yak_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite 
           case 2: vtx_head->tileid+=0x12; break;
         }
       } break;
+    case PS_YAK_PHASE_DRINK: {
+        switch (SPR->animframe) {
+          case 0: vtx_head->tileid+=0x05; break;
+          case 1: vtx_head->tileid+=0x15; break;
+        }
+      } break;
+    case PS_YAK_PHASE_SPIT: {
+        vtx_head->tileid+=0x08;
+      } break;
   }
 
   memcpy(vtx_butt,vtx_head,sizeof(struct akgl_vtx_maxtile));
@@ -323,6 +486,27 @@ static int _ps_yak_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite 
     vtx_butt->x+=PS_TILESIZE;
   } else {
     vtx_butt->x-=PS_TILESIZE;
+  }
+
+  if (vtx_snout) {
+    memcpy(vtx_snout,vtx_head,sizeof(struct akgl_vtx_maxtile));
+    vtx_snout->tileid-=1;
+    if (SPR->facedx<0) {
+      vtx_snout->x-=PS_TILESIZE;
+    } else {
+      vtx_snout->x+=PS_TILESIZE;
+    }
+  }
+
+  if (vtx_spout) {
+    memcpy(vtx_spout,vtx_head,sizeof(struct akgl_vtx_maxtile));
+    vtx_spout->tileid-=1;
+    if (SPR->animframe) vtx_spout->tileid+=0x10;
+    if (SPR->facedx<0) {
+      vtx_spout->x-=PS_TILESIZE;
+    } else {
+      vtx_spout->x+=PS_TILESIZE;
+    }
   }
   
   return vtxc;

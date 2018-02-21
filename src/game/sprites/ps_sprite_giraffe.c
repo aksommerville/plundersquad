@@ -386,7 +386,7 @@ static int _ps_giraffe_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spr
   if (SPR->facedx<0) t=255-SPR->neck_angle_akgl;
   else t=SPR->neck_angle_akgl;
 
-  vtx_head->tileid=spr->tileid+1;
+  vtx_head->tileid=spr->tileid+3;
   vtx_head->x=basex+SPR->neck_length*SPR->neck_angle_sin*SPR->facedx;
   vtx_head->y=basey-SPR->neck_length*SPR->neck_angle_cos;
   vtx_head->t=t;

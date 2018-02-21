@@ -27,7 +27,7 @@ struct ps_sprite_fireworks {
 static int _ps_fireworks_init(struct ps_sprite *spr) {
 
   spr->tsid=0x04;
-  SPR->vtx.tileid=0x09;
+  SPR->vtx.tileid=0x0a;
   SPR->vtx.size=PS_TILESIZE;
   SPR->vtx.tr=SPR->vtx.tg=SPR->vtx.tb=SPR->vtx.ta=0;
   SPR->vtx.a=0xff;

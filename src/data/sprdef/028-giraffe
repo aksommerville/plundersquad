@@ -1,5 +1,5 @@
 type giraffe
-tileid 0x0497
+tileid 0x04a8
 grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH SOLID
 radius 7
 shape CIRCLE

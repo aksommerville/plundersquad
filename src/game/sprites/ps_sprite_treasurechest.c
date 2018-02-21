@@ -116,6 +116,8 @@ static int _ps_treasurechest_update(struct ps_sprite *spr,struct ps_game *game) 
 }
 
 /* Draw.
+ * The tiles are at spr->tileid+(00,01,03).
+ * We skip 02 because I came back later and tried to ensure clearance for rotatable tiles.
  */
 
 static int _ps_treasurechest_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr) {
@@ -136,7 +138,7 @@ static int _ps_treasurechest_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct 
   vtx_chest->x=spr->x;
   vtx_chest->y=spr->y;
   vtx_chest->tileid=spr->tileid;
-  if (SPR->collected) vtx_chest->tileid+=2;
+  if (SPR->collected) vtx_chest->tileid+=1;
   vtx_chest->size=PS_TILESIZE;
   vtx_chest->ta=0x00;
   vtx_chest->pr=vtx_chest->pg=vtx_chest->pb=0x80;
@@ -146,7 +148,7 @@ static int _ps_treasurechest_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct 
 
   if (vtx_dazzle) {
     memcpy(vtx_dazzle,vtx_chest,sizeof(struct akgl_vtx_maxtile));
-    vtx_dazzle->tileid=spr->tileid+1;
+    vtx_dazzle->tileid=spr->tileid+3;
     vtx_dazzle->t=SPR->dazzlet;
     vtx_dazzle->size=PS_TREASURECHEST_DAZZLE_SIZE_MIN+(SPR->dazzlesizep*(PS_TREASURECHEST_DAZZLE_SIZE_MAX-PS_TREASURECHEST_DAZZLE_SIZE_MIN))/PS_TREASURECHEST_DAZZLE_SIZE_PERIOD;
   }

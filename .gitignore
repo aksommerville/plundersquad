@@ -4,3 +4,6 @@ out
 *~
 ~*
 bak
+
+# It's annoying to have to reset my configuration every time I pull to a different device.
+etc/input.cfg

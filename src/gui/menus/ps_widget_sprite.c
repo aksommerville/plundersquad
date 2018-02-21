@@ -59,6 +59,9 @@ static struct ps_input_record *ps_sprite_build_input_record() {
 static struct ps_game *ps_sprite_create_mock_game() {
   struct ps_game *game=calloc(1,sizeof(struct ps_game));
   if (!game) return 0;
+
+  game->grpv[PS_SPRGRP_VISIBLE].order=PS_SPRGRP_ORDER_RENDER;
+  
   return game;
 }
 
@@ -98,17 +101,23 @@ static int _ps_sprite_init(struct ps_widget *widget) {
 static void ps_sprite_position_all(struct ps_sprgrp *grp,int x,int y) {
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *sprite=grp->sprv[i];
-    sprite->x=x;
-    sprite->y=y;
+    if (sprite->type==&ps_sprtype_hero) {
+      sprite->x=x;
+      sprite->y=y;
+    }
   }
 }
 
 static int _ps_sprite_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
 
-  if (WIDGET->grp&&(WIDGET->grp->sprc>0)) {
-    ps_sprite_position_all(WIDGET->grp,parentx+widget->x+(widget->w>>1),parenty+widget->y+(widget->h>>1));
-    int err=ps_video_draw_sprites(WIDGET->grp,0,0);
+  struct ps_sprgrp *grp=WIDGET->game->grpv+PS_SPRGRP_VISIBLE;
+
+  if (ps_sprgrp_sort(grp,1)<0) return -1;
+
+  if (grp&&(grp->sprc>0)) {
+    ps_sprite_position_all(grp,parentx+widget->x+(widget->w>>1),parenty+widget->y+(widget->h>>1));
+    int err=ps_video_draw_sprites(grp,0,0);
     if (err<0) return err;
   }
   
@@ -144,15 +153,23 @@ static int _ps_sprite_pack(struct ps_widget *widget) {
  */
 
 static int _ps_sprite_update(struct ps_widget *widget) {
-  int i=WIDGET->grp->sprc; while (i-->0) {
-    struct ps_sprite *sprite=WIDGET->grp->sprv[i];
+  struct ps_sprgrp *grp=WIDGET->game->grpv+PS_SPRGRP_UPDATE;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *sprite=grp->sprv[i];
 
     if (sprite->type==&ps_sprtype_hero) {
-      if (ps_hero_accept_fake_input(sprite,ps_input_record_update(WIDGET->record),WIDGET->game)<0) return -1;
+      ((struct ps_sprite_hero*)sprite)->hp=10; // Nice and simple, prevent heroes from killing themselves.
+      if (ps_hero_accept_fake_input(sprite,ps_input_record_update(WIDGET->record),WIDGET->game)<0) {
+        return -1;
+      }
     }
     
-    if (ps_sprite_update(sprite,WIDGET->game)<0) return -1;
+    if (ps_sprite_update(sprite,WIDGET->game)<0) {
+      ps_log(GUI,ERROR,"ps_widget_sprite: Error updating '%s' sprite.",sprite->type->name);
+      return -1;
+    }
   }
+  ps_sprgrp_kill(WIDGET->game->grpv+PS_SPRGRP_DEATHROW);
   return 0;
 }
 
@@ -212,6 +229,11 @@ int ps_widget_sprite_load_sprdef(struct ps_widget *widget,int sprdefid) {
 
   if (sprite->type==&ps_sprtype_hero) {
     if (ps_hero_set_player(sprite,WIDGET->player)<0) return -1;
+    if (ps_game_set_group_mask_for_sprite(WIDGET->game,sprite,
+      (1<<PS_SPRGRP_KEEPALIVE)|
+      (1<<PS_SPRGRP_VISIBLE)|
+      (1<<PS_SPRGRP_UPDATE)
+    )<0) return -1;
   }
 
   return 0;

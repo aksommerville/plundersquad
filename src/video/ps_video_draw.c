@@ -168,7 +168,7 @@ static int ps_video_commit_sprites(int tsid) {
   if (akgl_program_maxtile_draw(
     ps_video.program_maxtile,tilesheet->texture,(struct akgl_vtx_maxtile*)ps_video.vtxv,ps_video.vtxc
   )<0) return -1;
-  
+
   ps_video.vtxc=0;
   return 0;
 }

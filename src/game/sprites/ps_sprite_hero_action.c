@@ -345,7 +345,9 @@ static int ps_hero_action_begin_1(struct ps_sprite *spr,struct ps_game *game,int
    * Whatever this would have been, now all it can do is Charge the Dragon.
    */
   if (!SPR->hp) {
-    if (ps_dragoncharger_charge(game->dragoncharger,game,SPR->player->playerid)<0) return -1;
+    if (game->dragoncharger) {
+      if (ps_dragoncharger_charge(game->dragoncharger,game,SPR->player->playerid)<0) return -1;
+    }
     return 0;
   }
 

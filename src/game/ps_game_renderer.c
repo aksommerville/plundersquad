@@ -113,27 +113,34 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
   } else if (renderer->slidey>0) {
     if ((renderer->slidey-=PS_GAME_RENDERER_SLIDE_SPEED_Y)<0) renderer->slidey=0;
   }
+
+  int slidex=renderer->slidex;
+  int slidey=renderer->slidey;
+  if (renderer->drawing_for_capture) {
+    slidex=0;
+    slidey=0;
+  }
   
   if (game&&game->grid) {
   
-    if (ps_video_draw_grid(game->grid,renderer->slidex,renderer->slidey)<0) return -1;
+    if (ps_video_draw_grid(game->grid,slidex,slidey)<0) return -1;
   
     if (game->statusreport) {
-      if (ps_statusreport_draw(game->statusreport,renderer->slidex,renderer->slidey)<0) return -1;
+      if (ps_statusreport_draw(game->statusreport,slidex,slidey)<0) return -1;
     }
   
-    if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE,renderer->slidex,renderer->slidey)<0) return -1;//TODO GL error 0x500
+    if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE,slidex,slidey)<0) return -1;
 
-    if (!renderer->drawing_for_capture&&!renderer->slidex&&!renderer->slidey) {
-      if (ps_game_draw_hud(game)<0) return -1;//TODO GL error 0x500
+    if (!renderer->drawing_for_capture&&!slidex&&!slidey) {
+      if (ps_game_draw_hud(game)<0) return -1;
     }
 
-    if (!renderer->drawing_for_capture&&renderer->capture&&(renderer->slidex||renderer->slidey)) {
+    if (!renderer->drawing_for_capture&&renderer->capture&&(slidex||slidey)) {
       int dstx=0,dsty=PS_SCREENH;
-      if (renderer->slidex<0) dstx=PS_SCREENW+renderer->slidex;
-      else if (renderer->slidex>0) dstx=renderer->slidex-PS_SCREENW;
-      if (renderer->slidey<0) dsty=PS_SCREENH*2+renderer->slidey;
-      else if (renderer->slidey>0) dsty=renderer->slidey;
+      if (slidex<0) dstx=PS_SCREENW+slidex;
+      else if (slidex>0) dstx=slidex-PS_SCREENW;
+      if (slidey<0) dsty=PS_SCREENH*2+slidey;
+      else if (slidey>0) dsty=slidey;
       if (ps_video_draw_texture(renderer->capture,dstx,dsty,PS_SCREENW,-PS_SCREENH)<0) return -1;
     }
   
@@ -157,6 +164,18 @@ static int ps_game_renderer_restore_heroes(struct ps_game_renderer *renderer,str
   return 0;
 }
 
+/* Test whether this slide is reverse of current.
+ */
+
+static int ps_game_renderer_is_reverse(int dx,int dy,int slidex,int slidey) {
+  if (!slidex&&!slidey) return 0;
+  if ((dx<0)&&(slidex<0)) return 0;
+  if ((dx>0)&&(slidex>0)) return 0;
+  if ((dy<0)&&(slidey<0)) return 0;
+  if ((dy>0)&&(slidey>0)) return 0;
+  return 1;
+}
+
 /* Begin slide.
  */
  
@@ -177,8 +196,15 @@ int ps_game_renderer_begin_slide(struct ps_game_renderer *renderer,int dx,int dy
   if (ps_game_renderer_restore_heroes(renderer,game)<0) return -1;
   if (!(renderer->capture=ps_video_capture_framebuffer())) return -1;
 
-  renderer->slidex=dx*PS_SCREENW;
-  renderer->slidey=dy*PS_SCREENH;
+  if (ps_game_renderer_is_reverse(dx,dy,renderer->slidex,renderer->slidey)) {
+    if (renderer->slidex<0) renderer->slidex+=PS_SCREENW;
+    else if (renderer->slidex>0) renderer->slidex-=PS_SCREENW;
+    if (renderer->slidey<0) renderer->slidey+=PS_SCREENH;
+    else if (renderer->slidey>0) renderer->slidey-=PS_SCREENH;
+  } else {
+    renderer->slidex=dx*PS_SCREENW;
+    renderer->slidey=dy*PS_SCREENH;
+  }
 
   return 0;
 }

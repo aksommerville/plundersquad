@@ -43,6 +43,8 @@
 #define PS_SFX_SEAMONSTER_DIVE akau_play_sound(33,0x80,0);
 #define PS_SFX_SEAMONSTER_SURFACE akau_play_sound(34,0x80,0);
 #define PS_SFX_WOOF akau_play_sound(39,0x80,0);
+#define PS_SFX_CHICKEN_CHAT akau_play_sound(43,0x80,0);
+#define PS_SFX_CHICKEN_SQUAWK akau_play_sound(44,0x80,0);
 
 #define PS_SFX_SWITCH_PRESS akau_play_sound(35,0x80,0);
 #define PS_SFX_SWITCH_RELEASE akau_play_sound(36,0x80,0);

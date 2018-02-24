@@ -52,7 +52,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
   if (ps_input_set_noninteractive_device_assignment()<0) return -1;
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
-  if (ps_game_configure_player(ps_game,1,5,0,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,1,1,0,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,2,6,0,0)<0) return -1;
   
   if (ps_game_set_difficulty(ps_game,difficulty)<0) return -1;
@@ -101,10 +101,8 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
 
-  ps_log(MAIN,TRACE,"Init video...");
   if (ps_video_init()<0) return -1;
 
-  ps_log(MAIN,TRACE,"Init input...");
   if (ps_input_init()<0) return -1;
   #if PS_USE_macioc
     if (ps_macioc_connect_input()<0) return -1;
@@ -125,10 +123,8 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
   if (ps_input_update()<0) return -1; // Reassigns input devices and gets the core running.
 
-  ps_log(MAIN,TRACE,"Init resources...");
   if (ps_resmgr_init("src/data",0)<0) return -1; //TODO resource path
 
-  ps_log(MAIN,TRACE,"Init audio...");
   //TODO Clean up audio init
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
@@ -140,18 +136,15 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
     if (akau_play_song(4,1)<0) return -1;
   #endif
 
-  ps_log(MAIN,TRACE,"Create game...");
   if (!(ps_game=ps_game_new())) return -1;
 
-  ps_log(MAIN,TRACE,"Create GUI...");
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
   if (ps_input_set_gui(ps_gui)<0) return -1;
 
-  ps_log(MAIN,TRACE,"Load game or GUI...");
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
+  } else if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

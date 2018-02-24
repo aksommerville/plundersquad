@@ -75,6 +75,16 @@ int ps_blueprint_list_remove(struct ps_blueprint_list *list,struct ps_blueprint 
   return 0;
 }
 
+/* Extra hook to ignore blueprints.
+ * This function should normally just return zero.
+ * Patch in here to generate an otherwise-normal scenario with specific blueprints.
+ * Unlike the special setup in ps_main.c, this is creating a real scenario: You must provide HERO and TREASURE blueprints.
+ */
+
+static int ps_DEBUG_ignore_blueprint(struct ps_blueprint *blueprint,int id) {
+  return 0;
+}
+
 /* Match resources.
  */
  
@@ -106,6 +116,8 @@ int ps_blueprint_list_match_resources(
           int poic=ps_blueprint_count_poi_of_type(blueprint,PS_BLUEPRINT_POI_HERO);
           if ((poic>0)&&(poic<playerc)) continue;
         }
+
+        if (ps_DEBUG_ignore_blueprint(blueprint,restype->resv[i].id)) continue;
 
         if (ps_blueprint_list_add(list,blueprint)<0) return -1;
       }

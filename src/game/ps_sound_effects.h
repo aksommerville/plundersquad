@@ -50,6 +50,8 @@
 #define PS_SFX_SWITCH_RELEASE akau_play_sound(36,0x80,0);
 #define PS_SFX_SWORDSWITCH_UNLOCK akau_play_sound(37,0x80,0);
 #define PS_SFX_SWORDSWITCH_LOCK akau_play_sound(38,0x80,0);
+#define PS_SFX_MOTIONSENSOR_ACTIVATE akau_play_sound(45,0x80,0);
+#define PS_SFX_MOTIONSENSOR_DEACTIVATE akau_play_sound(46,0x80,0);
 
 #define PS_SFX_GUI_ACTIVATE akau_play_sound(6,0x80,0);
 #define PS_SFX_GUI_CANCEL akau_play_sound(4,0x80,0);

@@ -185,6 +185,7 @@ extern const struct ps_sprtype ps_sprtype_giraffe;
 extern const struct ps_sprtype ps_sprtype_yak;
 extern const struct ps_sprtype ps_sprtype_chicken;
 extern const struct ps_sprtype ps_sprtype_egg;
+extern const struct ps_sprtype ps_sprtype_motionsensor;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

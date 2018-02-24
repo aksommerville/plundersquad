@@ -1,0 +1,4 @@
+type motionsensor
+tileid 0x049a
+layer 10
+grpmask VISIBLE UPDATE

@@ -191,13 +191,9 @@ int ps_input_config_decode(struct ps_input_config *config,const char *src,int sr
       return -1;
     }
     srcp+=err;
-    if (maptm->invalid_provider) {
+    if (ps_input_config_install_maptm(config,maptm)<0) {
       ps_input_maptm_del(maptm);
-    } else {
-      if (ps_input_config_install_maptm(config,maptm)<0) {
-        ps_input_maptm_del(maptm);
-        return -1;
-      }
+      return -1;
     }
   }
   return 0;

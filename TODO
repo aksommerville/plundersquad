@@ -5,4 +5,3 @@
 - GLX backend
 - Windows backend
 - Rapid switch between screens. Worth fixing, I don't know?
-- Don't delete input config for unknown providers. Probably doesn't matter in production, but it's annoying for me.

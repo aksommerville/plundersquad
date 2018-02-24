@@ -21,6 +21,7 @@ void ps_input_maptm_del(struct ps_input_maptm *maptm) {
 
   if (maptm->namepattern) free(maptm->namepattern);
   if (maptm->fldv) free(maptm->fldv);
+  if (maptm->src) free(maptm->src);
 
   free(maptm);
 }
@@ -55,6 +56,8 @@ int ps_input_maptm_set_namepattern(struct ps_input_maptm *maptm,const char *src,
  
 int ps_input_maptm_match_device(const struct ps_input_maptm *maptm,const struct ps_input_device *device) {
   if (!maptm||!device) return 0;
+
+  if (maptm->invalid_provider) return 0;
   
   int score;
   if (maptm->namepatternc) {
@@ -348,6 +351,13 @@ static int ps_input_maptm_fld_repr(char *dst,int dsta,const struct ps_input_mapt
 int ps_input_maptm_encode(char *dst,int dsta,const struct ps_input_maptm *maptm) {
   if (!maptm) return -1;
   if (!dst||(dsta<0)) dsta=0;
+
+  /* If we are invalid just return the original text.
+   */
+  if (maptm->invalid_provider) {
+    return ps_strcpy(dst,dsta,maptm->src,maptm->srcc);
+  }
+  
   int dstc=0;
   dstc+=ps_strcpy(dst+dstc,dsta-dstc,"{\n",2);
 
@@ -423,7 +433,7 @@ static int ps_input_maptm_decode_provider(struct ps_input_maptm *maptm,const cha
   maptm->providerid=providerid;
 
   if (!ps_input_get_provider_by_id(maptm->providerid)) {
-    ps_log(INPUT,ERROR,"Discarding map template due to uninstalled provider '%.*s'.",srcc,src);
+    ps_log(INPUT,ERROR,"Ignoring map template due to uninstalled provider '%.*s'.",srcc,src);
     maptm->invalid_provider=1;
   }
   
@@ -590,6 +600,21 @@ static int ps_input_maptm_decode_line(struct ps_input_maptm *maptm,const char *s
   return 0;
 }
 
+/* Record text for verbatim preservation.
+ */
+
+static int ps_maptm_record_text(struct ps_input_maptm *maptm,const char *src,int srcc) {
+  if (!maptm||!src||(srcc<0)) return -1;
+  char *nv=malloc(srcc+1);
+  if (!nv) return -1;
+  memcpy(nv,src,srcc);
+  nv[srcc]=0;
+  if (maptm->src) free(maptm->src);
+  maptm->src=nv;
+  maptm->srcc=srcc;
+  return 0;
+}
+
 /* Decode.
  */
 
@@ -606,6 +631,9 @@ int ps_input_maptm_decode(struct ps_input_maptm *maptm,const char *src,int srcc)
 
     /* '}' on its own line terminates the block. */
     if ((reader.linec==1)&&(reader.line[0]=='}')) {
+      if (maptm->invalid_provider) {
+        if (ps_maptm_record_text(maptm,src,reader.srcp)<0) return -1;
+      }
       return reader.srcp;
     }
 

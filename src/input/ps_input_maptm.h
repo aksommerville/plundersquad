@@ -30,7 +30,16 @@ struct ps_input_maptm {
   uint16_t vendorid; // Zero matches all
   struct ps_input_maptm_fld *fldv;
   int fldc,flda;
-  int invalid_provider; // Flag set during decode if a provider was named but is not installed.
+
+  /* If configuration for an unknown provider is present in the original text, we keep the config block verbatim.
+   * In this case, the maptm is not usable, but we want to preserve it in the file.
+   * This is relevant if somebody shares a config file across multiple installations.
+   * Not likely in real life, but it happens every day during development.
+   */
+  int invalid_provider;
+  char *src;
+  int srcc;
+  
 };
 
 struct ps_input_maptm *ps_input_maptm_new();

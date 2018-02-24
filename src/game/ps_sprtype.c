@@ -44,6 +44,7 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==7)&&!memcmp(name,"chicken",7)) return &ps_sprtype_chicken;
   if ((namec==3)&&!memcmp(name,"egg",3)) return &ps_sprtype_egg;
   if ((namec==12)&&!memcmp(name,"motionsensor",12)) return &ps_sprtype_motionsensor;
+  if ((namec==7)&&!memcmp(name,"gorilla",7)) return &ps_sprtype_gorilla;
 //INSERT SPRTYPE NAME TEST HERE
 
   return 0;
@@ -88,5 +89,6 @@ const struct ps_sprtype *ps_all_sprtypes[]={
   &ps_sprtype_chicken,
   &ps_sprtype_egg,
   &ps_sprtype_motionsensor,
+  &ps_sprtype_gorilla,
 //INSERT SPRTYPE REFERENCE HERE
 0};

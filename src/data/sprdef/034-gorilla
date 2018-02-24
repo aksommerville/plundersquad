@@ -1,0 +1,8 @@
+type gorilla
+tileid 0x04d0
+layer 100
+grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH SOLID
+radius 15
+shape CIRCLE
+impassable SOLID HOLE LATCH HEROONLY
+difficulty 2

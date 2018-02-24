@@ -9,9 +9,17 @@ LISTPATH=mid/testlist
 rm -f $LISTPATH
 touch $LISTPATH
 
+# Use the exported "OPT_ENABLE" to determine which tests need ignored.
+OPT_ENABLE_PATTERN="^($(echo $OPT_ENABLE | tr ' ' '|'))$"
+OPT_IGNORE="$(ls src/test/opt | sed -E "/$OPT_ENABLE_PATTERN/d" | tr '\n' ' ')"
+OPT_IGNORE_PATTERN="^src/test/opt/($(echo $OPT_IGNORE | tr ' ' '|'))/.*\$"
+
 while [ "$#" -gt 1 ] ; do
   SRCPATH=$1
   shift 1
+  if ( echo "$SRCPATH" | grep -Eq "$OPT_IGNORE_PATTERN" ) ; then
+    continue
+  fi
   SRCBASE=$(basename $SRCPATH)
   nl -ba -s' ' $SRCPATH | sed -En 's/^ *([0-9]+) *PS_TEST *\( *([0-9a-zA-Z_]+) *(, *([^)]*))?\).*$/'$SRCBASE' \1 \2 \4/p' >>$LISTPATH
 done

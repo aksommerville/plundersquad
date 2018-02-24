@@ -40,6 +40,6 @@ CC:=
 OBJC:=
 LD:=
 LDPOST:=
-OPT_ENABLE:=
+export OPT_ENABLE:=
 
 include etc/config/$(PS_CONFIG).mk

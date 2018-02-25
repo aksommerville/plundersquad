@@ -4,9 +4,9 @@
  * Children:
  *  [0] header "Game over"
  *  [1] discussion
+ *  [2] treasures
  *
  * TODO Per-player stats and awards.
- * TODO Show all the treasures collected.
  */
 
 #include "ps.h"
@@ -15,7 +15,10 @@
 #include "gui/corewidgets/ps_corewidgets.h"
 #include "game/ps_game.h"
 #include "game/ps_stats.h"
+#include "scenario/ps_scenario.h"
+#include "res/ps_restype.h"
 #include "util/ps_buffer.h"
+#include "util/ps_geometry.h"
 
 /* Object definition.
  */
@@ -46,6 +49,9 @@ static int _ps_report_init(struct ps_widget *widget) {
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_textblock))) return -1;
   child->fgrgba=0xe0e0e0ff;
 
+  if (!(child=ps_widget_spawn(widget,&ps_widget_type_packer))) return -1;
+  if (ps_widget_packer_set_axis(child,PS_AXIS_HORZ)<0) return -1;
+
   return 0;
 }
 
@@ -55,7 +61,7 @@ static int _ps_report_init(struct ps_widget *widget) {
 static int ps_report_obj_validate(const struct ps_widget *widget) {
   if (!widget) return -1;
   if (widget->type!=&ps_widget_type_report) return -1;
-  if (widget->childc!=2) return -1;
+  if (widget->childc!=3) return -1;
   return 0;
 }
 
@@ -67,6 +73,10 @@ static struct ps_widget *ps_report_get_discussion(const struct ps_widget *widget
   return widget->childv[1];
 }
 
+static struct ps_widget *ps_report_get_treasures(const struct ps_widget *widget) {
+  return widget->childv[2];
+}
+
 /* Measure.
  */
 
@@ -74,11 +84,16 @@ static int _ps_report_measure(int *w,int *h,struct ps_widget *widget,int maxw,in
   if (ps_report_obj_validate(widget)<0) return -1;
   struct ps_widget *header=ps_report_get_header(widget);
   struct ps_widget *discussion=ps_report_get_discussion(widget);
+  struct ps_widget *treasures=ps_report_get_treasures(widget);
   int chw,chh;
 
   *w=*h=0;
 
   if (ps_widget_measure(&chw,&chh,header,maxw,maxh)<0) return -1;
+  if (chw>*w) *w=chw;
+  (*h)+=chh;
+
+  if (ps_widget_measure(&chw,&chh,treasures,maxw,maxh-*h)<0) return -1;
   if (chw>*w) *w=chw;
   (*h)+=chh;
 
@@ -96,6 +111,7 @@ static int _ps_report_pack(struct ps_widget *widget) {
   if (ps_report_obj_validate(widget)<0) return -1;
   struct ps_widget *header=ps_report_get_header(widget);
   struct ps_widget *discussion=ps_report_get_discussion(widget);
+  struct ps_widget *treasures=ps_report_get_treasures(widget);
   int chw,chh;
 
   /* Header gets its preferred height and the full width, at the top. */
@@ -105,10 +121,17 @@ static int _ps_report_pack(struct ps_widget *widget) {
   header->w=widget->w;
   header->h=chh;
 
+  /* Treasures go just below header at preferred height. */
+  if (ps_widget_measure(&chw,&chh,treasures,widget->w,widget->h-header->h)<0) return -1;
+  treasures->x=0;
+  treasures->y=header->h;
+  treasures->w=widget->w;
+  treasures->h=chh;
+
   /* Discussion gets centered in the remainder. */
-  if (ps_widget_measure(&chw,&chh,discussion,widget->w,widget->h-header->h)<0) return -1;
+  if (ps_widget_measure(&chw,&chh,discussion,widget->w,widget->h-header->h-treasures->h)<0) return -1;
   discussion->x=(widget->w>>1)-(chw>>1);
-  discussion->y=header->h+((widget->h-header->h)>>1)-(chh>>1);
+  discussion->y=treasures->y+treasures->h+((widget->h-header->h)>>1)-(chh>>1);
   discussion->w=chw;
   discussion->h=chh;
   
@@ -165,6 +188,20 @@ static int ps_report_compose_text(struct ps_buffer *buffer,const struct ps_game 
 int ps_widget_report_generate(struct ps_widget *widget,const struct ps_game *game) {
   if (ps_report_obj_validate(widget)<0) return -1;
   if (!game) return -1;
+
+  /* Treasures. */
+  struct ps_widget *treasures=ps_report_get_treasures(widget);
+  if (ps_widget_remove_all_children(treasures)<0) return -1;
+  if (game->scenario) {
+    int i=0; for (;i<game->scenario->treasurec;i++) {
+      struct ps_res_trdef *trdef=game->scenario->treasurev[i];
+      struct ps_widget *icon=ps_widget_spawn(treasures,&ps_widget_type_icon);
+      if (!icon) return -1;
+      if (ps_widget_icon_set_tile(icon,trdef->thumbnail_tileid)<0) return -1;
+    }
+  }
+
+  /* Discussion. */
   struct ps_widget *discussion=ps_report_get_discussion(widget);
   struct ps_buffer buffer={0};
   if (ps_report_compose_text(&buffer,game)<0) {
@@ -176,5 +213,6 @@ int ps_widget_report_generate(struct ps_widget *widget,const struct ps_game *gam
     return -1;
   }
   ps_buffer_cleanup(&buffer);
+  
   return 0;
 }

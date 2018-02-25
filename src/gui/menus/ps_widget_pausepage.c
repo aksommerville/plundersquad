@@ -9,6 +9,7 @@
 #include "gui/ps_gui.h"
 #include "input/ps_input.h"
 #include "game/ps_game.h"
+#include "game/ps_switchboard.h"
 
 static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
 
@@ -57,9 +58,11 @@ static int _ps_pausepage_init(struct ps_widget *widget) {
   label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"Quit",4))) return -1;
   label->fgrgba=textcolor;
-  if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Heal all",-1))) return -1;
+  if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Toggle switches",-1))) return -1;
   label->fgrgba=0xff0000ff;
   if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Swap input",-1))) return -1;
+  label->fgrgba=0xff0000ff;
+  if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Heal all",-1))) return -1;
   label->fgrgba=0xff0000ff;
   
   return 0;
@@ -190,6 +193,27 @@ static int ps_pausepage_swap_input(struct ps_widget *widget) {
   return 0;
 }
 
+/* Toggle all switches (TEMP for testing only)
+ */
+
+static int ps_pausepage_toggle_switches(struct ps_widget *widget) {
+  struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
+  struct ps_switchboard *switchboard=game->switchboard;
+
+  int swc=ps_switchboard_count_switches(switchboard);
+  ps_log(GAME,INFO,"Toggling %d switch%s.",swc,(swc==1)?"":"s");
+  int i=0; for (;i<swc;i++) {
+    int swid;
+    int value=ps_switchboard_get_switch_by_index(&swid,switchboard,i);
+    if (ps_game_set_switch(game,swid,value?0:1)<0) return -1;
+  }
+
+  if (ps_input_suppress_player_actions(30)<0) return -1;
+  if (ps_game_pause(game,0)<0) return -1;
+  if (ps_widget_kill(widget)<0) return -1;
+  return 0;
+}
+
 /* Menu callback.
  */
  
@@ -201,8 +225,9 @@ static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 3: return ps_pausepage_cancel(widget);
     case 4: return ps_pausepage_input_config(widget);
     case 5: return ps_pausepage_quit(widget);
-    case 6: return ps_pausepage_heal_all(widget);
+    case 6: return ps_pausepage_toggle_switches(widget);
     case 7: return ps_pausepage_swap_input(widget);
+    case 8: return ps_pausepage_heal_all(widget);
   }
   return 0;
 }

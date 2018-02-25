@@ -506,6 +506,31 @@ static int ps_game_check_status_report(struct ps_game *game) {
   return 0;
 }
 
+/* Detect switches via sprites and BARRIER POIs, and register them with the switchboard.
+ * This is not necessary to make them work.
+ * However, our debug switch toggler has to know which switches exist.
+ * There may be other reasons to do this too, in the future.
+ */
+
+static int ps_game_register_switches(struct ps_game *game) {
+
+  if (game->grid) {
+    const struct ps_blueprint_poi *poi=game->grid->poiv;
+    int i=game->grid->poic; for (;i-->0;poi++) {
+      if (poi->type==PS_BLUEPRINT_POI_BARRIER) {
+        if (ps_switchboard_set_switch(game->switchboard,poi->argv[0],0)<0) return -1;
+      }
+    }
+  }
+
+  int i=game->grpv[PS_SPRGRP_BARRIER].sprc; while (i-->0) {
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_BARRIER].sprv[i];
+    if (ps_switchboard_set_switch(game->switchboard,spr->switchid,0)<0) return -1;
+  }
+
+  return 0;
+}
+
 /* Hard restart.
  */
 
@@ -540,6 +565,7 @@ int ps_game_restart(struct ps_game *game) {
   if (ps_game_spawn_sprites(game)<0) return -1;
   if (ps_game_setup_deathgate(game)<0) return -1;
   if (ps_summoner_reset(game->summoner,game)<0) return -1;
+  if (ps_game_register_switches(game)<0) return -1;
 
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
@@ -580,6 +606,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   if (ps_game_spawn_sprites(game)<0) return -1;
   if (ps_game_setup_deathgate(game)<0) return -1;
   if (ps_summoner_reset(game->summoner,game)<0) return -1;
+  if (ps_game_register_switches(game)<0) return -1;
 
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;
@@ -634,6 +661,7 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
   if (ps_game_spawn_sprites(game)<0) return -1;
   if (ps_game_setup_deathgate(game)<0) return -1;
   if (ps_summoner_reset(game->summoner,game)<0) return -1;
+  if (ps_game_register_switches(game)<0) return -1;
 
   if (game->grid->region) {
     if (akau_play_song(game->grid->region->songid,0)<0) return -1;

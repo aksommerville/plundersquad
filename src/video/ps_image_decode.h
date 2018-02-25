@@ -11,7 +11,7 @@ struct akgl_texture;
  * (refpath) is the optional file name for logging.
  * Video backend must be initialized first.
  * We return a new texture object on success, or NULL on error.
- * We accept two formats:
+ * We accept three formats:
  *   - PNG (see <akpng/akpng.h>)
  *   - psimage (see below)
  *   - Raw pixels, must be the precise size expected of a tilesheet.

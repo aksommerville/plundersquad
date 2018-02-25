@@ -28,6 +28,10 @@ static int ps_restype_IMAGE_decode(void *objpp,const void *src,int srcc,int rid,
   } else {
     ps_log(RES,INFO,"Stubbing image decode because video provider is not initialized.");
   }
+
+  if (akgl_texture_set_filter(OBJ->texture,1)<0) {
+    // Whatever.
+  }
   
   *(void**)objpp=obj;
   return 0;

@@ -1,5 +1,6 @@
 /* ps_widget_pausepage.c
  * Menu for special actions during game play.
+ * We track input for a cheat code to open the debug menu (LLLRRRLR).
  */
 
 #include "ps.h"
@@ -10,6 +11,10 @@
 #include "input/ps_input.h"
 #include "game/ps_game.h"
 #include "game/ps_switchboard.h"
+#include "os/ps_clockassist.h"
+
+#define PS_PAUSEPAGE_CHEAT_LIMIT 8
+#define PS_PAUSEPAGE_CHEAT_TIME  2000000
 
 static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
 
@@ -18,6 +23,9 @@ static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
 
 struct ps_widget_pausepage {
   struct ps_widget hdr;
+  int cheat_btnidv[PS_PAUSEPAGE_CHEAT_LIMIT];
+  int cheat_btnidp;
+  int64_t cheat_expiration;
 };
 
 #define WIDGET ((struct ps_widget_pausepage*)widget)
@@ -58,12 +66,6 @@ static int _ps_pausepage_init(struct ps_widget *widget) {
   label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"Quit",4))) return -1;
   label->fgrgba=textcolor;
-  if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Toggle switches",-1))) return -1;
-  label->fgrgba=0xff0000ff;
-  if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Swap input",-1))) return -1;
-  label->fgrgba=0xff0000ff;
-  if (!(label=ps_widget_menu_spawn_label(menu,"[DEBUG] Heal all",-1))) return -1;
-  label->fgrgba=0xff0000ff;
   
   return 0;
 }
@@ -84,11 +86,95 @@ static int _ps_pausepage_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Open the cheat menu.
+ */
+
+static int ps_pausepage_open_cheat_menu(struct ps_widget *widget) {
+  struct ps_gui *gui=ps_widget_get_gui(widget);
+  if (ps_gui_load_page_debugmenu(gui)<0) return -1;
+  if (ps_widget_kill(widget)<0) return -1;
+  return 0;
+}
+
+/* Clear the cheat code.
+ */
+
+static int ps_pausepage_clear_cheat_code(struct ps_widget *widget) {
+  WIDGET->cheat_btnidp=0;
+  memset(WIDGET->cheat_btnidv,0,sizeof(WIDGET->cheat_btnidv));
+  return 0;
+}
+
+/* Add a keystroke to the cheat code buffer.
+ */
+
+static int ps_pausepage_append_cheat_code(struct ps_widget *widget,int btnid) {
+  WIDGET->cheat_btnidv[WIDGET->cheat_btnidp]=btnid;
+  if (++(WIDGET->cheat_btnidp)>=PS_PAUSEPAGE_CHEAT_LIMIT) WIDGET->cheat_btnidp=0;
+  return 0;
+}
+
+/* Test the cheat code buffer, return nonzero if our secret code is present.
+ */
+
+static inline int ps_pausepage_cheat_code_equals(const struct ps_widget *widget,unsigned int p,int btnid) {
+  p+=WIDGET->cheat_btnidp;
+  p%=PS_PAUSEPAGE_CHEAT_LIMIT;
+  return (WIDGET->cheat_btnidv[p]==btnid);
+}
+
+static int ps_pausepage_cheat_code_present(const struct ps_widget *widget) {
+  if (!ps_pausepage_cheat_code_equals(widget,0,PS_PLRBTN_LEFT)) return 0;
+  if (!ps_pausepage_cheat_code_equals(widget,1,PS_PLRBTN_LEFT)) return 0;
+  if (!ps_pausepage_cheat_code_equals(widget,2,PS_PLRBTN_LEFT)) return 0;
+  if (!ps_pausepage_cheat_code_equals(widget,3,PS_PLRBTN_RIGHT)) return 0;
+  if (!ps_pausepage_cheat_code_equals(widget,4,PS_PLRBTN_RIGHT)) return 0;
+  if (!ps_pausepage_cheat_code_equals(widget,5,PS_PLRBTN_RIGHT)) return 0;
+  if (!ps_pausepage_cheat_code_equals(widget,6,PS_PLRBTN_LEFT)) return 0;
+  if (!ps_pausepage_cheat_code_equals(widget,7,PS_PLRBTN_RIGHT)) return 0;
+  return 1;
+}
+
+/* Add a keystroke to the cheat tracker and take any warranted action.
+ * Returns >0 if we consumed the event (don't pass it on to the menu).
+ */
+
+static int ps_pausepage_check_cheat_code(struct ps_widget *widget,int plrid,int btnid,int value) {
+  if (!value) return 0;
+  switch (btnid) {
+    case PS_PLRBTN_LEFT:
+    case PS_PLRBTN_RIGHT:
+      break;
+    default: {
+        if (ps_pausepage_clear_cheat_code(widget)<0) return -1;
+        return 0;
+      }
+  }
+
+  if (WIDGET->cheat_expiration) {
+    int64_t now=ps_time_now();
+    if (now>WIDGET->cheat_expiration) {
+      if (ps_pausepage_clear_cheat_code(widget)<0) return -1;
+      WIDGET->cheat_expiration=now+PS_PAUSEPAGE_CHEAT_TIME;
+    }
+  } else {
+    WIDGET->cheat_expiration=ps_time_now()+PS_PAUSEPAGE_CHEAT_TIME;
+  }
+  
+  if (ps_pausepage_append_cheat_code(widget,btnid)<0) return -1;
+  if (ps_pausepage_cheat_code_present(widget)) {
+    if (ps_pausepage_open_cheat_menu(widget)<0) return -1;
+  }
+  return 1;
+}
+
 /* Input.
  */
 
 static int _ps_pausepage_userinput(struct ps_widget *widget,int plrid,int btnid,int value) {
   if (widget->childc!=1) return -1;
+  int err=ps_pausepage_check_cheat_code(widget,plrid,btnid,value);
+  if (err) return err;
   return ps_widget_userinput(widget->childv[0],plrid,btnid,value);
 }
 
@@ -169,51 +255,6 @@ static int ps_pausepage_quit(struct ps_widget *widget) {
   return 0;
 }
 
-/* Heal all (TEMP for testing only)
- */
-
-static int ps_pausepage_heal_all(struct ps_widget *widget) {
-  struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
-  if (ps_game_heal_all_heroes(game)<0) return -1;
-  if (ps_input_suppress_player_actions(30)<0) return -1;
-  if (ps_game_pause(game,0)<0) return -1;
-  if (ps_widget_kill(widget)<0) return -1;
-  return 0;
-}
-
-/* Swap input (TEMP for testing only)
- */
-
-static int ps_pausepage_swap_input(struct ps_widget *widget) {
-  struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
-  if (ps_input_swap_assignments()<0) return -1;
-  if (ps_input_suppress_player_actions(30)<0) return -1;
-  if (ps_game_pause(game,0)<0) return -1;
-  if (ps_widget_kill(widget)<0) return -1;
-  return 0;
-}
-
-/* Toggle all switches (TEMP for testing only)
- */
-
-static int ps_pausepage_toggle_switches(struct ps_widget *widget) {
-  struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
-  struct ps_switchboard *switchboard=game->switchboard;
-
-  int swc=ps_switchboard_count_switches(switchboard);
-  ps_log(GAME,INFO,"Toggling %d switch%s.",swc,(swc==1)?"":"s");
-  int i=0; for (;i<swc;i++) {
-    int swid;
-    int value=ps_switchboard_get_switch_by_index(&swid,switchboard,i);
-    if (ps_game_set_switch(game,swid,value?0:1)<0) return -1;
-  }
-
-  if (ps_input_suppress_player_actions(30)<0) return -1;
-  if (ps_game_pause(game,0)<0) return -1;
-  if (ps_widget_kill(widget)<0) return -1;
-  return 0;
-}
-
 /* Menu callback.
  */
  
@@ -225,9 +266,6 @@ static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 3: return ps_pausepage_cancel(widget);
     case 4: return ps_pausepage_input_config(widget);
     case 5: return ps_pausepage_quit(widget);
-    case 6: return ps_pausepage_toggle_switches(widget);
-    case 7: return ps_pausepage_swap_input(widget);
-    case 8: return ps_pausepage_heal_all(widget);
   }
   return 0;
 }

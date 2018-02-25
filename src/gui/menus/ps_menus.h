@@ -14,6 +14,7 @@ extern const struct ps_widget_type ps_widget_type_pausepage; /* Popup menu durin
 extern const struct ps_widget_type ps_widget_type_gameoverpage; /* Post-game report and menu. */
 extern const struct ps_widget_type ps_widget_type_inputcfgpage; /* Reconfigure input devices on the fly. */
 extern const struct ps_widget_type ps_widget_type_treasurealert; /* Splash to show newly-collected treasure. */
+extern const struct ps_widget_type ps_widget_type_debugmenu; /* Special pause menu with debug-only features. */
 
 extern const struct ps_widget_type ps_widget_type_heropacker; /* Principal component of assemblepage. */
 extern const struct ps_widget_type ps_widget_type_heroselect; /* Single player box in assemblepage. */

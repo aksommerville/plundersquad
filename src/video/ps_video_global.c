@@ -109,7 +109,7 @@ int ps_video_is_init() {
 /* Draw layers.
  */
 
-static int ps_video_draw_layers() {
+static int ps_video_draw_layers(int game_only) {
 
   int must_clear=1,startp=0,i;
   for (i=ps_video.layerc;i-->0;) {
@@ -129,6 +129,7 @@ static int ps_video_draw_layers() {
     struct ps_video_layer *layer=ps_video.layerv[i];
     if (!layer->draw) continue;
     if (layer->draw(layer)<0) return -1;
+    if (game_only) break; // Foolishly assume that the bottom layer is the game.
   }
 
   return 0;
@@ -143,7 +144,7 @@ int ps_video_update() {
   /* Draw scene into the framebuffer. */
   if (akgl_framebuffer_use(ps_video.framebuffer)<0) return -1;
   
-  if (ps_video_draw_layers()<0) return -1;
+  if (ps_video_draw_layers(0)<0) return -1;
   
   if (akgl_framebuffer_use(0)<0) return -1;
   
@@ -170,9 +171,20 @@ int ps_video_draw_to_framebuffer() {
   if (!ps_video.init) return -1;
 
   if (akgl_framebuffer_use(ps_video.framebuffer)<0) return -1;
-  if (ps_video_draw_layers()<0) return -1;
+  if (ps_video_draw_layers(1)<0) return -1;
   if (akgl_framebuffer_use(0)<0) return -1;
   
+  return 0;
+}
+
+/* Redraw framebuffer with only the game layer.
+ */
+
+int ps_video_redraw_game_only() {
+  if (!ps_video.init) return -1;
+  if (akgl_framebuffer_use(ps_video.framebuffer)<0) return -1;
+  if (ps_video_draw_layers(1)<0) return -1;
+  if (akgl_framebuffer_use(0)<0) return -1;
   return 0;
 }
 
@@ -195,6 +207,54 @@ struct akgl_texture *ps_video_capture_framebuffer() {
  	}
   
   return texture;
+}
+
+/* Flip image vertically.
+ */
+
+static void ps_video_flip_image(uint8_t *pixels,int stride,int h,uint8_t *buffer) {
+  uint8_t *a=pixels;
+  uint8_t *b=pixels+stride*h;
+  int c=h>>1;
+  while (c-->0) {
+    b-=stride;
+    memcpy(buffer,a,stride);
+    memcpy(a,b,stride);
+    memcpy(b,buffer,stride);
+    a+=stride;
+  }
+}
+
+/* Capture framebuffer to raw pixels.
+ */
+ 
+int ps_video_capture_framebuffer_raw(void *pixelspp,int game_only) {
+  if (!ps_video.init) return -1;
+  if (!pixelspp) return -1;
+
+  if (game_only) {
+    if (ps_video_redraw_game_only()<0) return -1;
+  }
+
+  int bytesize=PS_SCREENW*PS_SCREENH*4;
+  void *pixels=malloc(bytesize);
+  if (!pixels) return -1;
+
+  if (akgl_framebuffer_use(ps_video.framebuffer)<0) {
+    free(pixels);
+    return -1;
+  }
+  glReadPixels(0,0,PS_SCREENW,PS_SCREENH,GL_RGBA,GL_UNSIGNED_BYTE,pixels);
+  if (akgl_framebuffer_use(0)<0) {
+    free(pixels);
+    return -1;
+  }
+
+  uint8_t buffer[PS_SCREENW*4];
+  ps_video_flip_image(pixels,PS_SCREENW*4,PS_SCREENH,buffer);
+
+  *(void**)pixelspp=pixels;
+  return bytesize;
 }
 
 /* Recalculate destination rect for final framebuffer transfer.

@@ -72,4 +72,6 @@ int ps_video_load_minfont(struct akgl_texture *texture);
 int ps_video_vtxv_reset(int size);
 void *ps_video_vtxv_add(int addc);
 
+int ps_video_redraw_game_only();
+
 #endif

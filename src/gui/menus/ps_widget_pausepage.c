@@ -91,6 +91,9 @@ static int _ps_pausepage_pack(struct ps_widget *widget) {
 
 static int ps_pausepage_open_cheat_menu(struct ps_widget *widget) {
   struct ps_gui *gui=ps_widget_get_gui(widget);
+  struct ps_game *game=ps_gui_get_game(gui);
+  if (ps_input_suppress_player_actions(30)<0) return -1;
+  if (ps_game_pause(game,0)<0) return -1;
   if (ps_gui_load_page_debugmenu(gui)<0) return -1;
   if (ps_widget_kill(widget)<0) return -1;
   return 0;

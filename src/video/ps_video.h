@@ -23,7 +23,12 @@ int ps_video_update();
  */
 int ps_video_draw_to_framebuffer();
 
+/* Capture the most recent frame as an akgl_texture or raw RGBA.
+ * Raw capture on success returns the length in bytes, which is always (PS_SCREENW*PS_SCREENH*4).
+ * (game_only) means redraw the buffer first, with GUI layers removed.
+ */
 struct akgl_texture *ps_video_capture_framebuffer();
+int ps_video_capture_framebuffer_raw(void *pixelspp,int game_only);
 
 /* Backend should call this when the window size changes.
  * This is not a request to resize; we don't do that.

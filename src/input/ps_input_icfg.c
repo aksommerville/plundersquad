@@ -139,9 +139,11 @@ static int ps_input_icfg_accept_collection(struct ps_input_icfg *icfg,struct ps_
         if (icfg->value<0) {
           map->srclo=btncfg->lo;
           map->srchi=(btncfg->lo+mid)>>1;
+          if (map->srchi>=mid) map->srchi=mid-1;
         } else {
           map->srclo=(btncfg->hi+mid)>>1;
           map->srchi=btncfg->hi;
+          if (map->srclo<=mid) map->srclo=mid+1;
         }
       } break;
 
@@ -170,6 +172,8 @@ static int ps_input_icfg_normalize_value(const struct ps_input_btncfg *btncfg,in
         int mid=(btncfg->lo+btncfg->hi)>>1;
         int threshlo=(btncfg->lo+mid)>>1;
         int threshhi=(btncfg->hi+mid)>>1;
+        if (threshlo>=mid) threshlo=mid-1;
+        if (threshhi<=mid) threshhi=mid+1;
         if (value<=threshlo) return -1;
         if (value>=threshhi) return 1;
         return 0;
@@ -214,6 +218,8 @@ int ps_input_icfg_event(struct ps_input_icfg *icfg,int btnid,int value) {
 
   int nvalue=ps_input_icfg_normalize_value(btncfg,value);
   if ((nvalue<-1)||(nvalue>1)) return 0;
+
+  //ps_log(INPUT,INFO,"btnid=%08x value=%d[%d] phase=%d expectbtnid=%d expectvalue=%d",btnid,value,nvalue,icfg->collection_phase,icfg->srcbtnid,icfg->value);
 
   switch (icfg->collection_phase) {
 

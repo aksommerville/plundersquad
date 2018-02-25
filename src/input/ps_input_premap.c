@@ -89,6 +89,19 @@ struct ps_input_btncfg *ps_input_premap_insert(struct ps_input_premap *premap,in
   return btncfg;
 }
 
+/* Describe a single button.
+ */
+ 
+int ps_input_btncfg_describe(const struct ps_input_btncfg *btncfg) {
+  if (!btncfg) return PS_BTNCFG_GARBAGE;
+  if (btncfg->hi<=btncfg->lo) return PS_BTNCFG_GARBAGE;
+  if ((btncfg->lo==0)&&(btncfg->hi<=2)) return PS_BTNCFG_TWOSTATE;
+  if ((btncfg->lo==0)&&(btncfg->hi<15)&&(btncfg->default_usage==0x00010039)) return PS_BTNCFG_GARBAGE;
+  if ((btncfg->lo==0)&&(btncfg->value==0)) return PS_BTNCFG_ONEWAY;
+  if ((btncfg->lo<btncfg->value)&&(btncfg->hi>btncfg->value)) return PS_BTNCFG_TWOWAY;
+  return PS_BTNCFG_GARBAGE;
+}
+
 /* Rebuild from device.
  */
 
@@ -105,15 +118,12 @@ static int ps_input_premap_cb_btncfg(struct ps_input_device *device,const struct
   struct ps_input_btncfg *dst=ps_input_premap_insert(premap,p,btncfg->srcbtnid);
   if (!dst) return -1;
   memcpy(dst,btncfg,sizeof(struct ps_input_btncfg));
-  
-  if (btncfg->hi<=btncfg->lo) {
-    premap->garbagec++;
-  } else if ((btncfg->lo==0)&&(btncfg->hi<=2)) { // buttons can have a hi of 1 or 2 (keyboards may use 2, for autorepeat)
-    premap->btnc++;
-  } else if ((btncfg->lo==0)&&(btncfg->value==0)) {
-    premap->axis1c++;
-  } else {
-    premap->axis2c++;
+
+  switch (ps_input_btncfg_describe(btncfg)) {
+    case PS_BTNCFG_GARBAGE: premap->garbagec++; break;
+    case PS_BTNCFG_TWOSTATE: premap->btnc++; break;
+    case PS_BTNCFG_ONEWAY: premap->axis1c++; break;
+    case PS_BTNCFG_TWOWAY: premap->axis2c++; break;
   }
   
   return 0;

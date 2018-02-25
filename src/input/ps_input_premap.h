@@ -40,4 +40,10 @@ int ps_input_premap_usable(const struct ps_input_premap *premap);
  */
 int ps_input_premap_build_for_device(struct ps_input_device *device);
 
+int ps_input_btncfg_describe(const struct ps_input_btncfg *btncfg);
+#define PS_BTNCFG_GARBAGE     0 /* Ignore it. */
+#define PS_BTNCFG_TWOSTATE    1 /* Basic 2-state button. */
+#define PS_BTNCFG_ONEWAY      2 /* Analogue axis suitable for mapping to one button. */
+#define PS_BTNCFG_TWOWAY      3 /* Analogue axis suitable for mapping to two buttons (up+down or left+right). */
+
 #endif

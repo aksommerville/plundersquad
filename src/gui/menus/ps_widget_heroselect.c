@@ -13,6 +13,7 @@
 #include "input/ps_input_map.h"
 #include "input/ps_input_maptm.h"
 #include "input/ps_input_config.h"
+#include "input/ps_input_icfg.h"
 #include "input/ps_input.h"
 #include "video/ps_video.h"
 #include "os/ps_clockassist.h"
@@ -25,7 +26,7 @@
 
 #define PS_HEROSELECT_NAME_LIMIT 16
 
-#define PS_HEROSELECT_INPUT_DELAY 500
+#define PS_HEROSELECT_INPUT_DELAY 50000
 
 #define PS_HEROSELECT_SPRDEF_ID 1
 
@@ -42,8 +43,8 @@ struct ps_widget_heroselect {
   int64_t input_delay; // If nonzero, discard input events until after this time.
   int plrdefid;
   int palette;
-  int config_btnid_next;
-  struct ps_input_map *map_in_progress;
+
+  struct ps_input_icfg *icfg;
 };
 
 #define WIDGET ((struct ps_widget_heroselect*)widget)
@@ -56,7 +57,7 @@ static void _ps_heroselect_del(struct ps_widget *widget) {
     ps_input_device_unwatch_buttons(WIDGET->device,WIDGET->device_watchid);
   }
   ps_input_device_del(WIDGET->device);
-  ps_input_map_del(WIDGET->map_in_progress);
+  ps_input_icfg_del(WIDGET->icfg);
 }
 
 /* Initialize.
@@ -149,7 +150,8 @@ int ps_heroselect_rebuild_children_for_phase(struct ps_widget *widget,int phase)
     case PS_HEROSELECT_PHASE_CONFIG: {
         if (ps_heroselect_spawn_device_label(widget)<0) return -1;
         if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1;
-        const char *btnname=ps_plrbtn_repr(WIDGET->config_btnid_next);
+        int btnid=ps_input_icfg_get_current_button(WIDGET->icfg);
+        const char *btnname=ps_plrbtn_repr(btnid);
         char message[32];
         int messagec=snprintf(message,sizeof(message),"Press %s",btnname);
         if ((messagec<0)||(messagec>sizeof(message))) messagec=0;
@@ -336,91 +338,27 @@ const struct ps_widget_type ps_widget_type_heroselect={
 
 };
 
-/* Finalize input config.
- * Put map_in_progress into the device.
+/* Finalize input mapping.
  */
-
+ 
 static int ps_heroselect_finalize_mapping(struct ps_widget *widget) {
-  if (!WIDGET->map_in_progress) return -1;
-  if (!ps_input_map_can_support_player(WIDGET->map_in_progress)) {
-    ps_log(GUI,ERROR,"Produced an invalid input map.");
-    return -1;
-  }
-  if (!WIDGET->device) return -1;
-
-  if (ps_input_device_set_map(WIDGET->device,WIDGET->map_in_progress)<0) return -1;
-  ps_input_map_del(WIDGET->map_in_progress);
-  WIDGET->map_in_progress=0;
-
-  struct ps_input_config *config=ps_input_get_configuration();
-  if (!config) return 0;
-
-  struct ps_input_maptm *maptm=ps_input_maptm_generate_from_device(WIDGET->device);
-  if (!maptm) {
-    ps_log(GUI,ERROR,"Failed to generate input map template -- Config for device '%.*s' will not be saved.",WIDGET->device->namec,WIDGET->device->name);
-    return 0;
-  }
-
-  // Handoff maptm to global config.
-  if (ps_input_config_install_maptm(ps_input_get_configuration(),maptm)<0) {
-    ps_log(GUI,ERROR,"Failed to register input map template -- Config for device '%.*s' will not be saved.",WIDGET->device->namec,WIDGET->device->name);
-    ps_input_maptm_del(maptm);
-    return 0;
-  }
-
-  if (ps_input_config_save(0,config)<0) {
-    ps_log(GUI,ERROR,"Failed to save input configuration.");
-    return 0;
-  }
-
+  int playerid=0;
+  if (WIDGET->device&&WIDGET->device->map) playerid=WIDGET->device->map->plrid;
+  if (ps_input_icfg_finish(WIDGET->icfg,playerid)<0) return -1;
+  ps_input_icfg_del(WIDGET->icfg);
+  WIDGET->icfg=0;
+  if (ps_heroselect_rebuild_children_for_phase(widget,PS_HEROSELECT_PHASE_QUERY)<0) return -1;
+  if (ps_widget_pack(widget)<0) return -1;
+  WIDGET->input_delay=ps_time_now()+PS_HEROSELECT_INPUT_DELAY;
   return 0;
 }
 
-/* Apply button map.
- * Returns >0 on full success, 0 if redundant, <0 for real errors.
- * UPDATE: We don't check redundant anymore, since it is perfectly legal to have two mappings on the same two-way axis.
+/* Update UI for input mapping.
  */
-
-static int ps_heroselect_map_button(struct ps_widget *widget,int plrbtnid,int srcbtnid,int lo,int hi) {
-  ps_log(GUI,TRACE,"%s %s = %d[%d..%d]",__func__,ps_plrbtn_repr(plrbtnid),srcbtnid,lo,hi);
-
-  if (!WIDGET->map_in_progress) {
-    if (!(WIDGET->map_in_progress=ps_input_map_new())) return -1;
-  }
-
-  int p=ps_input_map_search(WIDGET->map_in_progress,srcbtnid);
-  if (p<0) p=-p-1;
-
-  struct ps_input_map_fld *fld=ps_input_map_insert(WIDGET->map_in_progress,p,srcbtnid);
-  if (!fld) return -1;
-
-  fld->srclo=lo;
-  fld->srchi=hi;
-  fld->dstbtnid=plrbtnid;
-  fld->dstv=0;
-  fld->srcv=0;
-  
-  return 1;
-}
-
-/* Move to the next input configuration item.
- */
-
-static int ps_heroselect_advance_input_config(struct ps_widget *widget) {
-  WIDGET->config_btnid_next<<=1;
-
-  /* Done mapping? */
-  if (!(WIDGET->config_btnid_next&PS_PLRBTN_MAPPABLE)) {
-    if (ps_heroselect_finalize_mapping(widget)<0) return -1;
-    if (ps_heroselect_rebuild_children_for_phase(widget,PS_HEROSELECT_PHASE_QUERY)<0) return -1;
-    if (ps_widget_pack(widget)<0) return -1;
-    WIDGET->input_delay=ps_time_now()+PS_HEROSELECT_INPUT_DELAY;
-    return 0;
-  }
-
+ 
+static int ps_heroselect_update_ui_for_input_config(struct ps_widget *widget) {
   if (ps_heroselect_rebuild_children_for_phase(widget,PS_HEROSELECT_PHASE_CONFIG)<0) return -1;
   if (ps_widget_pack(widget)<0) return -1;
-  WIDGET->input_delay=ps_time_now()+PS_HEROSELECT_INPUT_DELAY;
   return 0;
 }
 
@@ -428,57 +366,22 @@ static int ps_heroselect_advance_input_config(struct ps_widget *widget) {
  */
 
 static int ps_heroselect_input_config_event(struct ps_widget *widget,int btnid,int value) {
-  ps_log(GUI,TRACE,"%s %d=%d",__func__,btnid,value);
+  //ps_log(GUI,TRACE,"%s %d=%d",__func__,btnid,value);
   int err;
 
   if (WIDGET->phase==PS_HEROSELECT_PHASE_WELCOME) {
-    WIDGET->config_btnid_next=1;
-    if (ps_heroselect_rebuild_children_for_phase(widget,PS_HEROSELECT_PHASE_CONFIG)<0) return -1;
-    if (ps_widget_pack(widget)<0) return -1;
-    WIDGET->input_delay=ps_time_now()+PS_HEROSELECT_INPUT_DELAY;
-    return 0;
+    return ps_heroselect_update_ui_for_input_config(widget);
   }
 
-  struct ps_input_btncfg *btncfg=ps_input_premap_get(WIDGET->device->premap,btnid);
-  if (!btncfg) return 0; // Button wasn't reported to premap. Ignore it.
-  if (btncfg->hi<=btncfg->lo) return 0; // Garbage button.
-
-  if (value<btncfg->lo) value=btncfg->lo;
-  else if (value>btncfg->hi) value=btncfg->hi;
-
-  /* Two-state buttons. Anything above (hi/2) is ON. */
-  if ((btncfg->lo==0)&&((btncfg->hi<=2)||(btncfg->value==0))) {
-    int threshold=(btncfg->hi>>1);
-    if (btncfg->hi&1) threshold++;
-    if (value<threshold) return 0;
-    if ((err=ps_heroselect_map_button(widget,WIDGET->config_btnid_next,btncfg->srcbtnid,threshold,btncfg->hi))<=0) return err;
-    PS_SFX_BTNMAP
-    if (ps_heroselect_advance_input_config(widget)<0) return -1;
-    return 0;
-  }
-
-  /* Two-way axes. 
-   * Cut the range in thirds, then ensure that the initial value is in the dead zone.
-   * We're taking it on faith that btncfg->value is the default resting state.
-   */
-  if ((btncfg->lo<btncfg->hi-2)&&(btncfg->value>btncfg->lo)&&(btncfg->value<btncfg->hi)) {
-    int lothresh=(btncfg->lo+btncfg->hi)/3;
-    int hithresh=((btncfg->lo+btncfg->hi)*2)/3;
-    if (btncfg->value<=lothresh) lothresh=btncfg->value-1;
-    if (btncfg->value>=hithresh) hithresh=btncfg->value+1;
-    if (value<=lothresh) {
-      if ((err=ps_heroselect_map_button(widget,WIDGET->config_btnid_next,btncfg->srcbtnid,btncfg->lo,lothresh))<0) return err;
-      PS_SFX_BTNMAP
-      if (ps_heroselect_advance_input_config(widget)<0) return -1;
-      return 0;
-    } else if (value>=hithresh) {
-      if ((err=ps_heroselect_map_button(widget,WIDGET->config_btnid_next,btncfg->srcbtnid,hithresh,btncfg->hi))<0) return err;
-      PS_SFX_BTNMAP
-      if (ps_heroselect_advance_input_config(widget)<0) return -1;
-      return 0;
+  err=ps_input_icfg_event(WIDGET->icfg,btnid,value);
+  if (err<0) return -1;
+  if (err) {
+    if (ps_input_icfg_is_ready(WIDGET->icfg)) {
+      if (ps_heroselect_finalize_mapping(widget)<0) return -1;
+    } else {
+      if (ps_heroselect_update_ui_for_input_config(widget)<0) return -1;
     }
   }
-  
   return 0;
 }
 
@@ -549,6 +452,10 @@ static int ps_heroselect_cb_input(struct ps_input_device *device,int btnid,int v
 
   /* When the device has no map, we are configuring the device. */
   if (!device->map&&device->premap) {
+    if (mapped) return 0;
+    if (!WIDGET->icfg) {
+      if (!(WIDGET->icfg=ps_input_icfg_new(WIDGET->device))) return -1;
+    }
     return ps_heroselect_input_config_event(widget,btnid,value);
   }
 

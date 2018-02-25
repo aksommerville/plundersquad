@@ -17,7 +17,6 @@ int ps_input_set_player_count(int playerc) {
 }
 
 /* Manual assignment for a single device.
- * The wild dynamic reassignment that you see above, I think we don't need that anymore.
  * Initial player configuration happens at the device level, before assignment.
  * When player selection is committed to the game, we have very conveniently each player and his device.
  */

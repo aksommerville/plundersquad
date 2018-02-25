@@ -318,8 +318,6 @@ static int ps_heropacker_cb_connect(struct ps_input_device *device,void *userdat
 
 static int ps_heropacker_cb_disconnect(struct ps_input_device *device,void *userdata) {
   struct ps_widget *widget=userdata;
-  if (device->map) {
-    if (ps_heropacker_remove_player(widget,device)<0) return -1;
-  }
+  if (ps_heropacker_remove_player(widget,device)<0) return -1;
   return 0;
 }

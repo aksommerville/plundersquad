@@ -40,6 +40,7 @@ struct ps_sprite_hero {
   int hookshot_in_progress;
   int fly_in_progress;
   int fly_counter;
+  int defer_fly_end;
   int carry_in_progress;
   
 };

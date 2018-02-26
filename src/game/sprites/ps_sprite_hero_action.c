@@ -12,6 +12,7 @@
 #include "input/ps_input_button.h"
 #include "res/ps_resmgr.h"
 #include "scenario/ps_blueprint.h"
+#include "scenario/ps_grid.h"
 
 #define PS_HERO_MARTYR_EXPLOSION_SPRDEFID 7
 #define PS_HERO_BOMB_SPRDEFID 25
@@ -257,21 +258,36 @@ static int ps_hero_carry_end(struct ps_sprite *spr,struct ps_game *game) {
 /* Fly.
  */
 
+static int ps_hero_is_over_hole(const struct ps_sprite *spr,const struct ps_game *game) {
+  if (!game||!game->grid) return 0;
+  int col=spr->x/PS_TILESIZE;
+  int row=spr->y/PS_TILESIZE;
+  if ((col<0)||(col>=PS_GRID_COLC)) return 0;
+  if ((row<0)||(row>=PS_GRID_ROWC)) return 0;
+  uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
+  return (physics==PS_BLUEPRINT_CELL_HOLE)?1:0;
+}
+
 static int ps_hero_fly_begin(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->fly_in_progress) return 0;
   PS_SFX_TRANSFORM
   SPR->fly_in_progress=1;
   SPR->fly_counter=0;
+  SPR->defer_fly_end=0;
   //TODO I don't like this willy-nilly modification of (impassable). Does it conflict with hookshot, or something else?
   spr->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   return 0;
 }
 
-static int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game) {
+int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->fly_in_progress) return 0;
-  PS_SFX_UNTRANSFORM
-  SPR->fly_in_progress=0;
-  spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
+  if (ps_hero_is_over_hole(spr,game)) {
+    SPR->defer_fly_end=1;
+  } else {
+    PS_SFX_UNTRANSFORM
+    SPR->fly_in_progress=0;
+    spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
+  }
   return 0;
 }
 

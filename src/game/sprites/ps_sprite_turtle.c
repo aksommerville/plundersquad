@@ -28,6 +28,8 @@
   (1<<PS_SPRGRP_HERO)| \
   (1<<PS_SPRGRP_FRAGILE)| \
   (1<<PS_SPRGRP_LATCH)| \
+  (1<<PS_SPRGRP_SOLID)| \
+  (1<<PS_SPRGRP_PHYSICS)| \
 0)
 
 #define PS_TURTLE_IMPASSABLE_IDLE ( \
@@ -252,6 +254,7 @@ static int ps_turtle_update_ferry(struct ps_sprite *spr,struct ps_game *game) {
    * Again, don't modify groups or impassable.
    */
   if (rider&&(rider->type==&ps_sprtype_hero)&&((struct ps_sprite_hero*)rider)->fly_in_progress) {
+    rider->impassable=(SPR->riderimpassable&~(1<<PS_BLUEPRINT_CELL_HOLE));
     if (ps_sprite_set_master(rider,0,game)<0) return -1;
     ps_sprgrp_remove_sprite(SPR->rider,rider);
     rider=0;

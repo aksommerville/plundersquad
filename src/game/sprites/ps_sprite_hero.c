@@ -14,6 +14,8 @@
 #include "akgl/akgl.h"
 #include <math.h>
 
+int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game);
+
 #define PS_HERO_HEAD_OFFSET       ((PS_TILESIZE*3)/4)
 #define PS_HERO_HEAD_OFFSET_SWORD ((PS_TILESIZE*2)/4) /* For south face only */
 #define PS_HERO_BLINKTIME_SHUT      10
@@ -318,6 +320,15 @@ static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
         }
       } break;
   }
+
+  if (SPR->defer_fly_end) {
+    if (physics!=PS_BLUEPRINT_CELL_HOLE) {
+      if (ps_hero_fly_end(spr,game)<0) return -1;
+    } else {
+      SPR->fly_counter++;
+    }
+  }
+  
   return 0;
 }
 

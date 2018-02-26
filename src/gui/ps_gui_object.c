@@ -4,6 +4,7 @@
 #include "menus/ps_menus.h"
 #include "editor/ps_editor.h"
 #include "video/ps_video.h"
+#include "akau/akau.h"
 
 /* Global.
  */
@@ -253,6 +254,7 @@ int ps_gui_load_page_assemble(struct ps_gui *gui) {
   struct ps_widget *page=ps_widget_spawn(gui->root,&ps_widget_type_assemblepage);
   if (!page) return -1;
   if (ps_widget_pack(gui->root)<0) return -1;
+  akau_play_song(5,1);
   return 0;
 }
  
@@ -286,6 +288,7 @@ int ps_gui_load_page_gameover(struct ps_gui *gui) {
   if (!page) return -1;
   if (ps_widget_gameoverpage_setup(page,gui->game)<0) return -1;
   if (ps_widget_pack(gui->root)<0) return -1;
+  akau_play_song(3,1);
   return 0;
 }
 

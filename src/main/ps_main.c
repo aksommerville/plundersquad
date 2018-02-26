@@ -135,11 +135,9 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
     if (akau_load_resources(audiorespath)<0) return -1;
-    if (akau_play_song(4,1)<0) return -1;//TODO decide where to change the song. can set here and it plays forever, which gets annoying
   #elif PS_USE_alsa
     if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
     if (akau_load_resources(audiorespath)<0) return -1;
-    if (akau_play_song(4,1)<0) return -1;
   #endif
 
   if (!(ps_game=ps_game_new())) return -1;

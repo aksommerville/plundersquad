@@ -1,6 +1,9 @@
 #include "ps.h"
 #include "os/ps_ioc.h"
 #include "os/ps_clockassist.h"
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 static struct {
   int quit;
@@ -69,10 +72,10 @@ static int ps_genioc_read_cmdline(struct ps_cmdline *cmdline,int argc,char **arg
       cmdline->input_config_path=arg+8;
     
     } else if (arg[0]=='-') {
-      ps_log(GENIOC,ERROR,"Unexpected option '%s'",arg);
+      ps_log(,ERROR,"Unexpected option '%s'",arg);
       return -1;
     } else if (cmdline->saved_game_path) {
-      ps_log(GENIOC,ERROR,"Unexpected argument '%s'",arg);
+      ps_log(,ERROR,"Unexpected argument '%s'",arg);
       return -1;
 
     } else {
@@ -88,13 +91,13 @@ static int ps_genioc_read_cmdline(struct ps_cmdline *cmdline,int argc,char **arg
 static int ps_genioc_validate_cmdline(struct ps_cmdline *cmdline) {
 
   if (!cmdline->resources_path) {
-    ps_log(GENIOC,ERROR,"Resources not found. Copy to a known location or provide '--resources=PATH'.");
+    ps_log(,ERROR,"Resources not found. Copy to a known location or provide '--resources=PATH'.");
     return -1;
   }
 
   if (!cmdline->input_config_path) {
     //TODO create input config in a sensible location
-    ps_log(GENIOC,ERROR,"Input config not found. Provide '--input=PATH'.");
+    ps_log(,ERROR,"Input config not found. Provide '--input=PATH'.");
     return -1;
   }
 

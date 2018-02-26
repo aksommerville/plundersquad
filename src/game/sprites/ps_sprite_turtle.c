@@ -243,7 +243,16 @@ static int ps_turtle_update_ferry(struct ps_sprite *spr,struct ps_game *game) {
   /* Hacky fix: If the rider dies en route, we must drop it unceremoniously.
    * Don't restore anything, because the death process already overwrote our changes.
    */
-  if (rider&&!((struct ps_sprite_hero*)rider)->hp) {
+  if (rider&&(rider->type==&ps_sprtype_hero)&&!((struct ps_sprite_hero*)rider)->hp) {
+    ps_sprgrp_remove_sprite(SPR->rider,rider);
+    rider=0;
+  }
+
+  /* Another hack: If our rider is a vampire and has turned into a bat, drop him.
+   * Again, don't modify groups or impassable.
+   */
+  if (rider&&(rider->type==&ps_sprtype_hero)&&((struct ps_sprite_hero*)rider)->fly_in_progress) {
+    if (ps_sprite_set_master(rider,0,game)<0) return -1;
     ps_sprgrp_remove_sprite(SPR->rider,rider);
     rider=0;
   }

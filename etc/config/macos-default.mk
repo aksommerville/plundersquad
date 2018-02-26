@@ -14,14 +14,21 @@ BUNDLE_MAIN:=$(OUTDIR)/PlunderSquad.app
 PLIST_MAIN:=$(BUNDLE_MAIN)/Contents/Info.plist
 NIB_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/Main.nib
 EXE_MAIN:=$(BUNDLE_MAIN)/Contents/MacOS/PlunderSquad
-OUTDIR_MAIN:=$(BUNDLE_MAIN)/Contents/Resources
+RESDIR_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/data
+INPUTCFG_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/input.cfg
+
+RES_SRC:=$(shell find src/data -type f)
+RES_MAIN:=$(patsubst src/data/%,$(RESDIR_MAIN)/%,$(RES_SRC))
+$(RESDIR_MAIN)/%:src/data/%;$(PRECMD) cp $< $@
+
+$(INPUTCFG_MAIN):etc/input.cfg;$(PRECMD) cp $< $@
 
 BUNDLE_EDIT:=$(OUTDIR)/EditPlunderSquad.app
 PLIST_EDIT:=$(BUNDLE_EDIT)/Contents/Info.plist
 NIB_EDIT:=$(BUNDLE_EDIT)/Contents/Resources/Main.nib
 EXE_EDIT:=$(BUNDLE_EDIT)/Contents/MacOS/EditPlunderSquad
 
-$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN)
+$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN) $(RES_MAIN) $(INPUTCFG_MAIN)
 $(EXE_EDIT):$(PLIST_EDIT) $(NIB_EDIT)
 
 $(PLIST_MAIN):src/main/Info.plist;$(PRECMD) cp $< $@

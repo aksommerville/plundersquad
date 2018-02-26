@@ -22,6 +22,8 @@ extern struct ps_macioc {
   struct ps_input_provider *provider_system;
   struct ps_input_device *device_system;
   struct ps_cmdline cmdline;
+  char respath[1024];
+  char inputpath[1024];
 } ps_macioc;
 
 void ps_macioc_abort(const char *fmt,...);

@@ -120,19 +120,25 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   #if PS_USE_evdev
     if (ps_evdev_init_default()<0) return -1;
   #endif
-  if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
+  if (ps_input_load_configuration(cmdline->input_config_path)<0) return -1;
   if (ps_input_update()<0) return -1; // Reassigns input devices and gets the core running.
 
-  if (ps_resmgr_init("src/data",0)<0) return -1; //TODO resource path
+  if (ps_resmgr_init(cmdline->resources_path,0)<0) return -1;
 
   //TODO Clean up audio init
+  char audiorespath[1024];
+  int audiorespathc=snprintf(audiorespath,sizeof(audiorespath),"%s/audio",cmdline->resources_path);
+  if ((audiorespathc<1)||(audiorespathc>=sizeof(audiorespath))) {
+    ps_log(MAIN,ERROR,"Failed to acquire path for audio resources.");
+    return -1;
+  }
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
-    if (akau_load_resources("src/data/audio")<0) return -1; //TODO resource path
+    if (akau_load_resources(audiorespath)<0) return -1;
     if (akau_play_song(4,1)<0) return -1;//TODO decide where to change the song. can set here and it plays forever, which gets annoying
   #elif PS_USE_alsa
     if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
-    if (akau_load_resources("src/data/audio")<0) return -1;
+    if (akau_load_resources(audiorespath)<0) return -1;
     if (akau_play_song(4,1)<0) return -1;
   #endif
 
@@ -144,7 +150,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (0) { // Nonzero for normal interactive setup, zero for quick testing setup
+  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(

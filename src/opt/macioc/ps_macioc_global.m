@@ -16,6 +16,37 @@ static void ps_macioc_reopen_tty(const char *path) {
   close(fd);
 }
 
+/* Set default command line.
+ */
+const char *tmptmptmp="";
+
+static int ps_macioc_set_default_cmdline() {
+  NSBundle *bundle=[NSBundle mainBundle];
+
+  const char *respath=[[bundle resourcePath] UTF8String];
+  if (!respath) {
+    NSLog(@"Failed to acquire resources path.");
+    return -1;
+  }
+  int c=snprintf(ps_macioc.respath,sizeof(ps_macioc.respath),"%s/data",respath);
+  if ((c<1)||(c>=sizeof(ps_macioc.respath))) {
+    NSLog(@"Failed to acquire resources path.");
+    return -1;
+  }
+  ps_macioc.cmdline.resources_path=ps_macioc.respath;
+
+  c=snprintf(ps_macioc.inputpath,sizeof(ps_macioc.inputpath),"%s/input.cfg",respath);
+  if ((c<1)||(c>=sizeof(ps_macioc.inputpath))) {
+    NSLog(@"Failed to acquire input config path.");
+    return -1;
+  }
+  ps_macioc.cmdline.input_config_path=ps_macioc.inputpath;
+  int fd=open(ps_macioc.inputpath,O_RDONLY|O_CREAT,0666); // Force input config file to exist.
+  if (fd>=0) close(fd);
+
+  return 0;
+}
+
 /* Main.
  */
 
@@ -27,21 +58,41 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
 
   if (delegate) memcpy(&ps_macioc.delegate,delegate,sizeof(struct ps_ioc_delegate));
 
+  if (ps_macioc_set_default_cmdline()<0) return 1;
+
   int argp=1; while (argp<argc) {
     const char *arg=argv[argp];
+    
     if (!memcmp(arg,"--reopen-tty=",13)) {
       ps_macioc_reopen_tty(arg+13);
       argc--;
       memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
+
     } else if (!memcmp(arg,"--chdir=",8)) {
       chdir(arg+8);
       argc--;
       memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
+
+    } else if (!memcmp(arg,"--resources=",12)) {
+      ps_macioc.cmdline.resources_path=arg+12;
+
+    } else if (!memcmp(arg,"--input=",8)) {
+      ps_macioc.cmdline.input_config_path=arg+8;
+
+    } else if (arg[0]=='-') {
+      ps_log(MACIOC,ERROR,"Unexpected command line option: %s",arg);
+      return 1;
+    } else if (ps_macioc.cmdline.saved_game_path) {
+      ps_log(MACIOC,ERROR,"Unexpected command line argument: %s",arg);
+      return 1;
+
     } else {
       ps_macioc.cmdline.saved_game_path=arg;
       argp++;
     }
   }
+
+  ps_log(MACIOC,DEBUG,"Executable path: %s",tmptmptmp);
 
   return NSApplicationMain(argc,(const char**)argv);
 }

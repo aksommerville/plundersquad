@@ -320,17 +320,7 @@ static int ps_editblueprint_cb_solution(struct ps_widget *button,struct ps_widge
 static int ps_editblueprint_repr_poi(char *dst,int dsta,const struct ps_blueprint_poi *poi) {
   int dstc=0;
   
-  const char *name=0;
-  switch (poi->type) {//TODO enum for poi type
-    case PS_BLUEPRINT_POI_NOOP: name="NOOP"; break;
-    case PS_BLUEPRINT_POI_SPRITE: name="SPRITE"; break;
-    case PS_BLUEPRINT_POI_TREASURE: name="TREASURE"; break;
-    case PS_BLUEPRINT_POI_HERO: name="HERO"; break;
-    case PS_BLUEPRINT_POI_BARRIER: name="BARRIER"; break;
-    case PS_BLUEPRINT_POI_DEATHGATE: name="DEATHGATE"; break;
-    case PS_BLUEPRINT_POI_STATUSREPORT: name="STATUSREPORT"; break;
-    case PS_BLUEPRINT_POI_SUMMONER: name="SUMMONER"; break;
-  }
+  const char *name=ps_poi_type_repr(poi->type);
   if (name) dstc=ps_strcpy(dst,dsta,name,-1);
   else dstc=ps_decsint_repr(dst,dsta,poi->type);
 

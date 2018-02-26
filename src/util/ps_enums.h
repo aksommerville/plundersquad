@@ -66,4 +66,10 @@ int ps_award_eval(const char *src,int srcc);
 const char *ps_award_repr(int award);
 const char *ps_award_describe(int award);
 
+/* ps_blueprint.h:PS_BLUEPRINT_POI_*
+ * Zero-based integer.
+ */
+int ps_poi_type_eval(const char *src,int srcc);
+const char *ps_poi_type_repr(int type);
+
 #endif

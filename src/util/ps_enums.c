@@ -424,3 +424,38 @@ const char *ps_award_describe(int award) {
   }
   return 0;
 }
+
+/* POI type.
+ */
+
+int ps_blueprint_poi_eval(const char *src,int srcc) {
+  if (!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!ps_memcasecmp(src,#tag,srcc)) return PS_BLUEPRINT_POI_##tag;
+  _(NOOP)
+  _(SPRITE)
+  _(TREASURE)
+  _(HERO)
+  _(BARRIER)
+  _(DEATHGATE)
+  _(STATUSREPORT)
+  _(SUMMONER)
+  #undef _
+  return -1;
+}
+
+const char *ps_blueprint_poi_type_repr(int type) {
+  switch (type) {
+    #define _(tag) case PS_BLUEPRINT_POI_##tag: return #tag;
+    _(NOOP)
+    _(SPRITE)
+    _(TREASURE)
+    _(HERO)
+    _(BARRIER)
+    _(DEATHGATE)
+    _(STATUSREPORT)
+    _(SUMMONER)
+    #undef _
+  }
+  return 0;
+}

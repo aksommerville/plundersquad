@@ -29,8 +29,9 @@
 #define PS_PRIZE_SPRDEF_ID 17
 #define PS_SPLASH_SPRDEF_ID 24
 
-static int ps_game_npgc_pop(struct ps_game *game);
+int ps_game_npgc_pop(struct ps_game *game);
 static int ps_game_cb_switch(int switchid,int value,void *userdata);
+int ps_game_assign_awards(struct ps_game *game);
 
 /* New game.
  */
@@ -415,7 +416,7 @@ static int ps_game_spawn_hero_sprites(struct ps_game *game) {
   return 0;
 }
 
-static int ps_game_spawn_sprites(struct ps_game *game) {
+int ps_game_spawn_sprites(struct ps_game *game) {
   if (!game) return -1;
 
   /* Spawn from POI records. */
@@ -449,7 +450,7 @@ static int ps_game_monsters_present(const struct ps_game *game) {
   return 0;
 }
 
-static int ps_game_setup_deathgate(struct ps_game *game) {
+int ps_game_setup_deathgate(struct ps_game *game) {
   if (!game||!game->grid) return -1;
   int i=game->grid->poic;
   const struct ps_blueprint_poi *poi=game->grid->poiv;
@@ -482,7 +483,7 @@ static struct ps_blueprint_poi *ps_game_find_status_report_poi(const struct ps_g
   return 0;
 }
 
-static int ps_game_check_status_report(struct ps_game *game) {
+int ps_game_check_status_report(struct ps_game *game) {
 
   if (game->statusreport) {
     ps_statusreport_del(game->statusreport);
@@ -512,7 +513,7 @@ static int ps_game_check_status_report(struct ps_game *game) {
  * There may be other reasons to do this too, in the future.
  */
 
-static int ps_game_register_switches(struct ps_game *game) {
+int ps_game_register_switches(struct ps_game *game) {
 
   if (game->grid) {
     const struct ps_blueprint_poi *poi=game->grid->poiv;
@@ -620,7 +621,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
 /* Kill every sprite except those in the HERO group.
  */
 
-static int ps_game_kill_nonhero_sprites(struct ps_game *game) {
+int ps_game_kill_nonhero_sprites(struct ps_game *game) {
   int i; for (i=game->grpv[PS_SPRGRP_KEEPALIVE].sprc;i-->0;) {
     struct ps_sprite *spr=game->grpv[PS_SPRGRP_KEEPALIVE].sprv[i];
     if (ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_HERO,spr)) continue;
@@ -750,7 +751,7 @@ static int ps_game_hero_in_ok_position(struct ps_game *game,struct ps_sprite *he
   return 1;
 }
 
-static void ps_game_force_hero_to_legal_position(struct ps_game *game,struct ps_sprite *hero) {
+void ps_game_force_hero_to_legal_position(struct ps_game *game,struct ps_sprite *hero) {
 
   /* First try dropping him at the same position in the new screen. That would be least jarring to the user. */
   while (hero->x<0.0) hero->x+=PS_SCREENW;
@@ -883,6 +884,7 @@ static int ps_game_check_completion(struct ps_game *game) {
   PS_SFX_VICTORY
   ps_log(GAME,INFO,"Game complete!");
   game->finished=1;
+  if (ps_game_assign_awards(game)<0) return -1;
   return 0;
 }
 
@@ -1229,7 +1231,7 @@ int ps_game_apply_nonpersistent_grid_change(struct ps_game *game,int col,int row
   return 0;
 }
 
-static int ps_game_npgc_pop(struct ps_game *game) {
+int ps_game_npgc_pop(struct ps_game *game) {
   if (!game||!game->grid) return -1;
   while (game->npgcc>0) {
     struct ps_game_npgc *npgc=game->npgcv+(--(game->npgcc));

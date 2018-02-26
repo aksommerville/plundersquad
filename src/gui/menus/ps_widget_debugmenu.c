@@ -52,6 +52,7 @@ static int _ps_debugmenu_init(struct ps_widget *widget) {
   if (!(label=ps_widget_menu_spawn_label(menu,"Swap input",-1))) return -1;
   if (!(label=ps_widget_menu_spawn_label(menu,"Heal all",-1))) return -1;
   if (!(label=ps_widget_menu_spawn_label(menu,"Screenshot",-1))) return -1;
+  if (!(label=ps_widget_menu_spawn_label(menu,"Advance to Finish",-1))) return -1;
   
   return 0;
 }
@@ -220,6 +221,19 @@ static int ps_debugmenu_screenshot(struct ps_widget *widget) {
   return 0;
 }
 
+/* Advance to finish.
+ */
+
+static int ps_debugmenu_advance_to_finish(struct ps_widget *widget) {
+  struct ps_gui *gui=ps_widget_get_gui(widget);
+  struct ps_game *game=ps_gui_get_game(gui);
+  if (ps_game_advance_to_finish(game)<0) return -1;
+  if (ps_input_suppress_player_actions(30)<0) return -1;
+  if (ps_game_pause(game,0)<0) return -1;
+  if (ps_widget_kill(widget)<0) return -1;
+  return 0;
+}
+
 /* Menu callback.
  */
  
@@ -230,6 +244,7 @@ static int ps_debugmenu_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 2: return ps_debugmenu_swap_input(widget);
     case 3: return ps_debugmenu_heal_all(widget);
     case 4: return ps_debugmenu_screenshot(widget);
+    case 5: return ps_debugmenu_advance_to_finish(widget);
   }
   return 0;
 }

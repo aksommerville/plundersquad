@@ -205,6 +205,15 @@ int ps_game_set_switch(struct ps_game *game,int switchid,int value);
 int ps_game_add_indicator_for_hero(struct ps_game *game,struct ps_sprite *hero);
 int ps_game_remove_indicator_for_hero(struct ps_game *game,struct ps_sprite *hero);
 
+/* Mark all treasures except one as collected, and warp to the screen of the last treasure.
+ * Nice for troubleshooting the game over menu.
+ */
+int ps_game_advance_to_finish(struct ps_game *game);
+
+/* Load the grid at this world position. Debug only.
+ */
+int ps_game_force_location(struct ps_game *game,int x,int y);
+
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"
  *  0008   4 Game Serial Version: 1

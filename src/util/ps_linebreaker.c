@@ -29,7 +29,7 @@ static struct ps_linebreaker_line *ps_linebreaker_next(struct ps_linebreaker *lb
  */
 
 static inline int ps_nonspace(char ch) {
-  return ((ch>0x21)&&(ch<=0x7e));
+  return ((ch>=0x21)&&(ch<=0x7e));
 }
 
 /* Break lines.
@@ -97,8 +97,19 @@ int ps_linebreaker_rebuild(
     }
 
     /* Consume additional spaces, they are assumed not to print and therefore can overrun the margin.
+     * If there are newlines in the additional space, we must consume only one.
      */
-    while ((line->p+line->c<srcc)&&(src[line->p+line->c]==0x20)) line->c++;
+    while ((line->p+line->c<srcc)&&(src[line->p+line->c]<=0x20)) {
+      if ((src[line->p+line->c]==0x0a)||(src[line->p+line->c]==0x0d)) {
+        line->c++;
+        if (line->p+line->c<srcc) {
+          char nextch=src[line->p+line->c];
+          if ((nextch!=src[line->p+line->c-1])&&((nextch==0x0a)||(nextch==0x0d))) line->c++;
+        }
+        break;
+      }
+      line->c++;
+    }
 
     srcp+=line->c;
   }

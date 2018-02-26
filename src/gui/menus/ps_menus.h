@@ -23,6 +23,7 @@ extern const struct ps_widget_type ps_widget_type_report; /* Game-over report. *
 extern const struct ps_widget_type ps_widget_type_inputcfgpacker; /* Principal component of inputcfgpage. */
 extern const struct ps_widget_type ps_widget_type_inputcfg; /* Panel in inputcfgpacker, for one device. */
 extern const struct ps_widget_type ps_widget_type_inputstatus; /* Shows current values from device. */
+extern const struct ps_widget_type ps_widget_type_awards; /* Shows each player and his award. */
 
 /* Assemblepage.
  *****************************************************************************/
@@ -55,6 +56,7 @@ int ps_widget_sprite_modify_palette(struct ps_widget *widget,int d);
 
 int ps_widget_gameoverpage_setup(struct ps_widget *widget,const struct ps_game *game);
 int ps_widget_report_generate(struct ps_widget *widget,const struct ps_game *game);
+int ps_widget_awards_setup(struct ps_widget *widget,const struct ps_game *game);
 
 /* Inputcfgpage.
  *****************************************************************************/

@@ -7,14 +7,31 @@
 #include "ps_sprite.h"
 #include "ps_path.h"
 #include "ps_sound_effects.h"
+#include "ps_physics.h"
+#include "ps_switchboard.h"
+#include "ps_summoner.h"
+#include "ps_player.h"
+#include "ps_stats.h"
+#include "ps_plrdef.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_screen.h"
+#include "scenario/ps_region.h"
 #include "res/ps_resmgr.h"
 #include "util/ps_geometry.h"
+#include "util/ps_text.h"
+#include "util/ps_enums.h"
 
 #define PS_BLOODHOUND_SPRDEF_ID 21
+
+void ps_game_force_hero_to_legal_position(struct ps_game *game,struct ps_sprite *hero);
+int ps_game_spawn_sprites(struct ps_game *game);
+int ps_game_register_switches(struct ps_game *game);
+int ps_game_npgc_pop(struct ps_game *game);
+int ps_game_kill_nonhero_sprites(struct ps_game *game);
+int ps_game_setup_deathgate(struct ps_game *game);
+int ps_game_check_status_report(struct ps_game *game);
 
 /* Summon bloodhound.
  */
@@ -464,5 +481,310 @@ int ps_game_decorate_monster_death(struct ps_game *game,int x,int y) {
   if (ps_game_create_fireworks(game,x,y)<0) return -1;
   if (ps_game_create_prize(game,x,y)<0) return -1;
   if (ps_game_check_deathgate(game)<0) return -1;
+  return 0;
+}
+
+/* Advance to finish (DEBUG).
+ */
+ 
+int ps_game_advance_to_finish(struct ps_game *game) {
+  if (!game) return -1;
+
+  int i; for (i=0;i<game->treasurec;i++) game->treasurev[i]=1;
+  int final_treasureid=game->treasurec-1;
+  game->treasurev[final_treasureid]=0;
+
+  struct ps_grid *dstgrid=0;
+  int dstx,dsty;
+  struct ps_screen *screen=game->scenario->screenv;
+  for (i=game->scenario->w*game->scenario->h;i-->0;screen++) {
+    if (!screen->grid) continue;
+    const struct ps_blueprint_poi *poi=screen->grid->poiv;
+    int j=screen->grid->poic; for (;j-->0;poi++) {
+      if (poi->type==PS_BLUEPRINT_POI_TREASURE) {
+        if (poi->argv[0]==final_treasureid) {
+          dstgrid=screen->grid;
+          dstx=screen->x;
+          dsty=screen->y;
+          break;
+        }
+      }
+    }
+  }
+
+  if (dstgrid) {
+    if (ps_game_force_location(game,dstx,dsty)<0) return -1;
+  }
+  
+  return 0;
+}
+
+/* Force location.
+ */
+ 
+int ps_game_force_location(struct ps_game *game,int x,int y) {
+  if (!game) return -1;
+  if (!game->scenario) return -1;
+  if ((x<0)||(x>=game->scenario->w)) return -1;
+  if ((y<0)||(y>=game->scenario->h)) return -1;
+  
+  ps_log(GAME,DEBUG,"Forcing location to %d,%d",x,y);
+
+  struct ps_grid *grid=game->scenario->screenv[y*game->scenario->w+x].grid;
+  if (!grid) return -1;
+
+  ps_game_npgc_pop(game);
+  if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
+  game->grid=grid;
+  game->gridx=x;
+  game->gridy=y;
+  game->grid->visited=1;
+  if (ps_grid_close_all_barriers(game->grid)<0) return -1;
+  if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
+  if (ps_game_kill_nonhero_sprites(game)<0) return -1;
+
+  /* Adjust position of heroes. */
+  int i; for (i=0;i<game->grpv[PS_SPRGRP_HERO].sprc;i++) {
+    struct ps_sprite *hero=game->grpv[PS_SPRGRP_HERO].sprv[i];
+    if ((hero->x<0.0)||(hero->y<0.0)||(hero->x>PS_SCREENW)||(hero->y>PS_SCREENH)) {
+      ps_game_force_hero_to_legal_position(game,hero);
+    }
+  }
+
+  if (ps_game_spawn_sprites(game)<0) return -1;
+  if (ps_game_setup_deathgate(game)<0) return -1;
+  if (ps_summoner_reset(game->summoner,game)<0) return -1;
+  if (ps_game_register_switches(game)<0) return -1;
+
+  if (game->grid->region) {
+    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+  }
+  
+  if (ps_game_check_status_report(game)<0) return -1;
+
+  game->inhibit_screen_switch=1;
+
+  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
+  
+  return 0;
+}
+
+/* Dump award decision matrix.
+ */
+
+static void ps_dump_award_decision_matrix(int *decisionv) {
+  char buf[256];
+  int bufc,ai,pi;
+  const int colw=5;
+  
+  ps_log(GAME,DEBUG,"===== Award decision matrix =====");
+
+  bufc=ps_strcpy(buf,sizeof(buf),"PLAYER",6);
+  for (ai=0;ai<PS_AWARD_COUNT;ai++) {
+    if (bufc<sizeof(buf)) buf[bufc]=' '; bufc++;
+    const char *name=ps_award_repr(ai);
+    int namec=0; if (name) while (name[namec]) namec++;
+    if (namec<colw) bufc+=ps_strcpy(buf+bufc,sizeof(buf)-bufc,"                ",colw-namec);
+    else if (namec>colw) namec=colw;
+    bufc+=ps_strcpy(buf+bufc,sizeof(buf)-bufc,name,namec);
+  }
+  ps_log(GAME,DEBUG,"%.*s",bufc,buf);
+
+  for (pi=0;pi<PS_PLAYER_LIMIT;pi++) {
+    bufc=ps_strcpy(buf,sizeof(buf),"     ",5);
+    buf[bufc++]='1'+pi;
+    for (ai=0;ai<PS_AWARD_COUNT;ai++) {
+      bufc+=snprintf(buf+bufc,sizeof(buf)-bufc,"%6d",*decisionv++);
+    }
+    ps_log(GAME,DEBUG,"%.*s",bufc,buf);
+  }
+}
+
+static void ps_dump_award_weights(double *weights) {
+  ps_log(GAME,DEBUG,"===== Award criteria =====");
+  int i=0; for (;i<PS_AWARD_COUNT;i++) {
+    ps_log(GAME,DEBUG,"%3d: %.6f %s",i,weights[i],ps_award_describe(i));
+  }
+}
+
+/* Select award for one-player game.
+ */
+
+static int ps_game_assign_award_solo(struct ps_game *game) {
+  const struct ps_stats_player *pstats=game->stats->playerv;
+  struct ps_player *player=game->playerv[0];
+  double weightv[PS_AWARD_COUNT];
+
+  /* Score each award by some reasonable standard, in 0..1.
+   * Some may theoretically exceed 1.0, so we clamp them.
+   */
+  weightv[PS_AWARD_NONE]=0.0;
+  weightv[PS_AWARD_PARTICIPANT]=0.1;
+  weightv[PS_AWARD_WALKER]=(double)pstats->stepc/(double)game->stats->playtime;
+  weightv[PS_AWARD_KILLER]=(pstats->killc_monster*600.0)/game->stats->playtime; // kills per ten seconds
+  if (weightv[PS_AWARD_KILLER]>1.0) weightv[PS_AWARD_KILLER]=1.0;
+  weightv[PS_AWARD_TRAITOR]=0.0; // Not relevant
+  weightv[PS_AWARD_DEATH]=(pstats->deathc*600.0)/game->stats->playtime; // deaths per ten seconds
+  if (weightv[PS_AWARD_DEATH]>1.0) weightv[PS_AWARD_DEATH]=1.0;
+  weightv[PS_AWARD_ACTUATOR]=(pstats->switchc*60.0)/game->stats->playtime; // This will never win, which is fine.
+  if (weightv[PS_AWARD_ACTUATOR]>1.0) weightv[PS_AWARD_ACTUATOR]=1.0;
+  weightv[PS_AWARD_LIVELY]=(double)pstats->framec_alive/(double)game->stats->playtime;
+  weightv[PS_AWARD_GHOST]=1.0-weightv[PS_AWARD_LIVELY];
+  weightv[PS_AWARD_TREASURE]=0.0; // Not relevant
+  weightv[PS_AWARD_LAZY]=1.0-weightv[PS_AWARD_WALKER];
+  weightv[PS_AWARD_GENEROUS]=0.0; // Not relevant
+  weightv[PS_AWARD_HARD_TARGET]=1.0-weightv[PS_AWARD_DEATH];
+
+  /* Apply arbitrary weights to each award based on how important I feel each is.
+   */
+  weightv[PS_AWARD_WALKER]*=0.4;
+  weightv[PS_AWARD_LIVELY]*=0.4;
+  weightv[PS_AWARD_GHOST]*=0.4;
+  weightv[PS_AWARD_LAZY]*=0.4;
+
+  ps_dump_award_weights(weightv); // XXX TEMP
+
+  /* Select the highest.
+   */
+  double max=0.0;
+  int i=PS_AWARD_COUNT; while (i-->0) {
+    if (weightv[i]>max) {
+      player->award=i;
+      max=weightv[i];
+    }
+  }
+  return 0;
+}
+
+/* Assign an award to each player.
+ */
+
+static const int ps_award_preferencev[PS_AWARD_COUNT]={
+  PS_AWARD_TRAITOR,
+  PS_AWARD_KILLER,
+  PS_AWARD_HARD_TARGET,
+  PS_AWARD_TREASURE,
+  PS_AWARD_DEATH,
+  PS_AWARD_LIVELY,
+  PS_AWARD_LAZY,
+  PS_AWARD_PACIFIST,
+  PS_AWARD_GENEROUS,
+  PS_AWARD_GHOST,
+  PS_AWARD_ACTUATOR,
+  PS_AWARD_WALKER,
+  PS_AWARD_PARTICIPANT,
+  PS_AWARD_NONE,
+};
+ 
+int ps_game_assign_awards(struct ps_game *game) {
+  if (!game) return -1;
+  if (game->playerc<1) return 0;
+  const struct ps_stats_player *pstats;
+
+  /* The logic for a one-player game is completely different.
+   */
+  if (game->playerc==1) return ps_game_assign_award_solo(game);
+
+  /* Start with a matrix of all awards and all players.
+   * Higher values mean that assignment is more appropriate.
+   * They all start at one.
+   */
+  int decisionc=PS_AWARD_COUNT*PS_PLAYER_LIMIT;
+  int decisionv[PS_AWARD_COUNT*PS_PLAYER_LIMIT];
+  int i; for (i=decisionc;i-->0;) decisionv[i]=1;
+
+  /* Eliminate the NONE award, and eliminate all nonexistent players.
+   */
+  for (i=0;i<game->playerc;i++) decisionv[i*PS_AWARD_COUNT+PS_AWARD_NONE]=0;
+  memset(decisionv+PS_AWARD_COUNT*game->playerc,0,sizeof(int)*PS_AWARD_COUNT*(PS_PLAYER_LIMIT-game->playerc));
+
+  /* Any player with the IMMORTAL skill is ineligible for LIVELY and HARD_TARGET.
+   * Otherwise he would get them every time, just for having chosen that hero.
+   * Likewise, anyone lacking COMBAT is ineligible for PACIFIST.
+   */
+  for (i=0;i<game->playerc;i++) {
+    struct ps_player *player=game->playerv[i];
+    uint16_t skills=player->plrdef->skills;
+    if (skills&PS_SKILL_IMMORTAL) {
+      decisionv[PS_AWARD_COUNT*i+PS_AWARD_LIVELY]=0;
+      decisionv[PS_AWARD_COUNT*i+PS_AWARD_HARD_TARGET]=0;
+    }
+    if (!(skills&PS_SKILL_COMBAT)) {
+      decisionv[PS_AWARD_COUNT*i+PS_AWARD_PACIFIST]=0;
+    }
+  }
+
+  /* Collect aggregates from player stats: Highest death and kill counts.
+   */
+  int maxdeathc=0,maxkillc=0;
+  for (i=0,pstats=game->stats->playerv;i<game->playerc;i++,pstats++) {
+    if (pstats->deathc>maxdeathc) maxdeathc=pstats->deathc;
+    int killc=pstats->killc_monster+pstats->killc_hero;
+    if (killc>maxkillc) maxkillc=killc;
+  }
+
+  /* Fill each nonzero slot with some absolute numbers to get things started.
+   */
+  for (i=0,pstats=game->stats->playerv;i<game->playerc;i++,pstats++) {
+    #define SETIF(tag,value) if (decisionv[PS_AWARD_COUNT*i+PS_AWARD_##tag]) decisionv[PS_AWARD_COUNT*i+PS_AWARD_##tag]=(value);
+    SETIF(WALKER,pstats->stepc)
+    SETIF(KILLER,pstats->killc_monster)
+    SETIF(TRAITOR,pstats->killc_hero)
+    SETIF(DEATH,pstats->deathc)
+    SETIF(ACTUATOR,pstats->switchc)
+    SETIF(LIVELY,pstats->framec_alive)
+    SETIF(GHOST,game->stats->playtime-pstats->framec_alive)
+    SETIF(TREASURE,pstats->treasurec)
+    SETIF(LAZY,game->stats->playtime-pstats->stepc)
+    SETIF(PACIFIST,maxkillc-pstats->killc_monster-pstats->killc_hero)
+    SETIF(GENEROUS,game->treasurec-pstats->treasurec)
+    SETIF(HARD_TARGET,maxdeathc-pstats->deathc)
+    #undef SETIF
+  }
+
+  /* Reduce each column; any value which is not the highest in its column becomes zero.
+   * Reasoning: You can only get an award if you are the best, or tied for best.
+   * Also, accept all-way ties only for the PARTICIPANT award.
+   */
+  for (i=0;i<PS_AWARD_COUNT;i++) {
+    int max=0,maxc=0;
+    int pi=0; for (;pi<game->playerc;pi++) {
+      int p=pi*PS_AWARD_COUNT+i;
+      if (decisionv[p]>max) {
+        max=decisionv[p];
+        maxc=1;
+      } else if (decisionv[p]==max) maxc++;
+    }
+    if ((maxc==game->playerc)&&(i!=PS_AWARD_PARTICIPANT)) {
+      for (pi=0;pi<game->playerc;pi++) {
+        int p=pi*PS_AWARD_COUNT+i;
+        decisionv[p]=0;
+      }
+    } else {
+      for (pi=0;pi<game->playerc;pi++) {
+        int p=pi*PS_AWARD_COUNT+i;
+        if (decisionv[p]!=max) decisionv[p]=0;
+      }
+    }
+  }
+
+  ps_dump_award_decision_matrix(decisionv);//XXX TEMP
+
+  /* For each player, select any nonzero award, in a preset order of preference.
+   * Every player still has a one in the PARTICIPATION slot, so they'll definitely get something.
+   * TODO Is it worth weighting and comparing the various awards, to find the most salient?
+   */
+  for (i=0;i<game->playerc;i++) {
+    struct ps_player *player=game->playerv[i];
+    int *awards=decisionv+PS_AWARD_COUNT*i;
+    int api=0; for (;api<PS_AWARD_COUNT;api++) {
+      if (awards[ps_award_preferencev[api]]) {
+        player->award=ps_award_preferencev[api];
+        ps_log(GAME,DEBUG,"Player %d: %s",i+1,ps_award_describe(player->award));
+        break;
+      }
+    }
+  }
+
   return 0;
 }

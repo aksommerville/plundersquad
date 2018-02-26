@@ -2,7 +2,6 @@
  * Record of high-level events during gameplay.
  * ps_game always has one.
  * This encodes into the encoded game (TODO).
- * This is used to generate the final report (TODO).
  */
 
 #ifndef PS_STATS_H

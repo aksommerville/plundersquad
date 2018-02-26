@@ -58,4 +58,12 @@ const char *ps_region_shape_flag_repr(int flag);
 int ps_blueprint_cell_eval(const char *src,int srcc);
 const char *ps_blueprint_cell_repr(int cell);
 
+/* ps_player.h:PS_AWARD_*
+ * Zero-based integer.
+ * repr and eval are reversible but 'describe' is usually what you want.
+ */
+int ps_award_eval(const char *src,int srcc);
+const char *ps_award_repr(int award);
+const char *ps_award_describe(int award);
+
 #endif

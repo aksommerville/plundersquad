@@ -35,7 +35,7 @@ static void _ps_gameoverpage_del(struct ps_widget *widget) {
 
 static int _ps_gameoverpage_init(struct ps_widget *widget) {
 
-  widget->bgrgba=0x409060c0;
+  widget->bgrgba=0x40b060c0;
 
   struct ps_widget *report=ps_widget_spawn(widget,&ps_widget_type_report);
   if (!report) return -1;

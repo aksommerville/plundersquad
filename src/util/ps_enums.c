@@ -3,6 +3,7 @@
 #include "ps_enums.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_player.h"
 #include "scenario/ps_region.h"
 #include "scenario/ps_blueprint.h"
 
@@ -351,6 +352,74 @@ const char *ps_blueprint_cell_repr(int cell) {
     _(HAZARD)
     _(HEAL)
     _(STATUSREPORT)
+    #undef _
+  }
+  return 0;
+}
+
+/* Awards.
+ */
+ 
+int ps_award_eval(const char *src,int srcc) {
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!ps_memcasecmp(src,#tag,srcc)) return PS_AWARD_##tag;
+  _(NONE)
+  _(PARTICIPANT)
+  _(WALKER)
+  _(KILLER)
+  _(TRAITOR)
+  _(DEATH)
+  _(ACTUATOR)
+  _(LIVELY)
+  _(GHOST)
+  _(TREASURE)
+  _(LAZY)
+  _(PACIFIST)
+  _(GENEROUS)
+  _(HARD_TARGET)
+  #undef _
+  return -1;
+}
+
+const char *ps_award_repr(int award) {
+  switch (award) {
+    #define _(tag) case PS_AWARD_##tag: return #tag;
+    _(NONE)
+    _(PARTICIPANT)
+    _(WALKER)
+    _(KILLER)
+    _(TRAITOR)
+    _(DEATH)
+    _(ACTUATOR)
+    _(LIVELY)
+    _(GHOST)
+    _(TREASURE)
+    _(LAZY)
+    _(PACIFIST)
+    _(GENEROUS)
+    _(HARD_TARGET)
+    #undef _
+  }
+  return 0;
+}
+
+const char *ps_award_describe(int award) {
+  switch (award) {
+    #define _(tag) case PS_AWARD_##tag: return #tag;
+    case PS_AWARD_NONE:        return "No award";
+    case PS_AWARD_PARTICIPANT: return "Participation Award";
+    case PS_AWARD_WALKER:      return "Most Walkative";
+    case PS_AWARD_KILLER:      return "Deadliest";
+    case PS_AWARD_TRAITOR:     return "Most Dishonorable";
+    case PS_AWARD_DEATH:       return "Most Killable";
+    case PS_AWARD_ACTUATOR:    return "Button Pusher";
+    case PS_AWARD_LIVELY:      return "Most Lively";
+    case PS_AWARD_GHOST:       return "Mostly Ghostly";
+    case PS_AWARD_TREASURE:    return "Treasure Hog";
+    case PS_AWARD_LAZY:        return "Most Lazy";
+    case PS_AWARD_PACIFIST:    return "Least Deadly";
+    case PS_AWARD_GENEROUS:    return "Most Generous";
+    case PS_AWARD_HARD_TARGET: return "Hard Target";
     #undef _
   }
   return 0;

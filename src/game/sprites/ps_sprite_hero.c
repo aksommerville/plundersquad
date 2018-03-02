@@ -669,6 +669,17 @@ int ps_hero_become_living(struct ps_game *game,struct ps_sprite *spr) {
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_SOLID,spr)<0) return -1;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_PHYSICS,spr)<0) return -1;
 
+  // Heroes can be healed while offscreen.
+  // If they left the screen as a ghost, they would get that group mask again on re-entry.
+  // Which would be bad.
+  if (SPR->offscreen) {
+    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_FRAGILE);
+    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_LATCH);
+    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_SOLID);
+    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_PHYSICS);
+    SPR->offscreen_grpmask_restore&=~(1<<PS_SPRGRP_HEROHAZARD);
+  }
+
   return 0;
 }
 

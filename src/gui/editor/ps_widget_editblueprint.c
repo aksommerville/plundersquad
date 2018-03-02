@@ -13,6 +13,7 @@
 #include "gui/corewidgets/ps_corewidgets.h"
 #include "scenario/ps_blueprint.h"
 #include "util/ps_text.h"
+#include "util/ps_enums.h"
 #include "res/ps_resmgr.h"
 #include "os/ps_fs.h"
 

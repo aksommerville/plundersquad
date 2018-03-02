@@ -61,14 +61,15 @@ int ps_input_set_noninteractive_device_assignment() {
 
 int ps_input_swap_assignments() {
   if (ps_input.playerc<1) return 0;
+  memset(ps_input.plrbtnv,0,sizeof(ps_input.plrbtnv));
   int providerp=0; for (;providerp<ps_input.providerc;providerp++) {
     struct ps_input_provider *provider=ps_input.providerv[providerp];
     int devicep=0; for (;devicep<provider->devc;devicep++) {
       struct ps_input_device *device=provider->devv[devicep];
       if (!device->map) continue;
       if (++(device->map->plrid)>ps_input.playerc) device->map->plrid=1;
+      ps_input.plrbtnv[device->map->plrid]|=PS_PLRBTN_CD;
     }
   }
-  memset(ps_input.plrbtnv,0,sizeof(ps_input.plrbtnv));
   return 0;
 }

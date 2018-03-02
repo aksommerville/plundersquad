@@ -214,6 +214,12 @@ int ps_game_advance_to_finish(struct ps_game *game);
  */
 int ps_game_force_location(struct ps_game *game,int x,int y);
 
+/* Set the 'invincible' of every player with attached input.
+ * Use this after swapping inputs to indicate which are now enabled.
+ * Don't use this in production builds!
+ */
+int ps_game_highlight_enabled_players(struct ps_game *game);
+
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"
  *  0008   4 Game Serial Version: 1

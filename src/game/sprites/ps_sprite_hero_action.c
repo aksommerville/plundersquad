@@ -10,6 +10,7 @@
 #include "game/ps_dragoncharger.h"
 #include "util/ps_geometry.h"
 #include "input/ps_input_button.h"
+#include "input/ps_input.h"
 #include "res/ps_resmgr.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_grid.h"
@@ -418,6 +419,15 @@ int ps_hero_action_continue(struct ps_sprite *spr,struct ps_game *game) {
 }
  
 int ps_hero_auxaction_begin(struct ps_sprite *spr,struct ps_game *game) {
+
+  // Using 'B' button to swap inputs. Enable this only while testing.
+  // If we want this feature in the real game, it needs a friendlier implementation.
+  if (PS_B_TO_SWAP_INPUT) {
+    if (ps_input_swap_assignments()<0) return -1;
+    if (ps_game_highlight_enabled_players(game)<0) return -1;
+    return 0;
+  }
+
   return ps_hero_action_begin_1(spr,game,ps_hero_get_auxiliary_action(spr));
 }
  

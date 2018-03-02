@@ -67,4 +67,7 @@
 #define PS_SKILL_COMBAT      0x1000 /* Generic: hero can kill monsters */
 // Remaining 3 reserved for generic skills
 
+// If enabled, the B button swaps input. For testing only.
+#define PS_B_TO_SWAP_INPUT 1
+
 #endif

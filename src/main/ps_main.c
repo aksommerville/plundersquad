@@ -97,6 +97,10 @@ static int ps_setup_restore_game(const char *path) {
 static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
+  if (PS_B_TO_SWAP_INPUT) {
+    ps_log(MAIN,WARNING,"Press B to swap input -- Do not leave this enabled in production builds!");
+  }
+
   int randseed=time(0);
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
@@ -152,10 +156,10 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
     if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
     if (ps_setup_test_game(
-      1, // playerc: 1..8
+      3, // playerc: 1..8
       9, // difficulty: 1..9
       1, // length: 1..9
-      1  // Nonzero for fake scenario (configure above).
+      0  // Nonzero for fake scenario (configure above).
     )<0) return -1;
   }
   

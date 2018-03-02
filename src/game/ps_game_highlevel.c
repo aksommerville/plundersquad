@@ -13,12 +13,14 @@
 #include "ps_player.h"
 #include "ps_stats.h"
 #include "ps_plrdef.h"
+#include "sprites/ps_sprite_hero.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_screen.h"
 #include "scenario/ps_region.h"
 #include "res/ps_resmgr.h"
+#include "input/ps_input.h"
 #include "util/ps_geometry.h"
 #include "util/ps_text.h"
 #include "util/ps_enums.h"
@@ -786,5 +788,23 @@ int ps_game_assign_awards(struct ps_game *game) {
     }
   }
 
+  return 0;
+}
+
+/* Highlight enabled players.
+ */
+ 
+int ps_game_highlight_enabled_players(struct ps_game *game) {
+  if (!game) return -1;
+  int i=game->grpv[PS_SPRGRP_HERO].sprc;
+  while (i-->0) {
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
+    if (spr->type!=&ps_sprtype_hero) continue;
+    struct ps_sprite_hero *hero=(struct ps_sprite_hero*)spr;
+    if (!hero->player) continue;
+    uint16_t buttons=ps_get_player_buttons(hero->player->playerid);
+    if (!(buttons&PS_PLRBTN_CD)) continue;
+    if (hero->healtime<30) hero->healtime=30;
+  }
   return 0;
 }

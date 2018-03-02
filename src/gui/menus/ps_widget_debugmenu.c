@@ -127,6 +127,7 @@ static int ps_debugmenu_heal_all(struct ps_widget *widget) {
 static int ps_debugmenu_swap_input(struct ps_widget *widget) {
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
   if (ps_input_swap_assignments()<0) return -1;
+  if (ps_game_highlight_enabled_players(game)<0) return -1;
   if (ps_input_suppress_player_actions(30)<0) return -1;
   if (ps_game_pause(game,0)<0) return -1;
   if (ps_widget_kill(widget)<0) return -1;

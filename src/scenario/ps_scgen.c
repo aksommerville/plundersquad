@@ -30,6 +30,8 @@ struct ps_scgen *ps_scgen_new() {
     return 0;
   }
 
+  scgen->regionid=-1;
+
   return scgen;
 }
 
@@ -1241,6 +1243,21 @@ static int ps_scgen_assign_region_to_all_screens(struct ps_scgen *scgen,int regi
   return 0;
 }
 
+/* (test) Select a random region for each screen.
+ */
+
+static int ps_scgen_select_random_regions(struct ps_scgen *scgen) {
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_REGION);
+  if (restype->resc<1) return -1;
+  int i=scgen->scenario->w*scgen->scenario->h;
+  struct ps_screen *screen=scgen->scenario->screenv;
+  for (;i-->0;screen++) {
+    int selection=ps_scgen_randint(scgen,restype->resc);
+    screen->region=restype->resv[selection].obj;
+  }
+  return 0;
+}
+
 /* (test) Set screen doors such that all boundaries are open.
  */
 
@@ -1315,7 +1332,11 @@ int ps_scgen_test_generate(struct ps_scgen *scgen) {
   if (ps_scgen_populate_grid_margins(scgen)<0) return -1;
 
   /* Divide screens into thematic regions. */
-  if (ps_scgen_assign_region_to_all_screens(scgen,scgen->regionid)<0) return -1;
+  if (scgen->regionid>=0) {
+    if (ps_scgen_assign_region_to_all_screens(scgen,scgen->regionid)<0) return -1;
+  } else {
+    if (ps_scgen_select_random_regions(scgen)<0) return -1;
+  }
 
   /* Skin grids with graphics. */
   if (ps_scgen_generate_grids(scgen)<0) return -1;

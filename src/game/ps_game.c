@@ -248,9 +248,11 @@ int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...
   scgen->skills=0;
   int i; for (i=0;i<game->playerc;i++) scgen->skills|=game->playerv[i]->plrdef->skills;
 
-  if (ps_scgen_test_require_region(scgen,regionid)<0) {
-    ps_scgen_del(scgen);
-    return -1;
+  if (regionid>=0) {
+    if (ps_scgen_test_require_region(scgen,regionid)<0) {
+      ps_scgen_del(scgen);
+      return -1;
+    }
   }
 
   va_list vargs;

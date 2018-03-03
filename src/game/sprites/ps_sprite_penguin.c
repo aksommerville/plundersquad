@@ -11,13 +11,13 @@
 #define PS_PENGUIN_PHASE_WALK          5 /* Walking nowhere in a straight line. */
 
 #define PS_PENGUIN_THREATEN_TIME   60
-#define PS_PENGUIN_FALL_TIME       30
-#define PS_PENGUIN_DAZED_TIME      60
+#define PS_PENGUIN_DAZED_TIME     120
 #define PS_PENGUIN_IDLE_TIME_MIN   30
 #define PS_PENGUIN_IDLE_TIME_MAX  120
 #define PS_PENGUIN_WALK_TIME_MIN   60
-#define PS_PENGUIN_WALK_TIME_MAX  180
+#define PS_PENGUIN_WALK_TIME_MAX  140
 
+#define PS_PENGUIN_FALL_SPEED 4.0
 #define PS_PENGUIN_DAZED_STAR_COUNT 6
 #define PS_PENGUIN_SHADOW_SIZE_MIN 1
 #define PS_PENGUIN_SHADOW_SIZE_MAX PS_TILESIZE
@@ -25,6 +25,7 @@
 #define PS_PENGUIN_STARS_OFFSET ((PS_TILESIZE*4)/8)
 #define PS_PENGUIN_STAR_X_RADIUS  8
 #define PS_PENGUIN_STAR_Y_RADIUS  4
+#define PS_PENGUIN_STAR_SPEED 0.08 /* radians per frame */
 #define PS_PENGUIN_WALK_FRAME_TIME 8
 #define PS_PENGUIN_WALK_FRAME_COUNT 4
 #define PS_PENGUIN_WALK_SPEED 1.0
@@ -87,7 +88,7 @@ static const char *_ps_penguin_get_configure_argument_name(int argp) {
 
 static int ps_penguin_begin_FALL(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phase=PS_PENGUIN_PHASE_FALL;
-  SPR->phasetime=PS_PENGUIN_FALL_TIME;
+  SPR->phasetime=spr->y/PS_PENGUIN_FALL_SPEED;
   return 0;
 }
 
@@ -112,7 +113,12 @@ static int ps_penguin_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->walkdx=cos(t)*PS_PENGUIN_WALK_SPEED;
   SPR->walkdy=sin(t)*PS_PENGUIN_WALK_SPEED;
 
-  //TODO walk away from edges
+  const double xmargin=PS_TILESIZE*4.0;
+  const double ymargin=PS_TILESIZE*2.0;
+  if ((spr->x<xmargin)&&(SPR->walkdx<0.0)) SPR->walkdx=-SPR->walkdx;
+  else if ((spr->x>PS_SCREENW-xmargin)&&(SPR->walkdx>0.0)) SPR->walkdx=-SPR->walkdx;
+  if ((spr->y<ymargin)&&(SPR->walkdy<0.0)) SPR->walkdy=-SPR->walkdy;
+  else if ((spr->y>PS_SCREENH-ymargin)&&(SPR->walkdy>0.0)) SPR->walkdy=-SPR->walkdy;
 
   return 0;
 }
@@ -210,12 +216,12 @@ static void ps_penguin_draw_body(struct akgl_vtx_maxtile *vtx,const struct ps_sp
 
 static int ps_penguin_get_star_color(int i) {
   switch (i&7) {
-    case 0: return 0xff0000;
+    case 0: return 0xff8080;
     case 1: return 0x00ff00;
-    case 2: return 0x0000ff;
+    case 2: return 0xa0c0ff;
     case 3: return 0xffff00;
-    case 4: return 0xff00ff;
-    case 5: return 0x00ffff;
+    case 4: return 0xff80ff;
+    case 5: return 0xc080ff;
     case 6: return 0xffffff;
     case 7: return 0x000000;
   }
@@ -230,10 +236,10 @@ static void ps_penguin_draw_stars(struct akgl_vtx_maxtile *vtxv,int vtxc,const s
   vtxv->a=0xff;
   vtxv->t=0;
   vtxv->xform=AKGL_XFORM_NONE;
-  double rotation=(SPR->phasetime*M_PI*2.0)/PS_PENGUIN_DAZED_TIME;
+  double rotation=SPR->phasetime*PS_PENGUIN_STAR_SPEED;
   struct akgl_vtx_maxtile *vtx=vtxv;
-  int i=0; for (;i<vtxc;i++,vtx++) {
-    memcpy(vtx,vtxv,sizeof(struct akgl_vtx_maxtile));
+  int i=vtxc; for (;i-->0;vtx++) memcpy(vtx,vtxv,sizeof(struct akgl_vtx_maxtile));
+  for (i=0,vtx=vtxv;i<vtxc;i++,vtx++) {
     int rgb=ps_penguin_get_star_color(i);
     vtx->pr=rgb>>16;
     vtx->pg=rgb>>8;
@@ -258,7 +264,7 @@ static int _ps_penguin_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spr
         ps_penguin_draw_shadow(vtxv,spr,SPR->phasetime,PS_PENGUIN_THREATEN_TIME);
       } break;
     case PS_PENGUIN_PHASE_FALL: {
-        int dy=(SPR->phasetime*spr->y)/PS_PENGUIN_FALL_TIME;
+        int dy=SPR->phasetime*PS_PENGUIN_FALL_SPEED;
         ps_penguin_draw_shadow(vtxv,spr,1,1);
         ps_penguin_draw_body(vtxv+1,spr,dy,0x01);
       } break;

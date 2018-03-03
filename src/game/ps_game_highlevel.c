@@ -559,7 +559,7 @@ int ps_game_force_location(struct ps_game *game,int x,int y) {
   if (ps_game_register_switches(game)<0) return -1;
 
   if (game->grid->region) {
-    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+    akau_play_song(game->grid->region->songid,0);
   }
   
   if (ps_game_check_status_report(game)<0) return -1;

@@ -31,50 +31,50 @@
 static struct ps_game *ps_game=0;
 static struct ps_gui *ps_gui=0;
 
-/* Logging from akau.
- */
-
-static void ps_log_akau(int level,const char *msg,int msgc) {
-  //TODO translate log levels from akau to ps
-  ps_log(AUDIO,INFO,"[%s] %.*s",akau_loglevel_repr(level),msgc,msg);
-}
-
 /* Setup for quick testing during development.
+ * This is called whenever no saved game was requested.
+ * Return 0 to fall back to interactive setup -- production builds should always do that.
  */
 
-static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scgen) {
+static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   int i;
-  
-  if (ps_game_set_player_count(ps_game,playerc)<0) return -1;
-  for (i=1;i<=playerc;i++) {
-    if (ps_game_configure_player(ps_game,i,i,i,0)<0) return -1;
+
+  //return 0; // Uncomment this line for normal interactive setup.
+
+  /* Configure players. */
+  if (ps_game_set_player_count(ps_game,1)<0) return -1;
+  for (i=1;i<=PS_PLAYER_LIMIT;i++) {
+    ps_game_configure_player(ps_game,i,i,i,0);
   }
   if (ps_input_set_noninteractive_device_assignment()<0) return -1;
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
   //001-swordsman 002-archer    003-gadgeteer 004-nurse     005-wizard    006-vampire   007-martyr    008-immortal  009-bomber
   if (ps_game_configure_player(ps_game,1,3,0,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,2,2,0,0)<0) return -1;
+  //if (ps_game_configure_player(ps_game,2,2,0,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,3,3,1,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,4,2,2,0)<0) return -1;
-  
-  if (ps_game_set_difficulty(ps_game,difficulty)<0) return -1;
-  if (ps_game_set_length(ps_game,length)<0) return -1;
 
-  if (test_scgen) {
-    if (ps_game_generate_test(ps_game,
-      -1, // regionid, negative for random
-      // blueprintids. You must provide at least one with a HERO POI.
-      1
-      //2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
-    )<0) return -1;
-  } else {
+  if (1) { // Generate a scenario just like normal launches.
+    if (ps_game_set_difficulty(ps_game,9)<0) return -1;
+    if (ps_game_set_length(ps_game,2)<0) return -1;
     if (ps_game_generate(ps_game)<0) return -1;
+
+  } else { // Generate a test scenario -- good for blueprint test drives.
+    if (ps_game_generate_test(ps_game,
+      -1, // regionid, negative means random
+      // blueprintid. At least one must have adequate HERO POI:
+      1
+    )<0) return -1;
   }
 
   if (ps_game_restart(ps_game)<0) return -1;
-  return 0;
+  
+  return 1;
 }
+
+/* Restore game from file.
+ */
 
 static int ps_setup_restore_game(const char *path) {
   void *serial=0;
@@ -94,23 +94,15 @@ static int ps_setup_restore_game(const char *path) {
   return 0;
 }
 
-/* Init.
+/* Init input.
  */
 
-static int ps_main_init(const struct ps_cmdline *cmdline) {
-  ps_log(MAIN,TRACE,"%s",__func__);
+static int ps_main_init_input(const struct ps_cmdline *cmdline) {
 
-  if (PS_B_TO_SWAP_INPUT) {
-    ps_log(MAIN,WARNING,"Press B to swap input -- Do not leave this enabled in production builds!");
-  }
-
-  int randseed=time(0);
-  ps_log(MAIN,INFO,"Random seed %d.",randseed);
-  srand(randseed);
-
-  if (ps_video_init()<0) return -1;
-
+  /* Initialize generic input core. */
   if (ps_input_init()<0) return -1;
+
+  /* Initialize and connect providers. */
   #if PS_USE_macioc
     if (ps_macioc_connect_input()<0) return -1;
   #endif
@@ -127,25 +119,84 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   #if PS_USE_evdev
     if (ps_evdev_init_default()<0) return -1;
   #endif
+
+  /* Load configuration and take it live. */
   if (ps_input_load_configuration(cmdline->input_config_path)<0) return -1;
   if (ps_input_update()<0) return -1; // Reassigns input devices and gets the core running.
+  
+  return 0;
+}
 
-  if (ps_resmgr_init(cmdline->resources_path,0)<0) return -1;
+/* Logging from akau.
+ */
 
-  //TODO Clean up audio init
+static void ps_log_akau(int level,const char *msg,int msgc) {
+  switch (level) {
+    case AKAU_LOGLEVEL_DEBUG: ps_log(AUDIO,DEBUG,"%.*s",msgc,msg); break;
+    case AKAU_LOGLEVEL_INFO: ps_log(AUDIO,INFO,"%.*s",msgc,msg); break;
+    case AKAU_LOGLEVEL_WARN: ps_log(AUDIO,WARNING,"%.*s",msgc,msg); break;
+    case AKAU_LOGLEVEL_ERROR: ps_log(AUDIO,ERROR,"%.*s",msgc,msg); break;
+    default: ps_log(AUDIO,INFO,"%.*s",msgc,msg); break;
+  }
+}
+
+/* Init audio.
+ */
+
+static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
+
   char audiorespath[1024];
   int audiorespathc=snprintf(audiorespath,sizeof(audiorespath),"%s/audio",cmdline->resources_path);
   if ((audiorespathc<1)||(audiorespathc>=sizeof(audiorespath))) {
     ps_log(MAIN,ERROR,"Failed to acquire path for audio resources.");
     return -1;
   }
-  #if PS_USE_akmacaudio
+
+  #define PS_AKAU_ENABLE 1
+  
+  #if PS_USE_akmacaudio && 0
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
-    if (akau_load_resources(audiorespath)<0) return -1;
   #elif PS_USE_alsa
     if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
-    if (akau_load_resources(audiorespath)<0) return -1;
+  #else
+    #undef PS_AKAU_ENABLE
+    #define PS_AKAU_ENABLE 0
+    ps_log(MAIN,WARNING,"No audio provider was configured. All audio is disabled.");
+    return 0;
   #endif
+  
+  if (akau_load_resources(audiorespath)<0) return -1;
+  
+  return 0;
+}
+
+/* Init.
+ */
+
+static int ps_main_init(const struct ps_cmdline *cmdline) {
+  ps_log(MAIN,TRACE,"%s",__func__);
+
+  if (PS_B_TO_SWAP_INPUT) {
+    ps_log(MAIN,WARNING,"Press B to swap input -- Do not leave this enabled in production builds!");
+  }
+
+  int randseed=time(0);
+  ps_log(MAIN,INFO,"Random seed %d.",randseed);
+  srand(randseed);
+
+  if (ps_video_init()<0) return -1;
+
+  if (ps_main_init_input(cmdline)<0) {
+    ps_log(MAIN,ERROR,"Failed to initialize input.");
+    return -1;
+  }
+
+  if (ps_main_init_audio(cmdline)<0) {
+    ps_log(MAIN,ERROR,"Failed to initialize audio.");
+    return -1;
+  }
+
+  if (ps_resmgr_init(cmdline->resources_path,0)<0) return -1;
 
   if (!(ps_game=ps_game_new())) return -1;
 
@@ -155,15 +206,12 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
   if (cmdline->saved_game_path) {
     if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else if (1) { // Nonzero for normal interactive setup, zero for quick testing setup
-    if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
   } else {
-    if (ps_setup_test_game(
-      2, // playerc: 1..8
-      9, // difficulty: 1..9
-      3, // length: 1..9
-      1  // Nonzero for fake scenario (configure above).
-    )<0) return -1;
+    int err=ps_setup_test_game(cmdline);
+    if (err<0) return -1;
+    if (!err) {
+      if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
+    }
   }
   
   return 0;
@@ -175,7 +223,9 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 static void ps_main_quit() {
   ps_log(MAIN,TRACE,"%s",__func__);
 
-  akau_quit();
+  #if PS_AKAU_ENABLE
+    akau_quit();
+  #endif
 
   ps_gui_del(ps_gui);
   ps_drop_global_gui();
@@ -206,7 +256,9 @@ static int ps_main_update() {
     ps_ioc_quit(0);
   }
 
-  if (akau_update()<0) return -1;
+  #if PS_AKAU_ENABLE
+    if (akau_update()<0) return -1;
+  #endif
 
   if (ps_gui_is_active(ps_gui)) {
     if (ps_gui_update(ps_gui)<0) return -1;

@@ -570,7 +570,7 @@ int ps_game_restart(struct ps_game *game) {
   if (ps_game_register_switches(game)<0) return -1;
 
   if (game->grid->region) {
-    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+    akau_play_song(game->grid->region->songid,0);
   }
 
   if (ps_bloodhound_activator_reset(game->bloodhound_activator)<0) return -1;
@@ -611,7 +611,7 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
   if (ps_game_register_switches(game)<0) return -1;
 
   if (game->grid->region) {
-    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+    akau_play_song(game->grid->region->songid,0);
   }
   
   if (ps_game_check_status_report(game)<0) return -1;
@@ -667,7 +667,7 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
   if (ps_game_register_switches(game)<0) return -1;
 
   if (game->grid->region) {
-    if (akau_play_song(game->grid->region->songid,0)<0) return -1;
+    akau_play_song(game->grid->region->songid,0);
   }
   
   if (ps_game_check_status_report(game)<0) return -1;

@@ -10,6 +10,7 @@
 #include <sys/inotify.h>
 #include <linux/input.h>
 #include "ps_evdev.h"
+#include "os/ps_log.h"
 
 #define PS_EVDEV_PATH_DEFAULT "/dev/input"
 
@@ -98,7 +99,8 @@ static int ps_evdev_try_file(const char *base) {
   memcpy(path+pfxc+1,base,basec+1);
   int fd=open(path,O_RDONLY);
   if (fd<0) {
-    while ((fd<0)&&(errno==EINTR)) fd=open(path,O_RDONLY);
+    int panic=10;
+    while ((fd<0)&&(errno==EINTR)&&(--panic>0)) fd=open(path,O_RDONLY);
     if (fd<0) return 0;
   }
   fcntl(fd,F_SETFD,FD_CLOEXEC);
@@ -161,7 +163,7 @@ static int ps_evdev_try_file(const char *base) {
   if (ioctl(fd,EVIOCGRAB,1)>=0) {
     dev->grabbed=1;
   }
-  
+
   ps_evdev.devid_next++;
 
   /* Notify user. */
@@ -393,7 +395,7 @@ int ps_evdev_dev_search(int devid) {
   while (lo<hi) {
     int ck=(lo+hi)>>1;
          if (devid<ps_evdev.devv[ck].devid) hi=ck;
-    else if (devid>ps_evdev.devv[ck].devid) lo=ck=1;
+    else if (devid>ps_evdev.devv[ck].devid) lo=ck+1;
     else return ck;
   }
   return -lo-1;

@@ -54,11 +54,9 @@ static void _ps_hero_del(struct ps_sprite *spr) {
 static int _ps_hero_init(struct ps_sprite *spr) {
 
   SPR->input=0;
-
+  SPR->state=PS_HERO_STATE_STOPINPUT;
   SPR->facedir=PS_DIRECTION_SOUTH;
-
   SPR->hp=PS_HERO_DEFAULT_HP;
-
   ps_hero_reset_blinktime(spr);
 
   return 0;
@@ -141,7 +139,7 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
   if (!input) {
     if (ps_hero_remove_state(spr,PS_HERO_STATE_STOPINPUT,game)<0) return -1;
   } else if (SPR->state&PS_HERO_STATE_STOPINPUT) {
-    return 0;
+    input&=(PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT|PS_PLRBTN_UP|PS_PLRBTN_DOWN);
   }
   
   if (SPR->reexamine_dpad) {

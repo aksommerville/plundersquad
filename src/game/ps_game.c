@@ -658,6 +658,7 @@ static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,
     struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
     spr->x+=sprdx;
     spr->y+=sprdy;
+    //ps_hero_add_state(spr,PS_HERO_STATE_STOPINPUT,game);
   }
 
   if (ps_game_spawn_sprites(game)<0) return -1;

@@ -5,5 +5,3 @@
 - GLX backend
 - Windows backend
 - Failure to launch on Pi. Too many input devices?
-- Unpredictable failure to switch to neighbor screen.
-- Ghosts became solid. Due to cheat healing?

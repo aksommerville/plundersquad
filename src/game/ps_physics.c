@@ -23,7 +23,6 @@ void ps_physics_del(struct ps_physics *physics) {
   if (!physics) return;
   ps_sprgrp_del(physics->grp_physics);
   ps_sprgrp_del(physics->grp_solid);
-  ps_sprgrp_del(physics->grp_hero);
   ps_grid_del(physics->grid);
   if (physics->collv) free(physics->collv);
   if (physics->eventv) free(physics->eventv);
@@ -46,14 +45,6 @@ int ps_physics_set_sprgrp_solid(struct ps_physics *physics,struct ps_sprgrp *grp
   if (grp&&(ps_sprgrp_ref(grp)<0)) return -1;
   ps_sprgrp_del(physics->grp_solid);
   physics->grp_solid=grp;
-  return 0;
-}
- 
-int ps_physics_set_sprgrp_hero(struct ps_physics *physics,struct ps_sprgrp *grp) {
-  if (!physics) return -1;
-  if (grp&&(ps_sprgrp_ref(grp)<0)) return -1;
-  ps_sprgrp_del(physics->grp_hero);
-  physics->grp_hero=grp;
   return 0;
 }
 

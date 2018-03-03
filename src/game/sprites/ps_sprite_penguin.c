@@ -38,6 +38,7 @@
   (1<<PS_SPRGRP_PHYSICS)| \
   (1<<PS_SPRGRP_FRAGILE)| \
   (1<<PS_SPRGRP_HEROHAZARD)| \
+  (1<<PS_SPRGRP_LATCH)| \
 0)
 
 /* Private sprite object.

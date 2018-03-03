@@ -125,17 +125,27 @@ static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,
   PS_SFX_HOOKSHOT_GRAB
   SPR->phase=PS_HOOKSHOT_PHASE_DELIVER;
   if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
-  SPR->restore_pumpkin_impassable=pumpkin->impassable;
-  pumpkin->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
   if (ps_sprgrp_add_sprite(SPR->pumpkin,pumpkin)<0) return -1;
+  if (pumpkin->type==&ps_sprtype_hero) {
+    if (ps_hero_add_state(pumpkin,PS_HERO_STATE_PUMPKIN,game)<0) return -1;
+  } else {
+    SPR->restore_pumpkin_impassable=pumpkin->impassable;
+    pumpkin->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
+  }
   return 0;
 }
 
 static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
-  if (SPR->user&&(SPR->user->sprc==1)) ps_hero_abort_hookshot(SPR->user->sprv[0],game);
+  if (SPR->user&&(SPR->user->sprc==1)) {
+    ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_HOOKSHOT,game);
+  }
   if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
     struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
-    pumpkin->impassable=SPR->restore_pumpkin_impassable;
+    if (pumpkin->type==&ps_sprtype_hero) {
+      if (ps_hero_remove_state(pumpkin,PS_HERO_STATE_PUMPKIN,game)<0) return -1;
+    } else {
+      pumpkin->impassable=SPR->restore_pumpkin_impassable;
+    }
     if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
     ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin);
     if (ps_hookshot_check_pumpkin_final_position(spr,game,pumpkin)<0) return -1;
@@ -144,10 +154,16 @@ static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
 }
 
 static int ps_hookshot_finish(struct ps_sprite *spr,struct ps_game *game) {
-  if (SPR->user&&(SPR->user->sprc==1)) ps_hero_abort_hookshot(SPR->user->sprv[0],game);
+  if (SPR->user&&(SPR->user->sprc==1)) {
+    ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_HOOKSHOT,game);
+  }
   if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
     struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
-    pumpkin->impassable=SPR->restore_pumpkin_impassable;
+    if (pumpkin->type==&ps_sprtype_hero) {
+      if (ps_hero_remove_state(pumpkin,PS_HERO_STATE_PUMPKIN,game)<0) return -1;
+    } else {
+      pumpkin->impassable=SPR->restore_pumpkin_impassable;
+    }
     if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
     ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin);
     if (ps_hookshot_check_pumpkin_final_position(spr,game,pumpkin)<0) return -1;
@@ -210,7 +226,7 @@ static int ps_hookshot_check_abortion(struct ps_sprite *spr,struct ps_game *game
   if (user->type!=&ps_sprtype_hero) return ps_hookshot_abort(spr,game);
   struct ps_sprite_hero *hero=(struct ps_sprite_hero*)user;
   if (hero->hp<1) return ps_hookshot_abort(spr,game);
-  if (!hero->hookshot_in_progress) return ps_hookshot_abort(spr,game);
+  if (!(hero->state&PS_HERO_STATE_HOOKSHOT)) return ps_hookshot_abort(spr,game);
   return 0;
 }
 

@@ -23,9 +23,6 @@ int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game);
 #define PS_HERO_BLINKTIME_OPEN_MAX 240
 #define PS_HERO_WALK_FRAME_DURATION 10
 #define PS_HERO_WALK_TOTAL_DURATION (PS_HERO_WALK_FRAME_DURATION*4)
-#define PS_HERO_HURT_TIME 60
-#define PS_HERO_DEFAULT_HP 1
-#define PS_HERO_HEAL_TIME 60
 #define PS_HERO_FLY_FRAME_TIME 10
 
 #define PS_HERO_IMPASSABLE_DEFAULT ( \
@@ -135,53 +132,18 @@ static int ps_hero_rcvinput_dpad(struct ps_sprite *spr,uint16_t input) {
   return 0;
 }
 
-/* Go onscreen.
- */
-
-static int ps_hero_go_onscreen(struct ps_sprite *spr,struct ps_game *game,int dx,int dy) {
-  //ps_log(GAME,TRACE,"%s %p %d",__func__,spr,SPR->player->playerid);
-  SPR->offscreen=0;
-  if (ps_game_set_group_mask_for_sprite(game,spr,SPR->offscreen_grpmask_restore)<0) return -1;
-  
-  spr->x+=dx;
-  spr->y+=dy;
-  if (spr->x<1.0) spr->x=1.0;
-  else if (spr->x>PS_SCREENW-1.0) spr->x=PS_SCREENW-1.0;
-  if (spr->y<1.0) spr->y=1.0;
-  else if (spr->y>PS_SCREENH-1.0) spr->y=PS_SCREENH-1.0;
-
-  if (ps_game_remove_indicator_for_hero(game,spr)<0) return -1;
-
-  game->inhibit_screen_switch=0;
-  return 0;
-}
-
-/* Go offscreen.
- */
-
-static int ps_hero_go_offscreen(struct ps_sprite *spr,struct ps_game *game) {
-  //ps_log(GAME,TRACE,"%s %p %d",__func__,spr,SPR->player->playerid);
-
-  SPR->offscreen=1;
-  SPR->offscreen_grpmask_restore=ps_game_get_group_mask_for_sprite(game,spr);
-  if (ps_game_set_group_mask_for_sprite(game,spr,
-    (1<<PS_SPRGRP_KEEPALIVE)|
-    (1<<PS_SPRGRP_UPDATE)|
-    (1<<PS_SPRGRP_HERO)|
-  0)<0) return -1;
-
-  if (ps_game_add_indicator_for_hero(game,spr)<0) return -1;
-  
-  return 0;
-}
-
 /* Receive input.
  */
 
 static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game *game) {
   //ps_log(GAME,DEBUG,"%s %d",__func__,SPR->player->playerid);
-  if (!input) SPR->input_ready=1;
-  if (!SPR->input_ready) return 0; // Not receiving input yet.
+
+  if (!input) {
+    if (ps_hero_remove_state(spr,PS_HERO_STATE_STOPINPUT,game)<0) return -1;
+  } else if (SPR->state&PS_HERO_STATE_STOPINPUT) {
+    return 0;
+  }
+  
   if (SPR->reexamine_dpad) {
     SPR->input&=~(PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT|PS_PLRBTN_UP|PS_PLRBTN_DOWN);
     SPR->reexamine_dpad=0;
@@ -191,15 +153,15 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
   /* If offscreen, the only thing we can do is go back onscreen. 
    * UPDATE: We also permit starting auxaction, when b-to-swap is enabled.
    */
-  if (SPR->offscreen) {
+  if (SPR->state&PS_HERO_STATE_OFFSCREEN) {
     if (spr->x<=0.0) {
-      if (input&PS_PLRBTN_RIGHT) return ps_hero_go_onscreen(spr,game,1,0);
+      if (input&PS_PLRBTN_RIGHT) return ps_hero_remove_state(spr,PS_HERO_STATE_OFFSCREEN,game);
     } else if (spr->y<=0.0) {
-      if (input&PS_PLRBTN_DOWN) return ps_hero_go_onscreen(spr,game,0,1);
+      if (input&PS_PLRBTN_DOWN) return ps_hero_remove_state(spr,PS_HERO_STATE_OFFSCREEN,game);
     } else if (spr->x>=PS_SCREENW) {
-      if (input&PS_PLRBTN_LEFT) return ps_hero_go_onscreen(spr,game,-1,0);
+      if (input&PS_PLRBTN_LEFT) return ps_hero_remove_state(spr,PS_HERO_STATE_OFFSCREEN,game);
     } else if (spr->y>=PS_SCREENH) {
-      if (input&PS_PLRBTN_UP) return ps_hero_go_onscreen(spr,game,0,-1);
+      if (input&PS_PLRBTN_UP) return ps_hero_remove_state(spr,PS_HERO_STATE_OFFSCREEN,game);
     } else {
       // If none of those cases is true, he's not actually offscreen.
       // It's hard (but possible) to make this happen without cheating, so we have just this quick and dirty fix.
@@ -207,7 +169,7 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
         "Player %d was marked offscreen at position (%.0f,%.0f), forcing onscreen.",
         SPR->player->playerid,spr->x,spr->y
       );
-      return ps_hero_go_onscreen(spr,game,0,0);
+      return ps_hero_remove_state(spr,PS_HERO_STATE_OFFSCREEN,game);
     }
     if (PS_B_TO_SWAP_INPUT) {
       if ((input&PS_PLRBTN_B)&&!(SPR->input&PS_PLRBTN_B)) {
@@ -218,7 +180,7 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
     return 0;
   }
 
-  if (SPR->hookshot_in_progress) {
+  if (SPR->state&PS_HERO_STATE_HOOKSHOT) { //TODO generalize with a state query
     SPR->indx=0;
     SPR->indy=0;
   } else {
@@ -261,16 +223,6 @@ static int ps_hero_animate(struct ps_sprite *spr) {
     if (SPR->walktime>=PS_HERO_WALK_TOTAL_DURATION) SPR->walktime=0;
   }
 
-  /* Hurt timer. */
-  if (SPR->hurttime>0) {
-    SPR->hurttime--;
-  }
-
-  /* Heal timer. */
-  if (SPR->healtime>0) {
-    SPR->healtime--;
-  }
-
   /* Dragon charger. */
   if (SPR->dragoncharge>0) {
     SPR->dragoncharge--;
@@ -282,9 +234,10 @@ static int ps_hero_animate(struct ps_sprite *spr) {
 /* Walking.
  */
 
-static int ps_hero_walk_inhibited_by_actions(struct ps_sprite *spr) {
-  if (SPR->sword_in_progress) return 1;
-  if (SPR->hookshot_in_progress) return 1;
+static int ps_hero_walk_inhibited_by_actions(struct ps_sprite *spr) {//TODO generalize with state query
+  //if (SPR->sword_in_progress) return 1;
+  //if (SPR->hookshot_in_progress) return 1;
+  if (SPR->state&(PS_HERO_STATE_SWORD|PS_HERO_STATE_HOOKSHOT)) return 1;
   return 0;
 }
 
@@ -292,15 +245,15 @@ static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
 
 
   if (!SPR->indx&&!SPR->indy) {
-    SPR->walk_in_progress=0;
+    if (ps_hero_remove_state(spr,PS_HERO_STATE_WALK,game)<0) return -1;
     return 0;
   }
   if (ps_hero_walk_inhibited_by_actions(spr)) {
-    SPR->walk_in_progress=0;
+    if (ps_hero_remove_state(spr,PS_HERO_STATE_WALK,game)<0) return -1;
     return 0;
   }
 
-  SPR->walk_in_progress=1;
+  if (ps_hero_add_state(spr,PS_HERO_STATE_WALK,game)<0) return -1;
   spr->x+=SPR->indx;
   spr->y+=SPR->indy;
 
@@ -314,7 +267,7 @@ static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
 
   if ((spr->x<0.0)||(spr->y<0.0)||(spr->x>PS_SCREENW)||(spr->y>PS_SCREENH)) {
-    return ps_hero_go_offscreen(spr,game);
+    return ps_hero_add_state(spr,PS_HERO_STATE_OFFSCREEN,game);
   }
 
   if (!game->grid) return 0;
@@ -328,19 +281,19 @@ static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
 
   switch (physics) {
     case PS_BLUEPRINT_CELL_HEAL: {
-        if (ps_hero_heal(spr,game)<0) return -1;
+        if (ps_hero_add_state(spr,PS_HERO_STATE_HEAL,game)<0) return -1;
       } break;
     case PS_BLUEPRINT_CELL_HOLE: {
         // Landing on a hole is unusal, but can easily be done with a hookshot.
         if (spr->impassable&(1<<PS_BLUEPRINT_CELL_HOLE)) {
-          return ps_hero_become_ghost(game,spr);
+          return ps_hero_force_kill(spr,game);
         }
       } break;
   }
 
   if (SPR->defer_fly_end) {
     if (physics!=PS_BLUEPRINT_CELL_HOLE) {
-      if (ps_hero_fly_end(spr,game)<0) return -1;
+      if (ps_hero_remove_state(spr,PS_HERO_STATE_FLY,game)<0) return -1;
     } else {
       SPR->fly_counter++;
     }
@@ -354,6 +307,23 @@ static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
 
 static int _ps_hero_update(struct ps_sprite *spr,struct ps_game *game) {
 
+  /* Update counters. */
+  if (SPR->hurttime>0) {
+    if (!--(SPR->hurttime)) {
+      if (ps_hero_remove_state(spr,PS_HERO_STATE_HURT,game)<0) return -1;
+    }
+  }
+  if (SPR->healtime>0) {
+    if (!--(SPR->healtime)) {
+      if (ps_hero_remove_state(spr,PS_HERO_STATE_HEAL,game)<0) return -1;
+    }
+  }
+  if (SPR->highlighttime>0) {
+    if (!--(SPR->highlighttime)) {
+      if (ps_hero_remove_state(spr,PS_HERO_STATE_HIGHLIGHT,game)<0) return -1;
+    }
+  }
+
   /* Receive input. */
   if (SPR->ignore_input>0) {
     // pass
@@ -364,7 +334,7 @@ static int _ps_hero_update(struct ps_sprite *spr,struct ps_game *game) {
   }
 
   /* If we are offscreen, do nothing more. */
-  if (SPR->offscreen) return 0;
+  if (SPR->state&PS_HERO_STATE_OFFSCREEN) return 0;
 
   /* Continue running actions. */
   if (SPR->input&PS_PLRBTN_A) {
@@ -422,6 +392,13 @@ static int ps_hero_draw_ghost(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_s
     if (SPR->dragoncharge<0x30) vtxv->ta=0x30;
     else vtxv->ta=SPR->dragoncharge;
   }
+
+  if (SPR->state&PS_HERO_STATE_HIGHLIGHT) {
+    vtxv->tr=0xff;
+    vtxv->tg=0xff;
+    vtxv->tb=0x00;
+    vtxv->ta=(SPR->highlighttime*0xff)/PS_HERO_HIGHLIGHT_TIME;
+  }
   
   vtxv->a=0xff;
   vtxv->t=0;
@@ -457,16 +434,21 @@ static int ps_hero_draw_fly(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spr
 
   /* Tint. */
   vtxv->t=0;
-  if (SPR->healtime>0) {
+  if (SPR->state&PS_HERO_STATE_HEAL) {
     vtxv->tr=0x00;
     vtxv->tg=0xff;
     vtxv->tb=0x00;
     vtxv->ta=(SPR->healtime*0xff)/PS_HERO_HEAL_TIME;
-  } else if (SPR->hurttime>0) {
+  } else if (SPR->state&PS_HERO_STATE_HURT) {
     vtxv->tr=0xff;
     vtxv->tg=0x00;
     vtxv->tb=0x00;
     vtxv->ta=(SPR->hurttime*0xff)/PS_HERO_HURT_TIME;
+  } else if (SPR->state&PS_HERO_STATE_HIGHLIGHT) {
+    vtxv->tr=0xff;
+    vtxv->tg=0xff;
+    vtxv->tb=0x00;
+    vtxv->ta=(SPR->highlighttime*0xff)/PS_HERO_HIGHLIGHT_TIME;
   }
   
   return 1;
@@ -478,8 +460,8 @@ static int ps_hero_draw_fly(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spr
 static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite *spr) {
 
   /* Ghosts and bats are a whole different ballgame, so treat them separately. */
-  if (!SPR->hp) return ps_hero_draw_ghost(vtxv,vtxa,spr);
-  if (SPR->fly_in_progress) return ps_hero_draw_fly(vtxv,vtxa,spr);
+  if (SPR->state&PS_HERO_STATE_GHOST) return ps_hero_draw_ghost(vtxv,vtxa,spr);
+  if (SPR->state&PS_HERO_STATE_FLY) return ps_hero_draw_fly(vtxv,vtxa,spr);
 
   /* For normal rendering, an attached player is required. */
   if (!SPR->player||!SPR->player->plrdef) return 0;
@@ -487,14 +469,14 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   /* Required vertex count depends on the actions in flight.
    */
   int vtxc=2;
-  if (SPR->sword_in_progress) vtxc=3;
+  if (SPR->state&PS_HERO_STATE_SWORD) vtxc=3;
   if (vtxa<vtxc) return vtxc;
   
   /* Enumerate vertices. */
   struct akgl_vtx_maxtile *vtx_body=vtxv+0;
   struct akgl_vtx_maxtile *vtx_head=vtxv+1;
   struct akgl_vtx_maxtile *vtx_sword=0;
-  if (SPR->sword_in_progress) {
+  if (SPR->state&PS_HERO_STATE_SWORD) {
     if (SPR->facedir==PS_DIRECTION_NORTH) {
       vtx_sword=vtxv+0;
       vtx_head=vtxv+1;
@@ -542,16 +524,21 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   /* Tint. */
   vtx_body->ta=0;
   vtx_head->ta=0;
-  if (SPR->healtime>0) {
+  if (SPR->state&PS_HERO_STATE_HEAL) {
     vtx_body->tr=vtx_head->tr=0x00;
     vtx_body->tg=vtx_head->tg=0xff;
     vtx_body->tb=vtx_head->tb=0x00;
     vtx_body->ta=vtx_head->ta=(SPR->healtime*0xff)/PS_HERO_HEAL_TIME;
-  } else if (SPR->hurttime>0) {
+  } else if (SPR->state&PS_HERO_STATE_HURT) {
     vtx_body->tr=vtx_head->tr=0xff;
     vtx_body->tg=vtx_head->tg=0x00;
     vtx_body->tb=vtx_head->tb=0x00;
     vtx_body->ta=vtx_head->ta=(SPR->hurttime*0xff)/PS_HERO_HURT_TIME;
+  } else if (SPR->state&PS_HERO_STATE_HIGHLIGHT) {
+    vtx_body->tr=vtx_head->tr=0xff;
+    vtx_body->tg=vtx_head->tg=0xff;
+    vtx_body->tb=vtx_head->tb=0x00;
+    vtx_body->ta=vtx_head->ta=(SPR->highlighttime*0xff)/PS_HERO_HIGHLIGHT_TIME;
   }
 
   /* Set undirectioned vertex tiles. (spr->tileid) is ignored; we use player properties instead. */
@@ -559,16 +546,16 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   vtx_body->tileid=SPR->player->plrdef->tileid_body;
 
   /* Select variant for head. */
-  if (SPR->hurttime>0) vtx_head->tileid+=0x20;
+  if (SPR->state&PS_HERO_STATE_HURT) vtx_head->tileid+=0x20;
   else if (SPR->blinktime<=PS_HERO_BLINKTIME_SHUT) vtx_head->tileid+=0x10;
 
   /* Select variant for body. */
-  if (SPR->walk_in_progress) switch (SPR->walktime/PS_HERO_WALK_FRAME_DURATION) {
+  if (SPR->state&PS_HERO_STATE_WALK) switch (SPR->walktime/PS_HERO_WALK_FRAME_DURATION) {
     case 0: vtx_body->tileid+=0x10; break;
     case 1: break;
     case 2: vtx_body->tileid+=0x20; break;
     case 3: break;
-  } else if (SPR->sword_in_progress||SPR->hookshot_in_progress) {
+  } else if (SPR->state&(PS_HERO_STATE_SWORD|PS_HERO_STATE_HOOKSHOT)) {
     vtx_body->tileid+=0x30;
     if (SPR->facedir==PS_DIRECTION_SOUTH) {
       vtx_head->y=vtx_body->y-PS_HERO_HEAD_OFFSET_SWORD;
@@ -636,90 +623,18 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   return vtxc;
 }
 
-/* Become ghost.
- */
-
-int ps_hero_become_ghost(struct ps_game *game,struct ps_sprite *spr) {
-  if (!game||!spr||(spr->type!=&ps_sprtype_hero)) return -1;
-  ps_log(GAME,INFO,"Hero %p becomes ghost.",spr);
-
-  if (SPR->player&&(SPR->player->playerid>=1)&&(SPR->player->playerid<=PS_PLAYER_LIMIT)) {
-    struct ps_stats_player *pstats=game->stats->playerv+SPR->player->playerid-1;
-    pstats->deathc++;
-  }
-
-  if (ps_hero_action_end(spr,game)<0) return -1;
-  if (ps_hero_auxaction_end(spr,game)<0) return -1;
-
-  SPR->hp=0;
-  spr->collide_sprites=0;
-  spr->impassable=PS_HERO_IMPASSABLE_DEFAULT&~(1<<PS_BLUEPRINT_CELL_HOLE);
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
-  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)<0) return -1;
-  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_PHYSICS,spr)<0) return -1;
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_LATCH,spr)<0) return -1;
-
-  return 0;
-}
-
-/* Resurrect.
- */
-
-int ps_hero_become_living(struct ps_game *game,struct ps_sprite *spr) {
-  if (!game||!spr||(spr->type!=&ps_sprtype_hero)) return -1;
-  //ps_log(GAME,INFO,"Hero %p resurrects.",spr);
-  
-  SPR->healtime=PS_HERO_HEAL_TIME;
-  SPR->hp=PS_HERO_DEFAULT_HP;
-  spr->collide_sprites=1;
-  spr->impassable=PS_HERO_IMPASSABLE_DEFAULT;
-  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
-  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)<0) return -1;
-  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_LATCH,spr)<0) return -1;
-  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_SOLID,spr)<0) return -1;
-  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_PHYSICS,spr)<0) return -1;
-
-  // Heroes can be healed while offscreen.
-  // If they left the screen as a ghost, they would get that group mask again on re-entry.
-  // Which would be bad.
-  if (SPR->offscreen) {
-    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_FRAGILE);
-    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_LATCH);
-    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_SOLID);
-    SPR->offscreen_grpmask_restore|=(1<<PS_SPRGRP_PHYSICS);
-    SPR->offscreen_grpmask_restore&=~(1<<PS_SPRGRP_HEROHAZARD);
-  }
-
-  return 0;
-}
-
-int ps_hero_heal(struct ps_sprite *spr,struct ps_game *game) {
-  if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
-  if (!game) return -1;
-  if (SPR->hp==PS_HERO_DEFAULT_HP) return 0;
-  PS_SFX_HERO_HEAL
-  SPR->healtime=PS_HERO_HEAL_TIME;
-  if (SPR->hp) {
-    SPR->hp=PS_HERO_DEFAULT_HP;
-  } else {
-    return ps_hero_become_living(game,spr);
-  }
-  return 0;
-}
-
 /* Receive damage.
  */
 
 static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant) {
 
-  if (!SPR->hp) return 0; // Ghost.
+  if (SPR->state&PS_HERO_STATE_GHOST) return 0; // Already dead, can't hurt me.
 
   if (assailant&&(assailant->type==&ps_sprtype_killozap)) {
     // The kill-o-zap is special: It doesn't respect heros' invincibility.
     // Without this special case, heroes can grab a heart and sneak through the kill-o-zap.
   } else {
-    if (SPR->hurttime) return 0;
-    if (SPR->healtime) return 0;
+    if (SPR->state&(PS_HERO_STATE_HEAL|PS_HERO_STATE_HURT)) return 0;
   }
 
   int fragile=ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr);
@@ -738,9 +653,11 @@ static int _ps_hero_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sp
     SPR->hp=0;
     if (ps_game_create_fireworks(game,spr->x,spr->y)<0) return -1;
     if (ps_game_report_kill(game,assailant,spr)<0) return -1;
-    return ps_hero_become_ghost(game,spr);
+    if (ps_hero_add_state(spr,PS_HERO_STATE_GHOST,game)<0) return -1;
+    return 0;
   }
 
+  // Max HP is 1, so this never actually happens:
   PS_SFX_HERO_HURT
   SPR->hurttime=PS_HERO_HURT_TIME;
   
@@ -798,5 +715,17 @@ int ps_hero_set_dragon_charge(struct ps_sprite *spr,int p,int c) {
     if (p>=c) p=c-1;
     SPR->dragoncharge=(p*255)/c;
   }
+  return 0;
+}
+
+/* Force kill.
+ */
+ 
+int ps_hero_force_kill(struct ps_sprite *spr,struct ps_game *game) {
+  if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
+  if (!game) return -1;
+  if (ps_hero_remove_state(spr,PS_HERO_STATE_HEAL,game)<0) return -1;
+  if (ps_hero_remove_state(spr,PS_HERO_STATE_HURT,game)<0) return -1;
+  if (ps_sprite_receive_damage(game,spr,0)<0) return -1;
   return 0;
 }

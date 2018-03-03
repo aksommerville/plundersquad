@@ -27,7 +27,8 @@
 #define PS_LOG_DOMAIN_PHYSICS         15
 #define PS_LOG_DOMAIN_MACHID          16
 #define PS_LOG_DOMAIN_GUI             17
-#define PS_LOG_DOMAIN_COUNT           18
+#define PS_LOG_DOMAIN_HEROSTATE       18
+#define PS_LOG_DOMAIN_COUNT           19
 // Feel free to add domains. Please update PS_LOG_DOMAIN_COUNT, and add default level in ps_log.c.
 
 #define PS_LOG_LEVEL_ALL           0

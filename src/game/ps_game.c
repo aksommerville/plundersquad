@@ -48,7 +48,6 @@ static int ps_game_initialize(struct ps_game *game) {
   if (!(game->physics=ps_physics_new())) return -1;
   if (ps_physics_set_sprgrp_physics(game->physics,game->grpv+PS_SPRGRP_PHYSICS)<0) return -1;
   if (ps_physics_set_sprgrp_solid(game->physics,game->grpv+PS_SPRGRP_SOLID)<0) return -1;
-  if (ps_physics_set_sprgrp_hero(game->physics,game->grpv+PS_SPRGRP_HERO)<0) return -1;
     
   if (!(game->bloodhound_activator=ps_bloodhound_activator_new())) return -1;
   if (!(game->dragoncharger=ps_dragoncharger_new())) return -1;
@@ -686,7 +685,7 @@ static int ps_game_get_sprite_grid_change(const struct ps_sprite *spr) {
 
   if (spr->type==&ps_sprtype_hero) {
     const struct ps_sprite_hero *hero=(struct ps_sprite_hero*)spr;
-    if (!hero->offscreen) return 0;
+    if (!(hero->state&PS_HERO_STATE_OFFSCREEN)) return 0;
   } else if (spr->type==&ps_sprtype_heroindicator) {
     return -1;
   }
@@ -907,13 +906,13 @@ static int ps_game_update_stats(struct ps_game *game) {
     if ((HERO->player->playerid<1)||(HERO->player->playerid>PS_PLAYER_LIMIT)) continue;
     struct ps_stats_player *pstats=game->stats->playerv+HERO->player->playerid-1;
     
-    if (HERO->walk_in_progress) {
+    if (HERO->state&PS_HERO_STATE_WALK) {
       pstats->stepc++;
     }
-    if (HERO->hp) {
+    if (!(HERO->state&PS_HERO_STATE_GHOST)) {
       pstats->framec_alive++;
       pstats->framec_since_rebirth++;
-      if (HERO->walk_in_progress) {
+      if (HERO->state&PS_HERO_STATE_WALK) {
         pstats->stepc_since_rebirth++;
       }
     } else {
@@ -1183,7 +1182,7 @@ int ps_game_heal_all_heroes(struct ps_game *game) {
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *hero=grp->sprv[i];
     if (hero->type==&ps_sprtype_hero) {
-      if (ps_hero_become_living(game,hero)<0) return -1;
+      if (ps_hero_add_state(hero,PS_HERO_STATE_HEAL,game)<0) return -1;
     }
   }
   return 0;

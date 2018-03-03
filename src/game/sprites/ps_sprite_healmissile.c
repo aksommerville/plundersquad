@@ -38,7 +38,7 @@ static int ps_healmissile_heal_mortals(struct ps_sprite *spr,struct ps_game *gam
     if (victim->x-victim->radius>=right) continue;
     if (victim->y+victim->radius<=top) continue;
     if (victim->y-victim->radius>=bottom) continue;
-    if (ps_hero_heal(victim,game)<0) return -1;
+    if (ps_hero_add_state(victim,PS_HERO_STATE_HEAL,game)<0) return -1;
     if (ps_sprite_kill_later(spr,game)<0) return -1;
     return 1;
   }

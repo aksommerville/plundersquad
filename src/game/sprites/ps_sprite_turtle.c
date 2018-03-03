@@ -133,10 +133,14 @@ static int ps_turtle_gather_possible_ferry_directions(int *dirv,const struct ps_
 static int ps_turtle_accept_rider(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *rider) {
   if (ps_sprite_set_master(rider,spr,game)<0) return -1;
   if (ps_sprgrp_add_sprite(SPR->rider,rider)<0) return -1;
-  SPR->ridergrpmask=ps_game_get_group_mask_for_sprite(game,rider);
-  SPR->riderimpassable=rider->impassable;
-  rider->impassable=0;
-  if (ps_game_set_group_mask_for_sprite(game,rider,PS_TURTLE_RIDER_MASK)<0) return -1;
+  if (rider->type==&ps_sprtype_hero) {
+    if (ps_hero_add_state(rider,PS_HERO_STATE_FERRY,game)<0) return -1;
+  } else {
+    SPR->ridergrpmask=ps_game_get_group_mask_for_sprite(game,rider);
+    SPR->riderimpassable=rider->impassable;
+    rider->impassable=0;
+    if (ps_game_set_group_mask_for_sprite(game,rider,PS_TURTLE_RIDER_MASK)<0) return -1;
+  }
   SPR->phase=PS_TURTLE_PHASE_FERRY;
   spr->impassable=PS_TURTLE_IMPASSABLE_FERRY;
   
@@ -160,8 +164,12 @@ static int ps_turtle_accept_rider(struct ps_sprite *spr,struct ps_game *game,str
 
 static int ps_turtle_reject_rider(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *rider) {
   if (rider) {
-    rider->impassable=SPR->riderimpassable;
-    if (ps_game_set_group_mask_for_sprite(game,rider,SPR->ridergrpmask)<0) return -1;
+    if (rider->type==&ps_sprtype_hero) {
+      if (ps_hero_remove_state(rider,PS_HERO_STATE_FERRY,game)<0) return -1;
+    } else {
+      rider->impassable=SPR->riderimpassable;
+      if (ps_game_set_group_mask_for_sprite(game,rider,SPR->ridergrpmask)<0) return -1;
+    }
     if (ps_sprgrp_remove_sprite(SPR->rider,rider)<0) return -1;
     if (ps_sprite_set_master(rider,0,game)<0) return -1;
   }
@@ -241,24 +249,6 @@ static int ps_turtle_update_ferry(struct ps_sprite *spr,struct ps_game *game) {
 
   struct ps_sprite *rider=0;
   if (SPR->rider->sprc==1) rider=SPR->rider->sprv[0];
-
-  /* Hacky fix: If the rider dies en route, we must drop it unceremoniously.
-   * Don't restore anything, because the death process already overwrote our changes.
-   */
-  if (rider&&(rider->type==&ps_sprtype_hero)&&!((struct ps_sprite_hero*)rider)->hp) {
-    ps_sprgrp_remove_sprite(SPR->rider,rider);
-    rider=0;
-  }
-
-  /* Another hack: If our rider is a vampire and has turned into a bat, drop him.
-   * Again, don't modify groups or impassable.
-   */
-  if (rider&&(rider->type==&ps_sprtype_hero)&&((struct ps_sprite_hero*)rider)->fly_in_progress) {
-    rider->impassable=(SPR->riderimpassable&~(1<<PS_BLUEPRINT_CELL_HOLE));
-    if (ps_sprite_set_master(rider,0,game)<0) return -1;
-    ps_sprgrp_remove_sprite(SPR->rider,rider);
-    rider=0;
-  }
 
   if (spr->collided_grid) {
     return ps_turtle_reject_rider(spr,game,rider);

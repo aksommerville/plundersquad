@@ -804,7 +804,7 @@ int ps_game_highlight_enabled_players(struct ps_game *game) {
     if (!hero->player) continue;
     uint16_t buttons=ps_get_player_buttons(hero->player->playerid);
     if (!(buttons&PS_PLRBTN_CD)) continue;
-    if (hero->healtime<30) hero->healtime=30;
+    if (ps_hero_add_state(spr,PS_HERO_STATE_HIGHLIGHT,game)<0) return -1;
   }
   return 0;
 }

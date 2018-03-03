@@ -94,25 +94,19 @@ static struct ps_fbox ps_hero_get_sword_bounds(const struct ps_sprite *spr) {
 
 static int ps_hero_sword_begin(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
-  if (SPR->sword_in_progress) return 0;
-  PS_SFX_SWORD
-  SPR->sword_in_progress=1;
-  struct ps_fbox swordbounds=ps_hero_get_sword_bounds(spr);
-  if (ps_hero_assess_damage_to_others(spr,game,swordbounds)<0) return -1;
-  if (ps_hero_check_swordswitch(spr,game,swordbounds,1)<0) return -1;
+  if (ps_hero_add_state(spr,PS_HERO_STATE_SWORD,game)<0) return -1;
   return 0;
 }
 
 static int ps_hero_sword_end(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
-  if (!SPR->sword_in_progress) return 0;
-  SPR->sword_in_progress=0;
+  if (ps_hero_remove_state(spr,PS_HERO_STATE_SWORD,game)<0) return -1;
   return 0;
 }
 
 static int ps_hero_sword_continue(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
-  if (!SPR->sword_in_progress) return 0;
+  if (!(SPR->state&PS_HERO_STATE_SWORD)) return 0;
   struct ps_fbox bounds=ps_hero_get_sword_bounds(spr);
 
   /* Hurt fragile things. */
@@ -147,49 +141,19 @@ static int ps_hero_arrow(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_hero_hookshot_begin(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
-  if (SPR->hookshot_in_progress) return 0;
-  PS_SFX_HOOKSHOT_BEGIN
-  SPR->hookshot_in_progress=1;
-  struct ps_sprite *hookshot=ps_sprite_hookshot_new(spr,game);
-  if (!hookshot) return 0;
+  if (ps_hero_add_state(spr,PS_HERO_STATE_HOOKSHOT,game)<0) return -1;
   return 0;
 }
 
 static int ps_hero_hookshot_end(struct ps_sprite *spr,struct ps_game *game) {
-  if (!SPR->hookshot_in_progress) return 0;
-  SPR->hookshot_in_progress=0;
-
-  // Movement and direction are inhibited during hook -- ensure that we treat any dpad action fresh.
-  SPR->reexamine_dpad=1;
-  
+  if (ps_hero_remove_state(spr,PS_HERO_STATE_HOOKSHOT,game)<0) return -1;
   return 0;
 }
 
 static int ps_hero_hookshot_continue(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
-  if (!SPR->hookshot_in_progress) return 0;
+  if (!(SPR->state&PS_HERO_STATE_HOOKSHOT)) return 0;
   return 0;
-}
-
-int ps_hero_abort_hookshot(struct ps_sprite *spr,struct ps_game *game) {
-  if (!spr||(spr->type!=&ps_sprtype_hero)) return -1;
-
-  struct ps_sprite *master=ps_sprite_get_master(spr);
-  if (master&&(master->type==&ps_sprtype_hookshot)) {
-    if (ps_sprite_set_master(spr,0,game)<0) return -1;
-  }
-  
-  if (SPR->hp) {
-  
-    // Hookshot may be aborting because we just died -- in that case, do not restore HOLE collisions.
-    // Also, we might be on the back of a turtle. Detect that case by looking for (impassable==0).
-    // I'm not crazy about any of this.
-
-    if (spr->impassable) {
-      spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
-    }
-  }
-  return ps_hero_hookshot_end(spr,game);
 }
 
 /* Flame.
@@ -270,30 +234,19 @@ static int ps_hero_is_over_hole(const struct ps_sprite *spr,const struct ps_game
 }
 
 static int ps_hero_fly_begin(struct ps_sprite *spr,struct ps_game *game) {
-  if (SPR->fly_in_progress) return 0;
-  PS_SFX_TRANSFORM
-  SPR->fly_in_progress=1;
-  SPR->fly_counter=0;
-  SPR->defer_fly_end=0;
-  //TODO I don't like this willy-nilly modification of (impassable). Does it conflict with hookshot, or something else?
-  spr->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
+  if (ps_hero_add_state(spr,PS_HERO_STATE_FLY,game)<0) return -1;
   return 0;
 }
 
 int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game) {
-  if (!SPR->fly_in_progress) return 0;
-  if (ps_hero_is_over_hole(spr,game)) {
-    SPR->defer_fly_end=1;
-  } else {
-    PS_SFX_UNTRANSFORM
-    SPR->fly_in_progress=0;
-    spr->impassable|=1<<PS_BLUEPRINT_CELL_HOLE;
-  }
+  if (ps_hero_remove_state(spr,PS_HERO_STATE_FLY,game)<0) return -1;
   return 0;
 }
 
 static int ps_hero_fly_continue(struct ps_sprite *spr,struct ps_game *game) {
-  SPR->fly_counter++;
+  if (SPR->state&PS_HERO_STATE_FLY) {
+    SPR->fly_counter++;
+  }
   return 0;
 }
 

@@ -53,10 +53,10 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
   //001-swordsman 002-archer    003-gadgeteer 004-nurse     005-wizard    006-vampire   007-martyr    008-immortal  009-bomber
-  if (ps_game_configure_player(ps_game,1,2,0,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,1,8,0,0)<0) return -1;
   if (ps_game_configure_player(ps_game,2,1,0,0)<0) return -1;
   if (ps_game_configure_player(ps_game,3,3,1,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,4,8,2,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,4,2,2,0)<0) return -1;
   
   if (ps_game_set_difficulty(ps_game,difficulty)<0) return -1;
   if (ps_game_set_length(ps_game,length)<0) return -1;
@@ -65,7 +65,7 @@ static int ps_setup_test_game(int playerc,int difficulty,int length,int test_scg
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative for random
       // blueprintids. You must provide at least one with a HERO POI.
-      2,44
+      1
       //2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
     )<0) return -1;
   } else {
@@ -161,7 +161,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
     if (ps_setup_test_game(
       4, // playerc: 1..8
       9, // difficulty: 1..9
-      1, // length: 1..9
+      3, // length: 1..9
       1  // Nonzero for fake scenario (configure above).
     )<0) return -1;
   }

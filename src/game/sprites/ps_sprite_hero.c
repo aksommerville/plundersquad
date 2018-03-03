@@ -139,6 +139,7 @@ static int ps_hero_rcvinput_dpad(struct ps_sprite *spr,uint16_t input) {
  */
 
 static int ps_hero_go_onscreen(struct ps_sprite *spr,struct ps_game *game,int dx,int dy) {
+  //ps_log(GAME,TRACE,"%s %p %d",__func__,spr,SPR->player->playerid);
   SPR->offscreen=0;
   if (ps_game_set_group_mask_for_sprite(game,spr,SPR->offscreen_grpmask_restore)<0) return -1;
   
@@ -159,6 +160,7 @@ static int ps_hero_go_onscreen(struct ps_sprite *spr,struct ps_game *game,int dx
  */
 
 static int ps_hero_go_offscreen(struct ps_sprite *spr,struct ps_game *game) {
+  //ps_log(GAME,TRACE,"%s %p %d",__func__,spr,SPR->player->playerid);
 
   SPR->offscreen=1;
   SPR->offscreen_grpmask_restore=ps_game_get_group_mask_for_sprite(game,spr);
@@ -190,14 +192,22 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
    * UPDATE: We also permit starting auxaction, when b-to-swap is enabled.
    */
   if (SPR->offscreen) {
-    if (spr->x<0.0) {
+    if (spr->x<=0.0) {
       if (input&PS_PLRBTN_RIGHT) return ps_hero_go_onscreen(spr,game,1,0);
-    } else if (spr->y<0.0) {
+    } else if (spr->y<=0.0) {
       if (input&PS_PLRBTN_DOWN) return ps_hero_go_onscreen(spr,game,0,1);
-    } else if (spr->x>PS_SCREENW) {
+    } else if (spr->x>=PS_SCREENW) {
       if (input&PS_PLRBTN_LEFT) return ps_hero_go_onscreen(spr,game,-1,0);
-    } else if (spr->y>PS_SCREENH) {
+    } else if (spr->y>=PS_SCREENH) {
       if (input&PS_PLRBTN_UP) return ps_hero_go_onscreen(spr,game,0,-1);
+    } else {
+      // If none of those cases is true, he's not actually offscreen.
+      // It's hard (but possible) to make this happen without cheating, so we have just this quick and dirty fix.
+      ps_log(GAME,WARN,
+        "Player %d was marked offscreen at position (%.0f,%.0f), forcing onscreen.",
+        SPR->player->playerid,spr->x,spr->y
+      );
+      return ps_hero_go_onscreen(spr,game,0,0);
     }
     if (PS_B_TO_SWAP_INPUT) {
       if ((input&PS_PLRBTN_B)&&!(SPR->input&PS_PLRBTN_B)) {

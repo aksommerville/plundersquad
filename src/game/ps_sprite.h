@@ -260,4 +260,8 @@ int ps_sprdef_encode(void *dstpp,const struct ps_sprdef *sprdef);
 int ps_sprdef_fld_v_eval(int *dst,int k,const char *src,int srcc);
 int ps_sprdef_fld_v_repr(char *dst,int dsta,int k,int v);
 
+/* Look at my surroundings and if necessary and possible, move a little bit to get to a legal position.
+ */
+int ps_sprite_attempt_legal_position(struct ps_sprite *spr,struct ps_game *game);
+
 #endif

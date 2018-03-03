@@ -18,6 +18,7 @@
 
 static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *game) {
   ps_log(HEROSTATE,TRACE,"state %08x",SPR->state);
+  uint16_t pvimpassable=spr->impassable;
 
   /* The default set of groups, which we always belong to. */
   uint32_t grpmask=
@@ -64,6 +65,11 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
 
   /* Commit sprite groups. */
   if (ps_game_set_group_mask_for_sprite(game,spr,grpmask)<0) return -1;
+
+  /* If our impassable mask changed, try to fudge our position onto a legal cell. */
+  if (spr->impassable!=pvimpassable) {
+    if (ps_sprite_attempt_legal_position(spr,game)<0) return -1;
+  }
 
   return 0;
 }

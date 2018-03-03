@@ -227,6 +227,8 @@ int ps_game_generate(struct ps_game *game) {
  
 int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...) {
   if (!game) return -1;
+  if (!game->difficulty) game->difficulty=4;
+  if (!game->length) game->length=4;
   if (!ps_game_ready_to_generate(game)) {
     ps_log(RES,ERROR,"%s before ready",__func__);
     return -1;

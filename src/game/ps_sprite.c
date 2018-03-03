@@ -3,6 +3,8 @@
 #include "ps_sound_effects.h"
 #include "akgl/akgl.h"
 #include "ps_game.h"
+#include "scenario/ps_blueprint.h"
+#include "scenario/ps_grid.h"
 
 /* New.
  */
@@ -183,4 +185,72 @@ int ps_sprite_release_from_master(struct ps_sprite *slave,struct ps_game *game) 
 
   ps_log(GAME,ERROR,"ps_sprite_release_from_master() is not aware of type '%s'.",master->type->name);
   return -1;
+}
+
+/* Legalize position.
+ * We only care about the grid, and only the single cell principally occupied by this sprite.
+ * This is for cases where a sprite's impassable mask has changed.
+ * Rely on physics in the near future to push the sprite to a fully-legal position; that's way beyond our scope.
+ */
+ 
+int ps_sprite_attempt_legal_position(struct ps_sprite *spr,struct ps_game *game) {
+  if (!spr||!game) return -1;
+  if (!game->grid) return 0;
+
+  int x=spr->x,y=spr->y;  
+  if (x<0) return 0;
+  if (y<0) return 0;
+  int col=x/PS_TILESIZE;
+  if (col>=PS_GRID_COLC) return 0;
+  int row=y/PS_TILESIZE;
+  if (row>=PS_GRID_ROWC) return 0;
+  
+  uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
+  if (!(spr->impassable&(1<<physics))) return 0;
+
+  /* Describe the 4 movement candidates. */
+  const int margin=2;
+  struct ps_legalization_candidate {
+    int distance;
+    int dstx,dsty;
+    int col,row;
+    uint8_t physics;
+  } candidatev[4]={
+    {y%PS_TILESIZE,x,row*PS_TILESIZE-margin,col,row-1},
+    {x%PS_TILESIZE,col*PS_TILESIZE-margin,y,col-1,row},
+    {PS_TILESIZE-y%PS_TILESIZE,x,(row+1)*PS_TILESIZE+margin,col,row+1},
+    {PS_TILESIZE-x%PS_TILESIZE,(col+1)*PS_TILESIZE+margin,y,col+1,row},
+  };
+
+  /* Eliminate anything offscreen or impassable by raising its distance. */
+  struct ps_legalization_candidate *candidate=candidatev;
+  int i; for (i=0;i<4;i++,candidate++) {
+    if ((candidate->col<0)||(candidate->row<0)||(candidate->col>=PS_GRID_COLC)||(candidate->row>=PS_GRID_ROWC)) {
+      candidate->distance=INT_MAX;
+    } else {
+      candidate->physics=game->grid->cellv[candidate->row*PS_GRID_COLC+candidate->col].physics;
+      if (spr->impassable&(1<<candidate->physics)) {
+        candidate->distance=INT_MAX;
+      }
+    }
+  }
+
+  /* Select the lowest distance. It is possible that nothing remains legal. */
+  int dstx,dsty;
+  int best_distance=INT_MAX;
+  for (i=0,candidate=candidatev;i<4;i++,candidate++) {
+    if (candidate->distance<best_distance) {
+      best_distance=candidate->distance;
+      dstx=candidate->dstx;
+      dsty=candidate->dsty;
+    }
+  }
+  if (best_distance>PS_TILESIZE) return 0;
+
+  ps_log(GAME,DEBUG,"Correcting sprite position from (%d,%d) to (%d,%d) to avoid cell 0x%02x.",x,y,dstx,dsty,physics);
+
+  spr->x=dstx;
+  spr->y=dsty;
+
+  return 0;
 }

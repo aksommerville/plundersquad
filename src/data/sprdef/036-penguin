@@ -1,0 +1,7 @@
+type penguin
+tileid 0x042c
+layer 15
+grpmask VISIBLE UPDATE
+radius 7
+shape CIRCLE
+impassable SOLID HOLE LATCH HEROONLY

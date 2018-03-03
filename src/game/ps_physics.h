@@ -27,7 +27,6 @@ struct ps_physics_event {
 struct ps_physics {
   struct ps_sprgrp *grp_physics;
   struct ps_sprgrp *grp_solid;
-//  struct ps_sprgrp *grp_hero;//XXX not needed after we start using ps_sprite.impassable
   struct ps_grid *grid;
   struct ps_coll *collv;
   int collc,colla;

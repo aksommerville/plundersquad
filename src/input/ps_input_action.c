@@ -1,3 +1,5 @@
+// XXX I don't think "input action" is something we actually use. Look into removing this.
+
 #include "ps.h"
 #include "ps_input_button.h"
 
@@ -5,7 +7,6 @@
  */
 
 static int ps_input_action_warp(int dx,int dy) {
-  //TODO
   return 0;
 }
 
@@ -13,7 +14,6 @@ static int ps_input_action_warp(int dx,int dy) {
  */
 
 static int ps_input_action_pause(int flag) {
-  //TODO
   return 0;
 }
 
@@ -21,7 +21,6 @@ static int ps_input_action_pause(int flag) {
  */
 
 static int ps_input_action_fullscreen(int flag) {
-  //TODO
   return 0;
 }
 
@@ -29,7 +28,6 @@ static int ps_input_action_fullscreen(int flag) {
  */
 
 static int ps_input_action_quit() {
-  //TODO
   return 0;
 }
 
@@ -37,7 +35,6 @@ static int ps_input_action_quit() {
  */
 
 static int ps_input_action_screenshot() {
-  //TODO
   return 0;
 }
 
@@ -45,7 +42,6 @@ static int ps_input_action_screenshot() {
  */
 
 static int ps_input_action_debug() {
-  //TODO
   return 0;
 }
 

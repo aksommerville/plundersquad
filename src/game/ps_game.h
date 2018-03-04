@@ -117,6 +117,15 @@ int ps_game_restart(struct ps_game *game);
  */
 int ps_game_return_to_start_screen(struct ps_game *game);
 
+/* Change to a particular screen.
+ * (mode) influences transition effect and whether hero sprites are preserved.
+ * This is mostly for internal use.
+ */
+int ps_game_change_screen(struct ps_game *game,int x,int y,int mode);
+#define PS_CHANGE_SCREEN_MODE_RESET      1 /* Hard reset. */
+#define PS_CHANGE_SCREEN_MODE_NEIGHBOR   2 /* Slide effect, and move heroes to the other side. */
+#define PS_CHANGE_SCREEN_MODE_WARP       3 /* Spawn fresh hero sprites. */
+
 int ps_game_update(struct ps_game *game);
 
 /* Pause game and cause our owner to load the pause menu.
@@ -210,15 +219,16 @@ int ps_game_remove_indicator_for_hero(struct ps_game *game,struct ps_sprite *her
  */
 int ps_game_advance_to_finish(struct ps_game *game);
 
-/* Load the grid at this world position. Debug only.
- */
-int ps_game_force_location(struct ps_game *game,int x,int y);
-
 /* Set the 'invincible' of every player with attached input.
  * Use this after swapping inputs to indicate which are now enabled.
  * Don't use this in production builds!
  */
 int ps_game_highlight_enabled_players(struct ps_game *game);
+
+/* Select a cell at random that matches the given physics mask.
+ * eg (1<<PS_BLUEPRINT_CELL_VACANT).
+ */
+int ps_game_find_random_cell_with_physics(int *col,int *row,const struct ps_game *game,uint16_t mask);
 
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"

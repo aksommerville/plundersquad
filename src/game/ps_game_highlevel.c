@@ -515,58 +515,8 @@ int ps_game_advance_to_finish(struct ps_game *game) {
   }
 
   if (dstgrid) {
-    if (ps_game_force_location(game,dstx,dsty)<0) return -1;
+    if (ps_game_change_screen(game,dstx,dsty,PS_CHANGE_SCREEN_MODE_WARP)<0) return -1;
   }
-  
-  return 0;
-}
-
-/* Force location.
- */
- 
-int ps_game_force_location(struct ps_game *game,int x,int y) {
-  if (!game) return -1;
-  if (!game->scenario) return -1;
-  if ((x<0)||(x>=game->scenario->w)) return -1;
-  if ((y<0)||(y>=game->scenario->h)) return -1;
-  
-  ps_log(GAME,DEBUG,"Forcing location to %d,%d",x,y);
-
-  struct ps_grid *grid=game->scenario->screenv[y*game->scenario->w+x].grid;
-  if (!grid) return -1;
-
-  ps_game_npgc_pop(game);
-  if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
-  game->grid=grid;
-  game->gridx=x;
-  game->gridy=y;
-  game->grid->visited=1;
-  if (ps_grid_close_all_barriers(game->grid)<0) return -1;
-  if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
-  if (ps_game_kill_nonhero_sprites(game)<0) return -1;
-
-  /* Adjust position of heroes. */
-  int i; for (i=0;i<game->grpv[PS_SPRGRP_HERO].sprc;i++) {
-    struct ps_sprite *hero=game->grpv[PS_SPRGRP_HERO].sprv[i];
-    if ((hero->x<0.0)||(hero->y<0.0)||(hero->x>PS_SCREENW)||(hero->y>PS_SCREENH)) {
-      ps_game_force_hero_to_legal_position(game,hero);
-    }
-  }
-
-  if (ps_game_spawn_sprites(game)<0) return -1;
-  if (ps_game_setup_deathgate(game)<0) return -1;
-  if (ps_summoner_reset(game->summoner,game)<0) return -1;
-  if (ps_game_register_switches(game)<0) return -1;
-
-  if (game->grid->region) {
-    akau_play_song(game->grid->region->songid,0);
-  }
-  
-  if (ps_game_check_status_report(game)<0) return -1;
-
-  game->inhibit_screen_switch=1;
-
-  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
   
   return 0;
 }
@@ -806,5 +756,53 @@ int ps_game_highlight_enabled_players(struct ps_game *game) {
     if (!(buttons&PS_PLRBTN_CD)) continue;
     if (ps_hero_add_state(spr,PS_HERO_STATE_HIGHLIGHT,game)<0) return -1;
   }
+  return 0;
+}
+
+/* Find random cell with physics.
+ */
+ 
+int ps_game_find_random_cell_with_physics(int *col,int *row,const struct ps_game *game,uint16_t mask) {
+  if (!col||!row||!game) return -1;
+  if (!game->grid) return -1;
+  if (!mask) return -1; // Impossible.
+
+  /* Before doing anything expensive, try a few random stabs.
+   */
+  int repc=10;
+  while (repc-->0) {
+    int x=rand()%PS_GRID_COLC;
+    int y=rand()%PS_GRID_ROWC;
+    uint8_t physics=game->grid->cellv[y*PS_GRID_COLC+x].physics;
+    if (mask&(1<<physics)) {
+      *col=x;
+      *row=y;
+      return 0;
+    }
+  }
+
+  /* Compose a list of all matching cells.
+   */
+  struct ps_cell_coord {
+    uint8_t x,y;
+  } coordv[PS_GRID_COLC*PS_GRID_ROWC];
+  int coordc=0;
+  const struct ps_grid_cell *cell=game->grid->cellv;
+  int y=0; for (;y<PS_GRID_ROWC;y++) {
+    int x=0; for (;x<PS_GRID_COLC;x++,cell++) {
+      if (mask&(1<<cell->physics)) {
+        coordv[coordc].x=x;
+        coordv[coordc].y=y;
+        coordc++;
+      }
+    }
+  }
+
+  /* Select one randomly.
+   */
+  if (coordc<1) return -1;
+  int coordp=rand()%coordc;
+  *col=coordv[coordp].x;
+  *row=coordv[coordp].y;
   return 0;
 }

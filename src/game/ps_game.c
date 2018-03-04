@@ -552,33 +552,11 @@ int ps_game_restart(struct ps_game *game) {
   game->finished=0;
   game->paused=0;
   if (ps_stats_clear(game->stats)<0) return -1;
-  ps_game_npgc_pop(game); // Just to be safe.
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;
 
-  game->gridx=game->scenario->homex;
-  game->gridy=game->scenario->homey;
-  game->grid=PS_SCENARIO_SCREEN(game->scenario,game->gridx,game->gridy)->grid;
-  game->grid->visited=1;
-  if (ps_grid_close_all_barriers(game->grid)<0) return -1;
-  if (ps_switchboard_clear(game->switchboard,0)<0) return -1;
-  if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
-
-  ps_sprgrp_kill(game->grpv+PS_SPRGRP_KEEPALIVE);
-
-  if (ps_game_spawn_hero_sprites(game)<0) return -1;
-  if (ps_game_spawn_sprites(game)<0) return -1;
-  if (ps_game_setup_deathgate(game)<0) return -1;
-  if (ps_summoner_reset(game->summoner,game)<0) return -1;
-  if (ps_game_register_switches(game)<0) return -1;
-
-  if (game->grid->region) {
-    akau_play_song(game->grid->region->songid,0);
-  }
-
-  if (ps_bloodhound_activator_reset(game->bloodhound_activator)<0) return -1;
-  if (ps_game_check_status_report(game)<0) return -1;
+  if (ps_game_change_screen(game,game->scenario->homex,game->scenario->homey,PS_CHANGE_SCREEN_MODE_RESET)<0) return -1;
 
   return 0;
 }
@@ -593,32 +571,9 @@ int ps_game_return_to_start_screen(struct ps_game *game) {
     game->scenario->homex,game->scenario->homey,game->scenario->w,game->scenario->h
   );
 
-  PS_SFX_BEGIN_PLAY
-
-  game->finished=0;
   game->paused=0;
-  ps_game_npgc_pop(game);
-  if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
 
-  game->gridx=game->scenario->homex;
-  game->gridy=game->scenario->homey;
-  game->grid=PS_SCENARIO_SCREEN(game->scenario,game->gridx,game->gridy)->grid;
-  if (ps_grid_close_all_barriers(game->grid)<0) return -1;
-  if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
-
-  ps_sprgrp_kill(game->grpv+PS_SPRGRP_KEEPALIVE);
-
-  if (ps_game_spawn_hero_sprites(game)<0) return -1;
-  if (ps_game_spawn_sprites(game)<0) return -1;
-  if (ps_game_setup_deathgate(game)<0) return -1;
-  if (ps_summoner_reset(game->summoner,game)<0) return -1;
-  if (ps_game_register_switches(game)<0) return -1;
-
-  if (game->grid->region) {
-    akau_play_song(game->grid->region->songid,0);
-  }
-  
-  if (ps_game_check_status_report(game)<0) return -1;
+  if (ps_game_change_screen(game,game->scenario->homex,game->scenario->homey,PS_CHANGE_SCREEN_MODE_RESET)<0) return -1;
 
   return 0;
 }
@@ -633,53 +588,6 @@ int ps_game_kill_nonhero_sprites(struct ps_game *game) {
     if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) continue;
   }
   if (ps_sprgrp_kill(game->grpv+PS_SPRGRP_DEATHROW)<0) return -1;
-  return 0;
-}
-
-/* Change to a neighboring grid.
- */
-
-static int ps_game_load_neighbor_grid(struct ps_game *game,struct ps_grid *grid,int dx,int dy) {
-
-  PS_SFX_SHIFT_SCREEN
-
-  if (ps_game_renderer_begin_slide(game->renderer,dx,dy)<0) return -1;
-
-  ps_game_npgc_pop(game);
-  if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
-  game->grid=grid;
-  game->gridx+=dx;
-  game->gridy+=dy;
-  game->grid->visited=1;
-  if (ps_grid_close_all_barriers(game->grid)<0) return -1;
-  if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
-  if (ps_game_kill_nonhero_sprites(game)<0) return -1;
-
-  /* Adjust position of heroes. */
-  double sprdx=-dx*(PS_SCREENW+PS_TILESIZE);
-  double sprdy=-dy*(PS_SCREENH+PS_TILESIZE);
-  int i=game->grpv[PS_SPRGRP_HERO].sprc; while (i-->0) {
-    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
-    spr->x+=sprdx;
-    spr->y+=sprdy;
-    //ps_hero_add_state(spr,PS_HERO_STATE_STOPINPUT,game);
-  }
-
-  if (ps_game_spawn_sprites(game)<0) return -1;
-  if (ps_game_setup_deathgate(game)<0) return -1;
-  if (ps_summoner_reset(game->summoner,game)<0) return -1;
-  if (ps_game_register_switches(game)<0) return -1;
-
-  if (game->grid->region) {
-    akau_play_song(game->grid->region->songid,0);
-  }
-  
-  if (ps_game_check_status_report(game)<0) return -1;
-
-  game->inhibit_screen_switch=1;
-
-  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
-  
   return 0;
 }
 
@@ -741,63 +649,21 @@ static int ps_game_check_grid_change(struct ps_game *game) {
   struct ps_grid *ngrid=game->scenario->screenv[ny*game->scenario->w+nx].grid;
 
   if (ps_game_wipe_dpads(game)<0) return -1;
-  
-  return ps_game_load_neighbor_grid(game,ngrid,d.dx,d.dy);
+
+  return ps_game_change_screen(game,game->gridx+d.dx,game->gridy+d.dy,PS_CHANGE_SCREEN_MODE_NEIGHBOR);
 }
 
 /* Forcibly move to a neighbor grid.
  */
 
-static int ps_game_hero_in_ok_position(struct ps_game *game,struct ps_sprite *hero) {
-  int col=hero->x/PS_TILESIZE; if ((col<0)||(col>=PS_GRID_COLC)) return 0;
-  int row=hero->y/PS_TILESIZE; if ((row<0)||(row>=PS_GRID_ROWC)) return 0;
-  const struct ps_grid_cell *cell=game->grid->cellv+row*PS_GRID_COLC+col;
-  if (cell->physics!=PS_BLUEPRINT_CELL_VACANT) return 0;
-  // We could check other sprites, but meh.
-  return 1;
-}
-
-void ps_game_force_hero_to_legal_position(struct ps_game *game,struct ps_sprite *hero) {
-
-  /* First try dropping him at the same position in the new screen. That would be least jarring to the user. */
-  while (hero->x<0.0) hero->x+=PS_SCREENW;
-  while (hero->x>=PS_SCREENW) hero->x-=PS_SCREENW;
-  while (hero->y<0.0) hero->y+=PS_SCREENH;
-  while (hero->y>=PS_SCREENH) hero->y-=PS_SCREENH;
-  if (ps_game_hero_in_ok_position(game,hero)) return;
-
-  /* Put him on random cells until we find a good one, or a sanity limit expires.
-   * This behavior is debug-only, so don't freak out over it.
-   */
-  int limit=100;
-  while (limit-->0) {
-    int col=rand()%PS_GRID_COLC;
-    int row=rand()%PS_GRID_ROWC;
-    hero->x=col*PS_TILESIZE+(PS_TILESIZE>>1);
-    hero->y=row*PS_TILESIZE+(PS_TILESIZE>>1);
-    if (ps_game_hero_in_ok_position(game,hero)) return;
-  }
-}
-
 int ps_game_force_next_screen(struct ps_game *game,int dx,int dy) {
   if (!game) return -1;
-  
-  int nx=game->gridx+dx;
-  int ny=game->gridy+dy;
-  if ((nx<0)||(ny<0)||(nx>=game->scenario->w)||(ny>=game->scenario->h)) return 0;
-  struct ps_grid *ngrid=game->scenario->screenv[ny*game->scenario->w+nx].grid;
-  
-  if (ps_game_load_neighbor_grid(game,ngrid,dx,dy)<0) return -1;
 
-  /* Normally, all the heroes would already be on this neighboring grid.
-   * That's not the case for us. Force them in.
-   */
-  int i; for (i=0;i<game->grpv[PS_SPRGRP_HERO].sprc;i++) {
-    struct ps_sprite *hero=game->grpv[PS_SPRGRP_HERO].sprv[i];
-    if ((hero->x<0.0)||(hero->y<0.0)||(hero->x>PS_SCREENW)||(hero->y>PS_SCREENH)) {
-      ps_game_force_hero_to_legal_position(game,hero);
-    }
-  }
+  int x=game->gridx+dx;
+  int y=game->gridy+dy;
+  if ((x<0)||(x>=PS_GRID_COLC)||(y<0)||(y>=PS_GRID_ROWC)) return 0;
+
+  if (ps_game_change_screen(game,game->gridx+dx,game->gridy+dy,PS_CHANGE_SCREEN_MODE_WARP)<0) return -1;
   
   return 1;
 }
@@ -1311,4 +1177,142 @@ int ps_game_get_switch(const struct ps_game *game,int switchid) {
 int ps_game_set_switch(struct ps_game *game,int switchid,int value) {
   if (!game) return -1;
   return ps_switchboard_set_switch(game->switchboard,switchid,value);
+}
+
+/* Move hero sprites after a neighbor grid transition.
+ */
+
+static int ps_game_move_heroes_to_opposite_screen_edge(struct ps_game *game,int dx,int dy) {
+  double sprdx=-dx*(PS_SCREENW+PS_TILESIZE);
+  double sprdy=-dy*(PS_SCREENH+PS_TILESIZE);
+  int i=game->grpv[PS_SPRGRP_HERO].sprc; while (i-->0) {
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HERO].sprv[i];
+    spr->x+=sprdx;
+    spr->y+=sprdy;
+  }
+  return 0;
+}
+
+/* Ensure that every hero sprite is on a VACANT tile and not colliding with any other sprite.
+ */
+
+static int ps_game_select_random_hero_position(struct ps_game *game,struct ps_sprite *spr) {
+  int x,y;
+  if (ps_game_find_random_cell_with_physics(&x,&y,game,(1<<PS_BLUEPRINT_CELL_VACANT)|(1<<PS_BLUEPRINT_CELL_HEROONLY))<0) {
+    ps_log(GAME,WARN,"Failed to locate position for hero, leaving at invalid position.");
+    return 0;
+  }
+  spr->x=x*PS_TILESIZE+(PS_TILESIZE>>1);
+  spr->y=y*PS_TILESIZE+(PS_TILESIZE>>1);
+  return 0;
+}
+
+static int ps_game_force_legal_hero_positions(struct ps_game *game) {
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+
+    /* Jump back from edges. */
+    if (spr->x<=0.0) spr->x=PS_TILESIZE>>1;
+    else if (spr->x>=PS_SCREENW) spr->x=PS_SCREENW-(PS_TILESIZE>>1);
+    if (spr->y<=0.0) spr->y=PS_TILESIZE>>1;
+    else if (spr->y>=PS_SCREENH) spr->y=PS_SCREENH-(PS_TILESIZE>>1);
+
+    /* Consider the cell. */
+    int col=spr->x/PS_TILESIZE;
+    int row=spr->y/PS_TILESIZE;
+    if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
+      int cellp=row*PS_GRID_COLC+col;
+      uint8_t physics=game->grid->cellv[cellp].physics;
+      if (spr->impassable&(1<<physics)) {
+        if (ps_game_select_random_hero_position(game,spr)<0) return -1;
+        continue;
+      }
+    }
+
+    // Not bothering to look at SOLID sprites; they'll sort themselves out probably.
+    
+  }
+  return 0;
+}
+
+/* Change screen.
+ */
+ 
+int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
+  if (!game) return -1;
+  if (!game->scenario) return -1;
+  if ((x<0)||(x>=game->scenario->w)) return -1;
+  if ((y<0)||(y>=game->scenario->h)) return -1;
+  if ((x==game->gridx)&&(y==game->gridy)) return 0;
+  struct ps_grid *grid=game->scenario->screenv[y*game->scenario->w+x].grid;
+  if (!grid) return -1;
+
+  /* Preflight validation and setup per mode. */
+  int dx=0,dy=0; // Only valid for NEIGHBOR.
+  switch (mode) {
+  
+    case PS_CHANGE_SCREEN_MODE_RESET: {
+      } break;
+      
+    case PS_CHANGE_SCREEN_MODE_NEIGHBOR: {
+        dx=x-game->gridx;
+        dy=y-game->gridy;
+        if ((dx<-1)||(dx>1)||(dy<-1)||(dy>1)||(dx&&dy)) return -1;
+        PS_SFX_SHIFT_SCREEN
+        if (ps_game_renderer_begin_slide(game->renderer,dx,dy)<0) return -1;
+      } break;
+      
+    case PS_CHANGE_SCREEN_MODE_WARP: {
+      } break;
+      
+    default: return -1;
+  }
+
+  /* Change grid in our model. */
+  ps_game_npgc_pop(game);
+  if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
+  game->grid=grid;
+  game->gridx=x;
+  game->gridy=y;
+  game->grid->visited=1;
+  if (ps_grid_close_all_barriers(game->grid)<0) return -1;
+  if (ps_physics_set_grid(game->physics,game->grid)<0) return -1;
+
+  /* Spawn sprites and either spawn heroes or shuffle them to the right positions (per mode). */
+  switch (mode) {
+
+    case PS_CHANGE_SCREEN_MODE_RESET: {
+        if (ps_sprgrp_kill(game->grpv+PS_SPRGRP_KEEPALIVE)<0) return -1;
+        if (ps_game_spawn_hero_sprites(game)<0) return -1;
+        if (ps_game_spawn_sprites(game)<0) return -1;
+      } break;
+
+    case PS_CHANGE_SCREEN_MODE_NEIGHBOR: {
+        if (ps_game_kill_nonhero_sprites(game)<0) return -1;
+        if (ps_game_move_heroes_to_opposite_screen_edge(game,dx,dy)<0) return -1;
+        if (ps_game_spawn_sprites(game)<0) return -1;
+        game->inhibit_screen_switch=1;
+      } break;
+
+    case PS_CHANGE_SCREEN_MODE_WARP: {
+        if (ps_game_kill_nonhero_sprites(game)<0) return -1;
+        if (ps_game_spawn_sprites(game)<0) return -1;
+        if (ps_game_force_legal_hero_positions(game)<0) return -1;
+      } break;
+
+  }
+
+  /* Some final cleanup and resetting of services. */  
+  if (ps_game_setup_deathgate(game)<0) return -1;
+  if (ps_summoner_reset(game->summoner,game)<0) return -1;
+  if (ps_game_register_switches(game)<0) return -1;
+  if (game->grid->region) {
+    akau_play_song(game->grid->region->songid,0);
+  }
+  if (ps_game_check_status_report(game)<0) return -1;
+
+  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
+  
+  return 0;
 }

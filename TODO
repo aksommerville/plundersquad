@@ -4,3 +4,6 @@
 - Final boss?
 - GLX backend
 - Windows backend
+- Record top scores
+- Preserve wizard's flame across screen changes
+- Prevent "correction" of position at turtle landing (turtle modifies grid beneath it, sequence must be off)

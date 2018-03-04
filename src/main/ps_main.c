@@ -39,7 +39,7 @@ static struct ps_gui *ps_gui=0;
 static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   int i;
 
-  //return 0; // Uncomment this line for normal interactive setup.
+  return 0; // Uncomment this line for normal interactive setup.
 
   /* Configure players. */
   if (ps_game_set_player_count(ps_game,1)<0) return -1;
@@ -64,7 +64,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      47
+      1,47
     )<0) return -1;
   }
 

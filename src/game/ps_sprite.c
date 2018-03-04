@@ -128,9 +128,9 @@ int ps_sprite_receive_damage(struct ps_game *game,struct ps_sprite *victim,struc
   }
 
   /* Default action for fragile sprites. */
+  if (ps_sprite_kill_later(victim,game)<0) return -1;
   if (ps_game_decorate_monster_death(game,victim->x,victim->y)<0) return -1;
   ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,victim);
-  if (ps_sprite_kill_later(victim,game)<0) return -1;
   if (ps_game_report_kill(game,assailant,victim)<0) return -1;
 
   return 0;

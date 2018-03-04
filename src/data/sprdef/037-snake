@@ -1,0 +1,6 @@
+type snake
+tileid 0x049f
+grpmask VISIBLE UPDATE PHYSICS HEROHAZARD FRAGILE LATCH
+radius 6
+shape CIRCLE
+impassable SOLID HOLE LATCH HEROONLY

@@ -448,7 +448,9 @@ static int ps_game_monsters_present(const struct ps_game *game) {
   int i=game->grpv[PS_SPRGRP_HEROHAZARD].sprc;
   while (i-->0) {
     struct ps_sprite *spr=game->grpv[PS_SPRGRP_HEROHAZARD].sprv[i];
-    if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) return 1;
+    if (ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) continue; // Ignore DEATHROW.
+    if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)) continue; // Must also be FRAGILE.
+    return 1;
   }
   return 0;
 }

@@ -163,6 +163,16 @@ static int ps_turtle_accept_rider(struct ps_sprite *spr,struct ps_game *game,str
  */
 
 static int ps_turtle_reject_rider(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *rider) {
+  
+  int col=spr->x/PS_TILESIZE;
+  int row=spr->y/PS_TILESIZE;
+  if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
+    int cellp=row*PS_GRID_COLC+col;
+    if (ps_game_apply_nonpersistent_grid_change(game,col,row,-1,PS_BLUEPRINT_CELL_HEROONLY,-1)<0) return -1;
+    spr->x=col*PS_TILESIZE+(PS_TILESIZE>>1);
+    spr->y=row*PS_TILESIZE+(PS_TILESIZE>>1);
+  }
+  
   if (rider) {
     if (rider->type==&ps_sprtype_hero) {
       if (ps_hero_remove_state(rider,PS_HERO_STATE_FERRY,game)<0) return -1;
@@ -176,15 +186,6 @@ static int ps_turtle_reject_rider(struct ps_sprite *spr,struct ps_game *game,str
   SPR->phase=PS_TURTLE_PHASE_IDLE;
   SPR->wait_for_disembarkment=1;
   spr->impassable=PS_TURTLE_IMPASSABLE_IDLE;
-  
-  int col=spr->x/PS_TILESIZE;
-  int row=spr->y/PS_TILESIZE;
-  if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
-    int cellp=row*PS_GRID_COLC+col;
-    if (ps_game_apply_nonpersistent_grid_change(game,col,row,-1,PS_BLUEPRINT_CELL_HEROONLY,-1)<0) return -1;
-    spr->x=col*PS_TILESIZE+(PS_TILESIZE>>1);
-    spr->y=row*PS_TILESIZE+(PS_TILESIZE>>1);
-  }
   
   return 0;
 }

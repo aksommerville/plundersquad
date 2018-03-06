@@ -171,8 +171,9 @@ static int ps_hero_flame_begin(struct ps_sprite *spr,struct ps_game *game) {
   if (ps_game_set_group_mask_for_sprite(game,flames,
     (1<<PS_SPRGRP_KEEPALIVE)|
     (1<<PS_SPRGRP_VISIBLE)|
-    (1<<PS_SPRGRP_UPDATE)
-  )<0) {
+    (1<<PS_SPRGRP_UPDATE)|
+    (1<<PS_SPRGRP_HERO)|
+  0)<0) {
     ps_sprite_del(flames);
     return -1;
   }

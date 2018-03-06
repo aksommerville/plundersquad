@@ -690,6 +690,8 @@ static int ps_game_check_for_damage(struct ps_game *game) {
       struct ps_sprite *fragile=game->grpv[PS_SPRGRP_HERO].sprv[j];
       if (hazard==fragile) continue;
       if (ps_sprites_collide(hazard,fragile)) {
+        // We put a few things in HERO that are not actual heroes -- confirm that it is also FRAGILE.
+        if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,fragile)) continue;
         if (ps_sprite_receive_damage(game,fragile,hazard)<0) return -1;
       }
     }

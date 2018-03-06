@@ -1,0 +1,4 @@
+type teleporter
+tileid 0x04ad
+layer 10
+grpmask VISIBLE UPDATE BARRIER

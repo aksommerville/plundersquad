@@ -64,7 +64,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      1
+      1,14
     )<0) return -1;
   }
 

@@ -26,6 +26,7 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
     (1<<PS_SPRGRP_VISIBLE)|
     (1<<PS_SPRGRP_UPDATE)|
     (1<<PS_SPRGRP_HERO)|
+    (1<<PS_SPRGRP_TELEPORT)|
   0;
 
   /* Almost everything is disabled when offscreen. */
@@ -60,6 +61,10 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
     spr->collide_sprites=1;
     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN))) {
       spr->impassable|=(1<<PS_BLUEPRINT_CELL_HOLE);
+    }
+    if (SPR->state&PS_HERO_STATE_PUMPKIN) {
+      // No TELEPORT for PUMPKIN, that would get messy.
+      grpmask&=~(1<<PS_SPRGRP_TELEPORT);
     }
   }
 

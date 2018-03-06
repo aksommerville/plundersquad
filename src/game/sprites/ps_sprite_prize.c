@@ -85,10 +85,9 @@ static int _ps_prize_update(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *hero=grp->sprv[i];
+    if (hero->type!=&ps_sprtype_hero) continue;
     if (ps_sprites_collide(spr,hero)) {
-      if (hero->type==&ps_sprtype_hero) { // Heroes don't have to be the 'hero' type (eg dragon)
-        if (ps_hero_add_state(hero,PS_HERO_STATE_HEAL,game)<0) return -1;
-      }
+      if (ps_hero_add_state(hero,PS_HERO_STATE_HEAL,game)<0) return -1;
       if (ps_sprite_kill_later(spr,game)<0) return -1;
       return 0;
     }

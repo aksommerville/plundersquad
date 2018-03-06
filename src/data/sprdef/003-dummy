@@ -1,5 +1,5 @@
 type dummy
 tileid 0x0400
-grpmask VISIBLE PHYSICS SOLID
+grpmask VISIBLE PHYSICS SOLID TELEPORT
 shape CIRCLE
 impassable SOLID HOLE LATCH

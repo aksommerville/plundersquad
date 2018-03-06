@@ -1,5 +1,5 @@
 type skeleton
 tileid 0x0479
 layer 40
-grpmask VISIBLE UPDATE
+grpmask VISIBLE UPDATE TELEPORT
 impassable SOLID HOLE LATCH HEROONLY

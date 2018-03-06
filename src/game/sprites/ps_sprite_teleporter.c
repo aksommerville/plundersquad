@@ -7,6 +7,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 
 #define PS_TELEPORTER_ROLE_INIT    0 /* Special flag telling update() to create two more sprites and assign roles. */
 #define PS_TELEPORTER_ROLE_BASE    1 /* The main one. */
@@ -75,6 +76,9 @@ static const char *_ps_teleporter_get_configure_argument_name(int argp) {
  */
 
 static int ps_teleporter_create_peers(struct ps_sprite *spr,struct ps_game *game) {
+
+  /* If switchid was not set, start it off active. */
+  if (!spr->switchid) SPR->active=1;
 
   struct ps_sprite *bell=ps_sprite_new(&ps_sprtype_teleporter);
   if (!bell) return -1;
@@ -151,6 +155,7 @@ static int ps_teleporter_teleport(struct ps_sprite *spr,struct ps_game *game,str
   struct ps_sprite_teleporter *DST=(struct ps_sprite_teleporter*)dst;
   if (!DST->active) return 0;
   if (DST->hold) return 0;
+  PS_SFX_TELEPORT
   pumpkin->x=dst->x;
   pumpkin->y=dst->y;
   DST->hold=1;
@@ -165,11 +170,11 @@ static int ps_teleporter_check_pumpkins(struct ps_sprite *spr,struct ps_game *ga
 
   double west=spr->x-6.0;
   double east=spr->x+6.0;
-  double north=spr->y-12.0;
-  double south=spr->y;
+  double north=spr->y-10.0;
+  double south=spr->y+2.0;
   
   int pumpkinc=0;
-  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_SOLID; // Is that the best group?
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_TELEPORT;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *pumpkin=grp->sprv[i];
     if (pumpkin->x<west) continue;

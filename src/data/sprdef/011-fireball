@@ -1,6 +1,6 @@
 type missile
 tileid 0x0444
-grpmask visible update herohazard
 layer 150
-shape circle
+grpmask VISIBLE UPDATE HEROHAZARD TELEPORT
 radius 4
+shape CIRCLE

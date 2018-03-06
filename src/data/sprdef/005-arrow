@@ -1,3 +1,3 @@
 type arrow
 tileid 0x034f
-grpmask VISIBLE UPDATE
+grpmask VISIBLE UPDATE TELEPORT

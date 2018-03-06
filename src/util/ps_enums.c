@@ -218,6 +218,7 @@ int ps_sprgrp_eval(const char *src,int srcc) {
     case 8: {
         if (!ps_memcasecmp(src,"DEATHROW",8)) return PS_SPRGRP_DEATHROW;
         if (!ps_memcasecmp(src,"TREASURE",8)) return PS_SPRGRP_TREASURE;
+        if (!ps_memcasecmp(src,"TELEPORT",8)) return PS_SPRGRP_TELEPORT;
       } break;
     case 9: {
         if (!ps_memcasecmp(src,"KEEPALIVE",9)) return PS_SPRGRP_KEEPALIVE;
@@ -246,6 +247,7 @@ const char *ps_sprgrp_repr(int grpindex) {
     _(SOLID)
     _(PRIZE)
     _(BARRIER)
+    _(TELEPORT)
     #undef _
   }
   return 0;

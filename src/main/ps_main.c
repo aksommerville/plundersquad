@@ -39,7 +39,9 @@ static struct ps_gui *ps_gui=0;
 static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   int i;
 
-  //return 0; // Uncomment this line for normal interactive setup.
+  if (0) { // Normal interactive setup.
+    return 0;
+  }
 
   /* Configure players. */
   if (ps_game_set_player_count(ps_game,1)<0) return -1;
@@ -50,7 +52,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
   //001-swordsman 002-archer    003-gadgeteer 004-nurse     005-wizard    006-vampire   007-martyr    008-immortal  009-bomber
-  if (ps_game_configure_player(ps_game,1,9,0,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,1,2,0,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,2,2,0,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,3,3,1,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,4,2,2,0)<0) return -1;
@@ -64,7 +66,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      1,52
+      1,54
     )<0) return -1;
   }
 

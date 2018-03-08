@@ -1,6 +1,9 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "scenario/ps_scenario.h"
+#include "scenario/ps_screen.h"
+#include "scenario/ps_blueprint.h"
 #include "util/ps_geometry.h"
 #include "akgl/akgl.h"
 
@@ -72,7 +75,22 @@ static const char *_ps_boxingglove_get_configure_argument_name(int argp) {
  */
 
 static int ps_boxingglove_setup(struct ps_sprite *spr,struct ps_game *game) {
+
+  /* If no switch, we start enabled. */
   if (spr->switchid) SPR->enable=0;
+
+  /* If the grid is flipped from its blueprint, we must flip too. Check both axes. */
+  if (game&&game->scenario) {
+    struct ps_screen *screen=game->scenario->screenv+game->gridy*game->scenario->w+game->gridx;
+    switch (SPR->direction) {
+      case PS_DIRECTION_SOUTH: if (screen->xform&PS_BLUEPRINT_XFORM_VERT) SPR->direction=PS_DIRECTION_NORTH; break;
+      case PS_DIRECTION_NORTH: if (screen->xform&PS_BLUEPRINT_XFORM_VERT) SPR->direction=PS_DIRECTION_SOUTH; break;
+      case PS_DIRECTION_WEST: if (screen->xform&PS_BLUEPRINT_XFORM_HORZ) SPR->direction=PS_DIRECTION_EAST; break;
+      case PS_DIRECTION_EAST: if (screen->xform&PS_BLUEPRINT_XFORM_HORZ) SPR->direction=PS_DIRECTION_WEST; break;
+    }
+  }
+
+  /* Take some measurements. */
   const int abslimit=PS_BOXINGGLOVE_STRUT_COUNT*PS_BOXINGGLOVE_STRUT_OFFSET_MAX;
   const int homebase=PS_BOXINGGLOVE_STRUT_COUNT*PS_BOXINGGLOVE_STRUT_OFFSET_MIN;
   switch (SPR->direction) {
@@ -112,6 +130,7 @@ static int ps_boxingglove_setup(struct ps_sprite *spr,struct ps_game *game) {
         SPR->limit=SPR->base+abslimit;
       } break;
   }
+  
   return 0;
 }
 

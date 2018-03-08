@@ -10,6 +10,8 @@
 #define PS_GAME_RENDERER_SLIDE_SPEED_X 12
 #define PS_GAME_RENDERER_SLIDE_SPEED_Y  7
 
+#define PS_GAME_RENDERER_FADE_FRAMEC_LIMIT 600
+
 struct ps_game_layer {
   struct ps_video_layer hdr;
   struct ps_game *game;
@@ -85,6 +87,55 @@ int ps_game_renderer_setup(struct ps_game_renderer *renderer,struct ps_game *gam
   return 0;
 }
 
+/* Fade.
+ */
+
+static uint32_t ps_game_renderer_get_fade_color(const struct ps_game_renderer *renderer) {
+  if (renderer->fadec<1) return 0;
+  if (renderer->fadep<=0) return renderer->fadergbaa;
+  if (renderer->fadep>=renderer->fadec) return renderer->fadergbaz;
+  double dsta=(double)renderer->fadep/(double)renderer->fadec;
+  double srca=1.0-dsta;
+  uint32_t rgba;
+  const uint8_t *src=(uint8_t*)&renderer->fadergbaa;
+  const uint8_t *dst=(uint8_t*)&renderer->fadergbaz;
+  uint8_t *mix=(uint8_t*)&rgba;
+  int i=0; for (;i<4;i++) {
+    int n=src[i]*srca+dst[i]*dsta;
+    if (n<=0) mix[i]=0;
+    else if (n>=255) mix[i]=255;
+    else mix[i]=n;
+  }
+  return rgba;
+}
+ 
+int ps_game_renderer_begin_fade(struct ps_game_renderer *renderer,uint32_t rgba,int framec) {
+  if (!renderer) return -1;
+  if (framec<0) return -1;
+  if (framec>PS_GAME_RENDERER_FADE_FRAMEC_LIMIT) framec=PS_GAME_RENDERER_FADE_FRAMEC_LIMIT;
+  if (framec) {
+    renderer->fadergbaa=ps_game_renderer_get_fade_color(renderer);
+    if (!renderer->fadergbaa) {
+      renderer->fadergbaa=(rgba&0xffffff00);
+    }
+    renderer->fadergbaz=rgba;
+    renderer->fadep=0;
+    renderer->fadec=framec;
+  } else {
+    renderer->fadergbaa=rgba;
+    renderer->fadergbaz=rgba;
+    renderer->fadep=1;
+    renderer->fadec=1;
+  }
+  return 0;
+}
+
+int ps_game_renderer_cancel_fade(struct ps_game_renderer *renderer) {
+  if (!renderer) return -1;
+  renderer->fadec=0;
+  return 0;
+}
+
 /* Draw.
  */
 
@@ -120,6 +171,10 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
     slidex=0;
     slidey=0;
   }
+
+  if (renderer->fadep<renderer->fadec) {
+    renderer->fadep++;
+  }
   
   if (game&&game->grid) {
   
@@ -131,10 +186,6 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
   
     if (ps_video_draw_sprites(game->grpv+PS_SPRGRP_VISIBLE,slidex,slidey)<0) return -1;
 
-    if (!renderer->drawing_for_capture&&!slidex&&!slidey) {
-      if (ps_game_draw_hud(game)<0) return -1;
-    }
-
     if (!renderer->drawing_for_capture&&renderer->capture&&(slidex||slidey)) {
       int dstx=0,dsty=PS_SCREENH;
       if (slidex<0) dstx=PS_SCREENW+slidex;
@@ -142,6 +193,15 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
       if (slidey<0) dsty=PS_SCREENH*2+slidey;
       else if (slidey>0) dsty=slidey;
       if (ps_video_draw_texture(renderer->capture,dstx,dsty,PS_SCREENW,-PS_SCREENH)<0) return -1;
+    }
+
+    uint32_t rgba=ps_game_renderer_get_fade_color(renderer);
+    if (rgba) {
+      if (ps_video_draw_rect(0,0,PS_SCREENW,PS_SCREENH,rgba)<0) return -1;
+    }
+
+    if (!renderer->drawing_for_capture&&!slidex&&!slidey) {
+      if (ps_game_draw_hud(game)<0) return -1;
     }
   
   }

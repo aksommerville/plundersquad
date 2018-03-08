@@ -191,6 +191,7 @@ extern const struct ps_sprtype ps_sprtype_penguin;
 extern const struct ps_sprtype ps_sprtype_snake;
 extern const struct ps_sprtype ps_sprtype_teleporter;
 extern const struct ps_sprtype ps_sprtype_boxingglove;
+extern const struct ps_sprtype ps_sprtype_lwizard;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

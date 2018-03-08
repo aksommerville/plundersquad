@@ -1274,6 +1274,7 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
   /* Change grid in our model. */
   ps_game_npgc_pop(game);
   if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
+  if (ps_game_renderer_cancel_fade(game->renderer)<0) return -1;
   game->grid=grid;
   game->gridx=x;
   game->gridy=y;

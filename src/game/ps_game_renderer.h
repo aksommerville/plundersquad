@@ -17,6 +17,8 @@ struct ps_game_renderer {
   int slidex,slidey;
   int drawing_for_capture;
   struct ps_sprgrp *visible_heroes;
+  int fadep,fadec;
+  uint32_t fadergbaa,fadergbaz;
 };
 
 struct ps_game_renderer *ps_game_renderer_new();
@@ -29,5 +31,13 @@ int ps_game_renderer_setup(struct ps_game_renderer *renderer,struct ps_game *gam
  * For transitions to neighbor grid.
  */
 int ps_game_renderer_begin_slide(struct ps_game_renderer *renderer,int dx,int dy);
+
+/* Draw an overlay between sprites and HUD, of color (rgba).
+ * Begins transparent and fades in over (framec) frames, starting now.
+ * If a fade is active, go from the current state.
+ * Begin a fade with (framec==0) to take effect immediately.
+ */
+int ps_game_renderer_begin_fade(struct ps_game_renderer *renderer,uint32_t rgba,int framec);
+int ps_game_renderer_cancel_fade(struct ps_game_renderer *renderer);
 
 #endif

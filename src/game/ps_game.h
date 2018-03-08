@@ -21,6 +21,7 @@ struct ps_dragoncharger;
 struct ps_res_trdef;
 struct ps_summoner;
 struct ps_switchboard;
+struct ps_gamelog;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -62,6 +63,7 @@ struct ps_game {
   struct ps_dragoncharger *dragoncharger;
   struct ps_summoner *summoner;
   struct ps_switchboard *switchboard;
+  struct ps_gamelog *gamelog;
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];
   struct ps_grid *grid; // WEAK

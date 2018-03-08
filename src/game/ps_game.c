@@ -12,6 +12,7 @@
 #include "ps_game_renderer.h"
 #include "ps_summoner.h"
 #include "ps_switchboard.h"
+#include "ps_gamelog.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -56,6 +57,8 @@ static int ps_game_initialize(struct ps_game *game) {
   if (!(game->switchboard=ps_switchboard_new())) return -1;
   if (ps_switchboard_set_callback(game->switchboard,ps_game_cb_switch,game)<0) return -1;
 
+  if (!(game->gamelog=ps_gamelog_new())) return -1;
+
   return 0;
 }
 
@@ -76,6 +79,8 @@ void ps_game_del(struct ps_game *game) {
   int i;
   if (!game) return;
 
+  ps_gamelog_save(game->gamelog);
+
   ps_physics_del(game->physics);
   ps_statusreport_del(game->statusreport);
   ps_dragoncharger_del(game->dragoncharger);
@@ -83,6 +88,7 @@ void ps_game_del(struct ps_game *game) {
   ps_game_renderer_del(game->renderer);
   ps_summoner_del(game->summoner);
   ps_switchboard_del(game->switchboard);
+  ps_gamelog_del(game->gamelog);
 
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
@@ -814,6 +820,7 @@ int ps_game_update(struct ps_game *game) {
   }
 
   /* Externalized game logic. */
+  ps_gamelog_tick(game->gamelog); // Ignore errors.
   if (ps_bloodhound_activator_update(game->bloodhound_activator,game)<0) return -1;
   if (ps_dragoncharger_update(game->dragoncharger,game)<0) return -1;
   if (ps_summoner_update(game->summoner,game)<0) return -1;
@@ -1315,7 +1322,10 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
   }
   if (ps_game_check_status_report(game)<0) return -1;
 
-  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,ps_game_get_current_blueprint_id(game));
+  /* Log the change. */
+  int blueprintid=ps_game_get_current_blueprint_id(game);
+  ps_gamelog_blueprint_used(game->gamelog,blueprintid,game->playerc);
+  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,blueprintid);
   
   return 0;
 }

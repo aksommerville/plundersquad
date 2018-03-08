@@ -13,6 +13,7 @@
 #include "ps_player.h"
 #include "ps_stats.h"
 #include "ps_plrdef.h"
+#include "ps_gamelog.h"
 #include "sprites/ps_sprite_hero.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"

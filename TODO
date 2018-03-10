@@ -6,6 +6,7 @@
 - Record top scores
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
-- Failure to terminate after closing window
-  ...trouble reproducing
 - Generic fullscreen toggle for linux and mswin
+- Boxing glove vs chicken
+- Archer became unable to fire...? After "return to beginning". General input still OK.
+- Hide cursor

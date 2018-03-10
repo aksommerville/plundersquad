@@ -107,14 +107,22 @@ int ps_alsa_init(int rate,int chanc,void (*cb)(int16_t *dst,int dstac)) {
 
 void ps_alsa_quit() {
 
+  // This snd_pcm_drop() seems to prevent rare freezes at snd_pcm_close().
+  // It feels like voodoo, I'm not at all sure of it.
+  if (ps_alsa.alsa) {
+    snd_pcm_drop(ps_alsa.alsa);
+  }
+
   if (ps_alsa.iothd) {
     pthread_cancel(ps_alsa.iothd);
     pthread_join(ps_alsa.iothd,0);
   }
   pthread_mutex_destroy(&ps_alsa.iomtx);
-
+  
   if (ps_alsa.hwparams) snd_pcm_hw_params_free(ps_alsa.hwparams);
-  if (ps_alsa.alsa) snd_pcm_close(ps_alsa.alsa);
+  if (ps_alsa.alsa) {
+    snd_pcm_close(ps_alsa.alsa);
+  }
   if (ps_alsa.buf) free(ps_alsa.buf);
 
   memset(&ps_alsa,0,sizeof(ps_alsa));

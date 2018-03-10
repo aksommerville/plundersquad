@@ -235,20 +235,14 @@ static void ps_main_quit() {
     akau_quit();
   #endif
   
-  ps_log(MAIN,TRACE,"%s",__func__);
-
   ps_gui_del(ps_gui);
   ps_drop_global_gui();
   ps_game_del(ps_game);
   
-  ps_log(MAIN,TRACE,"%s",__func__);
-
   ps_resmgr_quit();
   ps_input_quit();
   ps_video_quit();
   
-  ps_log(MAIN,TRACE,"%s",__func__);
-
   #if PS_USE_machid
     ps_machid_destroy_global_provider();
     ps_machid_quit();
@@ -258,7 +252,6 @@ static void ps_main_quit() {
     ps_evdev_quit();
   #endif
   
-  ps_log(MAIN,TRACE,"%s",__func__);
 }
 
 /* Update.

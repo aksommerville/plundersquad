@@ -75,6 +75,7 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
   if (spr->impassable!=pvimpassable) {
     if (ps_sprite_attempt_legal_position(spr,game)<0) return -1;
   }
+  
 
   return 0;
 }

@@ -116,7 +116,12 @@ static int ps_hookshot_begin_pull(struct ps_sprite *spr,struct ps_game *game) {
     if (ps_sprite_release_from_master(user,game)<0) return -1;
     if (ps_sprite_set_master(user,spr,game)<0) return -1;
     SPR->restore_user_impassable=user->impassable;
-    user->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
+    if (user->type==&ps_sprtype_hero) {
+      if (ps_hero_add_state(user,PS_HERO_STATE_PUMPKIN,game)<0) return -1;
+      if (ps_hero_remove_state(user,PS_HERO_STATE_FERRY,game)<0) return -1;
+    } else {
+      user->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
+    }
   }
   return 0;
 }
@@ -138,6 +143,7 @@ static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,
 static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->user&&(SPR->user->sprc==1)) {
     ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_HOOKSHOT,game);
+    ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_PUMPKIN,game);
   }
   if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
     struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];

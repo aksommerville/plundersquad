@@ -24,6 +24,9 @@
 #if PS_USE_evdev
   #include "opt/evdev/ps_evdev.h"
 #endif
+#if PS_USE_glx
+  #include "opt/glx/ps_glx.h"
+#endif
 
 /* Globals.
  */
@@ -120,6 +123,9 @@ static int ps_main_init_input(const struct ps_cmdline *cmdline) {
   #endif
   #if PS_USE_evdev
     if (ps_evdev_init_default()<0) return -1;
+  #endif
+  #if PS_USE_glx
+    if (ps_glx_connect_input()<0) return -1;
   #endif
 
   /* Load configuration and take it live. */
@@ -228,14 +234,20 @@ static void ps_main_quit() {
   #if PS_AKAU_ENABLE
     akau_quit();
   #endif
+  
+  ps_log(MAIN,TRACE,"%s",__func__);
 
   ps_gui_del(ps_gui);
   ps_drop_global_gui();
   ps_game_del(ps_game);
+  
+  ps_log(MAIN,TRACE,"%s",__func__);
 
   ps_resmgr_quit();
   ps_input_quit();
   ps_video_quit();
+  
+  ps_log(MAIN,TRACE,"%s",__func__);
 
   #if PS_USE_machid
     ps_machid_destroy_global_provider();
@@ -246,6 +258,7 @@ static void ps_main_quit() {
     ps_evdev_quit();
   #endif
   
+  ps_log(MAIN,TRACE,"%s",__func__);
 }
 
 /* Update.

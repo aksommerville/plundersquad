@@ -55,6 +55,13 @@ int ps_video_init() {
       ps_video_quit();
       return -1;
     }
+    
+  #elif PS_USE_glx
+    if (ps_glx_init(ps_video.winw,ps_video.winh,0,"Plunder Squad")<0) {
+      ps_log(VIDEO,ERROR,"Failed to initialize X11/GLX video.");
+      ps_video_quit();
+      return -1;
+    }
   #endif
 
   if (ps_video_init_akgl()<0) {
@@ -92,6 +99,8 @@ void ps_video_quit() {
     ps_macwm_quit();
   #elif PS_USE_bcm
     ps_bcm_quit();
+  #elif PS_USE_glx
+    ps_glx_quit();
   #endif
 
   if (ps_video.vtxv) free(ps_video.vtxv);
@@ -162,6 +171,8 @@ int ps_video_update() {
     if (ps_macwm_flush_video()<0) return -1;
   #elif PS_USE_bcm
     if (ps_bcm_swap()<0) return -1;
+  #elif PS_USE_glx
+    if (ps_glx_swap()<0) return -1;
   #endif
   
   return 0;

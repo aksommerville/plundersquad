@@ -12,6 +12,8 @@
 #elif PS_ARCH==PS_ARCH_raspi
   #include <GLES2/gl2.h>
   #include <GLES2/gl2ext.h>
+#elif PS_ARCH==PS_ARCH_linux
+  #include <GL/gl.h>
 #else
   #include <gl/gl.h>
 #endif
@@ -21,6 +23,8 @@
   #include "opt/macwm/ps_macwm.h"
 #elif PS_USE_bcm
   #include "opt/bcm/ps_bcm.h"
+#elif PS_USE_glx
+  #include "opt/glx/ps_glx.h"
 #else
   #error "No video provider unit enabled."
 #endif

@@ -25,6 +25,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(GUI           ,TRACE)
   _(HEROSTATE     ,DEBUG)
   _(EVDEV         ,TRACE)
+  _(GLX           ,TRACE)
 #undef _
 };
 

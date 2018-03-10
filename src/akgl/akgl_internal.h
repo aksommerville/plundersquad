@@ -14,7 +14,9 @@
   #include <GLES2/gl2.h>
   #include <GLES2/gl2ext.h>
 #else
-  #include <gl/gl.h>
+  #define GL_GLEXT_PROTOTYPES 1
+  #include <GL/gl.h>
+  #include <GL/glext.h>
 #endif
 
 #ifndef GL_PROGRAM_POINT_SIZE

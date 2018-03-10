@@ -5,3 +5,6 @@
 - GLX backend
 - Windows backend
 - Record top scores
+- !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
+- GLX fullscreen
+- Failure to terminate after closing window

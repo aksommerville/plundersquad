@@ -11,6 +11,8 @@ int ps_glx_connect_input();
 
 int ps_glx_swap();
 
-//TODO toggle fullscreen
+/* (state) is 1=fullscreen, 0=window, -1=toggle.
+ */
+int ps_glx_set_fullscreen(int state);
 
 #endif

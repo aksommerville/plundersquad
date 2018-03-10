@@ -2,9 +2,10 @@
 - Binary formats for all resources.
 - Review dragoncharger with multiple real players.
 - Final boss?
-- GLX backend
 - Windows backend
 - Record top scores
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
-- GLX fullscreen
+  ...update: it's not the strawberry
 - Failure to terminate after closing window
+  ...trouble reproducing
+- Generic fullscreen toggle for linux and mswin

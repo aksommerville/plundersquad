@@ -26,8 +26,13 @@ extern struct ps_glx {
   
   Atom atom_WM_PROTOCOLS;
   Atom atom_WM_DELETE_WINDOW;
+  Atom atom__NET_WM_STATE;
+  Atom atom__NET_WM_STATE_FULLSCREEN;
+  Atom atom__NET_WM_STATE_ADD;
+  Atom atom__NET_WM_STATE_REMOVE;
   
   int w,h;
+  int fullscreen;
 
   struct ps_input_provider *input_provider;
   struct ps_input_device *dev_keyboard;

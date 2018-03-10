@@ -10,8 +10,16 @@ int mpi_video_size_mutable=1;
 /* Initialize X11 (display is already open).
  */
  
-//static int ps_glx_startup(struct mpi_video_init *args) {XXX
 static int ps_glx_startup(int w,int h,int fullscreen,const char *title) {
+  
+  #define GETATOM(tag) ps_glx.atom_##tag=XInternAtom(ps_glx.dpy,#tag,0);
+  GETATOM(WM_PROTOCOLS)
+  GETATOM(WM_DELETE_WINDOW)
+  GETATOM(_NET_WM_STATE)
+  GETATOM(_NET_WM_STATE_FULLSCREEN)
+  GETATOM(_NET_WM_STATE_ADD)
+  GETATOM(_NET_WM_STATE_REMOVE)
+  #undef GETATOM
 
   int attrv[]={
     GLX_X_RENDERABLE,1,
@@ -76,7 +84,8 @@ static int ps_glx_startup(int w,int h,int fullscreen,const char *title) {
   }
   
   if (fullscreen) {
-    //TODO enable fullscreen
+    XChangeProperty(ps_glx.dpy,ps_glx.win,ps_glx.atom__NET_WM_STATE,XA_ATOM,32,PropModeReplace,(unsigned char*)&ps_glx.atom__NET_WM_STATE_FULLSCREEN,1);
+    ps_glx.fullscreen=1;
   }
   
   XMapWindow(ps_glx.dpy,ps_glx.win);
@@ -90,11 +99,6 @@ static int ps_glx_startup(int w,int h,int fullscreen,const char *title) {
   XSync(ps_glx.dpy,0);
   
   ps_log(GLX,INFO,"glXIsDirect = %d",glXIsDirect(ps_glx.dpy,ps_glx.ctx));
-  
-  #define GETATOM(tag) ps_glx.atom_##tag=XInternAtom(ps_glx.dpy,#tag,0);
-  GETATOM(WM_PROTOCOLS)
-  GETATOM(WM_DELETE_WINDOW)
-  #undef GETATOM
   
   XSetWMProtocols(ps_glx.dpy,ps_glx.win,&ps_glx.atom_WM_DELETE_WINDOW,1);
 
@@ -188,4 +192,64 @@ int ps_glx_connect_input() {
   if (ps_input_event_connect(ps_glx.dev_mouse)<0) return -1;
   
   return 0;
+}
+
+/* Toggle fullscreen.
+ */
+
+static int ps_glx_enter_fullscreen() {
+  ps_log(GLX,TRACE,"%s",__func__);
+  XEvent evt={
+    .xclient={
+      .type=ClientMessage,
+      .message_type=ps_glx.atom__NET_WM_STATE,
+      .send_event=1,
+      .format=32,
+      .window=ps_glx.win,
+      .data={.l={
+        1,
+        ps_glx.atom__NET_WM_STATE_FULLSCREEN,
+      }},
+    }
+  };
+  XSendEvent(ps_glx.dpy,RootWindow(ps_glx.dpy,ps_glx.screen),0,SubstructureNotifyMask|SubstructureRedirectMask,&evt);
+  XFlush(ps_glx.dpy);
+  ps_glx.fullscreen=1;
+  return 0;
+}
+
+static int ps_glx_exit_fullscreen() {
+  ps_log(GLX,TRACE,"%s",__func__);
+  XEvent evt={
+    .xclient={
+      .type=ClientMessage,
+      .message_type=ps_glx.atom__NET_WM_STATE,
+      .send_event=1,
+      .format=32,
+      .window=ps_glx.win,
+      .data={.l={
+        0,
+        ps_glx.atom__NET_WM_STATE_FULLSCREEN,
+      }},
+    }
+  };
+  XSendEvent(ps_glx.dpy,RootWindow(ps_glx.dpy,ps_glx.screen),0,SubstructureNotifyMask|SubstructureRedirectMask,&evt);
+  XFlush(ps_glx.dpy);
+  ps_glx.fullscreen=0;
+  return 0;
+}
+ 
+int ps_glx_set_fullscreen(int state) {
+  if (!ps_glx.dpy) return -1;
+  if (state>0) {
+    if (ps_glx.fullscreen) return 0;
+    return ps_glx_enter_fullscreen();
+  } else if (state==0) {
+    if (!ps_glx.fullscreen) return 0;
+    return ps_glx_exit_fullscreen();
+  } else if (ps_glx.fullscreen) {
+    return ps_glx_exit_fullscreen();
+  } else {
+    return ps_glx_enter_fullscreen();
+  }
 }

@@ -85,7 +85,7 @@ static struct akgl_texture *ps_image_decode_psimage(const uint8_t *src,int srcc,
   
   void *dst=malloc(expect_size);
   if (!dst) return 0;
-  ps_image_unfilter(dst,src,stride,h);
+  ps_image_unfilter(dst,src+16,stride,h);
 
   struct akgl_texture *texture=akgl_texture_new();
   if (akgl_texture_load(texture,dst,fmt,w,h)<0) {
@@ -229,9 +229,20 @@ void ps_image_filter(void *dst,const void *src,int stride,int h) {
   if (!dst||!src) return;
   if ((stride<1)||(h<1)) return;
   
+  /* TODO Image filter: Either improve it or take it out.
+   * I thought for sure the PNG SUB filter would improve compressibility, turns out the opposite.
+   * Maybe we'd do better with Paeth?
+   * It's not a really big deal either way.
+   *
+   * 112497 with filter
+   *  96736 without filter
+   */
+  memcpy(dst,src,stride*h);
+  return;
+  
   /* Copy the first row verbatim and start pointers at second row. */
   memcpy(dst,src,stride);
-  const uint8_t *pv=dst;
+  const uint8_t *pv=src;
   uint8_t *DST=dst;
   const uint8_t *SRC=src;
   DST+=stride;
@@ -251,6 +262,9 @@ void ps_image_filter(void *dst,const void *src,int stride,int h) {
 void ps_image_unfilter(void *dst,const void *src,int stride,int h) {
   if (!dst||!src) return;
   if ((stride<1)||(h<1)) return;
+  
+  memcpy(dst,src,stride*h);
+  return;
   
   /* Copy the first row verbatim and start pointers at second row. */
   memcpy(dst,src,stride);

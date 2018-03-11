@@ -41,12 +41,18 @@ static const char *_ps_genioc_first_existing_file(int directory,...) {
 
 static int ps_genioc_default_cmdline(struct ps_cmdline *cmdline) {
 
-  cmdline->resources_path=ps_genioc_first_existing_directory(
-    "../plundersquad/src/data",
+  if (!(cmdline->resources_path=ps_genioc_first_existing_file(
+    "../plundersquad/out/linux-default/ps-data",
+    "../plundersquad/out/raspi-default/ps-data",
     "/usr/local/games/plundersquad/data",
-    "/usr/games/plundersquad/data",
-    "~/plundersquad/data"
-  );
+    "/usr/games/plundersquad/data"
+  ))) {
+    cmdline->resources_path=ps_genioc_first_existing_directory(
+      "../plundersquad/src/data",
+      "/usr/local/games/plundersquad/data",
+      "/usr/games/plundersquad/data"
+    );
+  }
 
   cmdline->input_config_path=ps_genioc_first_existing_file(
     "../plundersquad/etc/input.cfg",

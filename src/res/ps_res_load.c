@@ -272,10 +272,56 @@ int ps_res_get_path_for_resource(char *dst,int dsta,int tid,int rid,int only_if_
 
 /* Load resources from archive file.
  */
+ 
+static int ps_resmgr_load_file_inner(struct ps_zlib_file *file,const char *path,struct ps_buffer *buffer) {
+  
+  uint8_t header[16];
+  int headerc=ps_zlib_read(header,16,file);
+  if ((headerc!=16)||memcmp(header,"\0PLSQ\xffRA",8)) {
+    ps_log(RES,ERROR,"%s: Failed to read resource archive header.",path);
+    return -1;
+  }
+  
+  while (1) {
+    headerc=ps_zlib_read(header,5,file);
+    if (headerc<0) return -1;
+    if (!headerc) break;
+    if (headerc!=5) return -1;
+    
+    int tid=header[0]>>4;
+    int rid=((header[0]&0x0f)<<8)|header[1];
+    int len=(header[2]<<16)|(header[3]<<8)|header[4];
+    
+    ps_log(RES,DEBUG,"Decoding from archive. tid=%d rid=%d len=%d",tid,rid,len);
+    
+    struct ps_restype *restype=ps_resmgr_get_type_by_id(tid);
+    if (!restype) {
+      ps_log(RES,ERROR,"%s: Invalid resource type ID %d",path,tid);
+      return -1;
+    }
+    
+    buffer->c=0;
+    if (ps_buffer_require(buffer,len)<0) return -1;
+    int err=ps_zlib_read(buffer->v,len,file);
+    if (err<0) return -1;
+    if (err!=len) return -1;
+    
+    if (ps_restype_decode(restype,rid,buffer->v,len,path)<0) {
+      return -1;
+    }
+    
+  }
+  return 0;
+}
 
 static int ps_resmgr_load_file(const char *path) {
-  ps_log(RES,ERROR,"TODO: Load resources from archive (%s).",path);
-  return -1;
+  struct ps_zlib_file *file=ps_zlib_open(path,0);
+  if (!file) return -1;
+  struct ps_buffer buffer={0};
+  int err=ps_resmgr_load_file_inner(file,path,&buffer);
+  ps_buffer_cleanup(&buffer);
+  ps_zlib_close(file);
+  return err;
 }
 
 /* Encode resource for archive export.
@@ -309,9 +355,11 @@ static int ps_res_export_resource(struct ps_zlib_file *file,const struct ps_rest
     if (ps_buffer_require(buffer,err)<0) return -1;
   }
   
+  ps_log(RES,DEBUG,"Encoding to archive. tid=%d rid=%d len=%d",restype->tid,res->id,buffer->c);
+  
   /* Write resource header. */
   uint8_t header[5]={
-    (restype->tid<<12)|(res->id>>8),
+    (restype->tid<<4)|(res->id>>8),
     res->id,
     buffer->c>>16,
     buffer->c>>8,

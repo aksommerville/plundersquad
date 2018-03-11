@@ -329,8 +329,12 @@ int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game) {
   if (!spr||(spr->type!=&ps_sprtype_turtle)) return -1;
   if (SPR->rider&&(SPR->rider->sprc>0)) {
     struct ps_sprite *rider=SPR->rider->sprv[0];
-    rider->impassable=SPR->riderimpassable;
-    if (ps_game_set_group_mask_for_sprite(game,rider,SPR->ridergrpmask)<0) return -1;
+    if (rider->type==&ps_sprtype_hero) {
+      if (ps_hero_remove_state(rider,PS_HERO_STATE_FERRY,game)<0) return -1;
+    } else {
+      rider->impassable=SPR->riderimpassable;
+      if (ps_game_set_group_mask_for_sprite(game,rider,SPR->ridergrpmask)<0) return -1;
+    }
     if (ps_sprgrp_remove_sprite(SPR->rider,rider)<0) return -1;
   }
   return 0;

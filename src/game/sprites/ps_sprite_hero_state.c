@@ -59,7 +59,7 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
       (1<<PS_BLUEPRINT_CELL_LATCH)|
     0;
     spr->collide_sprites=1;
-    if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN))) {
+    if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY))) {
       spr->impassable|=(1<<PS_BLUEPRINT_CELL_HOLE);
     }
     if (SPR->state&PS_HERO_STATE_PUMPKIN) {
@@ -215,6 +215,11 @@ static int ps_hero_add_FLY(struct ps_sprite *spr,struct ps_game *game) {
   PS_SFX_TRANSFORM
   SPR->fly_counter=0;
   SPR->defer_fly_end=0;
+  
+  if (SPR->state&PS_HERO_STATE_FERRY) {
+    if (ps_sprite_release_from_master(spr,game)<0) return -1;
+    if (ps_hero_remove_state(spr,PS_HERO_STATE_FERRY,game)<0) return -1;
+  }
   
   return 2;
 }

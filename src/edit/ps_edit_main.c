@@ -15,6 +15,9 @@
 #if PS_USE_machid
   #include "opt/machid/ps_machid.h"
 #endif
+#if PS_USE_glx
+  #include "opt/glx/ps_glx.h"
+#endif
 
 static struct ps_gui *ps_gui=0;
 
@@ -47,6 +50,10 @@ static int ps_edit_init(const struct ps_cmdline *cmdline) {
       struct ps_input_provider *provider=ps_machid_new_provider();
       if (ps_input_install_provider(provider)<0) return -1;
     }
+  #endif
+  #if PS_USE_glx
+    if (ps_glx_connect_input()<0) return -1;
+    if (ps_glx_show_cursor(1)<0) return -1;
   #endif
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
   

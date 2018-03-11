@@ -16,6 +16,29 @@ static int ps_glx_evt_key(XKeyEvent *evt,int value) {
   return 0;
 }
 
+/* Mouse events.
+ */
+ 
+static int ps_glx_evt_mbtn(XButtonEvent *evt,int value) {
+  //ps_log(GLX,TRACE,"%s %d=%d",__func__,evt->button,value);
+  switch (evt->button) {
+    case 1: return ps_input_event_mbutton(1,value);
+    case 2: return ps_input_event_mbutton(2,value);
+    case 3: return ps_input_event_mbutton(3,value);
+    case 4: return ps_input_event_mwheel(0,-1);
+    case 5: return ps_input_event_mwheel(0,1);
+    case 6: return ps_input_event_mwheel(-1,0);
+    case 7: return ps_input_event_mwheel(1,0);
+  }
+  return 0;
+}
+
+static int ps_glx_evt_mmotion(XMotionEvent *evt) {
+  //ps_log(GLX,TRACE,"%s %d,%d",__func__,evt->x,evt->y);
+  if (ps_input_event_mmotion(evt->x,evt->y)<0) return -1;
+  return 0;
+}
+
 /* Client message.
  */
  
@@ -62,6 +85,10 @@ static int ps_glx_receive_event(XEvent *evt) {
     case KeyPress: return ps_glx_evt_key(&evt->xkey,1);
     case KeyRelease: return ps_glx_evt_key(&evt->xkey,0);
     case KeyRepeat: return ps_glx_evt_key(&evt->xkey,2);
+    
+    case ButtonPress: return ps_glx_evt_mbtn(&evt->xbutton,1);
+    case ButtonRelease: return ps_glx_evt_mbtn(&evt->xbutton,0);
+    case MotionNotify: return ps_glx_evt_mmotion(&evt->xmotion);
     
     case ClientMessage: return ps_glx_evt_client(&evt->xclient);
     

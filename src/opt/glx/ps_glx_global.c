@@ -60,8 +60,8 @@ static int ps_glx_startup(int w,int h,int fullscreen,const char *title) {
     .event_mask=
       StructureNotifyMask|
       KeyPressMask|KeyReleaseMask|
-      //ButtonPressMask|ButtonReleaseMask|
-      //PointerMotionMask|
+      ButtonPressMask|ButtonReleaseMask|
+      PointerMotionMask|
     0,
   };
   wattr.colormap=XCreateColormap(ps_glx.dpy,RootWindow(ps_glx.dpy,vi->screen),vi->visual,AllocNone);

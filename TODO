@@ -6,5 +6,4 @@
 - Record top scores
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
-- Generic fullscreen toggle for linux and mswin
 - Archer became unable to fire...? After "return to beginning". General input still OK.

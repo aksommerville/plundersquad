@@ -12,6 +12,7 @@
 #include "game/ps_game.h"
 #include "game/ps_switchboard.h"
 #include "os/ps_clockassist.h"
+#include "video/ps_video.h"
 
 #define PS_PAUSEPAGE_CHEAT_LIMIT 8
 #define PS_PAUSEPAGE_CHEAT_TIME  2000000
@@ -64,6 +65,10 @@ static int _ps_pausepage_init(struct ps_widget *widget) {
   label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"Input config",-1))) return -1;
   label->fgrgba=textcolor;
+  if (ps_video_supports_fullscreen_toggle()) {
+    if (!(label=ps_widget_menu_spawn_label(menu,"Toggle fullscreen",-1))) return -1;
+    label->fgrgba=textcolor;
+  }
   if (!(label=ps_widget_menu_spawn_label(menu,"Quit",4))) return -1;
   label->fgrgba=textcolor;
   
@@ -250,6 +255,14 @@ static int ps_pausepage_input_config(struct ps_widget *widget) {
   return 0;
 }
 
+/* Toggle fullscreen.
+ */
+ 
+static int ps_pausepage_toggle_fullscreen(struct ps_widget *widget) {
+  if (ps_video_toggle_fullscreen()<0) return -1;
+  return 0;
+}
+
 /* Quit.
  */
 
@@ -262,13 +275,23 @@ static int ps_pausepage_quit(struct ps_widget *widget) {
  */
  
 static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget) {
-  switch (ps_widget_menu_get_selected_index(menu)) {
+
+  /* "Toggle fullscreen" is conditional, so we have to check.
+   *TODO: Can we attach the callbacks directly to the menu labels instead?
+   */
+  int p=ps_widget_menu_get_selected_index(menu);
+  if (p>=5) {
+    if (!ps_video_supports_fullscreen_toggle()) p++;
+  }
+  
+  switch (p) {
     case 0: return ps_pausepage_resume(widget);
     case 1: return ps_pausepage_to_beginning(widget);
     case 2: return ps_pausepage_restart(widget);
     case 3: return ps_pausepage_cancel(widget);
     case 4: return ps_pausepage_input_config(widget);
-    case 5: return ps_pausepage_quit(widget);
+    case 5: return ps_pausepage_toggle_fullscreen(widget);
+    case 6: return ps_pausepage_quit(widget);
   }
   return 0;
 }

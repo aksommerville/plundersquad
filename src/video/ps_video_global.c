@@ -435,3 +435,28 @@ void *ps_video_vtxv_add(int addc) {
   ps_video.vtxc+=addc;
   return result;
 }
+
+/* Fullscreen toggle.
+ */
+ 
+int ps_video_supports_fullscreen_toggle() {
+  #if PS_USE_glx
+    return 1;
+  #elif PS_USE_macwm
+    return 1;
+  #else
+    return 0;
+  #endif
+}
+
+int ps_video_toggle_fullscreen() {
+  if (!ps_video.init) return -1;
+  #if PS_USE_glx
+    return ps_glx_set_fullscreen(-1);
+  #elif PS_USE_macwm
+    ps_log(VIDEO,WARN,"TODO: Toggle fullscreen for macwm");
+  #else
+    ps_log(VIDEO,WARN,"Requested to toggle fullscreen on platform that doesn't support it.");
+  #endif
+  return 0;
+}

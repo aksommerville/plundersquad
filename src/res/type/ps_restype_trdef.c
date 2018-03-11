@@ -41,6 +41,20 @@ int ps_res_trdef_encode(void *dstpp,const struct ps_res_trdef *trdef) {
   return dstc;
 }
 
+static int ps_res_trdef_encode_private(void *dst,int dsta,const void *obj) {
+  int dstc=5+OBJ->namec;
+  if (dstc<=dsta) {
+    uint8_t *DST=dst;
+    DST[0]=OBJ->thumbnail_tileid>>8;
+    DST[1]=OBJ->thumbnail_tileid;
+    DST[2]=OBJ->full_imageid>>8;
+    DST[3]=OBJ->full_imageid;
+    DST[4]=OBJ->namec;
+    memcpy(DST+5,OBJ->name,OBJ->namec);
+  }
+  return dstc;
+}
+
 /* Decode into object.
  */
 
@@ -107,6 +121,7 @@ int ps_restype_setup_TRDEF(struct ps_restype *type) {
   type->del=ps_TRDEF_del;
   type->decode=ps_TRDEF_decode;
   type->link=ps_TRDEF_link;
+  type->encode=ps_res_trdef_encode_private;
 
   return 0;
 }

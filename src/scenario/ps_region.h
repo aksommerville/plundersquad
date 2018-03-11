@@ -86,6 +86,7 @@ int ps_region_get_monster_at_difficulty(const struct ps_region *region,int p,int
  *     STYLE: ps_region_shape_style_eval() (SINGLE,ALT4,ALT8,EVEN4,SKINNY,FAT)
  *     FLAGS: ps_region_shape_flag_eval() (ROUND)
  *   monster SPRDEFID                  # 0..8
+ * TODO binary format for region
  */
 struct ps_region *ps_region_decode(const char *src,int srcc);
 int ps_region_encode(void *dstpp,const struct ps_region *region);

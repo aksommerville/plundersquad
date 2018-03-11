@@ -30,6 +30,21 @@ int ps_image_decode_pixels(
   const void *src,int srcc
 );
 
+/* Encode to psimage format.
+ */
+int ps_image_encode(void *dst,int dsta,const void *pixels,int w,int h,int fmt);
+
+/* Pixel size in bytes for the given format, 0 if invalid.
+ */
+int ps_pixelsize_for_akgl_fmt(int fmt);
+
+/* psimage format uses filtering inspired by PNG, but not as involved.
+ * There is no leading byte, so input and output are the same size.
+ * Every row has PNG's "SUB" filter, subtracting the corresponding value from the previous row.
+ */
+void ps_image_filter(void *dst,const void *src,int stride,int h);
+void ps_image_unfilter(void *dst,const void *src,int stride,int h);
+
 /* === psimage format ===
  * Begins with 16-byte header:
  *   0000   8 Signature: "PSIMG\0\xff\0"

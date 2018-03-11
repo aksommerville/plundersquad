@@ -54,6 +54,17 @@ static int ps_restype_TILESHEET_link(void *obj) {
   return 0;
 }
 
+/* Encode resource.
+ */
+ 
+static int ps_restype_TILESHEET_encode(void *dst,int dsta,const void *obj) {
+  if (!OBJ->pixels) {
+    ps_log(RES,ERROR,"Tilesheet loaded with video support -- Can't encode because raw data was dropped.");
+    return -1;
+  }
+  return ps_image_encode(dst,dsta,OBJ->pixels,OBJ->w,OBJ->h,OBJ->fmt);
+}
+
 /* Setup.
  */
 
@@ -67,6 +78,7 @@ int ps_restype_setup_TILESHEET(struct ps_restype *type) {
   type->del=ps_restype_TILESHEET_del;
   type->decode=ps_restype_TILESHEET_decode;
   type->link=ps_restype_TILESHEET_link;
+  type->encode=ps_restype_TILESHEET_encode;
 
   return 0;
 }

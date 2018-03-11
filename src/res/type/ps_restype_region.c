@@ -44,6 +44,19 @@ static int ps_REGION_link(void *obj) {
   return 0;
 }
 
+/* Encode.
+ */
+ 
+static int ps_REGION_encode(void *dst,int dsta,const void *obj) {
+  //TODO add a binary format for region and replace this:
+  void *tmp=0;
+  int dstc=ps_region_encode(&tmp,obj);
+  if (dstc<0) return 0;
+  if (dstc<=dsta) memcpy(dst,tmp,dstc);
+  if (tmp) free(tmp);
+  return dstc;
+}
+
 /* Setup.
  */
 
@@ -57,6 +70,7 @@ int ps_restype_setup_REGION(struct ps_restype *type) {
   type->del=(void*)ps_region_del;
   type->decode=ps_REGION_decode;
   type->link=ps_REGION_link;
+  type->encode=ps_REGION_encode;
 
   return 0;
 }

@@ -37,6 +37,7 @@ int ps_restype_setup_BLUEPRINT(struct ps_restype *type) {
   type->del=(void*)ps_blueprint_del;
   type->decode=ps_BLUEPRINT_decode;
   type->link=ps_BLUEPRINT_link;
+  type->encode=(void*)ps_blueprint_encode;
 
   return 0;
 }

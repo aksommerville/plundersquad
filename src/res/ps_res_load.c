@@ -1,11 +1,14 @@
 #include "ps_res_internal.h"
 #include "os/ps_fs.h"
 #include "os/ps_clockassist.h"
+#include "util/ps_buffer.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>
+
+static int ps_resmgr_load_file(const char *path);
 
 /* Load one resource from a file.
  * Type and ID are already known from the file's name.
@@ -149,14 +152,6 @@ static int ps_resmgr_load_directory(const char *path) {
   return 0;
 }
 
-/* Load resources from archive file.
- */
-
-static int ps_resmgr_load_file(const char *path) {
-  ps_log(RES,ERROR,"TODO: Load resources from archive (%s).",path);
-  return -1;
-}
-
 /* Link all resources.
  */
 
@@ -273,4 +268,116 @@ int ps_res_get_path_for_resource(char *dst,int dsta,int tid,int rid,int only_if_
   }
   
   return -1;
+}
+
+/* Load resources from archive file.
+ */
+
+static int ps_resmgr_load_file(const char *path) {
+  ps_log(RES,ERROR,"TODO: Load resources from archive (%s).",path);
+  return -1;
+}
+
+/* Encode resource for archive export.
+ */
+ 
+static int ps_res_encode(void *dst,int dsta,const struct ps_restype *restype,const void *obj) {
+  if (!dst||(dsta<0)) dsta=0;
+  if (!obj) return -1;
+  if (!restype) return -1;
+  if (!restype->encode) {
+    ps_log(RES,ERROR,"No encoder for '%s' resources.",restype->name);
+    return -1;
+  }
+  return restype->encode(dst,dsta,obj);
+}
+
+/* Export single resource into archive.
+ */
+ 
+static int ps_res_export_resource(struct ps_zlib_file *file,const struct ps_restype *restype,const struct ps_res *res,struct ps_buffer *buffer) {
+
+  /* Encode resource. */
+  buffer->c=0;
+  while (1) {
+    int err=ps_res_encode(buffer->v,buffer->a,restype,res->obj);
+    if (err<0) return -1;
+    if (err<=buffer->a) {
+      buffer->c=err;
+      break;
+    }
+    if (ps_buffer_require(buffer,err)<0) return -1;
+  }
+  
+  /* Write resource header. */
+  uint8_t header[5]={
+    (restype->tid<<12)|(res->id>>8),
+    res->id,
+    buffer->c>>16,
+    buffer->c>>8,
+    buffer->c,
+  };
+  if (ps_zlib_write(file,header,5)<0) return -1;
+  
+  /* Write raw data. */
+  if (ps_zlib_write(file,buffer->v,buffer->c)<0) return -1;
+
+  return 0;
+}
+
+/* Export archive into open file.
+ * (path) is for reference only.
+ */
+ 
+static int ps_res_export_archive_to_zlib_file(struct ps_zlib_file *file,const char *path) {
+  
+  /* Archive header. */
+  if (ps_zlib_write(file,"\0PLSQ\xffRA\0\0\0\0\0\0\0\0",16)<0) return -1;
+  
+  /* Make a shared buffer so we're not allocating memory so much. */
+  struct ps_buffer buffer={0};
+  
+  /* Resource types. */
+  const struct ps_restype *restype=ps_resmgr.typev;
+  int tid=0; for (;tid<PS_RESTYPE_COUNT;tid++,restype++) {
+    const struct ps_res *res=restype->resv;
+    int i=restype->resc; for (;i-->0;res++) {
+      if (ps_res_export_resource(file,restype,res,&buffer)<0) {
+        ps_log(RES,ERROR,"%s: Failed to export %s:%d",path,restype->name,res->id);
+        ps_buffer_cleanup(&buffer);
+        return -1;
+      }
+    }
+  }
+  
+  /* Wrap it up. */
+  ps_buffer_cleanup(&buffer);
+  if (ps_zlib_write_end(file)<0) return -1;
+  
+  return 0;
+}
+
+/* Export archive.
+ */
+ 
+int ps_res_export_archive(const char *path) {
+  if (!ps_resmgr.init) return -1;
+  if (!path||!path[0]) return -1;
+  
+  struct ps_zlib_file *file=ps_zlib_open(path,1);
+  if (!file) {
+    ps_log(RES,ERROR,"%s: Failed to open file for writing, or to initialize the zlib stream.",path);
+    return -1;
+  }
+  
+  if (ps_res_export_archive_to_zlib_file(file,path)<0) {
+    ps_log(RES,ERROR,"%s: Encoding or writing failed.",path);
+    ps_zlib_close(file);
+    unlink(path);
+    return -1;
+  }
+  
+  ps_zlib_close(file);
+  ps_log(RES,INFO,"%s: Exported resource archive.",path);
+  return 0;
 }

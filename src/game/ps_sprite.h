@@ -254,6 +254,7 @@ struct ps_sprite *ps_sprdef_instantiate(struct ps_game *game,struct ps_sprdef *s
 
 /* Encoded form is line-oriented "KEY VALUE".
  * See ps_sprdef_fld_k_{eval,repr} and ps_sprdef_fld_v_{eval,repr}.
+ * TODO binary format for sprdef
  */
 struct ps_sprdef *ps_sprdef_decode(const void *src,int srcc);
 int ps_sprdef_encode(void *dstpp,const struct ps_sprdef *sprdef);

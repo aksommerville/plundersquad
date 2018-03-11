@@ -28,10 +28,12 @@ OFILES_ALL:=$(addsuffix .o,$(patsubst src/%,$(MIDDIR)/%,$(basename $(SRCFILES_C)
 OFILES_MAIN:=$(filter $(MIDDIR)/main/%,$(OFILES_ALL))
 OFILES_TEST:=$(filter $(MIDDIR)/test/%,$(OFILES_ALL))
 OFILES_EDIT:=$(filter $(MIDDIR)/edit/%,$(OFILES_ALL))
-OFILES_COMMON:=$(filter-out $(OFILES_MAIN) $(OFILES_TEST) $(OFILES_EDIT),$(OFILES_ALL))
+OFILES_RESPACK:=$(filter $(MIDDIR)/respack/%,$(OFILES_ALL))
+OFILES_COMMON:=$(filter-out $(OFILES_MAIN) $(OFILES_TEST) $(OFILES_EDIT) $(OFILES_RESPACK),$(OFILES_ALL))
 OFILES_MAIN:=$(OFILES_COMMON) $(OFILES_MAIN)
 OFILES_TEST:=$(OFILES_COMMON) $(OFILES_TEST)
 OFILES_EDIT:=$(OFILES_COMMON) $(OFILES_EDIT)
+OFILES_RESPACK:=$(OFILES_COMMON) $(OFILES_RESPACK)
 
 ifneq (,$(strip $(SRCFILES_M)))
   ifeq (,$(strip $(OBJC)))
@@ -45,9 +47,11 @@ $(MIDDIR)/%.o:$(MIDDIR)/%.c|$(GENHFILES);$(PRECMD) $(CC) -o $@ $<
 $(MIDDIR)/%.o:src/%.m|$(GENHFILES);$(PRECMD) $(OBJC) -o $@ $<
 $(MIDDIR)/%.o:$(MIDDIR)/%.m|$(GENHFILES);$(PRECMD) $(OBJC) -o $@ $<
 
-#TODO Process data files.
-
-all:$(EXE_MAIN) $(EXE_TEST) $(EXE_EDIT)
+all:$(EXE_MAIN) $(EXE_TEST) $(EXE_EDIT) $(EXE_RESPACK)
 $(EXE_MAIN):$(OFILES_MAIN);$(PRECMD) $(LD) -o $@ $(OFILES_MAIN) $(LDPOST)
 $(EXE_TEST):$(OFILES_TEST);$(PRECMD) $(LD) -o $@ $(OFILES_TEST) $(LDPOST)
 $(EXE_EDIT):$(OFILES_EDIT);$(PRECMD) $(LD) -o $@ $(OFILES_EDIT) $(LDPOST)
+$(EXE_RESPACK):$(OFILES_RESPACK);$(PRECMD) $(LD) -o $@ $(OFILES_RESPACK) $(LDPOST)
+
+DATA_SRC_FILES:=$(shell find src/data -type f)
+$(DATA_ARCHIVE):$(DATA_SRC_FILES) $(EXE_RESPACK);$(PRECMD) $(CMD_RESPACK) $@ src/data

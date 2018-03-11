@@ -40,4 +40,31 @@ int ps_res_get_id_by_obj(int tid,const void *obj);
  */
 int ps_res_get_path_for_resource(char *dst,int dsta,int tid,int rid,int only_if_existing);
 
+/* Take all resources and bundle them into a compressed archive.
+ * You can open archives just like directories (but can't edit from them).
+ * See below for format.
+ */
+int ps_res_export_archive(const char *path);
+
+/*------------------------------------------------------------------------
+ * ARCHIVE FORMAT
+ *
+ * File is a single zlib stream.
+ *
+ * Uncompressed stream starts with this header:
+ *   0000   8 Signature: "\0PLSQ\xffRA"
+ *   0008   8 Reserved
+ *   0010
+ *
+ * After the archive header are resource blocks, each is a header then body.
+ * Resource header:
+ *   0000   2 Identifier:
+ *              f000 Type ID
+ *              0fff Resource ID
+ *   0002   3 Uncompressed length
+ *   0005
+ *
+ *------------------------------------------------------------------------
+ */
+
 #endif

@@ -24,6 +24,7 @@ struct ps_restype {
   void (*del)(void *obj);
   int (*decode)(void *objpp,const void *src,int srcc,int id,const char *refpath);
   int (*link)(void *obj);
+  int (*encode)(void *dst,int dsta,const void *obj);
 
   struct ps_res *resv;
   int resc,resa;
@@ -66,7 +67,10 @@ struct ps_res_TILESHEET {
 };
 
 struct ps_res_IMAGE {
+  // IMAGE works exactly like TILESHEET; we probably shouldn't have separated the two.
   struct akgl_texture *texture;
+  void *pixels;
+  int w,h,fmt;
 };
 
 // Defined in <scenario/ps_blueprint.h>

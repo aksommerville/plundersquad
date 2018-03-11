@@ -116,6 +116,8 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
   if (ps_genioc_default_cmdline(&cmdline)<0) return 1;
   if (ps_genioc_read_cmdline(&cmdline,argc,argv)<0) return 1;
   if (ps_genioc_validate_cmdline(&cmdline)<0) return 1;
+  
+  ps_log(MAIN,INFO,"resource path: %s",cmdline.resources_path);
 
   if (delegate->init(&cmdline)<0) {
     return 1;

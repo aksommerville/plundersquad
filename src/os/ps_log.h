@@ -30,7 +30,8 @@
 #define PS_LOG_DOMAIN_HEROSTATE       18
 #define PS_LOG_DOMAIN_EVDEV           19
 #define PS_LOG_DOMAIN_GLX             20
-#define PS_LOG_DOMAIN_COUNT           21
+#define PS_LOG_DOMAIN_RESPACK         21
+#define PS_LOG_DOMAIN_COUNT           22
 // Feel free to add domains. Please update PS_LOG_DOMAIN_COUNT, and add default level in ps_log.c.
 
 #define PS_LOG_LEVEL_ALL           0

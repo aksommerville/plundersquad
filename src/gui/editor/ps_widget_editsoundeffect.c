@@ -13,6 +13,8 @@
 #include "akau/akau.h"
 #include "resedit/ps_iwg.h"
 #include "os/ps_fs.h"
+#include "res/ps_resmgr.h"
+#include "res/ps_restype.h"
 
 static int ps_editsoundeffect_cb_back(struct ps_widget *button,struct ps_widget *widget);
 static int ps_editsoundeffect_cb_play(struct ps_widget *button,struct ps_widget *widget);
@@ -132,7 +134,7 @@ static int ps_editsoundeffect_rebuild_iwg_from_file(struct ps_widget *widget,int
 
   struct akau_store *store=akau_get_store();
   char path[1024];
-  int pathc=akau_store_get_resource_path(path,sizeof(path),store,"ipcm",id);
+  int pathc=ps_res_get_path_for_resource(path,sizeof(path),PS_RESTYPE_IPCM,id,1);
   if ((pathc<0)||(pathc>=sizeof(path))) return -1;
 
   void *serial=0;
@@ -218,11 +220,8 @@ static int ps_editsoundeffect_cb_save(struct ps_widget *button,struct ps_widget 
 
   struct akau_store *store=akau_get_store();
   char path[1024];
-  int pathc=akau_store_get_resource_path(path,sizeof(path),store,"ipcm",WIDGET->resid);
-  if ((pathc<0)||(pathc>=sizeof(path))) {
-    pathc=akau_store_generate_resource_path(path,sizeof(path),store,"ipcm",WIDGET->resid);
-    if ((pathc<0)||(pathc>=sizeof(path))) return -1;
-  }
+  int pathc=ps_res_get_path_for_resource(path,sizeof(path),PS_RESTYPE_IPCM,WIDGET->resid,0);
+  if ((pathc<0)||(pathc>=sizeof(path))) return -1;
 
   void *serial=0;
   int serialc=ps_iwg_encode(&serial,WIDGET->iwg);
@@ -240,6 +239,13 @@ static int ps_editsoundeffect_cb_save(struct ps_widget *button,struct ps_widget 
   WIDGET->ipcm=nipcm;
   if (akau_store_replace_ipcm(store,WIDGET->ipcm,WIDGET->resid)<0) return -1;
   if (akau_store_relink_songs(store)<0) return -1;
+  
+  /* Install in PS. Beware: ps_res_replace() is a handoff */
+  if (akau_ipcm_ref(nipcm)<0) return -1;
+  if (ps_res_replace(PS_RESTYPE_IPCM,WIDGET->resid,nipcm)<0) {
+    akau_ipcm_del(nipcm);
+    return -1;
+  }
 
   WIDGET->iwg->dirty=0;
   ps_log(EDIT,DEBUG,"Saved %d bytes to %s",serialc,path);

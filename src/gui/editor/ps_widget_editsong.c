@@ -13,6 +13,8 @@
 #include "os/ps_fs.h"
 #include "akau/akau.h"
 #include "resedit/ps_sem.h"
+#include "res/ps_resmgr.h"
+#include "res/ps_restype.h"
 
 #define PS_EDITSONG_VOICELIST_WIDTH_MIN 40
 #define PS_EDITSONG_BEAT_LIMIT 0x01000000 /* Just a sanity limit, no particular reason for it. */
@@ -352,13 +354,10 @@ static int ps_editsong_cb_save(struct ps_widget *button,struct ps_widget *widget
 
   struct akau_store *store=akau_get_store();
   char path[1024];
-  int pathc=akau_store_get_resource_path(path,sizeof(path),store,"song",WIDGET->resid);
-  if (pathc<0) {
-    pathc=akau_store_generate_resource_path(path,sizeof(path),store,"song",WIDGET->resid);
-    if ((pathc<1)||(pathc>=sizeof(path))) {
-      ps_log(EDIT,ERROR,"Failed to compose path for song:%d",WIDGET->resid);
-      return 0;
-    }
+  int pathc=ps_res_get_path_for_resource(path,sizeof(path),PS_RESTYPE_SONG,WIDGET->resid,0);
+  if ((pathc<1)||(pathc>=sizeof(path))) {
+    ps_log(EDIT,ERROR,"Failed to compose path for song:%d",WIDGET->resid);
+    return 0;
   }
 
   ps_editsong_stop(widget);
@@ -383,6 +382,13 @@ static int ps_editsong_cb_save(struct ps_widget *button,struct ps_widget *widget
 
   ps_log(EDIT,INFO,"Wrote song:%d to '%s', %d bytes.",WIDGET->resid,path,serialc);
   free(serial);
+  
+  // Install in ps_res. Beware, this is a handoff.
+  if (akau_song_ref(WIDGET->song)<0) return -1;
+  if (ps_res_replace(PS_RESTYPE_SONG,WIDGET->resid,WIDGET->song)<0) {
+    akau_song_del(WIDGET->song);
+    return -1;
+  }
   
   return 0;
 }

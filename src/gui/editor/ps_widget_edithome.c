@@ -163,41 +163,6 @@ static struct ps_widget *ps_edithome_spawn_resource_label(struct ps_widget *widg
   return label;
 }
 
-/* List akau resources.
- */
-
-static int ps_edithome_list_songs(struct ps_widget *widget) {
-  struct ps_widget *reslist=widget->childv[2];
-  struct akau_store *store=akau_get_store();
-  char path[1024];
-  int resc=akau_store_count_song(store);
-  int resp=0; for (;resp<resc;resp++) {
-    int resid=akau_store_get_song_id_by_index(store,resp);
-    int pathc=akau_store_get_resource_path(path,sizeof(path),store,"song",resid);
-    if ((pathc<0)||(pathc>=sizeof(path))) {
-      pathc=snprintf(path,sizeof(path),"#%d",resid);
-    }
-    struct ps_widget *label=ps_edithome_spawn_resource_label(widget,reslist,resid,path,pathc);
-    if (!label) return -1;
-  }
-  return 0;
-}
-
-static int ps_edithome_list_soundeffects(struct ps_widget *widget) {
-  struct ps_widget *reslist=widget->childv[2];
-  struct akau_store *store=akau_get_store();
-  char path[1024];
-  int resc=akau_store_count_ipcm(store);
-  int resp=0; for (;resp<resc;resp++) {
-    int resid=akau_store_get_ipcm_id_by_index(store,resp);
-    int pathc=akau_store_get_resource_path(path,sizeof(path),store,"ipcm",resid);
-    if ((pathc<0)||(pathc>=sizeof(path))) pathc=0;
-    struct ps_widget *label=ps_edithome_spawn_resource_label(widget,reslist,resid,path,pathc);
-    if (!label) return -1;
-  }
-  return 0;
-}
-
 /* List ps resources.
  */
 
@@ -228,8 +193,8 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
   if (ps_widget_scrolllist_set_scroll_position(reslist,0)<0) return -1;
 
   switch (typeindex) {
-    case 0: if (ps_edithome_list_songs(widget)<0) return -1; break;
-    case 1: if (ps_edithome_list_soundeffects(widget)<0) return -1; break;
+    case 0: if (ps_edithome_list_resources(widget,PS_RESTYPE_SONG)<0) return -1; break;
+    case 1: if (ps_edithome_list_resources(widget,PS_RESTYPE_IPCM)<0) return -1; break;
     case 2: if (ps_edithome_list_resources(widget,PS_RESTYPE_BLUEPRINT)<0) return -1; break;
     case 3: if (ps_edithome_list_resources(widget,PS_RESTYPE_SPRDEF)<0) return -1; break;
     case 4: if (ps_edithome_list_resources(widget,PS_RESTYPE_PLRDEF)<0) return -1; break;
@@ -240,45 +205,6 @@ static int ps_edithome_rebuild_resource_list(struct ps_widget *widget,int typein
   if (ps_widget_pack(reslist)<0) return -1;
 
   return 0;
-}
-
-/* Open song.
- */
-
-static int ps_edithome_open_song(struct ps_widget *widget,int index,const char *resname) {
-
-  struct akau_store *store=akau_get_store();
-  int rid=akau_store_get_song_id_by_index(store,index);
-  if (rid<0) return -1;
-  struct akau_song *song=akau_store_get_song(store,rid);
-  if (!song) return -1;
-
-  struct ps_widget *root=ps_widget_get_root(widget);
-  struct ps_widget *editor=ps_widget_spawn(root,&ps_widget_type_editsong);
-  if (!editor) return -1;
-  if (ps_widget_editor_set_resource(editor,rid,song,resname)<0) return -1;
-  if (ps_widget_pack(root)<0) return -1;
-  return 0;
-}
-
-/* Open sound effect.
- */
-
-static int ps_edithome_open_soundeffect(struct ps_widget *widget,int index,const char *resname) {
-
-  struct akau_store *store=akau_get_store();
-  int rid=akau_store_get_ipcm_id_by_index(store,index);
-  if (rid<0) return -1;
-  struct akau_ipcm *ipcm=akau_store_get_ipcm(store,rid);
-  if (!ipcm) return -1;
-  
-  struct ps_widget *root=ps_widget_get_root(widget);
-  struct ps_widget *editor=ps_widget_spawn(root,&ps_widget_type_editsoundeffect);
-  if (!editor) return -1;
-  if (ps_widget_editor_set_resource(editor,rid,ipcm,resname)<0) return -1;
-  if (ps_widget_pack(root)<0) return -1;
-  return 0;
-  
 }
 
 /* Open PS resource.
@@ -310,8 +236,8 @@ static int ps_edithome_open_resource(struct ps_widget *widget,int typeindex,int 
   const char *resname=ps_widget_scrolllist_get_text(reslist);
 
   switch (typeindex) {
-    case 0: return ps_edithome_open_song(widget,resindex,resname);
-    case 1: return ps_edithome_open_soundeffect(widget,resindex,resname);
+    case 0: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_SONG,resindex,&ps_widget_type_editsong,resname);
+    case 1: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_IPCM,resindex,&ps_widget_type_editsoundeffect,resname);
     case 2: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_BLUEPRINT,resindex,&ps_widget_type_editblueprint,resname);
     case 3: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_SPRDEF,resindex,&ps_widget_type_editsprdef,resname);
     case 4: return ps_edithome_open_ps_resource(widget,PS_RESTYPE_PLRDEF,resindex,&ps_widget_type_editplrdef,resname);
@@ -364,6 +290,7 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
 }
 
 /* Create new song.
+ * TODO Didn't look at creating new song during akau/ps_res merge
  */
 
 static int ps_edithome_create_song(struct ps_widget *widget) {
@@ -385,6 +312,7 @@ static int ps_edithome_create_song(struct ps_widget *widget) {
 }
 
 /* Create new sound effect.
+ * TODO Didn't look at creating new ipcm during akau/ps_res merge
  */
 
 static int ps_edithome_create_sound_effect(struct ps_widget *widget) {

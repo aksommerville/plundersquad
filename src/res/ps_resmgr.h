@@ -23,7 +23,9 @@ int ps_resmgr_clear();
 #define PS_RESTYPE_REGION         4
 #define PS_RESTYPE_PLRDEF         5
 #define PS_RESTYPE_TRDEF          6
-#define PS_RESTYPE_COUNT          7
+#define PS_RESTYPE_IPCM           7
+#define PS_RESTYPE_SONG           8
+#define PS_RESTYPE_COUNT          9
 
 struct ps_restype *ps_resmgr_get_type_by_id(int tid);
 #define PS_RESTYPE(tag) ps_resmgr_get_type_by_id(PS_RESTYPE_##tag)
@@ -33,6 +35,11 @@ void *ps_res_get(int tid,int rid);
 
 // Reverse lookup.
 int ps_res_get_id_by_obj(int tid,const void *obj);
+
+/* This is potentially unsafe. Only for use by the editor.
+ * And even then, be careful!
+ */
+int ps_res_replace(int tid,int rid,void *obj_HANDOFF);
 
 /* If we were loaded from loose files, identify the file for resource (tid,rid).
  * (only_if_existing) nonzero means we will respond with an existing file or fail.

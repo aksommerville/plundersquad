@@ -38,6 +38,9 @@ int main(int argc,char **argv) {
   }
   ps_log(RESPACK,TRACE,"Read resources from '%s' and archive to '%s'...",args.srcpath,args.dstpath);
   
+  if (ps_res_ipcm_use_fallback()<0) return 1;
+  if (ps_res_song_use_fallback()<0) return 1;
+  
   if (ps_resmgr_init(args.srcpath,0)<0) {
     ps_log(RESPACK,ERROR,"Failed to load resources from %s",args.srcpath);
     return 1;

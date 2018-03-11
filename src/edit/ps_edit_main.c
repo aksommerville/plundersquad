@@ -56,16 +56,14 @@ static int ps_edit_init(const struct ps_cmdline *cmdline) {
     if (ps_glx_show_cursor(1)<0) return -1;
   #endif
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
-  
-  if (ps_resmgr_init("src/data",1)<0) return -1; //TODO resource path
 
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
-    if (akau_load_resources("src/data/audio")<0) return -1; //TODO resource path
   #elif PS_USE_alsa
     if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
-    if (akau_load_resources("src/data/audio")<0) return -1;
   #endif
+  
+  if (ps_resmgr_init("src/data",1)<0) return -1; //TODO resource path
   
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_input_set_gui(ps_gui)<0) return -1;

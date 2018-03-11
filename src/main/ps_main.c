@@ -173,8 +173,6 @@ static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
     return 0;
   #endif
   
-  if (akau_load_resources(audiorespath)<0) return -1;
-  
   return 0;
 }
 

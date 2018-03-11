@@ -34,6 +34,8 @@ int ps_resmgr_init(const char *path,int edit) {
   SETUPTYPE(REGION)
   SETUPTYPE(PLRDEF)
   SETUPTYPE(TRDEF)
+  SETUPTYPE(IPCM)
+  SETUPTYPE(SONG)
   #undef SETUPTYPE
 
   if (ps_resmgr_reload()<0) {
@@ -117,4 +119,22 @@ int ps_res_get_id_by_obj(int tid,const void *obj) {
     if (res->obj==obj) return res->id;
   }
   return -1;
+}
+
+/* Replace resource.
+ */
+ 
+int ps_res_replace(int tid,int rid,void *obj) {
+  struct ps_restype *restype=ps_resmgr_get_type_by_id(tid);
+  if (!restype) return -1;
+  int p=ps_restype_res_search(restype,rid);
+  if (p>=0) {
+    if (!restype->del) return -1;
+    restype->del(restype->resv[p].obj);
+    restype->resv[p].obj=obj;
+  } else {
+    p=-p-1;
+    if (ps_restype_res_insert(restype,p,rid,obj)<0) return -1;
+  }
+  return 0;
 }

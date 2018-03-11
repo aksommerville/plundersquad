@@ -41,6 +41,8 @@ int ps_restype_setup_SPRDEF(struct ps_restype *type);
 int ps_restype_setup_REGION(struct ps_restype *type);
 int ps_restype_setup_PLRDEF(struct ps_restype *type);
 int ps_restype_setup_TRDEF(struct ps_restype *type);
+int ps_restype_setup_IPCM(struct ps_restype *type);
+int ps_restype_setup_SONG(struct ps_restype *type);
 
 int ps_restype_clear(struct ps_restype *type);
 
@@ -96,5 +98,14 @@ struct ps_res_trdef {
 };
 
 int ps_res_trdef_encode(void *dstpp,const struct ps_res_trdef *trdef);
+
+// Both are opaque, and defined by <akau/akau.h>.
+// In fallback mode, resource is 4-byte length followed by serial data.
+struct akau_ipcm;
+struct akau_song;
+
+// You must declare this before initializing anything:
+int ps_res_ipcm_use_fallback();
+int ps_res_song_use_fallback();
 
 #endif

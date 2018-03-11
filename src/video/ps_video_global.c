@@ -64,6 +64,9 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
       ps_video_quit();
       return -1;
     }
+    if (ps_glx_show_cursor(0)<0) {
+      ps_log(VIDEO,ERROR,"Failed to hide cursor. Ignoring error.");
+    }
   #endif
 
   if (ps_video_init_akgl()<0) {

@@ -15,4 +15,6 @@ int ps_glx_swap();
  */
 int ps_glx_set_fullscreen(int state);
 
+int ps_glx_show_cursor(int show);
+
 #endif

@@ -114,6 +114,7 @@ int ps_glx_init(int w,int h,int fullscreen,const char *title) {
   
   ps_glx.w=w;
   ps_glx.h=h;
+  ps_glx.cursor_visible=1;
   
   if (!(ps_glx.dpy=XOpenDisplay(0))) {
     ps_log(GLX,ERROR,"Failed to open X11 display.");
@@ -252,4 +253,37 @@ int ps_glx_set_fullscreen(int state) {
   } else {
     return ps_glx_enter_fullscreen();
   }
+}
+
+/* Cursor visibility.
+ */
+
+static int ps_glx_set_cursor_invisible() {
+  XColor color;
+  Pixmap pixmap=XCreateBitmapFromData(ps_glx.dpy,ps_glx.win,"\0\0\0\0\0\0\0\0",1,1);
+  Cursor cursor=XCreatePixmapCursor(ps_glx.dpy,pixmap,pixmap,&color,&color,0,0);
+  XDefineCursor(ps_glx.dpy,ps_glx.win,cursor);
+  XFreeCursor(ps_glx.dpy,cursor);
+  XFreePixmap(ps_glx.dpy,pixmap);
+  return 0;
+}
+
+static int ps_glx_set_cursor_visible() {
+  XDefineCursor(ps_glx.dpy,ps_glx.win,None);
+  return 0;
+}
+
+int ps_glx_show_cursor(int show) {
+  if (!ps_glx.dpy) return -1;
+  ps_log(GLX,TRACE,"%s(%d) current=%d",__func__,show,ps_glx.cursor_visible);
+  if (show) {
+    if (ps_glx.cursor_visible) return 0;
+    if (ps_glx_set_cursor_visible()<0) return -1;
+    ps_glx.cursor_visible=1;
+  } else {
+    if (!ps_glx.cursor_visible) return 0;
+    if (ps_glx_set_cursor_invisible()<0) return -1;
+    ps_glx.cursor_visible=0;
+  }
+  return 0;
 }

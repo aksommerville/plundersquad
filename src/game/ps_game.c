@@ -223,6 +223,8 @@ int ps_game_generate(struct ps_game *game) {
 
   game->scenario=scgen->scenario;
   scgen->scenario=0;
+  game->gridx=-1;
+  game->gridy=-1;
 
   ps_scgen_del(scgen);
   return 0;

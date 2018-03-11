@@ -289,3 +289,59 @@ PS_TEST(test_res_content,res,functional,ignore) {
   ps_log_level_by_domain[PS_LOG_DOMAIN_RES]=pvloglevel;
   return 0;
 }
+
+/* List all blueprints with a HERO POI.
+ */
+ 
+static int list_hero_blueprints() {
+  const struct ps_restype *restype=PS_RESTYPE(BLUEPRINT);
+  ps_log(RES,INFO,"Have %d blueprints total.",restype->resc);
+  int i=restype->resc;
+  const struct ps_res *res=restype->resv;
+  for (;i-->0;res++) {
+    const struct ps_blueprint *blueprint=res->obj;
+    int havepoi[1+PS_PLAYER_LIMIT]={0};
+    int havesome=0;
+    const struct ps_blueprint_poi *poi=blueprint->poiv;
+    int j=blueprint->poic;
+    for (;j-->0;poi++) {
+      if (poi->type==PS_BLUEPRINT_POI_HERO) {
+        havesome=1;
+        if ((poi->argv[0]>=1)&&(poi->argv[0]<=PS_PLAYER_LIMIT)) {
+          havepoi[poi->argv[0]]++;
+        } else {
+          ps_log(RES,ERROR,"blueprint:%d: Invalid HERO POI for player#%d",res->id,poi->argv[0]);
+          havepoi[0]++;
+        }
+      }
+    }
+    if (!havesome) continue;
+    int ok=1;
+    for (j=1;j<=PS_PLAYER_LIMIT;j++) {
+      if (!havepoi[j]) {
+        ps_log(RES,ERROR,"blueprint:%d: Missing player#%d",res->id,j);
+        ok=0;
+      } else if (havepoi[j]!=1) {
+        ps_log(RES,ERROR,"blueprint:%d: Multiple HERO POI for player#%d (%d)",res->id,j,havepoi[j]);
+        ok=0;
+      }
+    }
+    if (ok) {
+      ps_log(RES,INFO,"blueprint:%d: Have all %d HERO POI. Valid start screen.",res->id,PS_PLAYER_LIMIT);
+    }
+  }
+  return 0;
+}
+
+/* Analyze resources (transient helper, not a real test).
+ */
+ 
+PS_TEST(examineres,ignore) {
+  ps_resmgr_quit();
+  PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
+  
+  PS_ASSERT_CALL(list_hero_blueprints())
+  
+  ps_resmgr_quit();
+  return 0;
+}

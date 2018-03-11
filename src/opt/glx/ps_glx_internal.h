@@ -47,5 +47,6 @@ int ps_glx_btnid_repr(char *dst,int dsta,int btnid);
 int ps_glx_btnid_eval(int *btnid,const char *src,int srcc);
 int ps_glx_report_buttons_keyboard(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
 int ps_glx_report_buttons_mouse(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
+int ps_glx_codepoint_from_keysym(int keysym);
 
 #endif

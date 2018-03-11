@@ -178,7 +178,6 @@ static int ps_statusreport_compose_image_partial_map(void *pixels,int w,int h,co
   int listw_base=w/game->treasurec;
   int listw_extra=w%game->treasurec;
   int stride=w<<2;
-  ps_log(GAME,TRACE,"");
 
   const struct ps_screen *screen=game->scenario->screenv;
   int y=0;
@@ -194,7 +193,6 @@ static int ps_statusreport_compose_image_partial_map(void *pixels,int w,int h,co
     }
     y+=rowh;
   }
-  ps_log(GAME,TRACE,"");
 
   int x=0,i=0;
   for (;i<game->treasurec;i++) {
@@ -207,7 +205,6 @@ static int ps_statusreport_compose_image_partial_map(void *pixels,int w,int h,co
     }
     x+=colw;
   }
-  ps_log(GAME,TRACE,"");
   
   return 0;
 }

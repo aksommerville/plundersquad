@@ -4,15 +4,25 @@
  */
  
 static int ps_glx_evt_key(XKeyEvent *evt,int value) {
-  int shift=(evt->state&ShiftMask)?1:0;
-  shift=0;//TODO Dropping key shift -- we would need this if we are receiving proper text.
-  KeySym keysym=XkbKeycodeToKeysym(ps_glx.dpy,evt->keycode,0,shift);
+  
+  /* Pass the raw keystroke. */
+  KeySym keysym=XkbKeycodeToKeysym(ps_glx.dpy,evt->keycode,0,0);
   if (keysym) {
-    //TODO text from keyboard event
     if (ps_input_event_button(ps_glx.dev_keyboard,keysym,value)<0) {
       return -1;
     }
   }
+  
+  /* Pass text if press or repeat, and text can be acquired. */
+  int shift=(evt->state&ShiftMask)?1:0;
+  KeySym tkeysym=XkbKeycodeToKeysym(ps_glx.dpy,evt->keycode,0,shift);
+  if (tkeysym) {
+    int codepoint=ps_glx_codepoint_from_keysym(tkeysym);
+    if (codepoint) {
+      if (ps_input_event_key(tkeysym,codepoint,value)<0) return -1;
+    }
+  }
+  
   return 0;
 }
 
@@ -25,10 +35,10 @@ static int ps_glx_evt_mbtn(XButtonEvent *evt,int value) {
     case 1: return ps_input_event_mbutton(1,value);
     case 2: return ps_input_event_mbutton(2,value);
     case 3: return ps_input_event_mbutton(3,value);
-    case 4: return ps_input_event_mwheel(0,-1);
-    case 5: return ps_input_event_mwheel(0,1);
-    case 6: return ps_input_event_mwheel(-1,0);
-    case 7: return ps_input_event_mwheel(1,0);
+    case 4: if (value) return ps_input_event_mwheel(0,-1); break;
+    case 5: if (value) return ps_input_event_mwheel(0,1); break;
+    case 6: if (value) return ps_input_event_mwheel(-1,0); break;
+    case 7: if (value) return ps_input_event_mwheel(1,0); break;
   }
   return 0;
 }

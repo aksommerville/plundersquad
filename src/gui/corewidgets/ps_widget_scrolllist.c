@@ -28,6 +28,7 @@ struct ps_widget_scrolllist {
   int selp; // Index of selected child or -1
   int mousex,mousey; // We unwisely manage the mouse ourselves.
   struct ps_callback cb_select;
+  int scrollspeed;
 };
 
 #define WIDGET ((struct ps_widget_scrolllist*)widget)
@@ -46,6 +47,13 @@ static void _ps_scrolllist_del(struct ps_widget *widget) {
 static int _ps_scrolllist_init(struct ps_widget *widget) {
   WIDGET->selp=-1;
   widget->accept_mouse_wheel=1;
+  
+  #if PS_ARCH==PS_ARCH_macos
+    WIDGET->scrollspeed=1;
+  #else
+    WIDGET->scrollspeed=12;
+  #endif
+  
   return 0;
 }
 
@@ -310,6 +318,7 @@ int ps_widget_scrolllist_set_scroll_position(struct ps_widget *widget,int p) {
 
 int ps_widget_scrolllist_adjust(struct ps_widget *widget,int dy) {
   if (!widget||(widget->type!=&ps_widget_type_scrolllist)) return -1;
+  dy*=WIDGET->scrollspeed;
   return ps_widget_scrolllist_set_scroll_position(widget,WIDGET->pixelp+dy);
 }
 

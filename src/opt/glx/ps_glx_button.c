@@ -269,3 +269,44 @@ int ps_glx_report_buttons_mouse(
   // Also... we're not even receiving mouse events. Hmm.
   return 0;
 }
+
+/* Codepoint from keysym.
+ */
+ 
+int ps_glx_codepoint_from_keysym(int keysym) {
+  if (keysym<1) return 0;
+  
+  /* keysymdef.h:538 */
+  if ((keysym>=0x20)&&(keysym<=0x7e)) return keysym;
+  
+  /* keysymdef.h:642 */
+  if ((keysym>=0xa1)&&(keysym<=0xff)) return keysym;
+  
+  /* If the high byte is 0x01, the other 3 are Unicode.
+   * I can't seem to find that documentation, but I'm pretty sure that's true.
+   */
+  if ((keysym&0xff000000)==0x01000000) return keysym&0x00ffffff;
+  
+  /* keysymdef.h:124 */
+  if (keysym==0xff0d) return 0x0a;
+  if (keysym==0xffff) return 0x7f;
+  if ((keysym>=0xff08)&&(keysym<=0xff1b)) return keysym-0xff00;
+  
+  /* keysymdef.h:202 */
+  if ((keysym>=0xffb0)&&(keysym<=0xffb9)) return '0'+keysym-0xffb0;
+  if ((keysym>=0xff80)&&(keysym<=0xffaf)) switch (keysym) {
+    case XK_KP_Space: return 0x20;
+    case XK_KP_Tab: return 0x09;
+    case XK_KP_Enter: return 0x0a;
+    case XK_KP_Delete: return 0x7f;
+    case XK_KP_Equal: return '=';
+    case XK_KP_Multiply: return '*';
+    case XK_KP_Add: return '+';
+    case XK_KP_Separator: return ',';
+    case XK_KP_Subtract: return '-';
+    case XK_KP_Decimal: return '.';
+    case XK_KP_Divide: return '/';
+  }
+  
+  return 0;
+}

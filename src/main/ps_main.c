@@ -42,12 +42,12 @@ static struct ps_gui *ps_gui=0;
 static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   int i;
 
-  if (1) { // Normal interactive setup.
+  if (0) { // Normal interactive setup.
     return 0;
   }
 
   /* Configure players. */
-  if (ps_game_set_player_count(ps_game,2)<0) return -1;
+  if (ps_game_set_player_count(ps_game,1)<0) return -1;
   for (i=1;i<=PS_PLAYER_LIMIT;i++) {
     ps_game_configure_player(ps_game,i,i,i,0);
   }
@@ -67,9 +67,9 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
 
   } else { // Generate a test scenario -- good for blueprint test drives.
     if (ps_game_generate_test(ps_game,
-      -1, // regionid, negative means random
+      8, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      1,54,55
+      1,53
     )<0) return -1;
   }
 

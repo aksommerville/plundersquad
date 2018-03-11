@@ -198,6 +198,7 @@ const struct ps_widget_type ps_widget_type_treasurealert={
  
 int ps_widget_treasurealert_setup(struct ps_widget *widget,const struct ps_res_trdef *trdef) {
   if (!widget||(widget->type!=&ps_widget_type_treasurealert)) return -1;
+  if (widget->childc!=2) return -1;
   WIDGET->trdef=trdef;
   if (ps_gui_animate_property(ps_widget_get_gui(widget),widget,PS_WIDGET_PROPERTY_bgrgba,0x000000c0,60)<0) return -1;
 

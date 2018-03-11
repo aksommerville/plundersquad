@@ -231,6 +231,12 @@ static int ps_chicken_lay_egg(struct ps_sprite *spr,struct ps_game *game) {
 /* Hurt.
  */
 
+static int ps_chicken_assailant_should_cause_egg(struct ps_sprite *assailant) {
+  if (!assailant) return 1;
+  if (assailant->type==&ps_sprtype_boxingglove) return 0;
+  return 1;
+}
+
 static int _ps_chicken_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant) {
 
   if (SPR->phase==PS_CHICKEN_PHASE_SQUAWK) {
@@ -242,7 +248,9 @@ static int _ps_chicken_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps
   SPR->phase=PS_CHICKEN_PHASE_SQUAWK;
   SPR->phasetime=PS_CHICKEN_SQUAWK_TIME;
 
-  if (ps_chicken_lay_egg(spr,game)<0) return -1;
+  if (ps_chicken_assailant_should_cause_egg(assailant)) {
+    if (ps_chicken_lay_egg(spr,game)<0) return -1;
+  }
   
   return 0;
 }

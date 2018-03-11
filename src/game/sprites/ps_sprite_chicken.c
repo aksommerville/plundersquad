@@ -243,14 +243,18 @@ static int _ps_chicken_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps
     return 0;
   }
 
+  if (!ps_chicken_assailant_should_cause_egg(assailant)) {
+    if (ps_game_decorate_monster_death(game,spr->x,spr->y)<0) return -1;
+    if (ps_sprite_kill_later(spr,game)<0) return -1;
+    return 0;
+  }
+
   PS_SFX_CHICKEN_SQUAWK
 
   SPR->phase=PS_CHICKEN_PHASE_SQUAWK;
   SPR->phasetime=PS_CHICKEN_SQUAWK_TIME;
 
-  if (ps_chicken_assailant_should_cause_egg(assailant)) {
-    if (ps_chicken_lay_egg(spr,game)<0) return -1;
-  }
+  if (ps_chicken_lay_egg(spr,game)<0) return -1;
   
   return 0;
 }

@@ -41,9 +41,11 @@ int ps_pixelsize_for_akgl_fmt(int fmt);
 /* psimage format uses filtering inspired by PNG, but not as involved.
  * There is no leading byte, so input and output are the same size.
  * Every row has PNG's "SUB" filter, subtracting the corresponding value from the previous row.
+ * ...I've tried PAETH too and still filtering ends up increasing the total size.
+ * These are reverted to no-op.
  */
-void ps_image_filter(void *dst,const void *src,int stride,int h);
-void ps_image_unfilter(void *dst,const void *src,int stride,int h);
+void ps_image_filter(void *dst,const void *src,int colstride,int rowstride,int h);
+void ps_image_unfilter(void *dst,const void *src,int colstride,int rowstride,int h);
 
 /* === psimage format ===
  * Begins with 16-byte header:

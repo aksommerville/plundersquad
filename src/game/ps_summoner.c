@@ -66,7 +66,9 @@ static int ps_summoner_sprite_limit_for_volume(int volume) {
 }
 
 static int ps_summoner_delay_for_volume(int volume) {
-  int delay=volume*5;
+  int delay=(100-volume)*2+60;
+  if (delay<60) return 60;
+  if (delay>240) return 240;
   return delay;
 }
 

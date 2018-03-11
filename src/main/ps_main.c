@@ -42,7 +42,7 @@ static struct ps_gui *ps_gui=0;
 static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   int i;
 
-  if (0) { // Normal interactive setup.
+  if (1) { // Normal interactive setup.
     return 0;
   }
 

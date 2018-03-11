@@ -22,7 +22,7 @@
 #define PS_HERO_STATE_HOOKSHOT        0x00000800 /* Using hookshot. */
 
 #define PS_HERO_HURT_TIME 60
-#define PS_HERO_HEAL_TIME 60
+#define PS_HERO_HEAL_TIME 85
 #define PS_HERO_HIGHLIGHT_TIME 60
 #define PS_HERO_DEFAULT_HP 1
 

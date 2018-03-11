@@ -2,7 +2,7 @@
 #include "game/ps_sprite.h"
 #include "akgl/akgl.h"
 
-#define PS_EXPLOSION_TTL_DEFAULT 110
+#define PS_EXPLOSION_TTL_DEFAULT 80
 #define PS_EXPLOSION_FADE_OUT_TIME  20
 
 /* Private sprite object.

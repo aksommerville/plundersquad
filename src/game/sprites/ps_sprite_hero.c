@@ -135,6 +135,7 @@ static int ps_hero_rcvinput_dpad(struct ps_sprite *spr,uint16_t input) {
 
 static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game *game) {
   //ps_log(GAME,DEBUG,"%s %d",__func__,SPR->player->playerid);
+  input&=~PS_PLRBTN_CD;
 
   if (!input) {
     if (ps_hero_remove_state(spr,PS_HERO_STATE_STOPINPUT,game)<0) return -1;

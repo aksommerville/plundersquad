@@ -7,5 +7,9 @@
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
 - Archer became unable to fire...? After "return to beginning". General input still OK.
+  ...update: Not restricted to archer.
+  ...Definitely "return to beginning is involved"
+  ...Swapping input in the cheat menu cleared it up.
+  ...Look at input restrictions, I know the menus do something here
 - Investigate image filtering -- Observed much smaller output WITHOUT filter, that doesn't seem right.
 - Data archive. I think we need to merge the AKAU resources and eliminate AKAU's own store.

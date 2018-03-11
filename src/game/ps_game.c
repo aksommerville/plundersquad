@@ -458,6 +458,7 @@ static int ps_game_monsters_present(const struct ps_game *game) {
     struct ps_sprite *spr=game->grpv[PS_SPRGRP_HEROHAZARD].sprv[i];
     if (ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) continue; // Ignore DEATHROW.
     if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)) continue; // Must also be FRAGILE.
+    if (spr->type==&ps_sprtype_chicken) continue; // Chickens are not actually killable (for the most part).
     return 1;
   }
   return 0;

@@ -29,10 +29,10 @@ static void ps_log_akau(int level,const char *msg,int msgc) {
 /* Init.
  */
 
-static int ps_edit_init() {
+static int ps_edit_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
-  if (ps_video_init()<0) return -1;
+  if (ps_video_init(cmdline)<0) return -1;
   
   if (ps_input_init()<0) return -1;
   #if PS_USE_macioc

@@ -70,6 +70,9 @@ static int ps_genioc_read_cmdline(struct ps_cmdline *cmdline,int argc,char **arg
 
     } else if (!memcmp(arg,"--input=",8)) {
       cmdline->input_config_path=arg+8;
+      
+    } else if (!strcmp(arg,"--fullscreen")) {
+      cmdline->fullscreen=1;
     
     } else if (arg[0]=='-') {
       ps_log(,ERROR,"Unexpected option '%s'",arg);

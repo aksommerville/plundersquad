@@ -1,4 +1,5 @@
 #include "ps_video_internal.h"
+#include "os/ps_ioc.h"
 
 struct ps_video ps_video={0};
 
@@ -29,9 +30,10 @@ static int ps_video_init_akgl() {
 /* Init.
  */
 
-int ps_video_init() {
+int ps_video_init(const struct ps_cmdline *cmdline) {
 
   if (ps_video.init) return -1;
+  if (!cmdline) return -1;
   memset(&ps_video,0,sizeof(struct ps_video));
   ps_video.init=1;
 
@@ -43,7 +45,7 @@ int ps_video_init() {
   ps_video.dsth=ps_video.winh;
 
   #if PS_USE_macwm
-    if (ps_macwm_init(ps_video.winw,ps_video.winh,0,"Plunder Squad")<0) {
+    if (ps_macwm_init(ps_video.winw,ps_video.winh,cmdline->fullscreen,"Plunder Squad")<0) {
       ps_log(VIDEO,ERROR,"Failed to create MacOS window.");
       ps_video_quit();
       return -1;
@@ -57,7 +59,7 @@ int ps_video_init() {
     }
     
   #elif PS_USE_glx
-    if (ps_glx_init(ps_video.winw,ps_video.winh,0,"Plunder Squad")<0) {
+    if (ps_glx_init(ps_video.winw,ps_video.winh,cmdline->fullscreen,"Plunder Squad")<0) {
       ps_log(VIDEO,ERROR,"Failed to initialize X11/GLX video.");
       ps_video_quit();
       return -1;

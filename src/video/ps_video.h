@@ -12,8 +12,9 @@ struct akgl_vtx_mintile;
 struct akgl_vtx_maxtile;
 struct akgl_vtx_raw;
 struct akgl_texture;
+struct ps_cmdline;
 
-int ps_video_init();
+int ps_video_init(const struct ps_cmdline *cmdline);
 void ps_video_quit();
 int ps_video_is_init();
 

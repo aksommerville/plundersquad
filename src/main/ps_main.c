@@ -192,7 +192,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
 
-  if (ps_video_init()<0) return -1;
+  if (ps_video_init(cmdline)<0) return -1;
 
   if (ps_main_init_input(cmdline)<0) {
     ps_log(MAIN,ERROR,"Failed to initialize input.");

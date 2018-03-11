@@ -19,6 +19,7 @@ struct ps_cmdline {
   const char *saved_game_path; // If not NULL, restore from this saved game.
   const char *resources_path; // REQUIRED.
   const char *input_config_path; // REQUIRED.
+  int fullscreen;
 };
 
 struct ps_ioc_delegate {

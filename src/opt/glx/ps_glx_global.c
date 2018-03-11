@@ -19,6 +19,7 @@ static int ps_glx_startup(int w,int h,int fullscreen,const char *title) {
   GETATOM(_NET_WM_STATE_FULLSCREEN)
   GETATOM(_NET_WM_STATE_ADD)
   GETATOM(_NET_WM_STATE_REMOVE)
+  GETATOM(_NET_WM_ICON)
   #undef GETATOM
 
   int attrv[]={
@@ -285,5 +286,33 @@ int ps_glx_show_cursor(int show) {
     if (ps_glx_set_cursor_invisible()<0) return -1;
     ps_glx.cursor_visible=0;
   }
+  return 0;
+}
+
+/* Set window icon.
+ */
+ 
+static void ps_glx_copy_pixels(long *dst,const uint8_t *src,int c) {
+  for (;c-->0;dst++,src+=4) {
+    #if BYTE_ORDER==BIG_ENDIAN
+      //TODO Test window icon for big-endian GLX. Do we have a PowerPC box somewhere?
+      *dst=(src[3]<<24)|(src[0]<<16)|(src[1]<<8)|src[2];
+    #else
+      *dst=(src[3]<<24)|(src[0]<<16)|(src[1]<<8)|src[2];
+    #endif
+  }
+}
+ 
+int ps_glx_set_icon(const void *rgba,int w,int h) {
+  if (!ps_glx.dpy) return -1;
+  if (!rgba||(w<1)||(h<1)) return -1;
+  int length=2+w*h;
+  long *pixels=malloc(sizeof(long)*length);
+  if (!pixels) return -1;
+  pixels[0]=w;
+  pixels[1]=h;
+  ps_glx_copy_pixels(pixels+2,rgba,w*h);
+  XChangeProperty(ps_glx.dpy,ps_glx.win,ps_glx.atom__NET_WM_ICON,XA_CARDINAL,32,PropModeReplace,(unsigned char*)pixels,length);
+  free(pixels);
   return 0;
 }

@@ -30,6 +30,7 @@ extern struct ps_glx {
   Atom atom__NET_WM_STATE_FULLSCREEN;
   Atom atom__NET_WM_STATE_ADD;
   Atom atom__NET_WM_STATE_REMOVE;
+  Atom atom__NET_WM_ICON;
   
   int w,h;
   int fullscreen;

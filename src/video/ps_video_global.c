@@ -3,6 +3,13 @@
 
 struct ps_video ps_video={0};
 
+/* Application icon, for providers that support such a thing.
+ */
+
+extern const int ps_appicon_w;
+extern const int ps_appicon_h;
+extern const char ps_appicon[];
+
 /* Initialize akgl and the associated objects.
  */
 
@@ -66,6 +73,9 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
     }
     if (ps_glx_show_cursor(0)<0) {
       ps_log(VIDEO,ERROR,"Failed to hide cursor. Ignoring error.");
+    }
+    if (ps_glx_set_icon(ps_appicon,ps_appicon_w,ps_appicon_h)<0) {
+      ps_log(VIDEO,ERROR,"Failed to set window icon. Ignoring error.");
     }
   #endif
 

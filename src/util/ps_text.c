@@ -83,6 +83,20 @@ int ps_space_measure(const char *src,int srcc) {
   return srcp;
 }
 
+/* Assert G0 only.
+ */
+ 
+int ps_is_g0(const char *src,int srcc) {
+  if (!src) return 1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  while (srcc-->0) {
+    if (*src<0x20) return 0;
+    if (*src>0x7e) return 0;
+    src++;
+  }
+  return 1;
+}
+
 /* Encode UTF-8.
  */
 

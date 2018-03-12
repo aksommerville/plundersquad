@@ -86,9 +86,23 @@ int ps_region_get_monster_at_difficulty(const struct ps_region *region,int p,int
  *     STYLE: ps_region_shape_style_eval() (SINGLE,ALT4,ALT8,EVEN4,SKINNY,FAT)
  *     FLAGS: ps_region_shape_flag_eval() (ROUND)
  *   monster SPRDEFID                  # 0..8
- * TODO binary format for region
  */
 struct ps_region *ps_region_decode(const char *src,int srcc);
 int ps_region_encode(void *dstpp,const struct ps_region *region);
+
+/* Binary format:
+ *  0000   2 Signature "\xfa\xfa"
+ *  0002   1 tsid
+ *  0003   1 songid
+ *  0004   8 monster sprdefids
+ *  000c   1 shapec
+ *  000d ... shapes, 5 bytes each:
+ *    0000   1 physics
+ *    0001   1 weight
+ *    0002   1 tileid
+ *    0003   1 shape
+ *    0004   1 flags
+ */
+int ps_region_encode_binary(void *dst,int dsta,const struct ps_region *region);
 
 #endif

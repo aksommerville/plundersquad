@@ -8,6 +8,8 @@
 #include "res/ps_restype.h"
 #include "game/ps_sprite.h"
 
+static struct ps_region *ps_region_decode_binary(const void *src,int srcc);
+
 /* New.
  */
  
@@ -375,6 +377,8 @@ static int ps_region_decode_inner(struct ps_region *region,const char *src,int s
 struct ps_region *ps_region_decode(const char *src,int srcc) {
   if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
   
+  if ((srcc>=2)&&!memcmp(src,"\xfa\xfa",2)) return ps_region_decode_binary(src,srcc);
+  
   int shapec=ps_region_text_count_shapes(src,srcc);
   if (shapec<0) return 0;
   struct ps_region *region=ps_region_new(shapec);
@@ -426,4 +430,47 @@ int ps_region_encode(void *dstpp,const struct ps_region *region) {
   }
   *(void**)dstpp=buffer.v;
   return buffer.c;
+}
+
+/* Encode binary.
+ */
+ 
+int ps_region_encode_binary(void *dst,int dsta,const struct ps_region *region) {
+  if (!dst||(dsta<0)) dsta=0;
+  if (!region) return -1;
+  int dstc=13+5*region->shapec;
+  if (dstc>dsta) return dstc;
+  uint8_t *DST=dst;
+  
+  DST[0]=0xfa;
+  DST[1]=0xfa;
+  DST[2]=region->tsid;
+  DST[3]=region->songid;
+  int i=0; for (;i<8;i++) DST[4+i]=region->monster_sprdefidv[i];
+  DST[12]=region->shapec;
+  if (sizeof(struct ps_region_shape)!=5) return -1;
+  memcpy(DST+13,region->shapev,5*region->shapec);
+  
+  return dstc;
+}
+
+/* Decode binary.
+ */
+ 
+
+static struct ps_region *ps_region_decode_binary(const void *src,int srcc) {
+  if (!src||(srcc<13)) return 0;
+  if (memcmp(src,"\xfa\xfa",2)) return 0;
+  const uint8_t *SRC=src;
+  int shapec=SRC[12];
+  if (shapec&&(sizeof(struct ps_region_shape)!=5)) return 0;
+  struct ps_region *region=ps_region_new(shapec);
+  if (!region) return 0;
+  
+  region->tsid=SRC[2];
+  region->songid=SRC[3];
+  int i=0; for (;i<8;i++) region->monster_sprdefidv[i]=SRC[4+i];
+  memcpy(region->shapev,SRC+13,5*shapec);
+  
+  return region;
 }

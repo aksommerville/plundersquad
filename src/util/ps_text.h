@@ -18,6 +18,7 @@ int ps_line_measure(const char *src,int srcc);
 int ps_memcasecmp(const void *a,const void *b,int c);
 int ps_strcpy(char *dst,int dsta,const char *src,int srcc);
 int ps_space_measure(const char *src,int srcc);
+int ps_is_g0(const char *src,int srcc);
 
 int ps_utf8_encode(void *dst,int dsta,int src);
 int ps_utf8_decode(int *dst,const void *src,int srcc);

@@ -1,5 +1,4 @@
 - More projectile-throwing monsters.
-- Binary formats for all resources.
 - Review dragoncharger with multiple real players.
 - Final boss?
 - Windows backend
@@ -7,3 +6,4 @@
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
 - Investigate image filtering -- Observed much smaller output WITHOUT filter, that doesn't seem right.
+- Another freeze at quit on Linux. ALSA?

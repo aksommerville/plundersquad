@@ -4,6 +4,8 @@
 #include "util/ps_enums.h"
 #include "util/ps_buffer.h"
 
+static int ps_plrdef_decode_binary(struct ps_plrdef *plrdef,const void *src,int srcc);
+
 /* Object lifecycle.
  */
  
@@ -168,6 +170,8 @@ int ps_plrdef_decode(struct ps_plrdef *plrdef,const void *src,int srcc) {
   if (!plrdef) return -1;
   ps_plrdef_reset(plrdef);
   
+  if ((srcc>=2)&&!memcmp(src,"\0\xff",2)) return ps_plrdef_decode_binary(plrdef,src,srcc);
+  
   struct ps_line_reader reader={0};
   if (ps_line_reader_begin(&reader,src,srcc,1)<0) return -1;
   while (ps_line_reader_next(&reader)) {
@@ -183,7 +187,7 @@ int ps_plrdef_decode(struct ps_plrdef *plrdef,const void *src,int srcc) {
   return 0;
 }
 
-/* Encode.
+/* Encode text.
  */
 
 static int ps_plrdef_encode_to_buffer(struct ps_buffer *buffer,const struct ps_plrdef *plrdef) {
@@ -214,4 +218,69 @@ int ps_plrdef_encode(void *dstpp,const struct ps_plrdef *plrdef) {
   }
   *(void**)dstpp=buffer.v;
   return buffer.c;
+}
+
+/* Encode binary.
+ */
+ 
+int ps_plrdef_encode_binary(void *dst,int dsta,const struct ps_plrdef *plrdef) {
+  if (!dst||(dsta<0)) dsta=0;
+  if (!plrdef) return -1;
+  
+  int dstc=8+6*plrdef->palettec;
+  if (dstc>dsta) return dstc;
+  uint8_t *DST=dst;
+  
+  DST[0]=0x00;
+  DST[1]=0xff;
+  DST[2]=plrdef->tileid_head;
+  DST[3]=plrdef->tileid_body;
+  DST[4]=plrdef->skills>>8;
+  DST[5]=plrdef->skills;
+  DST[6]=0;
+  DST[7]=(plrdef->head_on_top_always?1:0);
+  
+  uint8_t *rgbdst=DST+8;
+  const struct ps_plrdef_palette *palette=plrdef->palettev;
+  int i=plrdef->palettec;
+  for (;i-->0;palette++,rgbdst+=6) {
+    rgbdst[0]=palette->rgba_head>>24;
+    rgbdst[1]=palette->rgba_head>>16;
+    rgbdst[2]=palette->rgba_head>>8;
+    rgbdst[3]=palette->rgba_body>>24;
+    rgbdst[4]=palette->rgba_body>>16;
+    rgbdst[5]=palette->rgba_body>>8;
+  }
+    
+  return dstc;
+}
+
+/* Decode binary.
+ */
+ 
+
+static int ps_plrdef_decode_binary(struct ps_plrdef *plrdef,const void *src,int srcc) {
+  if (srcc<8) return -1;
+  const uint8_t *SRC=src;
+  if (memcmp(src,"\0\xff",2)) return -1;
+
+  plrdef->tileid_head=SRC[2];
+  plrdef->tileid_body=SRC[3];
+  plrdef->skills=(SRC[4]<<8)|SRC[5];
+  if (SRC[7]&0x01) plrdef->head_on_top_always=1;
+  
+  int srcp=8;
+  while (srcp<=srcc-6) {
+
+    if (ps_plrdef_palette_require(plrdef)<0) return -1;
+    struct ps_plrdef_palette *palette=plrdef->palettev+plrdef->palettec++;
+    
+    palette->rgba_head=(SRC[srcp]<<24)|(SRC[srcp+1]<<16)|(SRC[srcp+2]<<8)|0xff;
+    srcp+=3;
+    palette->rgba_body=(SRC[srcp]<<24)|(SRC[srcp+1]<<16)|(SRC[srcp+2]<<8)|0xff;
+    srcp+=3;
+    
+  }
+  
+  return 0;
 }

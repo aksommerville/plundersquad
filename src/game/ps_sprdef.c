@@ -5,6 +5,8 @@
 #include "util/ps_enums.h"
 #include "util/ps_buffer.h"
 
+static struct ps_sprdef *ps_sprdef_decode_binary(const void *src,int srcc);
+
 /* Object lifecycle.
  */
 
@@ -299,6 +301,9 @@ static int ps_sprdef_decode_to_object(struct ps_sprdef *sprdef,const char *src,i
 }
  
 struct ps_sprdef *ps_sprdef_decode(const void *src,int srcc) {
+
+  if ((srcc>=2)&&!memcmp(src,"\xfe\xfd",2)) return ps_sprdef_decode_binary(src,srcc);
+
   int fldc=ps_sprdef_count_extra_fields_in_text(src,srcc);
   if (fldc<0) return 0;
   struct ps_sprdef *sprdef=ps_sprdef_new(fldc);
@@ -353,3 +358,94 @@ int ps_sprdef_encode(void *dstpp,const struct ps_sprdef *sprdef) {
   *(void**)dstpp=buffer.v;
   return buffer.c;
 }
+
+/* Encode binary.
+ */
+ 
+int ps_sprdef_encode_binary(void *dst,int dsta,const struct ps_sprdef *sprdef) {
+  if (!dst||(dsta<0)) dsta=0;
+  if (!sprdef) return -1;
+  if (!sprdef->type||!sprdef->type->name) return -1;
+  
+  int namelen=0;
+  while (sprdef->type->name[namelen]) namelen++;
+  if (namelen>255) return -1;
+  int dstc=5+namelen+sprdef->fldc*8;
+  if (dstc>dsta) return dstc;
+  uint8_t *DST=dst;
+  
+  DST[0]=0xfe;
+  DST[1]=0xfd;
+  DST[2]=sprdef->tileid>>8;
+  DST[3]=sprdef->tileid;
+  DST[4]=namelen;
+  memcpy(DST+5,sprdef->type->name,namelen);
+  
+  int dstp=5+namelen;
+  const struct ps_sprdef_fld *fld=sprdef->fldv;
+  int i=sprdef->fldc; for (;i-->0;fld++) {
+    DST[dstp++]=fld->k>>24;
+    DST[dstp++]=fld->k>>16;
+    DST[dstp++]=fld->k>>8;
+    DST[dstp++]=fld->k;
+    DST[dstp++]=fld->v>>24;
+    DST[dstp++]=fld->v>>16;
+    DST[dstp++]=fld->v>>8;
+    DST[dstp++]=fld->v;
+  }
+  
+  if (dstp!=dstc) {
+    ps_log(RES,ERROR,"Assertion failed");
+    return -1;
+  }
+  
+  return dstc;
+}
+
+/* Decode binary.
+ */
+ 
+static struct ps_sprdef *ps_sprdef_decode_binary(const void *src,int srcc) {
+  if (srcc<5) return 0;
+  if (memcmp(src,"\xfe\xfd",2)) return 0;
+  const uint8_t *SRC=src;
+  
+  int namelen=SRC[4];
+  int fldp=5+namelen;
+  if (fldp>srcc) return 0;
+  int fldc=(srcc-fldp)/8;
+  
+  struct ps_sprdef *sprdef=ps_sprdef_new(fldc);
+  if (!sprdef) return 0;
+  
+  if (!(sprdef->type=ps_sprtype_by_name(SRC+5,namelen))) {
+    if (ps_is_g0(SRC+5,namelen)) {
+      ps_log(RES,ERROR,"Sprite controller '%.*s' not found.",namelen,SRC+5);
+    } else {
+      ps_log(RES,ERROR,"Invalid sprite controller name.");
+    }
+    ps_sprdef_del(sprdef);
+    return 0;
+  }
+  
+  sprdef->tileid=(SRC[2]<<8)|SRC[3];
+  
+  int i=0; for (;i<fldc;i++) {
+    sprdef->fldv[i].k=(SRC[fldp]<<24)|(SRC[fldp+1]<<16)|(SRC[fldp+2]<<8)|SRC[fldp+3]; fldp+=4;
+    sprdef->fldv[i].v=(SRC[fldp]<<24)|(SRC[fldp+1]<<16)|(SRC[fldp+2]<<8)|SRC[fldp+3]; fldp+=4;
+  }
+  if (ps_sprdef_sort_fields(sprdef)<0) {
+    ps_sprdef_del(sprdef);
+    return 0;
+  }
+  
+  return sprdef;
+}
+
+/* BINARY SERIAL FORMAT
+ *   0000   2 Signature: "\xfe\xfd" to distinguish from text
+ *   0002   2 tileid
+ *   0004   1 type name length
+ *   0005 ... type name
+ *   .... ... fields, 8 bytes each (key,value)
+ */

@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "os/ps_ioc.h"
 #include "os/ps_fs.h"
+#include "os/ps_emergency_abort.h"
 #include "video/ps_video.h"
 #include "input/ps_input.h"
 #include "input/ps_input_button.h"
@@ -228,6 +229,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
 static void ps_main_quit() {
   ps_log(MAIN,TRACE,"%s",__func__);
+  ps_emergency_abort_set(3000000);
 
   #if PS_AKAU_ENABLE
     akau_quit();

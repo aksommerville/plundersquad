@@ -1,6 +1,9 @@
 #!/bin/bash
 
-EDITOR="open -a /Applications/gedit.app"
+case $(uname -s) in
+  Darwin) EDITOR="open -a /Applications/gedit.app" ;;
+  Linux) EDITOR="setsid pluma" ;;
+esac
 
 if [ "$#" -ne 1 ] ; then
   echo "Usage: $0 NAME"

@@ -50,6 +50,8 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==10)&&!memcmp(name,"teleporter",10)) return &ps_sprtype_teleporter;
   if ((namec==11)&&!memcmp(name,"boxingglove",11)) return &ps_sprtype_boxingglove;
   if ((namec==7)&&!memcmp(name,"lwizard",7)) return &ps_sprtype_lwizard;
+  if ((namec==8)&&!memcmp(name,"elefence",8)) return &ps_sprtype_elefence;
+  if ((namec==8)&&!memcmp(name,"elefence",8)) return &ps_sprtype_elefence;
 //INSERT SPRTYPE NAME TEST HERE
 
   return 0;
@@ -100,5 +102,7 @@ const struct ps_sprtype *ps_all_sprtypes[]={
   &ps_sprtype_teleporter,
   &ps_sprtype_boxingglove,
   &ps_sprtype_lwizard,
+  &ps_sprtype_elefence,
+  &ps_sprtype_elefence,
 //INSERT SPRTYPE REFERENCE HERE
 0};

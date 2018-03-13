@@ -35,6 +35,9 @@ OFILES_TEST:=$(OFILES_COMMON) $(OFILES_TEST)
 OFILES_EDIT:=$(OFILES_COMMON) $(OFILES_EDIT)
 OFILES_RESPACK:=$(OFILES_COMMON) $(OFILES_RESPACK)
 
+# Some extra rules to reduce the size of the main executable.
+OFILES_MAIN:=$(filter-out $(MIDDIR)/gui/editor/%,$(OFILES_MAIN))
+
 ifneq (,$(strip $(SRCFILES_M)))
   ifeq (,$(strip $(OBJC)))
     $(error Objective-C compiler required but not defined. ($(SRCFILES_M)))

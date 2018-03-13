@@ -75,6 +75,5 @@ int ps_gui_load_page_debugmenu(struct ps_gui *gui);
 int ps_gui_load_page_gameover(struct ps_gui *gui);
 int ps_gui_load_page_treasure(struct ps_gui *gui,const struct ps_res_trdef *trdef);
 int ps_gui_load_page_inputcfg(struct ps_gui *gui);
-int ps_gui_load_page_edithome(struct ps_gui *gui);
 
 #endif

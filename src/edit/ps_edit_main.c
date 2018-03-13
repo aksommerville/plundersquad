@@ -4,6 +4,8 @@
 #include "input/ps_input.h"
 #include "res/ps_resmgr.h"
 #include "gui/ps_gui.h"
+#include "gui/ps_widget.h"
+#include "gui/editor/ps_editor.h"
 #include "akau/akau.h"
 
 #if PS_USE_macioc
@@ -20,6 +22,17 @@
 #endif
 
 static struct ps_gui *ps_gui=0;
+
+/* Moved this from ps_gui_object.c so we can eliminate gui/editor from the main executable.
+ */
+
+int ps_gui_load_page_edithome(struct ps_gui *gui) {
+  if (!gui) return -1;
+  struct ps_widget *page=ps_widget_spawn(ps_gui_get_root(gui),&ps_widget_type_edithome);
+  if (!page) return -1;
+  if (ps_widget_pack(ps_gui_get_root(gui))<0) return -1;
+  return 0;
+}
 
 /* Logging from akau.
  */

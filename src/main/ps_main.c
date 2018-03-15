@@ -232,26 +232,36 @@ static void ps_main_quit() {
   ps_emergency_abort_set(3000000);
 
   #if PS_AKAU_ENABLE
+    ps_emergency_abort_set_message("Shutting down audio.");
     akau_quit();
   #endif
   
+  ps_emergency_abort_set_message("Shutting down high-level controllers.");
   ps_gui_del(ps_gui);
   ps_drop_global_gui();
   ps_game_del(ps_game);
   
+  ps_emergency_abort_set_message("Shutting down resource manager.");
   ps_resmgr_quit();
+  
+  ps_emergency_abort_set_message("Shutting down input.");
   ps_input_quit();
+  
+  ps_emergency_abort_set_message("Shutting down video.");
   ps_video_quit();
   
   #if PS_USE_machid
+    ps_emergency_abort_set_message("Shutting down Mac HID manager.");
     ps_machid_destroy_global_provider();
     ps_machid_quit();
   #endif
 
   #if PS_USE_evdev
+    ps_emergency_abort_set_message("Shutting down Linux input (evdev).");
     ps_evdev_quit();
   #endif
   
+  ps_emergency_abort_set_message("Application shutdown complete.");
 }
 
 /* Update.

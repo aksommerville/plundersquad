@@ -9,6 +9,8 @@
  
 static int64_t ps_emergency_abort_time=0;
 static pthread_t ps_emergency_abort_thread=0;
+static const char *ps_emergency_abort_message=0;
+static int64_t ps_emergency_abort_message_time=0;
 
 /* Thread.
  */
@@ -18,7 +20,17 @@ static void *ps_emergency_abort_thdfn(void *arg) {
     usleep(1000);
     pthread_testcancel();
     if (ps_time_now()>=ps_emergency_abort_time) {
+    
       ps_log(CLOCK,ERROR,"Shutdown may have stalled. Aborting hard.");
+      
+      if (ps_emergency_abort_message) {
+        int64_t elapsed=ps_time_now()-ps_emergency_abort_message_time;
+        ps_log(CLOCK,ERROR,
+          "Last application activity was logged %d.%06d seconds ago:\n  %s\n",
+          (int)(elapsed/1000000),(int)(elapsed%1000000),ps_emergency_abort_message
+        );
+      }
+      
       exit(1);
     }
   }
@@ -47,6 +59,8 @@ int ps_emergency_abort_cancel() {
     ps_emergency_abort_thread=0;
   }
   ps_emergency_abort_time=0;
+  ps_emergency_abort_message=0;
+  ps_emergency_abort_message_time=0;
   return 0;
 }
 
@@ -59,4 +73,14 @@ int ps_emergency_abort_get_time_remaining() {
   if (remaining<0) return 0;
   if (remaining>INT_MAX) return INT_MAX;
   return remaining;
+}
+
+/* Set message for logging.
+ */
+ 
+int ps_emergency_abort_set_message(const char *msg) {
+  if (!ps_emergency_abort_time) return -1;
+  ps_emergency_abort_message=msg;
+  ps_emergency_abort_message_time=ps_time_now();
+  return 0;
 }

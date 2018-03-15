@@ -1,4 +1,5 @@
 #include "ps_alsa.h"
+#include "os/ps_emergency_abort.h"
 #include <stdio.h>
 #include <pthread.h>
 #include <alsa/asoundlib.h>
@@ -37,6 +38,7 @@ static struct {
 static void *ps_alsa_iothd(void *dummy) {
   while (1) {
     pthread_testcancel();
+    ps_emergency_abort_set_message("Refilling audio buffer.");
     
     // fill buffer
     if (pthread_mutex_lock(&ps_alsa.iomtx)) return 0;
@@ -48,6 +50,7 @@ static void *ps_alsa_iothd(void *dummy) {
     int samplep=0,samplec=ps_alsa.bufc;
     while (samplep<samplec) {
       pthread_testcancel();
+      ps_emergency_abort_set_message("Sending audio to ALSA.");
       int err=snd_pcm_writei(ps_alsa.alsa,samplev+samplep,samplec-samplep);
       if (err<=0) {
         if ((err=snd_pcm_recover(ps_alsa.alsa,err,0))<0) {
@@ -110,22 +113,27 @@ void ps_alsa_quit() {
   // This snd_pcm_drop() seems to prevent rare freezes at snd_pcm_close().
   // It feels like voodoo, I'm not at all sure of it.
   if (ps_alsa.alsa) {
+    ps_emergency_abort_set_message("Cutting off ALSA output.");
     snd_pcm_drop(ps_alsa.alsa);
   }
 
   if (ps_alsa.iothd) {
+    ps_emergency_abort_set_message("Cancelling audio thread.");
     pthread_cancel(ps_alsa.iothd);
+    ps_emergency_abort_set_message("Joining audio thread.");
     pthread_join(ps_alsa.iothd,0);
   }
   pthread_mutex_destroy(&ps_alsa.iomtx);
   
   if (ps_alsa.hwparams) snd_pcm_hw_params_free(ps_alsa.hwparams);
   if (ps_alsa.alsa) {
+    ps_emergency_abort_set_message("Closing ALSA connection.");
     snd_pcm_close(ps_alsa.alsa);
   }
   if (ps_alsa.buf) free(ps_alsa.buf);
 
   memset(&ps_alsa,0,sizeof(ps_alsa));
+  ps_emergency_abort_set_message("ALSA cleanup complete.");
 }
 
 /* Lock.

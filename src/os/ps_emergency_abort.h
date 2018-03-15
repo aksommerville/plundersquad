@@ -10,4 +10,10 @@ int ps_emergency_abort_set(int timeout_us);
 int ps_emergency_abort_cancel();
 int ps_emergency_abort_get_time_remaining(); // <0 if unset
 
+/* Log everywhere that there might be a stall at shutdown.
+ * If we end up aborting, we'll dump the last provided message and how long since it was delivered.
+ * *** Use string literals only! ***
+ */
+int ps_emergency_abort_set_message(const char *msg);
+
 #endif

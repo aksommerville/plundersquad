@@ -1,5 +1,23 @@
 #include "akgl_internal.h"
 
+#if PS_NO_OPENGL2
+
+struct akgl_program *akgl_program_raw_new() { return 0; }
+
+int akgl_program_raw_draw_triangle_strip(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc) {
+  return akgl_soft_raw_draw_triangle_strip(vtxv,vtxc);
+}
+
+int akgl_program_raw_draw_line_strip(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int width) {
+  return akgl_soft_raw_draw_line_strip(vtxv,vtxc,width);
+}
+
+int akgl_program_raw_draw_points(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int size) {
+  return akgl_soft_raw_draw_points(vtxv,vtxc,size);
+}
+
+#else
+
 /* GLSL.
  */
  
@@ -70,16 +88,31 @@ static int akgl_program_raw_draw_primitives(struct akgl_program *program,const s
  */
  
 int akgl_program_raw_draw_triangle_strip(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc) {
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return akgl_soft_raw_draw_triangle_strip(vtxv,vtxc);
+  }
+
   return akgl_program_raw_draw_primitives(program,vtxv,vtxc,GL_TRIANGLE_STRIP);
 }
 
 int akgl_program_raw_draw_line_strip(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int width) {
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return akgl_soft_raw_draw_line_strip(vtxv,vtxc,width);
+  }
+  
   if (width<1) return -1;
   glLineWidth(width);
   return akgl_program_raw_draw_primitives(program,vtxv,vtxc,GL_LINE_STRIP);
 }
 
 int akgl_program_raw_draw_points(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int size) {
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return akgl_soft_raw_draw_points(vtxv,vtxc,size);
+  }
+  
   if (size<1) return -1;
   #ifdef GL_PROGRAM_POINT_SIZE
     glDisable(GL_PROGRAM_POINT_SIZE);
@@ -89,3 +122,5 @@ int akgl_program_raw_draw_points(struct akgl_program *program,const struct akgl_
   #endif
   return akgl_program_raw_draw_primitives(program,vtxv,vtxc,GL_POINTS);
 }
+
+#endif

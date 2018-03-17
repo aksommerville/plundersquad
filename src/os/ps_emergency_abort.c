@@ -2,13 +2,18 @@
 #include "ps_emergency_abort.h"
 #include "ps_clockassist.h"
 #include <unistd.h>
+
+// In MinGW, <unistd.h> declares struct timespec but doesn't set this, then <pthread.h> tries to redefine it.
+#define HAVE_STRUCT_TIMESPEC
+
 #include <pthread.h>
 
 /* Globals.
  */
  
 static int64_t ps_emergency_abort_time=0;
-static pthread_t ps_emergency_abort_thread=0;
+static pthread_t ps_emergency_abort_thread; // No initializer; platforms disagree on its type.
+static int ps_emergency_abort_init=0;
 static const char *ps_emergency_abort_message=0;
 static int64_t ps_emergency_abort_message_time=0;
 
@@ -17,7 +22,7 @@ static int64_t ps_emergency_abort_message_time=0;
  
 static void *ps_emergency_abort_thdfn(void *arg) {
   while (1) {
-    usleep(1000);
+    ps_time_sleep(1000);
     pthread_testcancel();
     if (ps_time_now()>=ps_emergency_abort_time) {
     
@@ -43,7 +48,8 @@ static void *ps_emergency_abort_thdfn(void *arg) {
 int ps_emergency_abort_set(int timeout_us) {
   ps_log(CLOCK,INFO,"Set emergency abort timeout for %d us.",timeout_us);
   ps_emergency_abort_time=ps_time_now()+timeout_us;
-  if (!ps_emergency_abort_thread) {
+  if (!ps_emergency_abort_init) {
+    ps_emergency_abort_init=1;
     pthread_create(&ps_emergency_abort_thread,0,ps_emergency_abort_thdfn,0);
   }
   return 0;
@@ -53,10 +59,10 @@ int ps_emergency_abort_set(int timeout_us) {
  */
  
 int ps_emergency_abort_cancel() {
-  if (ps_emergency_abort_thread) {
+  if (ps_emergency_abort_init) {
     pthread_cancel(ps_emergency_abort_thread);
     pthread_join(ps_emergency_abort_thread,0);
-    ps_emergency_abort_thread=0;
+    ps_emergency_abort_init=0;
   }
   ps_emergency_abort_time=0;
   ps_emergency_abort_message=0;

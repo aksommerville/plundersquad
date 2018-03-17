@@ -1,15 +1,44 @@
 #include "akgl_internal.h"
 #include <stdio.h>
 
+#if PS_NO_OPENGL2
+
+struct akgl_program *akgl_program_new() {
+  return (struct akgl_program*)akgl_program_soft_new();
+}
+
+void akgl_program_del(struct akgl_program *program) {
+  return akgl_program_soft_del((struct akgl_program_soft*)program);
+}
+
+int akgl_program_ref(struct akgl_program *program) {
+  return akgl_program_soft_ref((struct akgl_program_soft*)program);
+}
+
+int akgl_program_compile(
+  struct akgl_program *program,
+  const char *vsrc,int vsrcc,
+  const char *fsrc,int fsrcc
+) { return -1; }
+int akgl_program_handoff_error_log(struct akgl_program *program,char *log,int logc) { return -1; }
+int akgl_program_get_error_log(void *dstpp,const struct akgl_program *program) { return -1; }
+int akgl_program_use(struct akgl_program *program) { return -1; }
+
+#else
+
 /* Object lifecycle.
  */
 
 struct akgl_program *akgl_program_new() {
   if (!akgl.init) return 0;
+  
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) return (struct akgl_program*)akgl_program_soft_new();
+  
   struct akgl_program *program=calloc(1,sizeof(struct akgl_program));
   if (!program) return 0;
 
   program->refc=1;
+  program->magic=AKGL_MAGIC_PROGRAM_GL2;
   if (!(program->programid=glCreateProgram())) {
     if (!(program->programid=glCreateProgram())) {
       free(program);
@@ -22,6 +51,10 @@ struct akgl_program *akgl_program_new() {
 
 void akgl_program_del(struct akgl_program *program) {
   if (!program) return;
+  if (program->magic==AKGL_MAGIC_PROGRAM_SOFT) {
+    akgl_program_soft_del((struct akgl_program_soft*)program);
+    return;
+  }
   if (program->refc-->1) return;
 
   glDeleteProgram(program->programid);
@@ -32,6 +65,9 @@ void akgl_program_del(struct akgl_program *program) {
 
 int akgl_program_ref(struct akgl_program *program) {
   if (!program) return -1;
+  if (program->magic==AKGL_MAGIC_PROGRAM_SOFT) {
+    return akgl_program_soft_ref((struct akgl_program_soft*)program);
+  }
   if (program->refc<1) return -1;
   if (program->refc==INT_MAX) return -1;
   program->refc++;
@@ -147,6 +183,7 @@ int akgl_program_compile(
   const char *fsrc,int fsrcc
 ) {
   if (!program) return -1;
+  if (program->magic!=AKGL_MAGIC_PROGRAM_GL2) return -1;
   if (!vsrc) vsrcc=0; else if (vsrcc<0) { vsrcc=0; while (vsrc[vsrcc]) vsrcc++; }
   if (!fsrc) fsrcc=0; else if (fsrcc<0) { fsrcc=0; while (fsrc[fsrcc]) fsrcc++; }
 
@@ -182,6 +219,7 @@ int akgl_program_compile(
  
 int akgl_program_handoff_error_log(struct akgl_program *program,char *log,int logc) {
   if (!program) return -1;
+  if (program->magic!=AKGL_MAGIC_PROGRAM_GL2) return -1;
   if (log==program->error_log) return 0;
   if (!log) logc=0; else if (logc<0) { logc=0; if (log) while (log[logc]) logc++; }
   if (program->error_log) free(program->error_log);
@@ -201,6 +239,7 @@ int akgl_program_get_error_log(void *dstpp,const struct akgl_program *program) {
 
 int akgl_program_use(struct akgl_program *program) {
   if (program) {
+    if (program->magic!=AKGL_MAGIC_PROGRAM_GL2) return -1;
     glUseProgram(program->programid);
     akgl_set_uniform_screen_size(program->location_screensize);
   } else {
@@ -209,3 +248,5 @@ int akgl_program_use(struct akgl_program *program) {
   if (akgl_clear_error()) return -1;
   return 0;
 }
+
+#endif

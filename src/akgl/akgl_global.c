@@ -22,10 +22,22 @@ int akgl_clear_error() {
 /* Init.
  */
 
-int akgl_init() {
+int akgl_init(int strategy) {
   if (akgl.init) return -1;
   memset(&akgl,0,sizeof(struct akgl));
   akgl.init=1;
+
+  switch (strategy) {
+    case AKGL_STRATEGY_SOFT: break;
+    case AKGL_STRATEGY_GL2: {
+        #if PS_NO_OPENGL2
+          akgl.init=0;
+          return -1;
+        #endif
+      } break;
+    default: akgl.init=0; return -1;
+  }
+  akgl.strategy=strategy;
 
   akgl.screenw=640;
   akgl.screenh=480;
@@ -63,6 +75,10 @@ int akgl_get_screen_size(int *w,int *h) {
   return 0;
 }
 
+#if PS_NO_OPENGL2
+void akgl_set_uniform_screen_size(GLuint location) {
+}
+#else
 void akgl_set_uniform_screen_size(GLuint location) {
   if (akgl.framebuffer) {
     glUniform2f(location,akgl.framebuffer->w,akgl.framebuffer->h);
@@ -70,6 +86,7 @@ void akgl_set_uniform_screen_size(GLuint location) {
     glUniform2f(location,akgl.screenw,akgl.screenh);
   }
 }
+#endif
 
 /* GLSL version.
  */

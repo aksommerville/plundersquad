@@ -22,22 +22,28 @@ int ps_res_song_use_fallback() {
  
 static int ps_SONG_decode(void *objpp,const void *src,int srcc,int id,const char *path) {
 
-  struct akau_store *store=akau_get_store();
-  if (!store) return -1;
+  if (akau_is_init()) {
+
+    struct akau_store *store=akau_get_store();
+    if (!store) return -1;
   
-  struct akau_song *song=akau_song_new();
-  if (!song) return -1;
-  if (akau_song_decode(song,src,srcc)<0) {
-    akau_song_del(song);
-    return -1;
-  }
+    struct akau_song *song=akau_song_new();
+    if (!song) return -1;
+    if (akau_song_decode(song,src,srcc)<0) {
+      akau_song_del(song);
+      return -1;
+    }
     
-  if (akau_store_add_song(store,song,id)<0) {
-    akau_song_del(song);
-    return -1;
-  }
+    if (akau_store_add_song(store,song,id)<0) {
+      akau_song_del(song);
+      return -1;
+    }
   
-  *(void**)objpp=song;
+    *(void**)objpp=song;
+
+  } else {
+    *(void**)objpp=akau_song_new();
+  }
   return 0;
 }
 
@@ -54,7 +60,11 @@ static int ps_SONG_decode_fallback(void *objpp,const void *src,int srcc,int id,c
  */
  
 static int ps_SONG_link(void *obj) {
-  if (akau_song_link(obj,akau_get_store())<0) return -1;
+  if (akau_is_init()) {
+    if (akau_song_link(obj,akau_get_store())<0) return -1;
+  } else {
+    return 0;
+  }
   return 0;
 }
 

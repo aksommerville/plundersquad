@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include <string.h>
 
+#if PS_ARCH==PS_ARCH_mswin
+  #include <Windows.h>
+#endif
+
 /* Every so many frames, we reconsider our mode. */
 #define PS_CLOCKASSIST_CYCLE_LENGTH 5
 
@@ -23,8 +27,12 @@ int64_t ps_time_now() {
 /* Sleep.
  */
 
-static inline void ps_time_sleep(int us) {
-  usleep(us);
+void ps_time_sleep(int us) {
+  #if PS_ARCH==PS_ARCH_mswin
+    Sleep(us/1000);
+  #else
+    usleep(us);
+  #endif
 }
 
 /* Assistant clock, setup.

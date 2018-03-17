@@ -84,6 +84,13 @@ void akau_quit() {
   memset(&akau,0,sizeof(struct akau));
 }
 
+/* Test initialization.
+ */
+
+int akau_is_init() {
+  return akau.init;
+}
+
 /* Fire sync tokens.
  */
 

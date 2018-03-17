@@ -27,6 +27,8 @@ int akau_init(
 
 void akau_quit();
 
+int akau_is_init();
+
 /* Set a callback to fire during akau_update() if any clipping happened on master.
  * Only one such callback is permitted.
  */

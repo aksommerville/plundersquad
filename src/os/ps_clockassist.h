@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 int64_t ps_time_now();
+void ps_time_sleep(int us);
 
 #define PS_CLOCKASSIST_MODE_AUTO     1
 #define PS_CLOCKASSIST_MODE_MANUAL   2

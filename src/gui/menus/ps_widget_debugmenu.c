@@ -158,6 +158,16 @@ static int ps_debugmenu_toggle_switches(struct ps_widget *widget) {
 /* Compose path for screenshot.
  */
 
+// MinGW64 has localtime_r but MinGW32 does not, and that's what I'm using.
+// Feel free to eliminate this shim if your system has real localtime_r.
+#if PS_ARCH==PS_ARCH_mswin
+  static struct tm *localtime_r(time_t *t,struct tm *storage) {
+    struct tm *tm=localtime(t);
+    if (tm) memcpy(storage,tm,sizeof(struct tm));
+    return storage;
+  }
+#endif
+
 static int ps_debugmenu_compose_screenshot_path(char *dst,int dsta) {
   time_t now;
   struct tm tm={0};

@@ -32,7 +32,10 @@ struct akgl_program;
 /* Global rendering context.
  *****************************************************************************/
 
-int akgl_init();
+#define AKGL_STRATEGY_SOFT      1 /* Software compositor, OpenGL 1 for framebuffer transfer. */
+#define AKGL_STRATEGY_GL2       2 /* OpenGL/GLES 2 for everything. */
+
+int akgl_init(int strategy);
 void akgl_quit();
 
 /* This must be kept up to date, we apply it when switching from framebuffer to main out.

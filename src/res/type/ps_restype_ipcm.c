@@ -22,18 +22,25 @@ int ps_res_ipcm_use_fallback() {
  
 static int ps_IPCM_decode(void *objpp,const void *src,int srcc,int id,const char *path) {
 
-  struct akau_store *store=akau_get_store();
-  if (!store) return -1;
+  if (akau_is_init()) {
+
+    struct akau_store *store=akau_get_store();
+    if (!store) return -1;
   
-  struct akau_ipcm *ipcm=akau_ipcm_decode(src,srcc);
-  if (!ipcm) return -1;
+    struct akau_ipcm *ipcm=akau_ipcm_decode(src,srcc);
+    if (!ipcm) return -1;
     
-  if (akau_store_add_ipcm(store,ipcm,id)<0) {
-    akau_ipcm_del(ipcm);
-    return -1;
-  }
+    if (akau_store_add_ipcm(store,ipcm,id)<0) {
+      akau_ipcm_del(ipcm);
+      return -1;
+    }
   
-  *(void**)objpp=ipcm;
+    *(void**)objpp=ipcm;
+
+  } else {
+    // make a dummy object (we can't return null)
+    *(void**)objpp=akau_ipcm_new(1);
+  }
   return 0;
 }
 

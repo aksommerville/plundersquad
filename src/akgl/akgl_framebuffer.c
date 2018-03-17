@@ -1,14 +1,46 @@
 #include "akgl_internal.h"
 
+#if PS_NO_OPENGL2
+
+struct akgl_framebuffer *akgl_framebuffer_new() {
+  return (struct akgl_framebuffer*)akgl_framebuffer_soft_new();
+}
+
+void akgl_framebuffer_del(struct akgl_framebuffer *framebuffer) {
+  akgl_framebuffer_soft_del((struct akgl_framebuffer_soft*)framebuffer);
+}
+
+int akgl_framebuffer_ref(struct akgl_framebuffer *framebuffer) {
+  return akgl_framebuffer_soft_ref((struct akgl_framebuffer_soft*)framebuffer);
+}
+
+int akgl_framebuffer_resize(struct akgl_framebuffer *framebuffer,int w,int h) {
+  return akgl_framebuffer_soft_resize((struct akgl_framebuffer_soft*)framebuffer,w,h);
+}
+
+int akgl_framebuffer_use(struct akgl_framebuffer *framebuffer) {
+  return akgl_framebuffer_soft_use((struct akgl_framebuffer_soft*)framebuffer);
+}
+
+#else
+
 /* Object lifecycle.
  */
 
 struct akgl_framebuffer *akgl_framebuffer_new() {
   if (!akgl.init) return 0;
+
+  switch (akgl.strategy) {
+    case AKGL_STRATEGY_SOFT: return (struct akgl_framebuffer*)akgl_framebuffer_soft_new();
+    case AKGL_STRATEGY_GL2: break;
+    default: return -1;
+  }
+  
   struct akgl_framebuffer *framebuffer=calloc(1,sizeof(struct akgl_framebuffer));
   if (!framebuffer) return 0;
 
   framebuffer->refc=1;
+  framebuffer->magic=AKGL_MAGIC_FRAMEBUFFER_GL2;
 
   glGenTextures(1,&framebuffer->texid);
   if (akgl_get_error()) {
@@ -44,6 +76,10 @@ struct akgl_framebuffer *akgl_framebuffer_new() {
 
 void akgl_framebuffer_del(struct akgl_framebuffer *framebuffer) {
   if (!framebuffer) return;
+  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
+    akgl_framebuffer_soft_del((struct akgl_framebuffer_soft*)framebuffer);
+    return;
+  }
   if (framebuffer->refc-->1) return;
 
   glDeleteFramebuffers(1,&framebuffer->fbid);
@@ -54,6 +90,9 @@ void akgl_framebuffer_del(struct akgl_framebuffer *framebuffer) {
 
 int akgl_framebuffer_ref(struct akgl_framebuffer *framebuffer) {
   if (!framebuffer) return -1;
+  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
+    return akgl_framebuffer_soft_ref((struct akgl_framebuffer_soft*)framebuffer);
+  }
   if (framebuffer->refc<1) return -1;
   if (framebuffer->refc==INT_MAX) return -1;
   framebuffer->refc++;
@@ -65,7 +104,10 @@ int akgl_framebuffer_ref(struct akgl_framebuffer *framebuffer) {
 
 int akgl_framebuffer_resize(struct akgl_framebuffer *framebuffer,int w,int h) {
   if (!framebuffer) return -1;
-  if ((w==framebuffer->w)&&(h==framebuffer->h)) return -1;
+  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
+    return akgl_framebuffer_soft_resize((struct akgl_framebuffer_soft*)framebuffer,w,h);
+  }
+  if ((w==framebuffer->w)&&(h==framebuffer->h)) return 0;
   if ((w<1)||(h<1)) return -1;
 
   glBindTexture(GL_TEXTURE_2D,framebuffer->texid);
@@ -89,6 +131,7 @@ int akgl_framebuffer_resize(struct akgl_framebuffer *framebuffer,int w,int h) {
 
 int akgl_framebuffer_use(struct akgl_framebuffer *framebuffer) {
   if (framebuffer==akgl.framebuffer) return 0;
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) return akgl_framebuffer_soft_use((struct akgl_framebuffer_soft*)framebuffer);
   if (framebuffer) {
     glBindFramebuffer(GL_FRAMEBUFFER,framebuffer->fbid);
     //glViewport(-8,-8,framebuffer->w+8,framebuffer->h+8);
@@ -106,3 +149,5 @@ int akgl_framebuffer_use(struct akgl_framebuffer *framebuffer) {
   akgl.framebuffer=framebuffer;
   return 0;
 }
+
+#endif

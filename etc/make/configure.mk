@@ -41,6 +41,7 @@ export PS_GLSL_VERSION:=120
 # These must be set by configuration (OBJC only for MacOS):
 CC:=
 OBJC:=
+AR:=
 LD:=
 LDPOST:=
 export OPT_ENABLE:=

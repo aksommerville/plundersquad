@@ -1,5 +1,15 @@
 #include "akgl_internal.h"
 
+#if PS_NO_OPENGL2
+
+struct akgl_program *akgl_program_mintile_new() { return 0; }
+
+int akgl_program_mintile_draw(struct akgl_program *program,struct akgl_texture *texture,const struct akgl_vtx_mintile *vtxv,int vtxc,int size) {
+  return akgl_soft_mintile_draw(texture,vtxv,vtxc,size);
+}
+
+#else
+
 /* GLSL.
  */
 
@@ -56,6 +66,11 @@ struct akgl_program *akgl_program_mintile_new() {
  */
  
 int akgl_program_mintile_draw(struct akgl_program *program,struct akgl_texture *texture,const struct akgl_vtx_mintile *vtxv,int vtxc,int size) {
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return akgl_soft_mintile_draw(texture,vtxv,vtxc,size);
+  }
+
   if (!program||!texture) return -1;
   if (vtxc<1) return 0;
   if (!vtxv) return -1;
@@ -90,3 +105,5 @@ int akgl_program_mintile_draw(struct akgl_program *program,struct akgl_texture *
 
   return 0;
 }
+
+#endif

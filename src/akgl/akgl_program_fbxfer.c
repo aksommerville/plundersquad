@@ -1,5 +1,15 @@
 #include "akgl_internal.h"
 
+#if PS_NO_OPENGL2
+
+struct akgl_program *akgl_program_fbxfer_new() { return 0; }
+
+int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffer *framebuffer,int x,int y,int w,int h) {
+  return akgl_soft_fbxfer_draw((struct akgl_framebuffer_soft*)framebuffer,x,y,w,h);
+}
+
+#else
+
 /* GLSL.
  */
 
@@ -58,6 +68,11 @@ struct akgl_program *akgl_program_fbxfer_new() {
  */
 
 int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffer *framebuffer,int x,int y,int w,int h) {
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return akgl_soft_fbxfer_draw((struct akgl_framebuffer_soft*)framebuffer,x,y,w,h);
+  }
+
   if (!program||!framebuffer) return -1;
   if ((w<1)||(h<1)) return 0;
   
@@ -85,3 +100,5 @@ int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffe
 
   return 0;
 }
+
+#endif

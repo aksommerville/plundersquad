@@ -28,6 +28,9 @@
 #if PS_USE_glx
   #include "opt/glx/ps_glx.h"
 #endif
+#if PS_USE_mswm
+  #include "opt/mswm/ps_mswm.h"
+#endif
 
 /* Globals.
  */
@@ -43,7 +46,7 @@ static struct ps_gui *ps_gui=0;
 static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   int i;
 
-  if (0) { // Normal interactive setup.
+  if (1) { // Normal interactive setup.
     return 0;
   }
 
@@ -127,6 +130,9 @@ static int ps_main_init_input(const struct ps_cmdline *cmdline) {
   #endif
   #if PS_USE_glx
     if (ps_glx_connect_input()<0) return -1;
+  #endif
+  #if PS_USE_mswm
+    if (ps_mswm_connect_input()<0) return -1;
   #endif
 
   /* Load configuration and take it live. */
@@ -268,6 +274,8 @@ static void ps_main_quit() {
  */
 
 static int ps_main_update() {
+  //ps_log(MAIN,TRACE,"%s",__func__);
+  
   if (ps_input_update()<0) return -1;
 
   if (ps_input_termination_requested()) {

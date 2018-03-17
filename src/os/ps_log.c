@@ -27,6 +27,9 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(EVDEV         ,TRACE)
   _(GLX           ,TRACE)
   _(RESPACK       ,TRACE)
+  _(MSWM          ,TRACE)
+  _(MSAUDIO       ,TRACE)
+  _(MSHID         ,TRACE)
 #undef _
 };
 

@@ -7,3 +7,10 @@
   ...update: it's not the strawberry
 - Investigate image filtering -- Observed much smaller output WITHOUT filter, that doesn't seem right.
 - Another freeze at quit on Linux. ALSA?
+
+Windows target
+- Skip decoding audio resources if disabled
+- Re-enable opengl init in ps_video_global.c
+- Software opengl emulation
+- audio
+- input

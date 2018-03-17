@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "os/ps_ioc.h"
 #include "os/ps_clockassist.h"
+#include "akgl/akgl.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -61,6 +62,12 @@ static int ps_genioc_default_cmdline(struct ps_cmdline *cmdline) {
     "~/plundersquad/config/input.cfg"
   );
 
+  #if PS_NO_OPENGL2
+    cmdline->akgl_strategy=AKGL_STRATEGY_SOFT;
+  #else
+    cmdline->akgl_strategy=AKGL_STRATEGY_GL2;
+  #endif
+
   return 0;
 }
 
@@ -79,6 +86,9 @@ static int ps_genioc_read_cmdline(struct ps_cmdline *cmdline,int argc,char **arg
       
     } else if (!strcmp(arg,"--fullscreen")) {
       cmdline->fullscreen=1;
+
+    } else if (!strcmp(arg,"--soft-render")) {
+      cmdline->akgl_strategy=AKGL_STRATEGY_SOFT;
     
     } else if (arg[0]=='-') {
       ps_log(,ERROR,"Unexpected option '%s'",arg);

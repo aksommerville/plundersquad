@@ -1,5 +1,15 @@
 #include "akgl_internal.h"
 
+#if PS_NO_OPENGL2
+
+struct akgl_program *akgl_program_tex_new() { return 0; }
+
+int akgl_program_tex_draw(struct akgl_program *program,struct akgl_texture *texture,const struct akgl_vtx_tex *vtxv,int vtxc) {
+  return akgl_soft_tex_draw(texture,vtxv,vtxc);
+}
+
+#else
+
 /* GLSL.
  */
 
@@ -53,6 +63,11 @@ struct akgl_program *akgl_program_tex_new() {
  */
  
 int akgl_program_tex_draw(struct akgl_program *program,struct akgl_texture *texture,const struct akgl_vtx_tex *vtxv,int vtxc) {
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return akgl_soft_tex_draw(texture,vtxv,vtxc);
+  }
+
   if (!program||!texture) return -1;
   if (vtxc<1) return 0;
   if (!vtxv) return -1;
@@ -73,3 +88,5 @@ int akgl_program_tex_draw(struct akgl_program *program,struct akgl_texture *text
 
   return 0;
 }
+
+#endif

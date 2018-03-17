@@ -20,6 +20,7 @@ struct ps_cmdline {
   const char *resources_path; // REQUIRED.
   const char *input_config_path; // REQUIRED.
   int fullscreen;
+  int akgl_strategy;
 };
 
 struct ps_ioc_delegate {

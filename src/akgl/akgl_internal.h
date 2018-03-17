@@ -3,6 +3,7 @@
 
 #include "ps.h"
 #include "akgl.h"
+#include "soft/akgl_soft.h"
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
@@ -27,8 +28,15 @@
   #endif
 #endif
 
+#define AKGL_MAGIC_FRAMEBUFFER_SOFT   1
+#define AKGL_MAGIC_FRAMEBUFFER_GL2    2
+#define AKGL_MAGIC_PROGRAM_SOFT       3
+#define AKGL_MAGIC_PROGRAM_GL2        4
+#define AKGL_MAGIC_TEXTURE            5
+
 struct akgl_texture {
   int refc;
+  int magic;
   GLuint texid;
   int w,h;
   int fmt;
@@ -38,6 +46,7 @@ struct akgl_texture {
 
 struct akgl_framebuffer {
   int refc;
+  int magic;
   GLuint fbid;
   GLuint texid;
   int w,h;
@@ -47,6 +56,7 @@ struct akgl_framebuffer {
 
 struct akgl_program {
   int refc;
+  int magic;
   GLuint programid;
   GLuint location_screensize;
   GLuint location_tilesize;
@@ -54,8 +64,22 @@ struct akgl_program {
   int error_logc;
 };
 
+struct akgl_framebuffer_soft {
+  int refc;
+  int magic;
+  int w,h;
+  uint32_t *pixels;
+  GLuint texid;
+};
+
+struct akgl_program_soft {
+  int refc;
+  int magic;
+};
+
 extern struct akgl {
   int init;
+  int strategy;
   int glsl_version;
   int screenw,screenh;
   struct akgl_framebuffer *framebuffer;

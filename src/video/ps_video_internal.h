@@ -25,6 +25,8 @@
   #include "opt/bcm/ps_bcm.h"
 #elif PS_USE_glx
   #include "opt/glx/ps_glx.h"
+#elif PS_USE_mswm
+  #include "opt/mswm/ps_mswm.h"
 #else
   #error "No video provider unit enabled."
 #endif

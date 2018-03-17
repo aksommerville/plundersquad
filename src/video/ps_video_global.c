@@ -13,20 +13,33 @@ extern const char ps_appicon[];
 /* Initialize akgl and the associated objects.
  */
 
-static int ps_video_init_akgl() {
-  if (akgl_init()<0) return -1;
+static int ps_video_init_akgl(int strategy) {
+
+  if (akgl_init(strategy)<0) return -1;
+
   if (akgl_set_screen_size(ps_video.winw,ps_video.winh)<0) return -1;
   if (akgl_set_glsl_version(PS_GLSL_VERSION)<0) return -1;
-
+  
   if (!(ps_video.framebuffer=akgl_framebuffer_new())) return -1;
   if (akgl_framebuffer_resize(ps_video.framebuffer,PS_SCREENW,PS_SCREENH)<0) return -1;
 
-  if (!(ps_video.program_raw=akgl_program_raw_new())) return -1;
-  if (!(ps_video.program_fbxfer=akgl_program_fbxfer_new())) return -1;
-  if (!(ps_video.program_tex=akgl_program_tex_new())) return -1;
-  if (!(ps_video.program_mintile=akgl_program_mintile_new())) return -1;
-  if (!(ps_video.program_maxtile=akgl_program_maxtile_new())) return -1;
-  if (!(ps_video.program_textile=akgl_program_textile_new())) return -1;
+  switch (strategy) {
+
+    case AKGL_STRATEGY_SOFT: {
+      } break;
+
+    case AKGL_STRATEGY_GL2: {
+        // In hindsight, ownership of program objects should have been akgl's, not the client's.
+        if (!(ps_video.program_raw=akgl_program_raw_new())) return -1;
+        if (!(ps_video.program_fbxfer=akgl_program_fbxfer_new())) return -1;
+        if (!(ps_video.program_tex=akgl_program_tex_new())) return -1;
+        if (!(ps_video.program_mintile=akgl_program_mintile_new())) return -1;
+        if (!(ps_video.program_maxtile=akgl_program_maxtile_new())) return -1;
+        if (!(ps_video.program_textile=akgl_program_textile_new())) return -1;
+      } break;
+
+    default: return -1;
+  }
 
   if (!(ps_video.texture_minfont=akgl_texture_new())) return -1;
   if (ps_video_load_minfont(ps_video.texture_minfont)<0) return -1;
@@ -77,9 +90,16 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
     if (ps_glx_set_icon(ps_appicon,ps_appicon_w,ps_appicon_h)<0) {
       ps_log(VIDEO,ERROR,"Failed to set window icon. Ignoring error.");
     }
+
+  #elif PS_USE_mswm
+    if (ps_mswm_init(ps_video.winw,ps_video.winh,cmdline->fullscreen,"Plunder Squad")<0) {
+      ps_log(VIDEO,ERROR,"Failed to create window.");
+      ps_video_quit();
+      return -1;
+    }
   #endif
 
-  if (ps_video_init_akgl()<0) {
+  if (ps_video_init_akgl(cmdline->akgl_strategy)<0) {
     ps_log(VIDEO,ERROR,"Failed to initialize OpenGL.");
     ps_video_quit();
     return -1;
@@ -116,6 +136,8 @@ void ps_video_quit() {
     ps_bcm_quit();
   #elif PS_USE_glx
     ps_glx_quit();
+  #elif PS_USE_mswm
+    ps_mswm_quit();
   #endif
 
   if (ps_video.vtxv) free(ps_video.vtxv);
@@ -188,6 +210,8 @@ int ps_video_update() {
     if (ps_bcm_swap()<0) return -1;
   #elif PS_USE_glx
     if (ps_glx_swap()<0) return -1;
+  #elif PS_USE_mswm
+    if (ps_mswm_swap()<0) return -1;
   #endif
   
   return 0;
@@ -454,6 +478,8 @@ int ps_video_supports_fullscreen_toggle() {
     return 1;
   #elif PS_USE_macwm
     return 1;
+  #elif PS_USE_mswm
+    return 1;
   #else
     return 0;
   #endif
@@ -465,6 +491,8 @@ int ps_video_toggle_fullscreen() {
     return ps_glx_set_fullscreen(-1);
   #elif PS_USE_macwm
     ps_log(VIDEO,WARN,"TODO: Toggle fullscreen for macwm");
+  #elif PS_USE_mswm
+    ps_log(VIDEO,WARN,"TODO: Toggle fullscreen for mswm");
   #else
     ps_log(VIDEO,WARN,"Requested to toggle fullscreen on platform that doesn't support it.");
   #endif

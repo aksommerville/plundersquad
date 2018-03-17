@@ -1,4 +1,5 @@
 #include "ps_macioc_internal.h"
+#include "akgl/akgl.h"
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -18,7 +19,6 @@ static void ps_macioc_reopen_tty(const char *path) {
 
 /* Set default command line.
  */
-const char *tmptmptmp="";
 
 static int ps_macioc_set_default_cmdline() {
   NSBundle *bundle=[NSBundle mainBundle];
@@ -43,6 +43,8 @@ static int ps_macioc_set_default_cmdline() {
   ps_macioc.cmdline.input_config_path=ps_macioc.inputpath;
   int fd=open(ps_macioc.inputpath,O_RDONLY|O_CREAT,0666); // Force input config file to exist.
   if (fd>=0) close(fd);
+
+  ps_macioc.cmdline.akgl_strategy=AKGL_STRATEGY_GL2;
 
   return 0;
 }
@@ -79,6 +81,9 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
     } else if (!memcmp(arg,"--input=",8)) {
       ps_macioc.cmdline.input_config_path=arg+8;
 
+    } else if (!strcmp(arg,"--soft-render")) {
+      ps_macioc.cmdline.akgl_strategy=AKGL_STRATEGY_SOFT;
+
     } else if (arg[0]=='-') {
       ps_log(MACIOC,ERROR,"Unexpected command line option: %s",arg);
       return 1;
@@ -91,8 +96,6 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
       argp++;
     }
   }
-
-  ps_log(MACIOC,DEBUG,"Executable path: %s",tmptmptmp);
 
   return NSApplicationMain(argc,(const char**)argv);
 }

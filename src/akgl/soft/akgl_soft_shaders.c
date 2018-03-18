@@ -13,10 +13,10 @@ int akgl_soft_fbxfer_draw(struct akgl_framebuffer_soft *fb,int x,int y,int w,int
 
   //TODO vertices for fbxfer
   glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2i(0,0); glVertex2i(-1,-1);
-    glTexCoord2i(0,1); glVertex2i(-1, 1);
-    glTexCoord2i(1,0); glVertex2i( 1,-1);
-    glTexCoord2i(1,1); glVertex2i( 1, 1);
+    glTexCoord2i(0,0); glVertex2i(-1, 1);
+    glTexCoord2i(0,1); glVertex2i(-1,-1);
+    glTexCoord2i(1,0); glVertex2i( 1, 1);
+    glTexCoord2i(1,1); glVertex2i( 1,-1);
   glEnd();
 
   if (akgl_clear_error()) {
@@ -34,7 +34,22 @@ int akgl_soft_maxtile_draw(struct akgl_texture *texture,const struct akgl_vtx_ma
   if (!texture||!vtxv) return -1;
   if (!akgl.framebuffer) return -1;
   if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
-  //TODO maxtile
+  if (texture->magic!=AKGL_MAGIC_TEXTURE_SOFT) return -1;
+  struct akgl_texture_soft *src=(struct akgl_texture_soft*)texture;
+  struct akgl_framebuffer_soft *dst=(struct akgl_framebuffer_soft*)akgl.framebuffer;
+
+  int srccolw=src->w>>4;
+  int srcrowh=src->h>>4;
+
+  for (;vtxc--;vtxv++) {
+    int srcx=srccolw*(vtxv->tileid&0x0f);
+    int srcy=srcrowh*(vtxv->tileid>>4);
+    int dstx=vtxv->x-(vtxv->size>>1);
+    int dsty=vtxv->y-(vtxv->size>>1);
+    //TODO maxtile: primary, tint, rotation, xform
+    if (akgl_framebuffer_soft_blit(dst,dstx,dsty,vtxv->size,vtxv->size,src,srcx,srcy,srccolw,srcrowh)<0) return -1;
+  }
+
   return 0;
 }
 
@@ -47,7 +62,22 @@ int akgl_soft_mintile_draw(struct akgl_texture *texture,const struct akgl_vtx_mi
   if (!texture||!vtxv) return -1;
   if (!akgl.framebuffer) return -1;
   if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
-  //TODO mintile
+  if (texture->magic!=AKGL_MAGIC_TEXTURE_SOFT) return -1;
+  struct akgl_texture_soft *src=(struct akgl_texture_soft*)texture;
+  struct akgl_framebuffer_soft *dst=(struct akgl_framebuffer_soft*)akgl.framebuffer;
+
+  int srccolw=src->w>>4;
+  int srcrowh=src->h>>4;
+  int halfsize=size>>1;
+
+  for (;vtxc-->0;vtxv++) {
+    int dstx=vtxv->x-halfsize;
+    int dsty=vtxv->y-halfsize;
+    int srcx=(vtxv->tileid&0x0f)*srccolw;
+    int srcy=(vtxv->tileid>>4)*srcrowh;
+    if (akgl_framebuffer_soft_blit(dst,dstx,dsty,size,size,src,srcx,srcy,srccolw,srcrowh)<0) return -1;
+  }
+  
   return 0;
 }
 
@@ -180,8 +210,27 @@ int akgl_soft_tex_draw(struct akgl_texture *tex,const struct akgl_vtx_tex *vtxv,
 int akgl_soft_textile_draw(struct akgl_texture *tex,const struct akgl_vtx_textile *vtxv,int vtxc) {
   if (vtxc<1) return 0;
   if (!tex||!vtxv) return -1;
+  if (tex->magic!=AKGL_MAGIC_TEXTURE_SOFT) return -1;
   if (!akgl.framebuffer) return -1;
   if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
-  //TODO textile
+  struct akgl_texture_soft *src=(struct akgl_texture_soft*)tex;
+  struct akgl_framebuffer_soft *dst=(struct akgl_framebuffer_soft*)akgl.framebuffer;
+
+  int srccolw=src->w>>4;
+  int srcrowh=src->h>>4;
+
+  for (;vtxc-->0;vtxv++) {
+    int dsth=vtxv->size;
+    int dstw=dsth>>1;
+    int dstx=vtxv->x-(dstw>>1);
+    int dsty=vtxv->y-(dsth>>1);
+    int srcx=srccolw*(vtxv->tileid&0x0f);
+    int srcy=srcrowh*(vtxv->tileid>>4);
+    uint32_t rgba=(vtxv->r<<24)|(vtxv->g<<16)|(vtxv->b<<8)|vtxv->a;
+    if (akgl_framebuffer_soft_blit_replacergb(
+      dst,dstx,dsty,dstw,dsth,src,srcx,srcy,srccolw,srcrowh,rgba
+    )<0) return -1;
+  }
+  
   return 0;
 }

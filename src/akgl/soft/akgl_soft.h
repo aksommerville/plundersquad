@@ -7,8 +7,40 @@
 #ifndef AKGL_SOFT_H
 #define AKGL_SOFT_H
 
+struct akgl_texture_soft;
 struct akgl_framebuffer_soft;
 struct akgl_program_soft;
+
+/* Texture.
+ *********************************************************/
+
+struct akgl_texture_soft *akgl_texture_soft_new();
+void akgl_texture_soft_del(struct akgl_texture_soft *tex);
+int akgl_texture_soft_ref(struct akgl_texture_soft *tex);
+
+int akgl_texture_soft_get_fmt(const struct akgl_texture_soft *tex);
+int akgl_texture_soft_get_size(int *w,int *h,const struct akgl_texture_soft *tex);
+
+struct akgl_texture_soft *akgl_texture_soft_from_framebuffer(struct akgl_framebuffer_soft *fb);
+
+int akgl_texture_soft_load(
+  struct akgl_texture_soft *tex,
+  const void *pixels,
+  int fmt,int w,int h
+);
+
+int akgl_texture_soft_realloc(
+  struct akgl_texture_soft *tex,
+  int fmt,int w,int h
+);
+
+int akgl_texture_soft_load_sub(
+  struct akgl_texture_soft *tex,
+  const void *pixels,
+  int x,int y,int w,int h
+);
+
+int akgl_fmt_get_pixel_size(int fmt);
 
 /* Framebuffer.
  *********************************************************/
@@ -18,6 +50,17 @@ void akgl_framebuffer_soft_del(struct akgl_framebuffer_soft *fb);
 int akgl_framebuffer_soft_ref(struct akgl_framebuffer_soft *fb);
 int akgl_framebuffer_soft_resize(struct akgl_framebuffer_soft *fb,int w,int h);
 int akgl_framebuffer_soft_use(struct akgl_framebuffer_soft *fb);
+
+int akgl_framebuffer_soft_blit(
+  struct akgl_framebuffer_soft *dst,int dstx,int dsty,int dstw,int dsth,
+  const struct akgl_texture_soft *src,int srcx,int srcy,int srcw,int srch
+);
+
+int akgl_framebuffer_soft_blit_replacergb(
+  struct akgl_framebuffer_soft *dst,int dstx,int dsty,int dstw,int dsth,
+  const struct akgl_texture_soft *src,int srcx,int srcy,int srcw,int srch,
+  uint32_t rgba
+);
 
 /* Program. (XXX?)
  *********************************************************/

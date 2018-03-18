@@ -32,7 +32,8 @@
 #define AKGL_MAGIC_FRAMEBUFFER_GL2    2
 #define AKGL_MAGIC_PROGRAM_SOFT       3
 #define AKGL_MAGIC_PROGRAM_GL2        4
-#define AKGL_MAGIC_TEXTURE            5
+#define AKGL_MAGIC_TEXTURE_SOFT       5
+#define AKGL_MAGIC_TEXTURE_GL2        6
 
 struct akgl_texture {
   int refc;
@@ -75,6 +76,13 @@ struct akgl_framebuffer_soft {
 struct akgl_program_soft {
   int refc;
   int magic;
+};
+
+struct akgl_texture_soft {
+  int refc;
+  int magic;
+  int w,h,fmt;
+  void *pixels;
 };
 
 extern struct akgl {

@@ -47,6 +47,14 @@
 #define PS_LOG_LEVEL_FATAL         6
 #define PS_LOG_LEVEL_SILENT        7
 
+/* On Windows, stderr doesn't flush on newline.
+ */
+#if PS_ARCH==PS_ARCH_mswin
+  #define PS_FLUSH_LOG fflush(stderr);
+#else
+  #define PS_FLUSH_LOG
+#endif
+
 /* Use this function-like macro for normal logging.
  */
 #define ps_log(domaintag,leveltag,fmt,...) ({ \
@@ -58,6 +66,7 @@
       ##__VA_ARGS__, \
       ps_log_faint_color(),__FILE__,__LINE__,ps_log_no_color() \
     ); \
+    PS_FLUSH_LOG \
     1; \
   } else { \
     0; \

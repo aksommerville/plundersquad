@@ -5,10 +5,16 @@
 
 struct akgl_texture *akgl_texture_new() {
   if (!akgl.init) return 0;
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return (struct akgl_texture*)akgl_texture_soft_new();
+  }
+  
   struct akgl_texture *texture=calloc(1,sizeof(struct akgl_texture));
   if (!texture) return 0;
 
   texture->refc=1;
+  texture->magic=AKGL_MAGIC_TEXTURE_GL2;
   glGenTextures(1,&texture->texid);
   if (akgl_clear_error()) {
     free(texture);
@@ -30,6 +36,11 @@ struct akgl_texture *akgl_texture_new() {
 
 struct akgl_texture *akgl_texture_from_framebuffer(struct akgl_framebuffer *framebuffer) {
   if (!framebuffer) return 0;
+
+  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
+    return (struct akgl_texture*)akgl_texture_soft_from_framebuffer((struct akgl_framebuffer_soft*)framebuffer);
+  }
+  
   struct akgl_texture *texture=calloc(1,sizeof(struct akgl_texture));
   if (!texture) return 0;
 
@@ -46,6 +57,10 @@ struct akgl_texture *akgl_texture_from_framebuffer(struct akgl_framebuffer *fram
 
 void akgl_texture_del(struct akgl_texture *texture) {
   if (!texture) return;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) {
+    akgl_texture_soft_del((struct akgl_texture_soft*)texture);
+    return;
+  }
   if (texture->refc-->1) return;
 
   if (texture->parent) {
@@ -59,6 +74,7 @@ void akgl_texture_del(struct akgl_texture *texture) {
 
 int akgl_texture_ref(struct akgl_texture *texture) {
   if (!texture) return -1;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_ref((struct akgl_texture_soft*)texture);
   if (texture->refc<1) return -1;
   if (texture->refc==INT_MAX) return -1;
   texture->refc++;
@@ -70,12 +86,14 @@ int akgl_texture_ref(struct akgl_texture *texture) {
 
 int akgl_texture_get_fmt(const struct akgl_texture *texture) {
   if (!texture) return 0;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_get_fmt((struct akgl_texture_soft*)texture);
   if (texture->parent) return texture->parent->fmt;
   return texture->fmt;
 }
 
 int akgl_texture_get_size(int *w,int *h,const struct akgl_texture *texture) {
   if (!texture) return -1;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_get_size(w,h,(struct akgl_texture_soft*)texture);
   if (w) *w=texture->parent?texture->parent->w:texture->w;
   if (h) *h=texture->parent?texture->parent->h:texture->h;
   return 0;
@@ -83,6 +101,7 @@ int akgl_texture_get_size(int *w,int *h,const struct akgl_texture *texture) {
 
 int akgl_texture_get_filter(const struct akgl_texture *texture) {
   if (!texture) return 0;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return 0;
   if (texture->parent) return texture->parent->filter;
   return texture->filter;
 }
@@ -92,6 +111,7 @@ int akgl_texture_get_filter(const struct akgl_texture *texture) {
 
 int akgl_texture_set_filter(struct akgl_texture *texture,int filter) {
   if (!texture) return -1;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return 0;
   filter=filter?1:0;
   if (texture->parent) {
     if (texture->parent->filter==filter) return 0;
@@ -125,6 +145,7 @@ int akgl_texture_load(
   int fmt,int w,int h
 ) {
   if (!texture) return -1;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_load((struct akgl_texture_soft*)texture,pixels,fmt,w,h);
   if (texture->parent) return -1;
   if (!pixels) return -1;
   if ((w<1)||(h<1)) return -1;
@@ -150,6 +171,7 @@ int akgl_texture_realloc(
   int fmt,int w,int h
 ) {
   if (!texture) return -1;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_realloc((struct akgl_texture_soft*)texture,fmt,w,h);
   if (texture->parent) return -1;
   if ((w<1)||(h<1)) return -1;
   glBindTexture(GL_TEXTURE_2D,texture->texid);
@@ -175,6 +197,7 @@ int akgl_texture_load_sub(
   int x,int y,int w,int h
 ) {
   if (!texture) return -1;
+  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_load_sub((struct akgl_texture_soft*)texture,pixels,x,y,w,h);
   if (texture->parent) return -1;
   if (!pixels) return -1;
   if ((w<1)||(h<1)) return -1;
@@ -200,6 +223,7 @@ int akgl_texture_load_sub(
 
 int akgl_texture_use(struct akgl_texture *texture) {
   if (texture) {
+    if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return 0;
     #if PS_ARCH!=PS_ARCH_raspi
       glEnable(GL_TEXTURE_2D);
     #endif

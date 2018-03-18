@@ -7,16 +7,22 @@ int akgl_soft_fbxfer_draw(struct akgl_framebuffer_soft *fb,int x,int y,int w,int
   if (!fb) return -1;
   if (fb->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
 
+  glViewport(0,0,akgl.screenw,akgl.screenh);
+
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D,fb->texid);
   glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,fb->w,fb->h,0,GL_RGBA,GL_UNSIGNED_BYTE,fb->pixels);
 
-  //TODO vertices for fbxfer
+  double dstl=(x*2.0)/akgl.screenw-1.0;
+  double dstr=((x+w)*2.0)/akgl.screenw-1.0;
+  double dstb=(y*2.0)/akgl.screenh-1.0;
+  double dstt=((y+h)*2.0)/akgl.screenh-1.0;
+
   glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2i(0,0); glVertex2i(-1, 1);
-    glTexCoord2i(0,1); glVertex2i(-1,-1);
-    glTexCoord2i(1,0); glVertex2i( 1, 1);
-    glTexCoord2i(1,1); glVertex2i( 1,-1);
+    glTexCoord2i(0,0); glVertex2f(dstl,dstt);
+    glTexCoord2i(0,1); glVertex2f(dstl,dstb);
+    glTexCoord2i(1,0); glVertex2f(dstr,dstt);
+    glTexCoord2i(1,1); glVertex2f(dstr,dstb);
   glEnd();
 
   if (akgl_clear_error()) {

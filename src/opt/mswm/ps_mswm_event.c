@@ -1,10 +1,90 @@
 #include "ps_mswm_internal.h"
+#include "video/ps_video.h"
+
+/* Window resized.
+ */
+
+static int ps_mswm_cb_resize(int hint,int w,int h) {
+  ps_mswm.winw=w;
+  ps_mswm.winh=h;
+  if (ps_video_resized(w,h)<0) return -1;
+  return 0;
+}
+
+/* Activate.
+ */
+
+static int ps_mswm_cb_activate(int state) {
+  ps_log(MSWM,TRACE,"%s %d",__func__,state);
+  //TODO Should we do something on window focus, like pause the game?
+  return 0;
+}
+
+/* Keyboard.
+ */
+
+static int ps_mswm_evt_key(WPARAM wparam,LPARAM lparam) {
+  //ps_log(MSWM,TRACE,"%s %d %d",__func__,wparam,lparam);
+  int value;
+  if (lparam&0x80000000) { // up
+    value=0;
+  } else if (lparam&0x40000000) { // repeat
+    value=2;
+  } else { // down
+    value=1;
+  }
+  if (ps_input_event_button(ps_mswm.dev_keyboard,wparam,value)<0) return -1;
+  if (ps_input_event_key(wparam,0,value)<0) return -1;
+  return 0;
+}
+
+static int ps_mswm_evt_char(int codepoint,int lparam) {
+  //ps_log(MSWM,TRACE,"%s U+%x [%08x]",__func__,codepoint,lparam);
+  int value;
+  if (lparam&0x80000000) return 0;
+  if (lparam&0x40000000) {
+    value=2;
+  } else {
+    value=1;
+  }
+  if (ps_input_event_key(0,codepoint,value)<0) return -1;
+  return 0;
+}
+
+/* Mouse.
+ */
+
+static int ps_mswm_evt_mbtn(int btnid,int state) {
+  //ps_log(MSWM,TRACE,"%s %d=%d",__func__,btnid,state);
+  if (ps_input_event_mbutton(btnid,state)<0) return -1;
+  return 0;
+}
+
+static int ps_mswm_evt_mwheel(int dx,int dy) {
+  ps_log(MSWM,TRACE,"%s %+d,%+d",__func__,dx,dy);
+  if (ps_input_event_mwheel(dx,dy)<0) return -1;
+  return 0;
+}
+
+static int ps_mswm_evt_mmove(int x,int y) {
+  //ps_log(MSWM,TRACE,"%s %d,%d",__func__,x,y);
+  if (ps_input_event_mmotion(x,y)<0) return -1;
+  return 0;
+}
+
+/* Raw input.
+ */
+
+static int ps_mswm_evt_raw(WPARAM wparam,LPARAM lparam) {//TODO
+  ps_log(MSWM,TRACE,"%s %d %d",__func__,wparam,lparam);
+  return 0;
+}
 
 /* Receive event.
  */
 
 LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
-  ps_log(MSWM,TRACE,"%s %d %d %d",__func__,msg,wparam,lparam);
+  //ps_log(MSWM,TRACE,"%s %d %d %d",__func__,msg,wparam,lparam);
   switch (msg) {
   
     case WM_CREATE: {
@@ -21,7 +101,7 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
     case WM_QUIT:
     case WM_CLOSE: break;
 
-    #if 0//TODO copied from skeleton/wingdi
+    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
     case WM_SIZE: {
         if (hwnd!=ps_mswm.hwnd) return 0;
         if (ps_mswm_cb_resize(wparam,LOWORD(lparam),HIWORD(lparam))<0) return -1;
@@ -35,7 +115,7 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
       } return 0;
 
     case WM_CHAR: {
-        skeleton_log_debug("WM_CHAR U+%x",wparam);//TODO input
+        if (ps_mswm_evt_char(wparam,lparam)<0) return -1;
       } return 0;
 
     case WM_SYSKEYDOWN:
@@ -45,20 +125,20 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
         return ps_mswm_evt_key(wparam,lparam);
       }
 
-    case WM_LBUTTONDOWN: return ps_mswm_evt_mbtn(SKELETON_MBTN_LEFT,1);
-    case WM_LBUTTONUP: return ps_mswm_evt_mbtn(SKELETON_MBTN_LEFT,0);
-    case WM_MBUTTONDOWN: return ps_mswm_evt_mbtn(SKELETON_MBTN_MIDDLE,1);
-    case WM_MBUTTONUP: return ps_mswm_evt_mbtn(SKELETON_MBTN_MIDDLE,0);
-    case WM_RBUTTONDOWN: return ps_mswm_evt_mbtn(SKELETON_MBTN_RIGHT,1);
-    case WM_RBUTTONUP: return ps_mswm_evt_mbtn(SKELETON_MBTN_RIGHT,0);
+    case WM_LBUTTONDOWN: return ps_mswm_evt_mbtn(1,1);
+    case WM_LBUTTONUP: return ps_mswm_evt_mbtn(1,0);
+    case WM_MBUTTONDOWN: return ps_mswm_evt_mbtn(2,1);
+    case WM_MBUTTONUP: return ps_mswm_evt_mbtn(2,0);
+    case WM_RBUTTONDOWN: return ps_mswm_evt_mbtn(3,1);
+    case WM_RBUTTONUP: return ps_mswm_evt_mbtn(3,0);
 
+    //TODO Mouse wheel events for windows.
     case WM_MOUSEHWHEEL: return ps_mswm_evt_mwheel(((signed int)wparam)>>16,0);
     case WM_MOUSEWHEEL: return ps_mswm_evt_mwheel(0,((signed int)wparam)>>16);
 
     case WM_MOUSEMOVE: return ps_mswm_evt_mmove(LOWORD(lparam),HIWORD(lparam));
 
-    case WM_INPUT: return ps_mswm_raw_input(wparam,lparam);
-    #endif
+    case WM_INPUT: return ps_mswm_evt_raw(wparam,lparam);
 
   }
   return DefWindowProc(hwnd,msg,wparam,lparam);

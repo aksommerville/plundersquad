@@ -251,7 +251,10 @@ int ps_game_renderer_begin_slide(struct ps_game_renderer *renderer,int dx,int dy
 
   if (ps_game_renderer_remove_heroes(renderer,game)<0) return -1;
   renderer->drawing_for_capture=1;
-  if (ps_video_draw_to_framebuffer()<0) return -1;
+  if (ps_video_draw_to_framebuffer()<0) {
+    ps_log(VIDEO,ERROR,"Draw to framebuffer failed.");
+    return -1;
+  }
   renderer->drawing_for_capture=0;
   if (ps_game_renderer_restore_heroes(renderer,game)<0) return -1;
   if (!(renderer->capture=ps_video_capture_framebuffer())) return -1;

@@ -53,7 +53,10 @@ int akgl_soft_maxtile_draw(struct akgl_texture *texture,const struct akgl_vtx_ma
     int dstx=vtxv->x-(vtxv->size>>1);
     int dsty=vtxv->y-(vtxv->size>>1);
     //TODO maxtile: primary, tint, rotation, xform
-    if (akgl_framebuffer_soft_blit(dst,dstx,dsty,vtxv->size,vtxv->size,src,srcx,srcy,srccolw,srcrowh)<0) return -1;
+    if (akgl_framebuffer_soft_blit(dst,dstx,dsty,vtxv->size,vtxv->size,src,srcx,srcy,srccolw,srcrowh)<0) {
+      ps_log(VIDEO,ERROR,"Blit failed?");
+      return -1;
+    }
   }
 
   return 0;

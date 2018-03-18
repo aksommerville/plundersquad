@@ -190,7 +190,10 @@ int ps_video_update() {
   /* Draw scene into the framebuffer. */
   if (akgl_framebuffer_use(ps_video.framebuffer)<0) return -1;
   
-  if (ps_video_draw_layers(0)<0) return -1;
+  if (ps_video_draw_layers(0)<0) {
+    ps_log(VIDEO,ERROR,"Failed to render content layers.");
+    return -1;
+  }
   
   if (akgl_framebuffer_use(0)<0) return -1;
   

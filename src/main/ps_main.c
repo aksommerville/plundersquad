@@ -2,6 +2,7 @@
 #include "os/ps_ioc.h"
 #include "os/ps_fs.h"
 #include "os/ps_emergency_abort.h"
+#include "util/ps_perfmon.h"
 #include "video/ps_video.h"
 #include "input/ps_input.h"
 #include "input/ps_input_button.h"
@@ -37,6 +38,7 @@
 
 static struct ps_game *ps_game=0;
 static struct ps_gui *ps_gui=0;
+static struct ps_perfmon *ps_perfmon=0;
 
 /* Setup for quick testing during development.
  * This is called whenever no saved game was requested.
@@ -189,6 +191,9 @@ static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
 static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
+  ps_perfmon=ps_perfmon_new();
+  ps_perfmon_set_autolog(ps_perfmon,5000000);
+
   if (PS_B_TO_SWAP_INPUT) {
     ps_log(MAIN,WARNING,"Press B to swap input -- Do not leave this enabled in production builds!");
   }
@@ -226,6 +231,8 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
       if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
     }
   }
+
+  ps_perfmon_finish_load(ps_perfmon);
   
   return 0;
 }
@@ -235,6 +242,7 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
 
 static void ps_main_quit() {
   ps_log(MAIN,TRACE,"%s",__func__);
+  ps_perfmon_begin_quit(ps_perfmon);
   ps_emergency_abort_set(3000000);
 
   #if PS_AKAU_ENABLE
@@ -266,7 +274,9 @@ static void ps_main_quit() {
     ps_emergency_abort_set_message("Shutting down Linux input (evdev).");
     ps_evdev_quit();
   #endif
-  
+
+  ps_perfmon_del(ps_perfmon);
+  ps_perfmon=0;
   ps_emergency_abort_set_message("Application shutdown complete.");
 }
 
@@ -275,6 +285,8 @@ static void ps_main_quit() {
 
 static int ps_main_update() {
   //ps_log(MAIN,TRACE,"%s",__func__);
+
+  ps_perfmon_update(ps_perfmon);
   
   if (ps_input_update()<0) return -1;
 
@@ -300,8 +312,12 @@ static int ps_main_update() {
       if (ps_game_update(ps_game)<0) return -1;
     }
   }
-  
-  if (ps_video_update()<0) return -1;
+
+  if (ps_video_update()<0) {
+    ps_log(MAIN,ERROR,"Error rendering.");
+    return -1;
+  }
+
   return 0;
 }
 

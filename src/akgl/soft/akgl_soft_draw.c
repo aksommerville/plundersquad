@@ -162,10 +162,11 @@ int akgl_framebuffer_soft_blit(
   const struct akgl_texture_soft *src,int srcx,int srcy,int srcw,int srch
 ) {
   if (!dst||!src) return -1;
-  if (dstx<0) { if ((dstw+=dstx)<1) return 0; }
-  if (dsty<0) { if ((dsth+=dsty)<1) return 0; }
-  if (srcx<0) { if ((srcw+=srcx)<1) return 0; }
-  if (srcy<0) { if ((srch+=srcy)<1) return 0; }
+  //TODO clip strategy assumes equal input and output size
+  if (dstx<0) { if ((dstw+=dstx)<1) return 0; srcw+=dstx; dstx=0; }
+  if (dsty<0) { if ((dsth+=dsty)<1) return 0; srch+=dsty; dsty=0; }
+  if (srcx<0) { if ((srcw+=srcx)<1) return 0; dstw+=srcx; srcx=0; }
+  if (srcy<0) { if ((srch+=srcy)<1) return 0; dsth+=srcy; srcy=0; }
   if (dstx>dst->w-dstw) { if ((dstw=dst->w-dstx)<1) return 0; }
   if (dsty>dst->h-dsth) { if ((dsth=dst->h-dsty)<1) return 0; }
   if (srcx>src->w-srcw) { if ((srcw=src->w-srcx)<1) return 0; }
@@ -208,10 +209,11 @@ int akgl_framebuffer_soft_blit_replacergb(
   uint32_t rgba
 ) {
   if (!dst||!src) return -1;
-  if (dstx<0) { if ((dstw+=dstx)<1) return 0; }
-  if (dsty<0) { if ((dsth+=dsty)<1) return 0; }
-  if (srcx<0) { if ((srcw+=srcx)<1) return 0; }
-  if (srcy<0) { if ((srch+=srcy)<1) return 0; }
+  //TODO clip strategy assumes equal input and output size
+  if (dstx<0) { if ((dstw+=dstx)<1) return 0; srcw+=dstx; dstx=0; }
+  if (dsty<0) { if ((dsth+=dsty)<1) return 0; srch+=dsty; dsty=0; }
+  if (srcx<0) { if ((srcw+=srcx)<1) return 0; dstw+=srcx; srcx=0; }
+  if (srcy<0) { if ((srch+=srcy)<1) return 0; dsth+=srcy; srcy=0; }
   if (dstx>dst->w-dstw) { if ((dstw=dst->w-dstx)<1) return 0; }
   if (dsty>dst->h-dsth) { if ((dsth=dst->h-dsty)<1) return 0; }
   if (srcx>src->w-srcw) { if ((srcw=src->w-srcx)<1) return 0; }

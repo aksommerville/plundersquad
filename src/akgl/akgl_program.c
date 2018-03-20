@@ -3,23 +3,16 @@
 
 #if PS_NO_OPENGL2
 
-struct akgl_program *akgl_program_new() {
-  return (struct akgl_program*)akgl_program_soft_new();
-}
-
-void akgl_program_del(struct akgl_program *program) {
-  return akgl_program_soft_del((struct akgl_program_soft*)program);
-}
-
-int akgl_program_ref(struct akgl_program *program) {
-  return akgl_program_soft_ref((struct akgl_program_soft*)program);
-}
+struct akgl_program *akgl_program_new() { return 0; }
+void akgl_program_del(struct akgl_program *program) { }
+int akgl_program_ref(struct akgl_program *program) { return -1; }
 
 int akgl_program_compile(
   struct akgl_program *program,
   const char *vsrc,int vsrcc,
   const char *fsrc,int fsrcc
 ) { return -1; }
+
 int akgl_program_handoff_error_log(struct akgl_program *program,char *log,int logc) { return -1; }
 int akgl_program_get_error_log(void *dstpp,const struct akgl_program *program) { return -1; }
 int akgl_program_use(struct akgl_program *program) { return -1; }
@@ -38,7 +31,6 @@ struct akgl_program *akgl_program_new() {
   if (!program) return 0;
 
   program->refc=1;
-  program->magic=AKGL_MAGIC_PROGRAM_GL2;
   if (!(program->programid=glCreateProgram())) {
     if (!(program->programid=glCreateProgram())) {
       free(program);

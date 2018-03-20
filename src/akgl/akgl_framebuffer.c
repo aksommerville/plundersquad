@@ -3,23 +3,27 @@
 #if PS_NO_OPENGL2
 
 struct akgl_framebuffer *akgl_framebuffer_new() {
-  return (struct akgl_framebuffer*)akgl_framebuffer_soft_new();
+  return (struct akgl_framebuffer*)ps_sdraw_image_new();
 }
 
 void akgl_framebuffer_del(struct akgl_framebuffer *framebuffer) {
-  akgl_framebuffer_soft_del((struct akgl_framebuffer_soft*)framebuffer);
+  ps_sdraw_image_del((struct ps_sdraw_image*)framebuffer);
 }
 
 int akgl_framebuffer_ref(struct akgl_framebuffer *framebuffer) {
-  return akgl_framebuffer_soft_ref((struct akgl_framebuffer_soft*)framebuffer);
+  return ps_sdraw_image_ref((struct ps_sdraw_image*)framebuffer);
 }
 
 int akgl_framebuffer_resize(struct akgl_framebuffer *framebuffer,int w,int h) {
-  return akgl_framebuffer_soft_resize((struct akgl_framebuffer_soft*)framebuffer,w,h);
+  return ps_sdraw_image_realloc((struct ps_sdraw_image*)framebuffer,PS_SDRAW_FMT_RGBX,w,h);
 }
 
 int akgl_framebuffer_use(struct akgl_framebuffer *framebuffer) {
-  return akgl_framebuffer_soft_use((struct akgl_framebuffer_soft*)framebuffer);
+  if (framebuffer==akgl.framebuffer) return 0;
+  if (framebuffer&&(akgl_framebuffer_ref(framebuffer)<0)) return -1;
+  akgl_framebuffer_del(akgl.framebuffer);
+  akgl.framebuffer=framebuffer;
+  return 0;
 }
 
 #else
@@ -31,7 +35,7 @@ struct akgl_framebuffer *akgl_framebuffer_new() {
   if (!akgl.init) return 0;
 
   switch (akgl.strategy) {
-    case AKGL_STRATEGY_SOFT: return (struct akgl_framebuffer*)akgl_framebuffer_soft_new();
+    case AKGL_STRATEGY_SOFT: return (struct akgl_framebuffer*)ps_sdraw_image_new();
     case AKGL_STRATEGY_GL2: break;
     default: return -1;
   }
@@ -40,7 +44,6 @@ struct akgl_framebuffer *akgl_framebuffer_new() {
   if (!framebuffer) return 0;
 
   framebuffer->refc=1;
-  framebuffer->magic=AKGL_MAGIC_FRAMEBUFFER_GL2;
 
   glGenTextures(1,&framebuffer->texid);
   if (akgl_get_error()) {
@@ -76,8 +79,8 @@ struct akgl_framebuffer *akgl_framebuffer_new() {
 
 void akgl_framebuffer_del(struct akgl_framebuffer *framebuffer) {
   if (!framebuffer) return;
-  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
-    akgl_framebuffer_soft_del((struct akgl_framebuffer_soft*)framebuffer);
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    ps_sdraw_image_del((struct ps_sdraw_image*)framebuffer);
     return;
   }
   if (framebuffer->refc-->1) return;
@@ -90,8 +93,8 @@ void akgl_framebuffer_del(struct akgl_framebuffer *framebuffer) {
 
 int akgl_framebuffer_ref(struct akgl_framebuffer *framebuffer) {
   if (!framebuffer) return -1;
-  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
-    return akgl_framebuffer_soft_ref((struct akgl_framebuffer_soft*)framebuffer);
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return ps_sdraw_image_ref((struct ps_sdraw_image*)framebuffer);
   }
   if (framebuffer->refc<1) return -1;
   if (framebuffer->refc==INT_MAX) return -1;
@@ -104,8 +107,8 @@ int akgl_framebuffer_ref(struct akgl_framebuffer *framebuffer) {
 
 int akgl_framebuffer_resize(struct akgl_framebuffer *framebuffer,int w,int h) {
   if (!framebuffer) return -1;
-  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
-    return akgl_framebuffer_soft_resize((struct akgl_framebuffer_soft*)framebuffer,w,h);
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return ps_sdraw_image_realloc((struct ps_sdraw_image*)framebuffer,PS_SDRAW_FMT_RGBX,w,h);
   }
   if ((w==framebuffer->w)&&(h==framebuffer->h)) return 0;
   if ((w<1)||(h<1)) return -1;
@@ -131,19 +134,22 @@ int akgl_framebuffer_resize(struct akgl_framebuffer *framebuffer,int w,int h) {
 
 int akgl_framebuffer_use(struct akgl_framebuffer *framebuffer) {
   if (framebuffer==akgl.framebuffer) return 0;
-  if (akgl.strategy==AKGL_STRATEGY_SOFT) return akgl_framebuffer_soft_use((struct akgl_framebuffer_soft*)framebuffer);
-  if (framebuffer) {
-    glBindFramebuffer(GL_FRAMEBUFFER,framebuffer->fbid);
-    //glViewport(-8,-8,framebuffer->w+8,framebuffer->h+8);
-    glViewport(0,0,framebuffer->w,framebuffer->h);
-  } else {
-    glBindFramebuffer(GL_FRAMEBUFFER,0);
-    glViewport(0,0,akgl.screenw,akgl.screenh);
+  
+  if (akgl.strategy==AKGL_STRATEGY_GL2) {
+    if (framebuffer) {
+      glBindFramebuffer(GL_FRAMEBUFFER,framebuffer->fbid);
+      //glViewport(-8,-8,framebuffer->w+8,framebuffer->h+8);
+      glViewport(0,0,framebuffer->w,framebuffer->h);
+    } else {
+      glBindFramebuffer(GL_FRAMEBUFFER,0);
+      glViewport(0,0,akgl.screenw,akgl.screenh);
+    }
+    if (akgl_clear_error()) {
+      ps_log(VIDEO,ERROR,"Failed to enter framebuffer %p",framebuffer);
+      return -1;
+    }
   }
-  if (akgl_clear_error()) {
-    ps_log(VIDEO,ERROR,"Failed to enter framebuffer %p",framebuffer);
-    return -1;
-  }
+  
   if (framebuffer&&(akgl_framebuffer_ref(framebuffer)<0)) return -1;
   akgl_framebuffer_del(akgl.framebuffer);
   akgl.framebuffer=framebuffer;

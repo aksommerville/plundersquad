@@ -5,7 +5,7 @@
 struct akgl_program *akgl_program_fbxfer_new() { return 0; }
 
 int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffer *framebuffer,int x,int y,int w,int h) {
-  return akgl_soft_fbxfer_draw((struct akgl_framebuffer_soft*)framebuffer,x,y,w,h);
+  return akgl_soft_fbxfer_draw((struct ps_sdraw_image*)framebuffer,x,y,w,h);
 }
 
 #else
@@ -70,7 +70,7 @@ struct akgl_program *akgl_program_fbxfer_new() {
 int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffer *framebuffer,int x,int y,int w,int h) {
 
   if (akgl.strategy==AKGL_STRATEGY_SOFT) {
-    return akgl_soft_fbxfer_draw((struct akgl_framebuffer_soft*)framebuffer,x,y,w,h);
+    return akgl_soft_fbxfer_draw((struct ps_sdraw_image*)framebuffer,x,y,w,h);
   }
 
   if (!program||!framebuffer) return -1;

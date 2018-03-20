@@ -1,5 +1,18 @@
 #include "akgl_internal.h"
 
+/* Formats against ps_sdraw.
+ */
+
+static int akgl_fmt_to_sdraw(int fmt) {
+  switch (fmt) {
+    case AKGL_FMT_RGB8: return PS_SDRAW_FMT_RGB;
+    case AKGL_FMT_RGBA8: return PS_SDRAW_FMT_RGBA;
+    case AKGL_FMT_A8: return PS_SDRAW_FMT_A;
+    case AKGL_FMT_Y8: return PS_SDRAW_FMT_A;
+  }
+  return -1;
+}
+
 /* Object lifecycle.
  */
 
@@ -7,14 +20,13 @@ struct akgl_texture *akgl_texture_new() {
   if (!akgl.init) return 0;
 
   if (akgl.strategy==AKGL_STRATEGY_SOFT) {
-    return (struct akgl_texture*)akgl_texture_soft_new();
+    return (struct akgl_texture*)ps_sdraw_image_new();
   }
   
   struct akgl_texture *texture=calloc(1,sizeof(struct akgl_texture));
   if (!texture) return 0;
 
   texture->refc=1;
-  texture->magic=AKGL_MAGIC_TEXTURE_GL2;
   glGenTextures(1,&texture->texid);
   if (akgl_clear_error()) {
     free(texture);
@@ -37,8 +49,9 @@ struct akgl_texture *akgl_texture_new() {
 struct akgl_texture *akgl_texture_from_framebuffer(struct akgl_framebuffer *framebuffer) {
   if (!framebuffer) return 0;
 
-  if (framebuffer->magic==AKGL_MAGIC_FRAMEBUFFER_SOFT) {
-    return (struct akgl_texture*)akgl_texture_soft_from_framebuffer((struct akgl_framebuffer_soft*)framebuffer);
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    if (ps_sdraw_image_ref((struct ps_sdraw_image*)framebuffer)<0) return 0;
+    return (struct akgl_texture*)framebuffer;
   }
   
   struct akgl_texture *texture=calloc(1,sizeof(struct akgl_texture));
@@ -57,8 +70,8 @@ struct akgl_texture *akgl_texture_from_framebuffer(struct akgl_framebuffer *fram
 
 void akgl_texture_del(struct akgl_texture *texture) {
   if (!texture) return;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) {
-    akgl_texture_soft_del((struct akgl_texture_soft*)texture);
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    ps_sdraw_image_del((struct ps_sdraw_image*)texture);
     return;
   }
   if (texture->refc-->1) return;
@@ -74,7 +87,7 @@ void akgl_texture_del(struct akgl_texture *texture) {
 
 int akgl_texture_ref(struct akgl_texture *texture) {
   if (!texture) return -1;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_ref((struct akgl_texture_soft*)texture);
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) return ps_sdraw_image_ref((struct ps_sdraw_image*)texture);
   if (texture->refc<1) return -1;
   if (texture->refc==INT_MAX) return -1;
   texture->refc++;
@@ -86,22 +99,34 @@ int akgl_texture_ref(struct akgl_texture *texture) {
 
 int akgl_texture_get_fmt(const struct akgl_texture *texture) {
   if (!texture) return 0;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_get_fmt((struct akgl_texture_soft*)texture);
+  
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) switch (((struct ps_sdraw_image*)texture)->fmt) {
+    case PS_SDRAW_FMT_RGB: return AKGL_FMT_RGB8;
+    case PS_SDRAW_FMT_RGBX: return AKGL_FMT_RGBA8;
+    case PS_SDRAW_FMT_RGBA: return AKGL_FMT_RGBA8;
+    case PS_SDRAW_FMT_A: return AKGL_FMT_A8;
+    default: return 0;
+  }
+
   if (texture->parent) return texture->parent->fmt;
   return texture->fmt;
 }
 
 int akgl_texture_get_size(int *w,int *h,const struct akgl_texture *texture) {
   if (!texture) return -1;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_get_size(w,h,(struct akgl_texture_soft*)texture);
-  if (w) *w=texture->parent?texture->parent->w:texture->w;
-  if (h) *h=texture->parent?texture->parent->h:texture->h;
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    if (w) *w=((struct ps_sdraw_image*)texture)->w;
+    if (h) *h=((struct ps_sdraw_image*)texture)->h;
+  } else {
+    if (w) *w=texture->parent?texture->parent->w:texture->w;
+    if (h) *h=texture->parent?texture->parent->h:texture->h;
+  }
   return 0;
 }
 
 int akgl_texture_get_filter(const struct akgl_texture *texture) {
   if (!texture) return 0;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return 0;
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) return 0;
   if (texture->parent) return texture->parent->filter;
   return texture->filter;
 }
@@ -111,7 +136,7 @@ int akgl_texture_get_filter(const struct akgl_texture *texture) {
 
 int akgl_texture_set_filter(struct akgl_texture *texture,int filter) {
   if (!texture) return -1;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return 0;
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) return 0;
   filter=filter?1:0;
   if (texture->parent) {
     if (texture->parent->filter==filter) return 0;
@@ -145,7 +170,12 @@ int akgl_texture_load(
   int fmt,int w,int h
 ) {
   if (!texture) return -1;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_load((struct akgl_texture_soft*)texture,pixels,fmt,w,h);
+  
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    if ((fmt=akgl_fmt_to_sdraw(fmt))<0) return -1;
+    return ps_sdraw_image_load((struct ps_sdraw_image*)texture,pixels,fmt,w,h);
+  }
+
   if (texture->parent) return -1;
   if (!pixels) return -1;
   if ((w<1)||(h<1)) return -1;
@@ -171,7 +201,12 @@ int akgl_texture_realloc(
   int fmt,int w,int h
 ) {
   if (!texture) return -1;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_realloc((struct akgl_texture_soft*)texture,fmt,w,h);
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    if ((fmt=akgl_fmt_to_sdraw(fmt))<0) return -1;
+    return ps_sdraw_image_realloc((struct ps_sdraw_image*)texture,fmt,w,h);
+  }
+  
   if (texture->parent) return -1;
   if ((w<1)||(h<1)) return -1;
   glBindTexture(GL_TEXTURE_2D,texture->texid);
@@ -197,7 +232,11 @@ int akgl_texture_load_sub(
   int x,int y,int w,int h
 ) {
   if (!texture) return -1;
-  if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return akgl_texture_soft_load_sub((struct akgl_texture_soft*)texture,pixels,x,y,w,h);
+
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return ps_sdraw_image_load_sub((struct ps_sdraw_image*)texture,pixels,x,y,w,h);
+  }
+
   if (texture->parent) return -1;
   if (!pixels) return -1;
   if ((w<1)||(h<1)) return -1;
@@ -223,7 +262,7 @@ int akgl_texture_load_sub(
 
 int akgl_texture_use(struct akgl_texture *texture) {
   if (texture) {
-    if (texture->magic==AKGL_MAGIC_TEXTURE_SOFT) return 0;
+    if (akgl.strategy==AKGL_STRATEGY_SOFT) return 0;
     #if PS_ARCH!=PS_ARCH_raspi
       glEnable(GL_TEXTURE_2D);
     #endif

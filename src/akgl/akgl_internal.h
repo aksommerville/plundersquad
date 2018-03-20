@@ -4,6 +4,7 @@
 #include "ps.h"
 #include "akgl.h"
 #include "soft/akgl_soft.h"
+#include "sdraw/ps_sdraw.h"
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
@@ -28,16 +29,8 @@
   #endif
 #endif
 
-#define AKGL_MAGIC_FRAMEBUFFER_SOFT   1
-#define AKGL_MAGIC_FRAMEBUFFER_GL2    2
-#define AKGL_MAGIC_PROGRAM_SOFT       3
-#define AKGL_MAGIC_PROGRAM_GL2        4
-#define AKGL_MAGIC_TEXTURE_SOFT       5
-#define AKGL_MAGIC_TEXTURE_GL2        6
-
 struct akgl_texture {
   int refc;
-  int magic;
   GLuint texid;
   int w,h;
   int fmt;
@@ -47,7 +40,6 @@ struct akgl_texture {
 
 struct akgl_framebuffer {
   int refc;
-  int magic;
   GLuint fbid;
   GLuint texid;
   int w,h;
@@ -57,32 +49,11 @@ struct akgl_framebuffer {
 
 struct akgl_program {
   int refc;
-  int magic;
   GLuint programid;
   GLuint location_screensize;
   GLuint location_tilesize;
   char *error_log;
   int error_logc;
-};
-
-struct akgl_framebuffer_soft {
-  int refc;
-  int magic;
-  int w,h;
-  uint32_t *pixels;
-  GLuint texid;
-};
-
-struct akgl_program_soft {
-  int refc;
-  int magic;
-};
-
-struct akgl_texture_soft {
-  int refc;
-  int magic;
-  int w,h,fmt;
-  void *pixels;
 };
 
 extern struct akgl {
@@ -91,6 +62,7 @@ extern struct akgl {
   int glsl_version;
   int screenw,screenh;
   struct akgl_framebuffer *framebuffer;
+  GLuint soft_fbtexid;
 } akgl;
 
 void akgl_set_uniform_screen_size(GLuint location);

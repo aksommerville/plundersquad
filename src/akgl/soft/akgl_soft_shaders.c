@@ -3,15 +3,21 @@
 /* fbxfer
  */
  
-int akgl_soft_fbxfer_draw(struct akgl_framebuffer_soft *fb,int x,int y,int w,int h) {
-  if (!fb) return -1;
-  if (fb->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
+int akgl_soft_fbxfer_draw(struct ps_sdraw_image *src,int x,int y,int w,int h) {
+  if (!src) return -1;
+  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return -1;
+  switch (src->fmt) {
+    case PS_SDRAW_FMT_RGBX:
+    case PS_SDRAW_FMT_RGBA:
+      break;
+    default: return -1;
+  }
 
   glViewport(0,0,akgl.screenw,akgl.screenh);
 
   glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D,fb->texid);
-  glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,fb->w,fb->h,0,GL_RGBA,GL_UNSIGNED_BYTE,fb->pixels);
+  glBindTexture(GL_TEXTURE_2D,akgl.soft_fbtexid);
+  glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,src->w,src->h,0,GL_RGBA,GL_UNSIGNED_BYTE,src->pixels);
 
   double dstl=(x*2.0)/akgl.screenw-1.0;
   double dstr=((x+w)*2.0)/akgl.screenw-1.0;
@@ -38,25 +44,16 @@ int akgl_soft_fbxfer_draw(struct akgl_framebuffer_soft *fb,int x,int y,int w,int
 int akgl_soft_maxtile_draw(struct akgl_texture *texture,const struct akgl_vtx_maxtile *vtxv,int vtxc) {
   if (vtxc<1) return 0;
   if (!texture||!vtxv) return -1;
+  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return -1;
   if (!akgl.framebuffer) return -1;
-  if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
-  if (texture->magic!=AKGL_MAGIC_TEXTURE_SOFT) return -1;
-  struct akgl_texture_soft *src=(struct akgl_texture_soft*)texture;
-  struct akgl_framebuffer_soft *dst=(struct akgl_framebuffer_soft*)akgl.framebuffer;
+  struct ps_sdraw_image *src=(struct ps_sdraw_image*)texture;
+  struct ps_sdraw_image *dst=(struct ps_sdraw_image*)akgl.framebuffer;
 
   int srccolw=src->w>>4;
   int srcrowh=src->h>>4;
 
   for (;vtxc--;vtxv++) {
-    int srcx=srccolw*(vtxv->tileid&0x0f);
-    int srcy=srcrowh*(vtxv->tileid>>4);
-    int dstx=vtxv->x-(vtxv->size>>1);
-    int dsty=vtxv->y-(vtxv->size>>1);
-    //TODO maxtile: primary, tint, rotation, xform
-    if (akgl_framebuffer_soft_blit(dst,dstx,dsty,vtxv->size,vtxv->size,src,srcx,srcy,srccolw,srcrowh)<0) {
-      ps_log(VIDEO,ERROR,"Blit failed?");
-      return -1;
-    }
+    if (ps_sdraw_blit_maxtile(dst,vtxv,src)<0) return -1;
   }
 
   return 0;
@@ -69,11 +66,10 @@ int akgl_soft_mintile_draw(struct akgl_texture *texture,const struct akgl_vtx_mi
   if (vtxc<1) return 0;
   if (size<1) return 0;
   if (!texture||!vtxv) return -1;
+  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return -1;
   if (!akgl.framebuffer) return -1;
-  if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
-  if (texture->magic!=AKGL_MAGIC_TEXTURE_SOFT) return -1;
-  struct akgl_texture_soft *src=(struct akgl_texture_soft*)texture;
-  struct akgl_framebuffer_soft *dst=(struct akgl_framebuffer_soft*)akgl.framebuffer;
+  struct ps_sdraw_image *src=(struct ps_sdraw_image*)texture;
+  struct ps_sdraw_image *dst=(struct ps_sdraw_image*)akgl.framebuffer;
 
   int srccolw=src->w>>4;
   int srcrowh=src->h>>4;
@@ -84,9 +80,9 @@ int akgl_soft_mintile_draw(struct akgl_texture *texture,const struct akgl_vtx_mi
     int dsty=vtxv->y-halfsize;
     int srcx=(vtxv->tileid&0x0f)*srccolw;
     int srcy=(vtxv->tileid>>4)*srcrowh;
-    if (akgl_framebuffer_soft_blit(dst,dstx,dsty,size,size,src,srcx,srcy,srccolw,srcrowh)<0) return -1;
+    if (ps_sdraw_blit(dst,dstx,dsty,size,size,src,srcx,srcy,srccolw,srcrowh)<0) return -1;
   }
-  
+
   return 0;
 }
 
@@ -147,6 +143,7 @@ static int akgl_rectangle_from_raw_vertices(struct akgl_rectangle *rectangle,con
  */
 
 static int akgl_draw_rectangle(const struct akgl_rectangle *rect) {
+#if 0//TODO
   if ((rect->nw==rect->ne)&&(rect->sw==rect->se)) {
     if (rect->nw==rect->sw) {
       return akgl_soft_draw_rect((struct akgl_framebuffer_soft*)akgl.framebuffer,rect->x,rect->y,rect->w,rect->h,rect->nw);
@@ -158,6 +155,8 @@ static int akgl_draw_rectangle(const struct akgl_rectangle *rect) {
   } else {
     return akgl_soft_draw_2d_gradient((struct akgl_framebuffer_soft*)akgl.framebuffer,rect->x,rect->y,rect->w,rect->h,rect->nw,rect->ne,rect->sw,rect->se);
   }
+#endif
+  return 0;
 }
 
 /* raw
@@ -166,8 +165,7 @@ static int akgl_draw_rectangle(const struct akgl_rectangle *rect) {
 int akgl_soft_raw_draw_triangle_strip(const struct akgl_vtx_raw *vtxv,int vtxc) {
   if (vtxc<1) return 0;
   if (!vtxv) return -1;
-  if (!akgl.framebuffer) return -1;
-  if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
+  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return -1;
 
   /* Usually a request to draw triangle strip is actually a rectangle.
    * Check for that and handle it special, because it's much easier than triangles.
@@ -182,21 +180,11 @@ int akgl_soft_raw_draw_triangle_strip(const struct akgl_vtx_raw *vtxv,int vtxc) 
 }
 
 int akgl_soft_raw_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc,int width) {
-  if (vtxc<1) return 0;
-  if (width<1) return 0;
-  if (!vtxv) return -1;
-  if (!akgl.framebuffer) return -1;
-  if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
   //TODO line strip
   return 0;
 }
 
 int akgl_soft_raw_draw_points(const struct akgl_vtx_raw *vtxv,int vtxc,int size) {
-  if (vtxc<1) return 0;
-  if (size<1) return 0;
-  if (!vtxv) return -1;
-  if (!akgl.framebuffer) return -1;
-  if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
   //TODO points
   return 0;
 }
@@ -205,10 +193,6 @@ int akgl_soft_raw_draw_points(const struct akgl_vtx_raw *vtxv,int vtxc,int size)
  */
 
 int akgl_soft_tex_draw(struct akgl_texture *tex,const struct akgl_vtx_tex *vtxv,int vtxc) {
-  if (vtxc<1) return 0;
-  if (!tex||!vtxv) return -1;
-  if (!akgl.framebuffer) return -1;
-  if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
   //TODO tex
   return 0;
 }
@@ -217,6 +201,7 @@ int akgl_soft_tex_draw(struct akgl_texture *tex,const struct akgl_vtx_tex *vtxv,
  */
 
 int akgl_soft_textile_draw(struct akgl_texture *tex,const struct akgl_vtx_textile *vtxv,int vtxc) {
+#if 0//TODO
   if (vtxc<1) return 0;
   if (!tex||!vtxv) return -1;
   if (tex->magic!=AKGL_MAGIC_TEXTURE_SOFT) return -1;
@@ -240,6 +225,6 @@ int akgl_soft_textile_draw(struct akgl_texture *tex,const struct akgl_vtx_textil
       dst,dstx,dsty,dstw,dsth,src,srcx,srcy,srccolw,srcrowh,rgba
     )<0) return -1;
   }
-  
+#endif
   return 0;
 }

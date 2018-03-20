@@ -28,13 +28,30 @@ int akgl_init(int strategy) {
   akgl.init=1;
 
   switch (strategy) {
-    case AKGL_STRATEGY_SOFT: break;
+  
+    case AKGL_STRATEGY_SOFT: {
+        glGenTextures(1,&akgl.soft_fbtexid);
+        if (!akgl.soft_fbtexid) {
+          glGenTextures(1,&akgl.soft_fbtexid);
+          if (!akgl.soft_fbtexid) {
+            akgl.init=0;
+            return -1;
+          }
+        }
+        glBindTexture(GL_TEXTURE_2D,akgl.soft_fbtexid);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+      } break;
+        
     case AKGL_STRATEGY_GL2: {
         #if PS_NO_OPENGL2
           akgl.init=0;
           return -1;
         #endif
       } break;
+      
     default: akgl.init=0; return -1;
   }
   akgl.strategy=strategy;
@@ -55,6 +72,7 @@ int akgl_init(int strategy) {
 
 void akgl_quit() {
   akgl_framebuffer_del(akgl.framebuffer);
+  if (akgl.soft_fbtexid) glDeleteTextures(1,&akgl.soft_fbtexid);
   memset(&akgl,0,sizeof(struct akgl));
 }
 
@@ -118,9 +136,13 @@ int akgl_clear(uint32_t rgba) {
 
 int akgl_scissor(int x,int y,int w,int h) {
   if (!akgl.init) return -1;
+  //TODO In SOFT strategy, we will need support from ps_sdraw.
   glEnable(GL_SCISSOR_TEST);
   if (akgl.framebuffer) {
-    y=akgl.framebuffer->h-y-h;
+    switch (akgl.strategy) {
+      case AKGL_STRATEGY_SOFT: y=((struct ps_sdraw_image*)akgl.framebuffer)->h-y-h; break;
+      case AKGL_STRATEGY_GL2: y=akgl.framebuffer->h-y-h; break;
+    }
   } else {
     y=akgl.screenh-y-h;
   }

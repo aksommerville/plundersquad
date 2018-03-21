@@ -11,6 +11,7 @@
 struct akgl_texture;
 struct akgl_framebuffer;
 struct akgl_program;
+struct ps_sdraw_image;
 
 #define AKGL_FMT_RGB8        1
 #define AKGL_FMT_RGBA8       2
@@ -38,6 +39,8 @@ struct akgl_program;
 int akgl_init(int strategy);
 void akgl_quit();
 
+int akgl_get_strategy();
+
 /* This must be kept up to date, we apply it when switching from framebuffer to main out.
  */
 int akgl_set_screen_size(int w,int h);
@@ -52,6 +55,11 @@ int akgl_clear(uint32_t rgba);
 
 int akgl_scissor(int x,int y,int w,int h);
 int akgl_scissor_none();
+
+/* If the strategy is AKGL_STRATEGY_SOFT and a "framebuffer" is bound, return it.
+ * Higher-level renderers (eg ps_video) can use this when ps_sdraw provides more appropriate interfaces.
+ */
+struct ps_sdraw_image *akgl_get_output_image();
 
 /* Texture.
  *****************************************************************************/

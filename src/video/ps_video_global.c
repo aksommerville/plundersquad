@@ -1,5 +1,6 @@
 #include "ps_video_internal.h"
 #include "os/ps_ioc.h"
+#include "sdraw/ps_sdraw.h"
 
 struct ps_video ps_video={0};
 
@@ -246,8 +247,15 @@ int ps_video_redraw_game_only() {
  
 struct akgl_texture *ps_video_capture_framebuffer() {
   if (!ps_video.init) return 0;
-
   if (akgl_framebuffer_use(ps_video.framebuffer)<0) return 0;
+
+  struct ps_sdraw_image *image=akgl_get_output_image();
+  if (image) {
+    struct akgl_texture *output=(struct akgl_texture*)ps_sdraw_image_copy(image);
+    akgl_framebuffer_use(0);
+    return output;
+  }
+
  	uint8_t pixels[PS_SCREENW*PS_SCREENH*4];
  	glReadPixels(0,0,PS_SCREENW,PS_SCREENH,GL_RGBA,GL_UNSIGNED_BYTE,pixels);
   if (akgl_framebuffer_use(0)<0) return 0;

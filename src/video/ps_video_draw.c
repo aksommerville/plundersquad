@@ -3,11 +3,19 @@
 #include "game/ps_sprite.h"
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
+#include "sdraw/ps_sdraw.h"
 
 /* Draw rectangle.
  */
  
 int ps_video_draw_rect(int x,int y,int w,int h,uint32_t rgba) {
+
+  struct ps_sdraw_image *dst=akgl_get_output_image();
+  if (dst) {
+    if (ps_sdraw_draw_rect(dst,x,y,w,h,ps_sdraw_rgba32(rgba))<0) return -1;
+    return 0;
+  }
+
   uint8_t r=rgba>>24,g=rgba>>16,b=rgba>>8,a=rgba;
   struct akgl_vtx_raw vtxv[4]={
     {x  ,y  ,r,g,b,a},
@@ -19,6 +27,13 @@ int ps_video_draw_rect(int x,int y,int w,int h,uint32_t rgba) {
 }
 
 int ps_video_draw_horz_gradient(int x,int y,int w,int h,uint32_t rgba_left,uint32_t rgba_right) {
+
+  struct ps_sdraw_image *dst=akgl_get_output_image();
+  if (dst) {
+    if (ps_sdraw_draw_horz_gradient(dst,x,y,w,h,ps_sdraw_rgba32(rgba_left),ps_sdraw_rgba32(rgba_right))<0) return -1;
+    return 0;
+  }
+  
   uint8_t r1=rgba_left>>24,g1=rgba_left>>16,b1=rgba_left>>8,a1=rgba_left;
   uint8_t r2=rgba_right>>24,g2=rgba_right>>16,b2=rgba_right>>8,a2=rgba_right;
   struct akgl_vtx_raw vtxv[4]={
@@ -31,6 +46,13 @@ int ps_video_draw_horz_gradient(int x,int y,int w,int h,uint32_t rgba_left,uint3
 }
 
 int ps_video_draw_vert_gradient(int x,int y,int w,int h,uint32_t rgba_top,uint32_t rgba_bottom) {
+
+  struct ps_sdraw_image *dst=akgl_get_output_image();
+  if (dst) {
+    if (ps_sdraw_draw_vert_gradient(dst,x,y,w,h,ps_sdraw_rgba32(rgba_top),ps_sdraw_rgba32(rgba_bottom))<0) return -1;
+    return 0;
+  }
+  
   uint8_t r1=rgba_top>>24,g1=rgba_top>>16,b1=rgba_top>>8,a1=rgba_top;
   uint8_t r2=rgba_bottom>>24,g2=rgba_bottom>>16,b2=rgba_bottom>>8,a2=rgba_bottom;
   struct akgl_vtx_raw vtxv[4]={
@@ -278,6 +300,16 @@ int ps_video_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc) {
  */
  
 int ps_video_draw_texture(struct akgl_texture *texture,int x,int y,int w,int h) {
+
+  struct ps_sdraw_image *dst=akgl_get_output_image();
+  if (dst) {
+    struct ps_sdraw_image *src=(struct ps_sdraw_image*)texture;
+    if (w<0) { x+=w; w=-w; }
+    if (h<0) { y+=h; h=-h; }
+    if (ps_sdraw_blit(dst,x,y,w,h,src,0,0,src->w,src->h)<0) return -1;
+    return 0;
+  }
+
   struct akgl_vtx_tex vtxv[4]={
     {x  ,y  ,0,0},
     {x  ,y+h,0,1},

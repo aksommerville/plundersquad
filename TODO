@@ -7,6 +7,8 @@
   ...update: it's not the strawberry
 - Investigate image filtering -- Observed much smaller output WITHOUT filter, that doesn't seem right.
 - Another freeze at quit on Linux. ALSA?
+- Scale treasure images to 128x128. (continue drawing new ones at 256, then scale down)
+- Soft rendering: predraw grid background.
 
 Windows target
 - Skip decoding audio resources if disabled

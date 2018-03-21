@@ -119,3 +119,19 @@ int ps_sdraw_draw_rect(struct ps_sdraw_image *image,int x,int y,int w,int h,stru
   
   return 0;
 }
+
+/* Gradients.
+ * ps_video_draw has these functions, but I'm not sure we actually use them.
+ */
+ 
+int ps_sdraw_draw_horz_gradient(struct ps_sdraw_image *image,int x,int y,int w,int h,struct ps_sdraw_rgba left,struct ps_sdraw_rgba right) {
+  if (!image) return -1;
+  ps_log(VIDEO,ERROR,"TODO: %s",__func__);
+  return 0;
+}
+
+int ps_sdraw_draw_vert_gradient(struct ps_sdraw_image *image,int x,int y,int w,int h,struct ps_sdraw_rgba top,struct ps_sdraw_rgba bottom) {
+  if (!image) return -1;
+  ps_log(VIDEO,ERROR,"TODO: %s",__func__);
+  return 0;
+}

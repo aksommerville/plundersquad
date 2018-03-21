@@ -30,6 +30,22 @@ int ps_sdraw_image_ref(struct ps_sdraw_image *image) {
   return 0;
 }
 
+/* Copy object.
+ */
+ 
+struct ps_sdraw_image *ps_sdraw_image_copy(const struct ps_sdraw_image *src) {
+  if (!src) return 0;
+  struct ps_sdraw_image *dst=ps_sdraw_image_new();
+  if (!dst) return 0;
+  if (ps_sdraw_image_realloc(dst,src->fmt,src->w,src->h)<0) return 0;
+  if ((dst->colstride!=src->colstride)||(dst->rowstride!=src->rowstride)) {
+    ps_sdraw_image_del(dst);
+    return 0;
+  }
+  memcpy(dst->pixels,src->pixels,src->rowstride*src->h);
+  return dst;
+}
+
 /* Reallocate.
  */
 

@@ -62,6 +62,8 @@ struct ps_sdraw_image *ps_sdraw_image_new();
 void ps_sdraw_image_del(struct ps_sdraw_image *image);
 int ps_sdraw_image_ref(struct ps_sdraw_image *image);
 
+struct ps_sdraw_image *ps_sdraw_image_copy(const struct ps_sdraw_image *src);
+
 /* Successful realloc zeroes the pixels, even if dimensions unchanged.
  */
 int ps_sdraw_image_realloc(struct ps_sdraw_image *image,int fmt,int w,int h);
@@ -74,6 +76,8 @@ int ps_sdraw_image_load_sub(struct ps_sdraw_image *image,const void *pixels,int 
  *****************************************************************/
 
 int ps_sdraw_draw_rect(struct ps_sdraw_image *image,int x,int y,int w,int h,struct ps_sdraw_rgba rgba);
+int ps_sdraw_draw_horz_gradient(struct ps_sdraw_image *image,int x,int y,int w,int h,struct ps_sdraw_rgba left,struct ps_sdraw_rgba right);
+int ps_sdraw_draw_vert_gradient(struct ps_sdraw_image *image,int x,int y,int w,int h,struct ps_sdraw_rgba top,struct ps_sdraw_rgba bottom);
 
 /* Ordinary blit.
  * Dimensions must be provided for both source and destination; we scale automatically.

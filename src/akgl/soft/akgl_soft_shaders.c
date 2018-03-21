@@ -86,107 +86,22 @@ int akgl_soft_mintile_draw(struct akgl_texture *texture,const struct akgl_vtx_mi
   return 0;
 }
 
-/* Glue to transform triangle strips into a rectangle, if possible.
- */
-
-struct akgl_rectangle {
-  int x,y,w,h;
-  uint32_t nw,ne,sw,se;
-};
-
-static int akgl_rectangle_from_raw_vertices(struct akgl_rectangle *rectangle,const struct akgl_vtx_raw *vtxv,int vtxc) {
-  if (vtxc!=4) return -1;
-
-  int xa=vtxv[0].x;
-  int ya=vtxv[0].y;
-  int xz=vtxv[1].x;
-  int yz=vtxv[1].y;
-  if (xa>xz) { int tmp=xa; xa=xz; xz=tmp; }
-  if (ya>ya) { int tmp=ya; ya=yz; yz=tmp; }
-  int i; for (i=2;i<4;i++) {
-    if (vtxv[i].x==xa) {
-    } else if (vtxv[i].x==xz) {
-    } else if (xa==xz) {
-      if (vtxv[i].x>xa) xz=vtxv[i].x;
-      else xa=vtxv[i].x;
-    } else {
-      return -1;
-    }
-    if (vtxv[i].y==ya) {
-    } else if (vtxv[i].y==yz) {
-    } else if (ya==yz) {
-      if (vtxv[i].y>ya) yz=vtxv[i].y;
-      else ya=vtxv[i].y;
-    } else {
-      return -1;
-    }
-  }
-
-  rectangle->x=xa;
-  rectangle->y=ya;
-  rectangle->w=xz+1-xa;
-  rectangle->h=yz+1-ya;
-  for (i=0;i<4;i++) {
-    uint32_t *dst;
-    if (vtxv[i].x==xa) {
-      if (vtxv[i].y==ya) dst=&rectangle->nw;
-      else dst=&rectangle->sw;
-    } else if (vtxv[i].y==ya) dst=&rectangle->ne;
-    else dst=&rectangle->se;
-    *dst=(vtxv[i].r<<24)|(vtxv[i].g<<16)|(vtxv[i].b<<8)|vtxv[i].a;
-  }
-
-  return 0;
-}
-
-/* Draw rectangle.
- */
-
-static int akgl_draw_rectangle(const struct akgl_rectangle *rect) {
-#if 0//TODO
-  if ((rect->nw==rect->ne)&&(rect->sw==rect->se)) {
-    if (rect->nw==rect->sw) {
-      return akgl_soft_draw_rect((struct akgl_framebuffer_soft*)akgl.framebuffer,rect->x,rect->y,rect->w,rect->h,rect->nw);
-    } else {
-      return akgl_soft_draw_vert_gradient((struct akgl_framebuffer_soft*)akgl.framebuffer,rect->x,rect->y,rect->w,rect->h,rect->nw,rect->sw);
-    }
-  } else if ((rect->nw==rect->sw)&&(rect->ne==rect->se)) {
-    return akgl_soft_draw_horz_gradient((struct akgl_framebuffer_soft*)akgl.framebuffer,rect->x,rect->y,rect->w,rect->h,rect->nw,rect->ne);
-  } else {
-    return akgl_soft_draw_2d_gradient((struct akgl_framebuffer_soft*)akgl.framebuffer,rect->x,rect->y,rect->w,rect->h,rect->nw,rect->ne,rect->sw,rect->se);
-  }
-#endif
-  return 0;
-}
-
-/* raw
+/* Stubs XXX
  */
 
 int akgl_soft_raw_draw_triangle_strip(const struct akgl_vtx_raw *vtxv,int vtxc) {
-  if (vtxc<1) return 0;
-  if (!vtxv) return -1;
-  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return -1;
-
-  /* Usually a request to draw triangle strip is actually a rectangle.
-   * Check for that and handle it special, because it's much easier than triangles.
-   */
-  struct akgl_rectangle rectangle;
-  if (akgl_rectangle_from_raw_vertices(&rectangle,vtxv,vtxc)>=0) {
-    return akgl_draw_rectangle(&rectangle);
-  }
-  
-  //TODO triangle strip
-  return 0;
+  ps_log(VIDEO,ERROR,"Stubbed function %s, didn't expect it to be called.",__func__);
+  return -1;
 }
 
 int akgl_soft_raw_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc,int width) {
-  //TODO line strip
-  return 0;
+  ps_log(VIDEO,ERROR,"Stubbed function %s, didn't expect it to be called.",__func__);
+  return -1;
 }
 
 int akgl_soft_raw_draw_points(const struct akgl_vtx_raw *vtxv,int vtxc,int size) {
-  //TODO points
-  return 0;
+  ps_log(VIDEO,ERROR,"Stubbed function %s, didn't expect it to be called.",__func__);
+  return -1;
 }
 
 /* tex
@@ -201,14 +116,12 @@ int akgl_soft_tex_draw(struct akgl_texture *tex,const struct akgl_vtx_tex *vtxv,
  */
 
 int akgl_soft_textile_draw(struct akgl_texture *tex,const struct akgl_vtx_textile *vtxv,int vtxc) {
-#if 0//TODO
   if (vtxc<1) return 0;
   if (!tex||!vtxv) return -1;
-  if (tex->magic!=AKGL_MAGIC_TEXTURE_SOFT) return -1;
+  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return -1;
   if (!akgl.framebuffer) return -1;
-  if (akgl.framebuffer->magic!=AKGL_MAGIC_FRAMEBUFFER_SOFT) return -1;
-  struct akgl_texture_soft *src=(struct akgl_texture_soft*)tex;
-  struct akgl_framebuffer_soft *dst=(struct akgl_framebuffer_soft*)akgl.framebuffer;
+  struct ps_sdraw_image *src=(struct ps_sdraw_image*)tex;
+  struct ps_sdraw_image *dst=(struct ps_sdraw_image*)akgl.framebuffer;
 
   int srccolw=src->w>>4;
   int srcrowh=src->h>>4;
@@ -220,11 +133,9 @@ int akgl_soft_textile_draw(struct akgl_texture *tex,const struct akgl_vtx_textil
     int dsty=vtxv->y-(dsth>>1);
     int srcx=srccolw*(vtxv->tileid&0x0f);
     int srcy=srcrowh*(vtxv->tileid>>4);
-    uint32_t rgba=(vtxv->r<<24)|(vtxv->g<<16)|(vtxv->b<<8)|vtxv->a;
-    if (akgl_framebuffer_soft_blit_replacergb(
-      dst,dstx,dsty,dstw,dsth,src,srcx,srcy,srccolw,srcrowh,rgba
+    if (ps_sdraw_blit_replacergb(
+      dst,dstx,dsty,dstw,dsth,src,srcx,srcy,srccolw,srcrowh,ps_sdraw_rgba(vtxv->r,vtxv->g,vtxv->b,vtxv->a)
     )<0) return -1;
   }
-#endif
   return 0;
 }

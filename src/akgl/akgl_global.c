@@ -76,6 +76,18 @@ void akgl_quit() {
   memset(&akgl,0,sizeof(struct akgl));
 }
 
+/* Strategy.
+ */
+
+int akgl_get_strategy() {
+  return akgl.strategy;
+}
+
+struct ps_sdraw_image *akgl_get_output_image() {
+  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return 0;
+  return (struct ps_sdraw_image*)akgl.framebuffer;
+}
+
 /* Screen size.
  */
  

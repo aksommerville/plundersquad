@@ -25,6 +25,6 @@ struct akau_driver {
  */
 extern const struct akau_driver akau_driver_akmacaudio;
 extern const struct akau_driver akau_driver_alsa;
-extern const struct akau_driver akau_driver_akmsaudio;
+extern const struct akau_driver akau_driver_msaudio;
 
 #endif

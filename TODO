@@ -9,10 +9,8 @@
 - Another freeze at quit on Linux. ALSA?
 - Scale treasure images to 128x128. (continue drawing new ones at 256, then scale down)
 - Soft rendering: predraw grid background.
+- Bomber: check for obstructions
 
 Windows target
 - Skip decoding audio resources if disabled
-- Re-enable opengl init in ps_video_global.c
-- Software opengl emulation
-- audio
 - input

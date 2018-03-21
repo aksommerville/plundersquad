@@ -175,6 +175,8 @@ static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
   #elif PS_USE_alsa
     if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
+  #elif PS_USE_msaudio
+    if (akau_init(&akau_driver_msaudio,ps_log_akau)<0) return -1;
   #else
     #undef PS_AKAU_ENABLE
     #define PS_AKAU_ENABLE 0

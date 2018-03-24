@@ -1,4 +1,5 @@
 #include "ps_mswm_internal.h"
+#include "opt/mshid/ps_mshid.h"
 #include "video/ps_video.h"
 
 /* Window resized.
@@ -72,14 +73,6 @@ static int ps_mswm_evt_mmove(int x,int y) {
   return 0;
 }
 
-/* Raw input.
- */
-
-static int ps_mswm_evt_raw(WPARAM wparam,LPARAM lparam) {//TODO
-  ps_log(MSWM,TRACE,"%s %d %d",__func__,wparam,lparam);
-  return 0;
-}
-
 /* Receive event.
  */
 
@@ -138,7 +131,7 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
 
     case WM_MOUSEMOVE: return ps_mswm_evt_mmove(LOWORD(lparam),HIWORD(lparam));
 
-    case WM_INPUT: return ps_mswm_evt_raw(wparam,lparam);
+    case WM_INPUT: return ps_mshid_event(wparam,lparam);
 
   }
   return DefWindowProc(hwnd,msg,wparam,lparam);

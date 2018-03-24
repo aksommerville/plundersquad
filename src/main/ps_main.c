@@ -32,6 +32,9 @@
 #if PS_USE_mswm
   #include "opt/mswm/ps_mswm.h"
 #endif
+#if PS_USE_mshid
+  #include "opt/mshid/ps_mshid.h"
+#endif
 
 /* Globals.
  */
@@ -135,6 +138,9 @@ static int ps_main_init_input(const struct ps_cmdline *cmdline) {
   #endif
   #if PS_USE_mswm
     if (ps_mswm_connect_input()<0) return -1;
+  #endif
+  #if PS_USE_mshid
+    if (ps_mshid_init()<0) return -1;
   #endif
 
   /* Load configuration and take it live. */
@@ -275,6 +281,11 @@ static void ps_main_quit() {
   #if PS_USE_evdev
     ps_emergency_abort_set_message("Shutting down Linux input (evdev).");
     ps_evdev_quit();
+  #endif
+
+  #if PS_USE_mshid
+    ps_emergency_abort_set_message("Shutting down Windows input manager.");
+    ps_mshid_quit();
   #endif
 
   ps_perfmon_del(ps_perfmon);

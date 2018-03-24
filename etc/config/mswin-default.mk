@@ -6,7 +6,7 @@ CC:=gcc -c -MMD -O2 $(CCINC) $(CCWARN) $(WINDEF)
 OBJC:=
 AR:=ar rc
 LD:=gcc -m32 -mwindows
-LDPOST:=-lz -lglew32s -lopengl32 -lwinmm -lpthread
+LDPOST:=-lz -lglew32s -lopengl32 -lwinmm -lpthread -lhid
 
 OPT_ENABLE:=mswm msaudio mshid genioc
 

@@ -9,6 +9,7 @@
 struct ps_input_map;
 struct ps_input_device;
 struct ps_input_premap;
+struct ps_input_report_reader;
 
 struct ps_input_btncfg {
   int srcbtnid;
@@ -47,6 +48,9 @@ struct ps_input_device {
   struct ps_input_btnwatch *btnwatchv;
   int btnwatchc,btnwatcha;
   int btnwatchid_next;
+
+  // Not used by the input manager; available here for providers' convenience.
+  struct ps_input_report_reader *report_reader;
   
 };
 
@@ -55,6 +59,7 @@ void ps_input_device_del(struct ps_input_device *device);
 int ps_input_device_ref(struct ps_input_device *device);
 
 int ps_input_device_set_name(struct ps_input_device *device,const char *src,int srcc);
+int ps_input_device_set_name_utf16lez(struct ps_input_device *device,const char *src); // Convenience for USB support
 int ps_input_device_set_map(struct ps_input_device *device,struct ps_input_map *map);
 int ps_input_device_set_premap(struct ps_input_device *device,struct ps_input_premap *premap);
 
@@ -78,5 +83,13 @@ int ps_input_device_watch_buttons(
 int ps_input_device_unwatch_buttons(struct ps_input_device *device,int watchid);
 
 int ps_input_device_call_button_watchers(struct ps_input_device *device,int btnid,int value,int mapped);
+
+/* Assign this to report_buttons if you are using report_reader, the rest is automatic.
+ */
+int ps_input_device_report_buttons_via_report_reader(
+  struct ps_input_device *device,
+  void *userdata,
+  int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)
+);
 
 #endif

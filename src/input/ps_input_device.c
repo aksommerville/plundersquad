@@ -3,6 +3,7 @@
 #include "ps_input_map.h"
 #include "ps_input_button.h"
 #include "ps_input_premap.h"
+#include "ps_input_report_reader.h"
 
 /* Clean up button watcher.
  */
@@ -44,6 +45,8 @@ void ps_input_device_del(struct ps_input_device *device) {
     free(device->btnwatchv);
   }
 
+  ps_input_report_reader_del(device->report_reader);
+
   free(device);
 }
 
@@ -76,6 +79,25 @@ int ps_input_device_set_name(struct ps_input_device *device,const char *src,int 
   device->name=nv;
   device->namec=srcc;
   return 0;
+}
+
+int ps_input_device_set_name_utf16lez(struct ps_input_device *device,const char *src) {
+  // We don't actually decode UTF-16 because who cares.
+  char dst[256];
+  int dstc=0,srcp=0;
+  if (src) {
+    while (1) {
+      if (dstc>=sizeof(dst)) break;
+      if (!src[srcp]&&!src[srcp+1]) break;
+      if (src[srcp+1]||(src[srcp]<0x20)||(src[srcp]>0x7e)) {
+        dst[dstc++]='?';
+      } else {
+        dst[dstc++]=src[srcp];
+      }
+      srcp+=2;
+    }
+  }
+  return ps_input_device_set_name(device,dst,dstc);
 }
 
 int ps_input_device_set_map(struct ps_input_device *device,struct ps_input_map *map) {
@@ -213,6 +235,40 @@ int ps_input_device_call_button_watchers(struct ps_input_device *device,int btni
     struct ps_input_btnwatch *watch=device->btnwatchv+i;
     int err=watch->cb(device,btnid,value,mapped,watch->userdata);
     if (err<0) return err;
+  }
+  return 0;
+}
+
+/* Default 'report_buttons' if a report reader is in use.
+ */
+ 
+int ps_input_device_report_buttons_via_report_reader(
+  struct ps_input_device *device,
+  void *userdata,
+  int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)
+) {
+  if (!device||!cb) return -1;
+  if (!device->report_reader) return 0;
+  int fldc=ps_input_report_reader_count_fields(device->report_reader);
+  int fldix=0; for (;fldix<fldc;fldix++) {
+    int fldid=ps_input_report_reader_fldid_by_fldix(device->report_reader,fldix);
+    int size=ps_input_report_reader_size_by_fldix(device->report_reader,fldix);
+    int sign=ps_input_report_reader_sign_by_fldix(device->report_reader,fldix);
+    int value=ps_input_report_reader_value_by_fldix(device->report_reader,fldix);
+    struct ps_input_btncfg btncfg={
+      .srcbtnid=fldix,
+      .value=value,
+      .default_usage=fldid,
+    };
+    if (sign&&(size>1)) {
+      btncfg.hi=(1<<(size-1))-1;
+      btncfg.lo=-btncfg.hi-1;
+    } else {
+      btncfg.lo=0;
+      btncfg.hi=(1<<size)-1;
+    }
+    int err=cb(device,&btncfg,userdata);
+    if (err) return err;
   }
   return 0;
 }

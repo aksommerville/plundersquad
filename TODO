@@ -13,4 +13,8 @@
 
 Windows target
 - Skip decoding audio resources if disabled
-- input
+- Freeze on startup, Windows:
+  MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
+- Connect and disconnect HID?
+- Optimize background graphics transfer?
+- Build with GL2 support

@@ -1,4 +1,4 @@
-run:$(EXE_MAIN);$(CMD_MAIN)
+run:$(EXE_MAIN);$(CMD_MAIN) 
 run-%:$(EXE_MAIN);$(CMD_MAIN) $*
 test:$(EXE_TEST);$(CMD_TEST)
 test-%:$(EXE_TEST);$(CMD_TEST) $*

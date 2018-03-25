@@ -81,7 +81,7 @@ int ps_mswm_init(int w,int h,int fullscreen,const char *title) {
   ps_mswm.hwnd=CreateWindow(
     PS_MSWM_WINDOW_CLASS_NAME,
     title,
-    WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
+    fullscreen?(WS_POPUP):(WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS),
     x,y,outerw,outerh,
     0,0,ps_mswm.instance,0
   );
@@ -91,7 +91,12 @@ int ps_mswm_init(int w,int h,int fullscreen,const char *title) {
     return -1;
   }
 
-  ShowWindow(ps_mswm.hwnd,SW_SHOW);
+  if (fullscreen) {
+    ps_mswm.fullscreen=1;
+    ShowWindow(ps_mswm.hwnd,SW_MAXIMIZE);
+  } else {
+    ShowWindow(ps_mswm.hwnd,SW_SHOW);
+  }
   UpdateWindow(ps_mswm.hwnd);
 
   return 0;
@@ -123,4 +128,55 @@ void ps_mswm_quit() {
   }
 
   memset(&ps_mswm,0,sizeof(struct ps_mswm));
+}
+
+/* Set fullscreen.
+ */
+
+static int ps_mswm_enter_fullscreen() {
+  ps_mswm.fsrestore.length=sizeof(WINDOWPLACEMENT);
+  GetWindowPlacement(ps_mswm.hwnd,&ps_mswm.fsrestore);
+  SetWindowLong(ps_mswm.hwnd,GWL_STYLE,WS_POPUP);
+  ShowWindow(ps_mswm.hwnd,SW_MAXIMIZE);
+  ps_mswm.fullscreen=1;
+  return 0;
+}
+
+static int ps_mswm_exit_fullscreen() {
+  SetWindowLong(ps_mswm.hwnd,GWL_STYLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS);
+
+  /* If we started up in fullscreen mode, we don't know the appropriate size to restore to.
+   * Make something up.
+   * TODO: Other windows don't get repainted when we resize. Giving up on that for now.
+   */
+  if (!ps_mswm.fsrestore.length) {
+    ps_mswm.fsrestore.length=sizeof(WINDOWPLACEMENT);
+    ps_mswm.fsrestore.flags=WPF_SETMINPOSITION;
+    ps_mswm.fsrestore.showCmd=SW_SHOW;
+    ps_mswm.fsrestore.rcNormalPosition.left=100;
+    ps_mswm.fsrestore.rcNormalPosition.top=100;
+    ps_mswm.fsrestore.rcNormalPosition.right=100+(PS_SCREENW*2);
+    ps_mswm.fsrestore.rcNormalPosition.bottom=100+(PS_SCREENH*2);
+    AdjustWindowRect(&ps_mswm.fsrestore.rcNormalPosition,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,0);
+  }
+  
+  SetWindowPlacement(ps_mswm.hwnd,&ps_mswm.fsrestore);
+  SetWindowPos(ps_mswm.hwnd,0,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE|SWP_FRAMECHANGED);
+  ps_mswm.fullscreen=0;
+  return 0;
+}
+ 
+int ps_mswm_set_fullscreen(int flag) {
+  if (!ps_mswm.window_setup_complete) return -1;
+  if (flag>0) {
+    if (ps_mswm.fullscreen) return 0;
+    return ps_mswm_enter_fullscreen();
+  } else if (!flag) {
+    if (!ps_mswm.fullscreen) return 0;
+    return ps_mswm_exit_fullscreen();
+  } else if (ps_mswm.fullscreen) {
+    return ps_mswm_exit_fullscreen();
+  } else {
+    return ps_mswm_enter_fullscreen();
+  }
 }

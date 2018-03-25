@@ -503,7 +503,7 @@ int ps_video_toggle_fullscreen() {
   #elif PS_USE_macwm
     ps_log(VIDEO,WARN,"TODO: Toggle fullscreen for macwm");
   #elif PS_USE_mswm
-    ps_log(VIDEO,WARN,"TODO: Toggle fullscreen for mswm");
+    return ps_mswm_set_fullscreen(-1);
   #else
     ps_log(VIDEO,WARN,"Requested to toggle fullscreen on platform that doesn't support it.");
   #endif

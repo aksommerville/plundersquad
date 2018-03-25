@@ -14,5 +14,4 @@ Windows target
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
 - Build with GL2 support
 - App icon
-- Hide cursor
 - Toggling out of fullscreen, other windows don't repaint

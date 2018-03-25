@@ -73,6 +73,7 @@ static int ps_edit_init(const struct ps_cmdline *cmdline) {
   #endif
   #if PS_USE_mswm
     if (ps_mswm_connect_input()<0) return -1;
+    if (ps_mswm_show_cursor(1)<0) return -1;
   #endif
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1;
 

@@ -243,7 +243,7 @@ int ps_sdraw_blit_maxtile__rotate(
    * This is ordinarily ceil(vtx->size/2), but with rotation it could be up to sqrt(2) of that.
    * To keep it simple and err on the side of overshooting, we'll extend by 1.5 if any rotation is present.
    */
-  int radius=(vtx->size>>1)+(srccolw&1);
+  int radius=(vtx->size>>1)+1;
   if (vtx->t) radius=(3*radius)/2;
 
   /* Now calculate output bounds and clamp them to the image.
@@ -380,7 +380,7 @@ int ps_sdraw_blit_maxtile(
 
   /* Calculate source and destination positions.
    * Destination position will be different later if we are rotating.
-   * Even if that is the case, we clip from the unrotated bounds. Shouldn't matter much.
+   * Even if that is the case, we cull from the unrotated bounds. Shouldn't matter much.
    */
   int dstx=vtx->x-(vtx->size>>1);
   int dsty=vtx->y-(vtx->size>>1);

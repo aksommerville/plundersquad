@@ -13,4 +13,6 @@ int ps_mswm_swap();
 // >0=fullscreen, 0=window, <0=toggle
 int ps_mswm_set_fullscreen(int flag);
 
+int ps_mswm_show_cursor(int flag);
+
 #endif

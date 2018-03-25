@@ -98,6 +98,9 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
       ps_video_quit();
       return -1;
     }
+    if (ps_mswm_set_icon(ps_appicon,ps_appicon_w,ps_appicon_h)<0) {
+      ps_log(VIDEO,ERROR,"Failed to set window icon. Ignoring error.");
+    }
   #endif
 
   if (ps_video_init_akgl(cmdline->akgl_strategy)<0) {

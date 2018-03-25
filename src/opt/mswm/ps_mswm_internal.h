@@ -33,6 +33,7 @@ extern struct ps_mswm {
   WINDOWPLACEMENT fsrestore;
   struct ps_input_provider *input_provider;
   struct ps_input_device *dev_keyboard;
+  HICON appicon;
 } ps_mswm;
 
 LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam);

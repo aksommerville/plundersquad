@@ -13,5 +13,4 @@ Windows target
 - Freeze on startup, Windows:
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
 - Build with GL2 support
-- App icon
 - Toggling out of fullscreen, other windows don't repaint

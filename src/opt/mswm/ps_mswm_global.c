@@ -113,6 +113,8 @@ void ps_mswm_quit() {
   ps_input_device_del(ps_mswm.dev_keyboard);
   ps_input_uninstall_provider(ps_mswm.input_provider);
   ps_input_provider_del(ps_mswm.input_provider);
+
+  if (ps_mswm.appicon) DestroyIcon(ps_mswm.appicon);
   
   if (ps_mswm.hglrc) {
     wglMakeCurrent(ps_mswm.hdc,0);
@@ -197,5 +199,37 @@ int ps_mswm_show_cursor(int flag) {
     ShowCursor(0);
     ps_mswm.cursor=0;
   }
+  return 0;
+}
+
+/* Set icon.
+ */
+
+static void ps_mswm_copy_icon(uint8_t *dst,const uint8_t *src,int c) {
+  uint8_t maskbit=0x01;
+  for (;c-->0;dst+=4,src+=4) {
+    dst[0]=src[2];
+    dst[1]=src[1];
+    dst[2]=src[0];
+    dst[3]=src[3];;
+  }
+}
+
+int ps_mswm_set_icon(const void *rgba,int w,int h) {
+  if (!rgba||(w<1)||(h<1)||(w>1024)||(h>1024)) return -1;
+  if (ps_mswm.appicon) DestroyIcon(ps_mswm.appicon);
+
+  void *dst=malloc(w*h*4);
+  if (!dst) return -1;
+  ps_mswm_copy_icon(dst,rgba,w*h);
+  
+  if (!(ps_mswm.appicon=CreateIcon(0,w,h,1,32,0,dst))) {
+    free(dst);
+    return -1;
+  }
+  free(dst);
+  
+  SetClassLongPtr(ps_mswm.hwnd,GCLP_HICON,(LONG)ps_mswm.appicon);
+
   return 0;
 }

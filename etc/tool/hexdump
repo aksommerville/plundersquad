@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+# hexdump -ve '64/1 "%u," "\n"' $SRCPATH >>$DSTPATH
+import sys
+
+if len(sys.argv)!=4 or sys.argv[1]!="-ve":
+  sys.stderr.write("Usage: %s -ve PATTERN INPUT\n"%(sys.argv[0],))
+  sys.exit(1)
+
+patternwords=sys.argv[2].split()
+if len(patternwords)<2:
+  sys.stderr.write("%s: Invalid pattern %r\n"%(sys.argv[0],sys.argv[2]))
+  sys.exit(1)
+
+try:
+  repc,bytec=map(int,patternwords[0].split('/'))
+except:
+  sys.stderr.write("%s: Failed to read repetition count and size from %r\n"%(sys.argv[0],patternwords[0]))
+  sys.exit(1)
+if bytec!=1: # We're not using longer byte counts, and that introduces byte-order complexity.
+  sys.stderr.write("%s: Byte count must be 1 (have %d)\n"%(sys.argv[0],bytec))
+  sys.exit(1)
+
+mainpattern=eval(patternwords[1])
+extrapatterns=map(eval,patternwords[2:])
+
+src=open(sys.argv[3],"rb").read()
+srcp=0
+while srcp<len(src):
+  for i in xrange(repc):
+    value=ord(src[srcp])
+    srcp+=1
+    sys.stdout.write(mainpattern%(value,))
+  for pattern in extrapatterns:
+    sys.stdout.write(pattern)

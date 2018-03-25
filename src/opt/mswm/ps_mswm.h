@@ -15,4 +15,6 @@ int ps_mswm_set_fullscreen(int flag);
 
 int ps_mswm_show_cursor(int flag);
 
+int ps_mswm_set_icon(const void *rgba,int w,int h);
+
 #endif

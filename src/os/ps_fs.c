@@ -100,7 +100,7 @@ struct ps_zlib_file *ps_zlib_open(const char *path,int output) {
   } else {
     fmode=O_RDONLY;
   }
-  #if PS_ARCH==PS_ARCH_MSWIN
+  #if PS_ARCH==PS_ARCH_mswin
     fmode|=O_BINARY;
   #endif
   

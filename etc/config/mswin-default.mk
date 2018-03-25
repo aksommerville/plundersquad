@@ -1,11 +1,11 @@
 CCWARN:=-Werror -Wimplicit -Wno-overflow
 CCINC:=-Isrc -I$(MIDDIR)
-WINDEF:=-m32 -mwindows -D_WIN32_WINNT=0x0501 -D_POSIX_THREAD_SAFE_FUNCTIONS=1 -DPS_NO_OPENGL2=1
+WINDEF:=-m32 -mwindows -D_WIN32_WINNT=0x0501 -D_POSIX_THREAD_SAFE_FUNCTIONS=1 -DPS_NO_OPENGL2=1 -DPTW32_STATIC_LIB=1
 
 CC:=gcc -c -MMD -O2 $(CCINC) $(CCWARN) $(WINDEF)
 OBJC:=
 AR:=ar rc
-LD:=gcc -m32 -mwindows
+LD:=gcc -m32 -mwindows -Wl,-static
 LDPOST:=-lz -lglew32s -lopengl32 -lwinmm -lpthread -lhid
 
 OPT_ENABLE:=mswm msaudio mshid genioc

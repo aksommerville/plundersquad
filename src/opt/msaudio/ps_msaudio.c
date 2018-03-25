@@ -96,12 +96,13 @@ int ps_msaudio_init(
     .wFormatTag=WAVE_FORMAT_PCM,
     .nChannels=chanc,
     .nSamplesPerSec=rate,
-    .nAvgBytesPerSec=rate*2,
+    .nAvgBytesPerSec=rate*chanc*2,
     .nBlockAlign=chanc*2, /* frame size in bytes */
     .wBitsPerSample=16,
     .cbSize=0,
   };
 
+  //TODO I have observed freezes here. Can't fathom why.
   MMRESULT result=waveOutOpen(
     &ps_msaudio.waveout,
     WAVE_MAPPER,

@@ -6,10 +6,26 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#if PS_ARCH==PS_ARCH_mswin
+  #include <windows.h>
+#endif
+
 static struct {
   int quit;
   struct ps_clockassist clockassist;
 } ps_genioc={0};
+
+/* Get executable path.
+ */
+
+static int ps_genioc_get_executable_path(char *dst,int dsta) {//TODO linux
+  #if PS_ARCH==PS_ARCH_mswin
+    int dstc=GetModuleFileName(0,dst,dsta);
+    ps_log(,DEBUG,"GetModuleFileName(%d): %d '%.*s'",dsta,dstc,((dstc>=0)&&(dstc<dsta))?dstc:0,dst);
+    return dstc;
+  #endif
+  return -1;
+}
 
 /* First existing file.
  */
@@ -19,6 +35,7 @@ static const char *_ps_genioc_first_existing_file(int directory,...) {
   const char *path;
   va_start(vargs,directory);
   while (path=va_arg(vargs,const char*)) {
+    if (!path[0]) continue;
     struct stat st;
     if (stat(path,&st)>=0) {
       if (directory) {
@@ -42,9 +59,21 @@ static const char *_ps_genioc_first_existing_file(int directory,...) {
 
 static int ps_genioc_default_cmdline(struct ps_cmdline *cmdline) {
 
+  char exepath[1024];
+  int exepathc=ps_genioc_get_executable_path(exepath,sizeof(exepath));
+  if ((exepathc<0)||(exepathc>=sizeof(exepath))) exepathc=0;
+  while (exepathc&&(exepath[exepathc-1]!='/')&&(exepath[exepathc-1]!='\\')) exepathc--;
+  char subpath[1024];
+  int subpathc=snprintf(subpath,sizeof(subpath),"%.*sps-data",exepathc,exepath);
+  if ((subpathc<0)||(subpathc>=sizeof(subpath))) subpathc=0;
+  subpath[subpathc]=0;
+
   if (!(cmdline->resources_path=ps_genioc_first_existing_file(
+    subpath,
+    "ps-data",
     "../plundersquad/out/linux-default/ps-data",
     "../plundersquad/out/raspi-default/ps-data",
+    "../plundersquad/out/mswin-default/ps-data",
     "/usr/local/games/plundersquad/data",
     "/usr/games/plundersquad/data"
   ))) {
@@ -55,12 +84,21 @@ static int ps_genioc_default_cmdline(struct ps_cmdline *cmdline) {
     );
   }
 
+  if (cmdline->resources_path==subpath) cmdline->resources_path=strdup(cmdline->resources_path);
+
+  subpathc=snprintf(subpath,sizeof(subpath),"%.*s../../etc/input.cfg",exepathc,exepath);
+  if ((subpathc<0)||(subpathc>=sizeof(subpath))) subpathc=0;
+  subpath[subpathc]=0;
+
   cmdline->input_config_path=ps_genioc_first_existing_file(
+    subpath,
     "../plundersquad/etc/input.cfg",
     "/usr/local/games/plundersquad/config/input.cfg",
     "/usr/games/plundersquad/config/input.cfg",
     "~/plundersquad/config/input.cfg"
   );
+
+  if (cmdline->input_config_path==subpath) cmdline->input_config_path=strdup(cmdline->input_config_path);
 
   #if PS_NO_OPENGL2
     cmdline->akgl_strategy=AKGL_STRATEGY_SOFT;

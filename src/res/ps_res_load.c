@@ -278,7 +278,7 @@ static int ps_resmgr_load_file_inner(struct ps_zlib_file *file,const char *path,
   uint8_t header[16];
   int headerc=ps_zlib_read(header,16,file);
   if ((headerc!=16)||memcmp(header,"\0PLSQ\xffRA",8)) {
-    ps_log(RES,ERROR,"%s: Failed to read resource archive header.",path);
+    ps_log(RES,ERROR,"%s: Failed to read resource archive header. headerc=%d",path,headerc);
     return -1;
   }
   

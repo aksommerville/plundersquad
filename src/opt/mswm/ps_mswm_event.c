@@ -132,6 +132,13 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
     case WM_MOUSEMOVE: return ps_mswm_evt_mmove(LOWORD(lparam),HIWORD(lparam));
 
     case WM_INPUT: return ps_mshid_event(wparam,lparam);
+    case WM_DEVICECHANGE: {
+        if (wparam==7) { // DBT_DEVNODES_CHANGED
+          if (ps_mshid_poll_disconnected_devices()<0) return -1;
+        }
+      } break;
+
+    //default: ps_log(MSWM,TRACE,"event %d",msg);
 
   }
   return DefWindowProc(hwnd,msg,wparam,lparam);

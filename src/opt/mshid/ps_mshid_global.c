@@ -13,6 +13,13 @@
 #define RD16(src,p) ((((uint8_t*)(src))[p])|(((uint8_t*)(src))[p+1]<<8))
 #define RD32(src,p) (RD16(src,p)|(RD16(src,p+2)<<16))
 
+struct ps_mshid_device {
+  struct ps_input_device hdr;
+  int hat_fldix;
+};
+
+#define DEVICE ((struct ps_mshid_device*)device)
+
 static struct {
   struct ps_input_provider *provider;
 } ps_mshid={0};
@@ -141,6 +148,10 @@ static int ps_mshid_apply_usage(struct ps_input_device *device,const void *src,i
   uint16_t usage_high=RD16(src,0x3e);
   uint16_t index_low=RD16(src,0x48);
   uint16_t index_high=RD16(src,0x4a);
+  int logical_min=RD32(src,0x50);
+  int logical_max=RD32(src,0x54);
+  int physical_min=RD32(src,0x58);
+  int physical_max=RD32(src,0x5c);
 
   /* Validate. If it doesn't compute, give up and return zero. */
   if (shift>=8) return 0;
@@ -149,6 +160,15 @@ static int ps_mshid_apply_usage(struct ps_input_device *device,const void *src,i
   if (report_size*report_count!=total_size) return 0;
   if (report_size>PS_MSHID_HIDP_REPORT_SIZE_SANITY_LIMIT) return 0;
   if (report_count>PS_MSHID_HIDP_REPORT_COUNT_SANITY_LIMIT) return 0;
+
+  //ps_log_hexdump(MSHID,DEBUG,src,srcc,"");
+
+  /* Detect hat switches. eg my "BDA Pro Ex" has one like this.
+   * This won't catch every possible case.
+   */
+  if ((report_count==1)&&(logical_min==0)&&(logical_max==7)&&(usage_page==0x0001)&&(usage_low==0x0039)&&(flags&0x40)) {
+    DEVICE->hat_fldix=ps_input_report_reader_count_fields(device->report_reader);
+  }
 
   /* Define report elements. */
   uint16_t usage=usage_low;
@@ -300,7 +320,28 @@ static int ps_mshid_setup_device(struct ps_input_device *device,RAWINPUT *evt) {
 
 static int ps_mshid_rcvrpt_cb(struct ps_input_report_reader *reader,int fldix,int fldid,int v,int pv,void *userdata) {
   struct ps_input_device *device=userdata;
-  //ps_log(MSHID,TRACE,"%s devid=%d fldix=%d fldid=%d v=%d pv=%d",__func__,device->devid,fldix,fldid,v,pv);
+
+  /* Hacky special handling for hat switches. */
+  if (fldix==DEVICE->hat_fldix) {
+    int btnid_x=ps_input_report_reader_count_fields(reader);
+    int btnid_y=btnid_x+1;
+    int vx=0,vy=0;
+    switch (v) {
+      case 0: vy=-1; break;
+      case 1: vy=-1; vx=1; break;
+      case 2: vx=1; break;
+      case 3: vx=1; vy=1; break;
+      case 4: vy=1; break;
+      case 5: vx=-1; vy=1; break;
+      case 6: vx=-1; break;
+      case 7: vx=-1; vy=-1; break;
+    }
+    if (ps_input_event_button(device,btnid_x,vx)<0) return -1;
+    if (ps_input_event_button(device,btnid_y,vy)<0) return -1;
+    return 0;
+  }
+
+  /* Most buttons. */
   if (ps_input_event_button(device,fldix,v)<0) return -1;
   return 0;
 }
@@ -311,6 +352,38 @@ static int ps_mshid_rcvrpt(struct ps_input_device *device,RAWINPUT *evt) {
   if (ps_input_report_reader_set_report(
     device->report_reader,src,srcc,device,ps_mshid_rcvrpt_cb
   )<0) return -1;
+  return 0;
+}
+
+/* Report available buttons.
+ */
+ 
+int ps_mshid_report_buttons(
+  struct ps_input_device *device,
+  void *userdata,
+  int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata)
+) {
+  if (!device||!cb) return -1;
+  if (!device->report_reader) return 0;
+  int err=ps_input_device_report_buttons_via_report_reader(device,userdata,cb);
+  if (err) return err;
+  
+  if (DEVICE->hat_fldix>=0) {
+    struct ps_input_btncfg btncfg={
+      .lo=-1,
+      .hi=1,
+      .value=0,
+      .default_usage=0x00010030,
+    };
+    int btnid_x=ps_input_report_reader_count_fields(device->report_reader);
+    int btnid_y=btnid_x+1;
+    btncfg.srcbtnid=btnid_x;
+    if (err=cb(device,&btncfg,userdata)) return err;
+    btncfg.srcbtnid=btnid_y;
+    btncfg.default_usage=0x00010031;
+    if (err=cb(device,&btncfg,userdata)) return err;
+  }
+    
   return 0;
 }
 
@@ -327,12 +400,13 @@ static int ps_mshid_evt_hid(RAWINPUT *evt) {
 
   int devp=ps_input_provider_device_search(ps_mshid.provider,devid);
   if (devp<0) {
-    struct ps_input_device *device=ps_input_device_new(0);
+    struct ps_input_device *device=ps_input_device_new(sizeof(struct ps_mshid_device));
     if (!device) return 0;
 
     device->devid=devid;
     device->providerid=PS_INPUT_PROVIDER_mshid;
-    device->report_buttons=ps_input_device_report_buttons_via_report_reader;
+    device->report_buttons=ps_mshid_report_buttons;
+    DEVICE->hat_fldix=-1;
 
     if (ps_mshid_setup_device(device,evt)<0) {
       ps_log(MSHID,WARNING,"Failed to initialize raw input device.");
@@ -349,7 +423,7 @@ static int ps_mshid_evt_hid(RAWINPUT *evt) {
       device->report_reader,&evt->data.hid.bRawData,evt->data.hid.dwSizeHid,0,0
     )<0) return -1;
 
-    if (ps_input_event_connect(device)<0) { //TODO What do RawInput disconnects look like?
+    if (ps_input_event_connect(device)<0) {
       return -1;
     }
 
@@ -383,6 +457,10 @@ int ps_mshid_event(int wparam,int lparam) {
   uint8_t buf[1024];
   UINT bufa=sizeof(buf);
   int bufc=GetRawInputData((HRAWINPUT)lparam,RID_INPUT,buf,&bufa,sizeof(RAWINPUTHEADER));
+
+  // Nothing here for disconnection.
+  //ps_log(MSHID,TRACE,"GetRawInputData: %d, bufa=%d, sizeof(RAWINPUTHEADER)=%d",bufc,bufa,(int)sizeof(RAWINPUTHEADER));
+
   if ((bufc<0)||(bufc>sizeof(buf))) {
     ps_log(MSHID,ERROR,"GetRawInputData: %d",bufc);
     return 0;
@@ -395,5 +473,45 @@ int ps_mshid_event(int wparam,int lparam) {
     case RIM_TYPEHID: return ps_mshid_evt_hid(raw);
     default: ps_log(MSHID,WARNING,"Raw input header type %d",raw->header.dwType);
   }
+  return 0;
+}
+
+/* Look for missing devices.
+ */
+ 
+int ps_mshid_poll_disconnected_devices() {
+
+  uint8_t devinuse[32]={0};
+
+  UINT devc=0;
+  GetRawInputDeviceList(0,&devc,sizeof(RAWINPUTDEVICELIST));
+  if (devc>0) {
+    RAWINPUTDEVICELIST *devv=calloc(devc,sizeof(RAWINPUTDEVICELIST));
+    if (!devv) return -1;
+    int err=GetRawInputDeviceList(devv,&devc,sizeof(RAWINPUTDEVICELIST));
+    if (err>0) {
+      devc=err;
+      int i=devc; while (i-->0) {
+        if (devv[i].dwType!=RIM_TYPEHID) continue;
+        int devid=ps_mshid_devid_from_handle(devv[i].hDevice);
+        int p=ps_input_provider_device_search(ps_mshid.provider,devid);
+        if (p<0) continue;
+        if (p>=256) continue; // This would be strange, since USB only supports I think 127 devices on a bus.
+        devinuse[p>>3]|=1<<(p&7);
+      }
+    }
+    free(devv);
+  }
+
+  int i=ps_mshid.provider->devc; while (i-->0) { // important that we count down and not up
+    if (devinuse[i>>3]&(1<<(i&7))) {
+      continue;
+    } else {
+      struct ps_input_device *device=ps_mshid.provider->devv[i];
+      if (ps_input_event_disconnect(device)<0) return -1;
+      if (ps_input_provider_uninstall_device(ps_mshid.provider,device)<0) return -1;
+    }
+  }
+
   return 0;
 }

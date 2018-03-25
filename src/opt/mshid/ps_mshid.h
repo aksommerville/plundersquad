@@ -15,4 +15,11 @@ void ps_mshid_quit();
  */
 int ps_mshid_event(int wparam,int lparam);
 
+/* mswm calls this on WM_DEVICECHANGE with DBT_DEVNODES_CHANGED.
+ * Windows doesn't tell us whether it's an addition or removal, or which device is involved.
+ * So mshid responds to this by polling the entire system for devices no longer active.
+ * Nice.
+ */
+int ps_mshid_poll_disconnected_devices();
+
 #endif

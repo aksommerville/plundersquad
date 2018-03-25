@@ -12,6 +12,11 @@ int akgl_soft_fbxfer_draw(struct ps_sdraw_image *src,int x,int y,int w,int h) {
       break;
     default: return -1;
   }
+  
+  /* Raspberry Pi only supports OpenGL ES 2.
+   * It will never use soft rendering, so I don't mind just commenting this blurb out.
+   */
+  #if PS_ARCH!=PS_ARCH_raspi
 
   glViewport(0,0,akgl.screenw,akgl.screenh);
 
@@ -34,6 +39,8 @@ int akgl_soft_fbxfer_draw(struct ps_sdraw_image *src,int x,int y,int w,int h) {
   if (akgl_clear_error()) {
     return -1;
   }
+    
+  #endif
   
   return 0;
 }

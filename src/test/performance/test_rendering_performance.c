@@ -136,10 +136,49 @@ MAIN:INFO:        500    1131255          6 0.002262510 [src/test/performance/te
 MAIN:INFO:        500    1133499          6 0.002266998 [src/test/performance/test_rendering_performance.c:137]
  *
  * TEST RESULTS: Raspberry Pi with hardware render.
- * TODO
+MAIN:INFO:        500     535050          1 0.001070100 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     546770          1 0.001093540 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     542457          1 0.001084914 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     543358          1 0.001086716 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     545761          1 0.001091522 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     545218          1 0.001090436 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     545444          1 0.001090888 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     574080          5 0.001148160 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     694404         34 0.001388808 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     702270         43 0.001404540 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     711945         51 0.001423890 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     728909         68 0.001457818 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     746572         85 0.001493144 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     748865         93 0.001497730 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     771305        127 0.001542610 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     790759        148 0.001581518 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     787941        148 0.001575882 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     790264        148 0.001580528 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     791949        148 0.001583898 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     780585        140 0.001561170 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     760847        112 0.001521694 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     758247        108 0.001516494 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     751778         96 0.001503556 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     735589         80 0.001471178 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     726238         68 0.001452476 [src/test/performance/test_rendering_performance.c:202]
+MAIN:INFO:        500     716361         56 0.001432722 [src/test/performance/test_rendering_performance.c:202]
  *
- * TEST RESULTS: Raspberry Pi with software render -- This is going to suck!
- * TODO
+ * TEST RESULTS: Raspberry Pi with software render
+ * This doesn't actually work, because with the SOFT strategy, the copy to screen uses GL 1.
+ * I'm not going to fix that just for a performance test, but the actual part we're measuring is still valid.
+ * ...Even if we fixed it, this is what we'd be dealing with:
+MAIN:INFO:        500    4498568          1 0.008997136 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500    4559213          1 0.009118426 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500    4559125          1 0.009118250 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500    5925833         17 0.011851666 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500    6942708         29 0.013885416 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500    9236973         57 0.018473946 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500   10945434         77 0.021890868 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500   11336821         81 0.022673642 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500   11271718         81 0.022543436 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500   11071621         81 0.022143242 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500   10802269         81 0.021604538 [src/test/performance/test_rendering_performance.c:228]
+MAIN:INFO:        500   10526867         81 0.021053734 [src/test/performance/test_rendering_performance.c:228]
  *
  */
 

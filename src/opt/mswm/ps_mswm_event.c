@@ -61,9 +61,17 @@ static int ps_mswm_evt_mbtn(int btnid,int state) {
   return 0;
 }
 
-static int ps_mswm_evt_mwheel(int dx,int dy) {
-  ps_log(MSWM,TRACE,"%s %+d,%+d",__func__,dx,dy);
-  if (ps_input_event_mwheel(dx,dy)<0) return -1;
+static int ps_mswm_evt_mwheel(int wparam,int lparam,int horz) {
+  int16_t d=(wparam>>16)/WHEEL_DELTA;
+  d=-d; // Positive is away from the user, ie up. That's backwards to my preference.
+  if (wparam&MK_SHIFT) { // Use SHIFT key to toggle axis.
+    horz=!horz;
+  }
+  if (horz) {
+    if (ps_input_event_mwheel(d,0)<0) return -1;
+  } else {
+    if (ps_input_event_mwheel(0,d)<0) return -1;
+  }
   return 0;
 }
 
@@ -125,9 +133,9 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
     case WM_RBUTTONDOWN: return ps_mswm_evt_mbtn(3,1);
     case WM_RBUTTONUP: return ps_mswm_evt_mbtn(3,0);
 
-    //TODO Mouse wheel events for windows.
-    case WM_MOUSEHWHEEL: return ps_mswm_evt_mwheel(((signed int)wparam)>>16,0);
-    case WM_MOUSEWHEEL: return ps_mswm_evt_mwheel(0,((signed int)wparam)>>16);
+    // WM_MOUSEHWHEEL exists but my 2-wheel mouse doesn't report it. In fact there is no difference between the two wheels.
+    case WM_MOUSEHWHEEL: return ps_mswm_evt_mwheel(wparam,lparam,1);
+    case WM_MOUSEWHEEL: return ps_mswm_evt_mwheel(wparam,lparam,0);
 
     case WM_MOUSEMOVE: return ps_mswm_evt_mmove(LOWORD(lparam),HIWORD(lparam));
 

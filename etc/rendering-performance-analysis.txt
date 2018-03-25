@@ -1,0 +1,45 @@
+25 March 2018
+Analysis of data collected via test_rendering_performance.c.
+
+SUMMARY
+
+We can carry on confidently with the existing rendering model.
+No sense wasting a lot of time on further optimization.
+
+There are two outliers:
+- Linux/GX has an invalid result due to missing low-sprite-count sample.
+  It doesn't really matter; we know it's wicked fast.
+- Pi/Soft is considerably slower than any other configuration.
+  That won't even be an option in the final product though.
+
+I consider worst-case scenario to be about 100 sprites.
+Even the sluggish Pi should be able to draw those in about 336 us with GX.
+My Windows box might take over 7 ms to render a 100-sprite scene.
+That's bad, but I think we can still manage 60 Hz output with it.
+
+My Linux and Mac boxes both rolled up this test and smoked it, with or without GX.
+Using GX is a good idea, though. You can still see a pronounced difference.
+
+METHODOLOGY
+
+Raw test results are recorded in comments at the top of test_rendering_performance.c.
+To estimate the per-sprite cost, take average performance for the lowest and highest sprite counts,
+subtract one from the other, and average from there.
+This will yield "AVERAGE", roughly the time in nanoseconds to render one "maxtile" sprite.
+Consider the lowest count to be an estimate of the grid and other overhead.
+Most of the accelerated scenarios yield such small numbers that I don't think those results are meaningful.
+
+TODO
+
+- Rerun Linux with GX; I didn't record a low count the first time.
+
+DATA
+
+  PLATFORM          GX? SPRCLO TIMELO SPRCHI TIMEHI => SPRC TIME    AVERAGE
+  Linux(Asus)       Y   258     89292  346    88512     88   ---        ---
+  macos(Air)        Y     1    166818  665   291528    664   124710     188
+  Pi                Y     1   1086874  148  1580457    147   493583    3358
+  macos(Air)        N     1    674152  200  3543990    199  2869838   14421
+  Linux(Asus)       N     1   2231038  106  4822854    105  2591816   24684
+  mswin(Latitude)   N     1   1440286   85  6311143     84  4870857   57986
+  Pi                N     1   9077937   81 22003718     80 12925781  161572

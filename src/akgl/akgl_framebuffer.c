@@ -37,7 +37,7 @@ struct akgl_framebuffer *akgl_framebuffer_new() {
   switch (akgl.strategy) {
     case AKGL_STRATEGY_SOFT: return (struct akgl_framebuffer*)ps_sdraw_image_new();
     case AKGL_STRATEGY_GL2: break;
-    default: return -1;
+    default: return 0;
   }
   
   struct akgl_framebuffer *framebuffer=calloc(1,sizeof(struct akgl_framebuffer));

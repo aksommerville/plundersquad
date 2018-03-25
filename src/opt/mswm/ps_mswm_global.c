@@ -65,11 +65,24 @@ int ps_mswm_init(int w,int h,int fullscreen,const char *title) {
   ps_mswm.winh=h;
   int x=100,y=100;//TODO window position
 
+  /* CreateWindow() takes the outer bounds, including the frame.
+   * (w,h) provided to us are the desired inner bounds, ie the part that we control.
+   */
+  RECT bounds={
+    .left=0,
+    .top=0,
+    .right=w,
+    .bottom=h,
+  };
+  AdjustWindowRect(&bounds,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,0);
+  int outerw=bounds.right-bounds.left;
+  int outerh=bounds.bottom-bounds.top;
+
   ps_mswm.hwnd=CreateWindow(
     PS_MSWM_WINDOW_CLASS_NAME,
     title,
     WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
-    x,y,w,h,
+    x,y,outerw,outerh,
     0,0,ps_mswm.instance,0
   );
   if (!ps_mswm.hwnd) {

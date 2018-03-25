@@ -19,10 +19,10 @@ int akgl_soft_fbxfer_draw(struct ps_sdraw_image *src,int x,int y,int w,int h) {
   glBindTexture(GL_TEXTURE_2D,akgl.soft_fbtexid);
   glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,src->w,src->h,0,GL_RGBA,GL_UNSIGNED_BYTE,src->pixels);
 
-  double dstl=(x*2.0)/akgl.screenw-1.0;
-  double dstr=((x+w)*2.0)/akgl.screenw-1.0;
-  double dstb=(y*2.0)/akgl.screenh-1.0;
-  double dstt=((y+h)*2.0)/akgl.screenh-1.0;
+  float dstl=(x*2.0f)/akgl.screenw-1.0f;
+  float dstr=((x+w)*2.0f)/akgl.screenw-1.0f;
+  float dstb=(y*2.0f)/akgl.screenh-1.0f;
+  float dstt=((y+h)*2.0f)/akgl.screenh-1.0f;
 
   glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2i(0,0); glVertex2f(dstl,dstt);

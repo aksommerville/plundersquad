@@ -107,7 +107,7 @@ static int akau_fire_sync_token(uint16_t token) {
  */
  
 int akau_update() {
-  if (!akau.init) return -1;
+  if (!akau.init) return 0;
 
   /* Report deferred errors. */
   if (akau.error) {

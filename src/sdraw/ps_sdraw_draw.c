@@ -135,3 +135,39 @@ int ps_sdraw_draw_vert_gradient(struct ps_sdraw_image *image,int x,int y,int w,i
   ps_log(VIDEO,ERROR,"TODO: %s",__func__);
   return 0;
 }
+
+/* Skinny line.
+ */
+ 
+int ps_sdraw_draw_line(struct ps_sdraw_image *image,int ax,int ay,int bx,int by,struct ps_sdraw_rgba rgba) {
+  if (!image) return -1;
+
+  if (ax==bx) return ps_sdraw_draw_rect(image,ax,(ay<by)?ay:by,1,((ay<by)?(by-ay):(ay-by))+1,rgba);
+  if (ay==by) return ps_sdraw_draw_rect(image,(ax<bx)?ax:bx,ay,((ax<bx)?(bx-ax):(ax-bx))+1,1,rgba);
+
+  int dx=(ax<bx)?1:-1;
+  int dy=(ay<by)?1:-1;
+  int wx=bx-ax; if (wx<0) wx=-wx;
+  int wy=by-ay; if (wy>0) wy=-wy;
+  int xthresh=wx>>1;
+  int ythresh=wy>>1;
+  int weight=wx+wy;
+
+  while ((ax!=bx)||(ay!=by)) {
+    if (ps_sdraw_draw_rect(image,ax,ay,1,1,rgba)<0) return -1; // TODO More efficient way to set 1 pixel?
+    if (weight>xthresh) {
+      if (ax!=bx) ax+=dx;
+      weight+=wy;
+    } else if (weight<ythresh) {
+      if (ay!=by) ay+=dy;
+      weight+=wx;
+    } else {
+      if (ax!=bx) ax+=dx;
+      if (ay!=by) ay+=dy;
+      weight+=wx+wy;
+    }
+  }
+  if (ps_sdraw_draw_rect(image,bx,by,1,1,rgba)<0) return -1; // TODO More efficient way to set 1 pixel?
+  
+  return 0;
+}

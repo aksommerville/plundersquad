@@ -20,6 +20,9 @@
 #if PS_USE_glx
   #include "opt/glx/ps_glx.h"
 #endif
+#if PS_USE_mswm
+  #include "opt/mswm/ps_mswm.h"
+#endif
 
 static struct ps_gui *ps_gui=0;
 
@@ -68,15 +71,20 @@ static int ps_edit_init(const struct ps_cmdline *cmdline) {
     if (ps_glx_connect_input()<0) return -1;
     if (ps_glx_show_cursor(1)<0) return -1;
   #endif
-  if (ps_input_load_configuration("etc/input.cfg")<0) return -1; //TODO input config path
+  #if PS_USE_mswm
+    if (ps_mswm_connect_input()<0) return -1;
+  #endif
+  if (ps_input_load_configuration("etc/input.cfg")<0) return -1;
 
   #if PS_USE_akmacaudio
     if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
   #elif PS_USE_alsa
     if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
+  #elif PS_USE_msaudio
+    if (akau_init(&akau_driver_msaudio,ps_log_akau)<0) return -1;
   #endif
   
-  if (ps_resmgr_init("src/data",1)<0) return -1; //TODO resource path
+  if (ps_resmgr_init("src/data",1)<0) return -1;
   
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_input_set_gui(ps_gui)<0) return -1;
@@ -112,16 +120,28 @@ static void ps_edit_quit() {
 
 static int ps_edit_update() {
 
-  if (ps_input_update()<0) return -1;
+  if (ps_input_update()<0) {
+    ps_log(EDIT,ERROR,"ps_input_update failed");
+    return -1;
+  }
   if (ps_input_termination_requested()) {
     ps_ioc_quit(0);
   }
   
-  if (akau_update()<0) return -1;
-
-  if (ps_gui_update(ps_gui)<0) return -1;
+  if (akau_update()<0) {
+    ps_log(EDIT,ERROR,"akau_update failed");
+    return -1;
+  }
   
-  if (ps_video_update()<0) return -1;
+  if (ps_gui_update(ps_gui)<0) {
+    ps_log(EDIT,ERROR,"ps_gui_update failed");
+    return -1;
+  }
+  
+  if (ps_video_update()<0) {
+    ps_log(EDIT,ERROR,"ps_video_update failed");
+    return -1;
+  }
   
   return 0;
 }

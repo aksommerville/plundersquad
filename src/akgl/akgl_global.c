@@ -7,6 +7,9 @@ struct akgl akgl={0};
  
 int akgl_get_error() {
   int err=glGetError();
+  if (err) {
+    ps_log(VIDEO,ERROR,"GL error 0x%04x",err);
+  }
   return err;
 }
 
@@ -148,7 +151,10 @@ int akgl_clear(uint32_t rgba) {
 
 int akgl_scissor(int x,int y,int w,int h) {
   if (!akgl.init) return -1;
+  
   //TODO In SOFT strategy, we will need support from ps_sdraw.
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) return 0;
+  
   glEnable(GL_SCISSOR_TEST);
   if (akgl.framebuffer) {
     switch (akgl.strategy) {

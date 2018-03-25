@@ -17,3 +17,5 @@ Windows target
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
 - Build with GL2 support
 - Fullscreen
+- App icon
+- Hide cursor

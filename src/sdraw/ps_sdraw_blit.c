@@ -169,6 +169,17 @@ int ps_sdraw_blit_replacergb(
     return ps_sdraw_blit_replacergb__scale(dst,dstx,dsty,dstw,dsth,src,srcx,srcy,srcw,srch,rgba);
   }
 
+  // Clip boundaries.
+  if ((srcw<1)||(srch<1)) return 0;
+  if (dstx<0) { if ((srcw+=dstx)<1) return 0; srcx-=dstx; dstx=0; }
+  if (dsty<0) { if ((srch+=dsty)<1) return 0; srcy-=dsty; dsty=0; }
+  if (srcx<0) { if ((srcw+=srcx)<1) return 0; dstx-=srcx; srcx=0; }
+  if (srcy<0) { if ((srch+=srcy)<1) return 0; dsty-=srcy; srcy=0; }
+  if (dstx>dst->w-srcw) { if ((srcw=dst->w-dstx)<1) return 0; }
+  if (dsty>dst->h-srch) { if ((srch=dst->h-dsty)<1) return 0; }
+  if (srcx>src->w-srcw) { if ((srcw=src->w-srcx)<1) return 0; }
+  if (srcy>src->h-srch) { if ((srch=src->h-srcy)<1) return 0; }
+
   // Set up for iteration.
   const uint8_t *srcrow=src->pixels+srcy*src->rowstride+srcx*src->colstride;
   uint8_t *dstrow=dst->pixels+dsty*dst->rowstride+dstx*dst->colstride;

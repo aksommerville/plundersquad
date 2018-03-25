@@ -79,6 +79,8 @@ int ps_sdraw_draw_rect(struct ps_sdraw_image *image,int x,int y,int w,int h,stru
 int ps_sdraw_draw_horz_gradient(struct ps_sdraw_image *image,int x,int y,int w,int h,struct ps_sdraw_rgba left,struct ps_sdraw_rgba right);
 int ps_sdraw_draw_vert_gradient(struct ps_sdraw_image *image,int x,int y,int w,int h,struct ps_sdraw_rgba top,struct ps_sdraw_rgba bottom);
 
+int ps_sdraw_draw_line(struct ps_sdraw_image *image,int ax,int ay,int bx,int by,struct ps_sdraw_rgba rgba);
+
 /* Ordinary blit.
  * Dimensions must be provided for both source and destination; we scale automatically.
  * If the source image has an alpha channel, we use it.

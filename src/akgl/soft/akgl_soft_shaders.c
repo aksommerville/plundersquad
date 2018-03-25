@@ -86,15 +86,31 @@ int akgl_soft_mintile_draw(struct akgl_texture *texture,const struct akgl_vtx_mi
   return 0;
 }
 
+/* Draw line.
+ */
+
+int akgl_soft_raw_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc,int width) {
+  if (akgl.strategy!=AKGL_STRATEGY_SOFT) return -1;
+  if (!akgl.framebuffer) return -1;
+  struct ps_sdraw_image *dst=(struct ps_sdraw_image*)akgl.framebuffer;
+  
+  if (width!=1) {
+    ps_log(VIDEO,ERROR,"Line width %d not supported.",width);
+    return -1;
+  }
+  
+  int i=1; for (;i<vtxc;i++) {
+    //TODO If we want to keep the contract strictly, we'd need a gradient line function from sdraw. Doable.
+    if (ps_sdraw_draw_line(dst,vtxv[i-1].x,vtxv[i-1].y,vtxv[i].x,vtxv[i].y,ps_sdraw_rgba(vtxv[i].r,vtxv[i].g,vtxv[i].b,vtxv[i].a))<0) return -1;
+  }
+  
+  return 0;
+}
+
 /* Stubs XXX
  */
 
 int akgl_soft_raw_draw_triangle_strip(const struct akgl_vtx_raw *vtxv,int vtxc) {
-  ps_log(VIDEO,ERROR,"Stubbed function %s, didn't expect it to be called.",__func__);
-  return -1;
-}
-
-int akgl_soft_raw_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc,int width) {
   ps_log(VIDEO,ERROR,"Stubbed function %s, didn't expect it to be called.",__func__);
   return -1;
 }

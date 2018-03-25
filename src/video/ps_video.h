@@ -47,6 +47,11 @@ int ps_video_point_window_from_framebuffer(int *winx,int *winy,int fbx,int fby);
 int ps_video_supports_fullscreen_toggle();
 int ps_video_toggle_fullscreen();
 
+/* TEST ONLY
+ * Render the active scene (repc) times, and do not commit to main output.
+ */
+int ps_video_test_draw(int repc);
+
 /* Helpers for drawing.
  *****************************************************************************/
 

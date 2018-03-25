@@ -234,6 +234,18 @@ int ps_video_draw_to_framebuffer() {
   return 0;
 }
 
+int ps_video_test_draw(int repc) {
+  if (!ps_video.init) return -1;
+
+  if (akgl_framebuffer_use(ps_video.framebuffer)<0) return -1;
+  while (repc-->0) {
+    if (ps_video_draw_layers(1)<0) return -1;
+  }
+  if (akgl_framebuffer_use(0)<0) return -1;
+  
+  return 0;
+}
+
 /* Redraw framebuffer with only the game layer.
  */
 

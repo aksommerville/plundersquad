@@ -205,6 +205,7 @@ static int ps_game_renderer_draw(struct ps_video_layer *layer) {
     }
   
   }
+  
   return 0;
 }
 

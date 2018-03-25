@@ -1,4 +1,4 @@
-CCWARN:=-Werror -Wimplicit -Wno-parentheses -Wno-constant-conversion -Wno-deprecated-declarations -Wno-comment
+CCWARN:=-Werror -Wimplicit -Wno-parentheses -Wno-constant-conversion -Wno-deprecated-declarations -Wno-comment -Wno-pointer-sign
 CCINC:=-Isrc -I$(MIDDIR)
 
 CC:=gcc -c -MMD -O2 $(CCINC) $(CCWARN)

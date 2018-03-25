@@ -43,10 +43,47 @@ MAIN:INFO:        500        717          5 0.001434000 [src/test/performance/te
 MAIN:INFO:        500        703          5 0.001406000 [src/test/performance/test_rendering_performance.c:110]
  *
  * TEST RESULTS: MacOS with hardware render.
- * TODO
+ * I can't launch this test on the Mac due to IoC (grrrrr), but modified ps_main to do about the same thing.
+MAIN:INFO:        500      85244          1 0.000170488 [src/main/ps_main.c:64]
+MAIN:INFO:        500      84431          1 0.000168862 [src/main/ps_main.c:64]
+MAIN:INFO:        500      80396          1 0.000160792 [src/main/ps_main.c:64]
+MAIN:INFO:        500      81281          1 0.000162562 [src/main/ps_main.c:64]
+MAIN:INFO:        500      85669          1 0.000171338 [src/main/ps_main.c:64]
+MAIN:INFO:        500     111109         22 0.000222218 [src/main/ps_main.c:64]
+MAIN:INFO:        500      98911         22 0.000197822 [src/main/ps_main.c:64]
+MAIN:INFO:        500     142596        662 0.000285192 [src/main/ps_main.c:64]
+MAIN:INFO:        500     145764        665 0.000291528 [src/main/ps_main.c:64]
+MAIN:INFO:        500     157340        634 0.000314680 [src/main/ps_main.c:64]
+MAIN:INFO:        500     144554        590 0.000289108 [src/main/ps_main.c:64]
+MAIN:INFO:        500     142166        542 0.000284332 [src/main/ps_main.c:64]
  *
  * TEST RESULTS: MacOS with software render.
- * TODO
+MAIN:INFO:        500     337076          1 0.000674152 [src/main/ps_main.c:64]
+MAIN:INFO:        500     576540         30 0.001153080 [src/main/ps_main.c:64]
+MAIN:INFO:        500     772812         43 0.001545624 [src/main/ps_main.c:64]
+MAIN:INFO:        500     794661         43 0.001589322 [src/main/ps_main.c:64]
+MAIN:INFO:        500     686465         43 0.001372930 [src/main/ps_main.c:64]
+MAIN:INFO:        500     653660         43 0.001307320 [src/main/ps_main.c:64]
+MAIN:INFO:        500     662207         43 0.001324414 [src/main/ps_main.c:64]
+MAIN:INFO:        500     652886         43 0.001305772 [src/main/ps_main.c:64]
+MAIN:INFO:        500     622620         43 0.001245240 [src/main/ps_main.c:64]
+MAIN:INFO:        500     630738         47 0.001261476 [src/main/ps_main.c:64]
+MAIN:INFO:        500     883066         89 0.001766132 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1286438        143 0.002572876 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1589038        190 0.003178076 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1771995        200 0.003543990 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1759127        192 0.003518254 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1716658        192 0.003433316 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1763854        192 0.003527708 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1695826        192 0.003391652 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1620055        192 0.003240110 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1456342        192 0.002912684 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1385796        192 0.002771592 [src/main/ps_main.c:64]
+MAIN:INFO:        500    1247136        184 0.002494272 [src/main/ps_main.c:64]
+MAIN:INFO:        500     994086        136 0.001988172 [src/main/ps_main.c:64]
+MAIN:INFO:        500     713026         88 0.001426052 [src/main/ps_main.c:64]
+MAIN:INFO:        500     441901         36 0.000883802 [src/main/ps_main.c:64]
+MAIN:INFO:        500     340196         12 0.000680392 [src/main/ps_main.c:64]
  *
  * TEST RESULTS: Linux with hardware render on Asus (Core 2 Duo 2.13 GHz, Debian 3.16.51-3)
  * With these test parameters, I couldn't even perceive any slowdown. :)

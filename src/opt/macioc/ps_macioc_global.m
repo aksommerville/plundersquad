@@ -77,12 +77,18 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
 
     } else if (!memcmp(arg,"--resources=",12)) {
       ps_macioc.cmdline.resources_path=arg+12;
+      argc--;
+      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
 
     } else if (!memcmp(arg,"--input=",8)) {
       ps_macioc.cmdline.input_config_path=arg+8;
+      argc--;
+      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
 
     } else if (!strcmp(arg,"--soft-render")) {
       ps_macioc.cmdline.akgl_strategy=AKGL_STRATEGY_SOFT;
+      argc--;
+      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
 
     } else if (arg[0]=='-') {
       ps_log(MACIOC,ERROR,"Unexpected command line option: %s",arg);
@@ -96,6 +102,8 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
       argp++;
     }
   }
+
+  ps_log(MACIOC,DEBUG,"launching with akgl strategy %d",ps_macioc.cmdline.akgl_strategy);
 
   return NSApplicationMain(argc,(const char**)argv);
 }

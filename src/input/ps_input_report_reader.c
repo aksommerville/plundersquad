@@ -273,6 +273,7 @@ static int ps_input_report_reader_read(const uint8_t *report,const struct ps_inp
     }
     return dst;
   }
+  return 0;
 }
 
 /* Examination.

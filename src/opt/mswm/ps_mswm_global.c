@@ -99,6 +99,8 @@ int ps_mswm_init(int w,int h,int fullscreen,const char *title) {
   }
   UpdateWindow(ps_mswm.hwnd);
 
+  ShowCursor(0);
+
   return 0;
 }
 

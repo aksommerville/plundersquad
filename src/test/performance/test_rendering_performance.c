@@ -48,11 +48,55 @@ MAIN:INFO:        500        703          5 0.001406000 [src/test/performance/te
  * TEST RESULTS: MacOS with software render.
  * TODO
  *
- * TEST RESULTS: Linux with hardware render on Asus (model?)
- * TODO
+ * TEST RESULTS: Linux with hardware render on Asus (Core 2 Duo 2.13 GHz, Debian 3.16.51-3)
+ * With these test parameters, I couldn't even perceive any slowdown. :)
+MAIN:INFO:        500      59508        304 0.000119016 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      39438        309 0.000078876 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      44162        313 0.000088324 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      57202        322 0.000114404 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      38499        323 0.000076998 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      47784        328 0.000095568 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      41733        334 0.000083466 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      56622        339 0.000113244 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      59246        344 0.000118492 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      44669        345 0.000089338 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      43843        346 0.000087686 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      53094        346 0.000106188 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      39970        326 0.000079940 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      56501        306 0.000113002 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      41014        282 0.000082028 [src/test/performance/test_rendering_performance.c:120]
+MAIN:INFO:        500      44646        258 0.000089292 [src/test/performance/test_rendering_performance.c:120]
  *
  * TEST RESULTS: Linux with software render on Asus
- * TODO
+MAIN:INFO:        500    1116389          1 0.002232778 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1116958          1 0.002233916 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1114766          1 0.002229532 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1114022          1 0.002228044 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1115282          1 0.002230564 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1114300          1 0.002228600 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1117234          1 0.002234468 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1115201          1 0.002230402 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1221886          9 0.002443772 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1389835         22 0.002779670 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1440114         26 0.002880228 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1660534         43 0.003321068 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1944684         64 0.003889368 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1938079         64 0.003876158 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    2269575         89 0.004539150 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    2470823        106 0.004941646 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    2456133        106 0.004912266 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    2432986        106 0.004865972 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    2386071        106 0.004772142 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    2311121        106 0.004622242 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    2149370         94 0.004298740 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1999921         86 0.003999842 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1867163         78 0.003734326 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1692217         62 0.003384434 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1517463         46 0.003034926 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1465264         46 0.002930528 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1200295         14 0.002400590 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1131255          6 0.002262510 [src/test/performance/test_rendering_performance.c:137]
+MAIN:INFO:        500    1133499          6 0.002266998 [src/test/performance/test_rendering_performance.c:137]
  *
  * TEST RESULTS: Raspberry Pi with hardware render.
  * TODO
@@ -70,6 +114,7 @@ MAIN:INFO:        500        703          5 0.001406000 [src/test/performance/te
 #include "input/ps_input_button.h"
 #include "res/ps_resmgr.h"
 #include "game/ps_game.h"
+#include "akgl/akgl.h"
 #include <time.h>
 
 #if PS_USE_macioc
@@ -203,13 +248,17 @@ static int ps_main_init_input(const struct ps_cmdline *cmdline) {
 static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
+  struct ps_cmdline altcmdline;
+  memcpy(&altcmdline,cmdline,sizeof(struct ps_cmdline));
+  altcmdline.akgl_strategy=AKGL_STRATEGY_SOFT;
+
   int randseed=time(0);
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
 
-  if (ps_video_init(cmdline)<0) return -1;
+  if (ps_video_init(&altcmdline)<0) return -1;
 
-  if (ps_main_init_input(cmdline)<0) {
+  if (ps_main_init_input(&altcmdline)<0) {
     ps_log(MAIN,ERROR,"Failed to initialize input.");
     return -1;
   }

@@ -1,13 +1,10 @@
-- More projectile-throwing monsters.
 - Review dragoncharger with multiple real players.
 - Final boss?
 - Record top scores
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
-- Investigate image filtering -- Observed much smaller output WITHOUT filter, that doesn't seem right.
 - Another freeze at quit on Linux. ALSA?
-- Soft rendering: predraw grid background.
-- Bomber: check for obstructions
+- MacOS: fullscreen toggle
 
 Windows target
 - Freeze on startup, Windows:

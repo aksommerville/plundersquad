@@ -1018,6 +1018,7 @@ int ps_game_create_prize(struct ps_game *game,int x,int y) {
  
 int ps_game_create_splash(struct ps_game *game,int x,int y) {
   if (!game) return -1;
+  PS_SFX_SPLASH
   struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_SPLASH_SPRDEF_ID);
   if (!sprdef) return -1;
   struct ps_sprite *splash=ps_sprdef_instantiate(game,sprdef,0,0,x,y);

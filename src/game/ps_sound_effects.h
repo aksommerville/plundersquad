@@ -23,6 +23,8 @@
 #define PS_SFX_TRANSFORM akau_play_sound(21,0x80,0);
 #define PS_SFX_UNTRANSFORM akau_play_sound(22,0x80,0);
 #define PS_SFX_EXPLODE akau_play_sound(7,0x80,0);
+#define PS_SFX_BOMB_REJECT akau_play_sound(48,0x80,0);
+#define PS_SFX_BOMB_THROW akau_play_sound(49,0x80,0);
 
 #define PS_SFX_BEGIN_PLAY
 #define PS_SFX_SHIFT_SCREEN

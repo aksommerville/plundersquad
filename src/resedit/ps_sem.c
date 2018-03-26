@@ -1537,7 +1537,11 @@ int ps_sem_adjust_trim_in_range(
         if (filter_drumid&&!filter_drumid(event->objid,userdata)) continue;
       }
       int mbeatp,meventp;
-      if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) return -1;
+      if (ps_sem_find_note_start(&mbeatp,&meventp,sem,beatp,eventp)<0) {
+        // Drum or whatever. Start the chain at this position.
+        mbeatp=beatp;
+        meventp=eventp;
+      }
       while (1) {
         struct ps_sem_event *mevent=sem->beatv[mbeatp].eventv+meventp;
         int nv=mevent->trim+d;

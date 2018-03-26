@@ -283,12 +283,28 @@ static int ps_hero_bomb(struct ps_sprite *spr,struct ps_game *game) {
   
   int x=spr->x;
   int y=spr->y;
+  int offset=(PS_TILESIZE*2)/3;
   switch (SPR->facedir) {
-    case PS_DIRECTION_NORTH: y-=PS_TILESIZE; break;
-    case PS_DIRECTION_SOUTH: y+=PS_TILESIZE; break;
-    case PS_DIRECTION_WEST: x-=PS_TILESIZE; break;
-    case PS_DIRECTION_EAST: x+=PS_TILESIZE; break;
+    case PS_DIRECTION_NORTH: y-=offset; break;
+    case PS_DIRECTION_SOUTH: y+=offset; break;
+    case PS_DIRECTION_WEST: x-=offset; break;
+    case PS_DIRECTION_EAST: x+=offset; break;
   }
+
+  /* Quick check to ensure we're not throwing it into a wall or hole.
+   */
+  const struct ps_grid_cell *cell=ps_grid_get_cell(game->grid,x/PS_TILESIZE,y/PS_TILESIZE);
+  if (cell) switch (cell->physics) {
+    case PS_BLUEPRINT_CELL_SOLID:
+    case PS_BLUEPRINT_CELL_LATCH: {
+        PS_SFX_BOMB_REJECT
+      } return 0;
+    case PS_BLUEPRINT_CELL_HOLE: {
+        if (ps_game_create_splash(game,x,y)<0) return -1;
+      } return 0;
+  }
+
+  PS_SFX_BOMB_THROW
   
   struct ps_sprite *bomb=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
   if (!bomb) return -1;

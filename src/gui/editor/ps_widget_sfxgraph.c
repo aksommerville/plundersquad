@@ -279,6 +279,7 @@ double ps_widget_sfxgraph_get_value_limit(const struct ps_widget *widget) {
  
 int ps_widget_sfxgraph_rebuild(struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_sfxgraph)) return -1;
+  ps_log(EDIT,TRACE,"%s...",__func__);
   if (ps_widget_remove_all_children(widget)<0) return -1;
   int chanid=ps_widget_sfxchan_get_chanid(widget->parent);
   const struct ps_iwg *iwg=ps_sfxgraph_get_iwg(widget);
@@ -295,6 +296,7 @@ int ps_widget_sfxgraph_rebuild(struct ps_widget *widget) {
     }
   }
   if (ps_widget_pack(widget)<0) return -1;
+  ps_log(EDIT,TRACE,"...%s",__func__);
   return 0;
 }
 
@@ -324,8 +326,8 @@ static int ps_sfxgraph_time_from_horz(const struct ps_widget *widget,const struc
 }
 
 static double ps_sfxgraph_value_from_vert(const struct ps_widget *widget,int y) {
-  if (WIDGET->valuez<1.0) return -1.0;
-  if (widget->h<1) return -1.0;
+  if (WIDGET->valuez<1.0) return 0.0;
+  if (widget->h<1) return 0.0;
   double v=((widget->h-y-1)*WIDGET->valuez)/widget->h;
   if (v<0.0) return 0.0;
   if (v>WIDGET->valuez) return WIDGET->valuez;

@@ -345,10 +345,7 @@ static int ps_songdlg_read_parameter(int *v,int *adjust,const struct ps_widget *
 static int ps_songdlg_execute_MOD(struct ps_widget *widget) {
   int nv,adjust;
 
-  ps_log(EDIT,TRACE,"execute song modification...");
-
   if (ps_songdlg_read_parameter(&nv,&adjust,ps_songdlg_get_instrumentfield(widget))>0) {
-    ps_log(EDIT,TRACE,"instrument %d %s",nv,adjust?"relative":"absolute");
     if (adjust) {
       ps_log(EDIT,WARN,"Ignoring relative adjustment to voice ID, that was probably a mistake.");
     } else if ((nv<0)||(nv>255)) {
@@ -363,7 +360,6 @@ static int ps_songdlg_execute_MOD(struct ps_widget *widget) {
   }
 
   if (ps_songdlg_read_parameter(&nv,&adjust,ps_songdlg_get_pitchfield(widget))>0) {
-    ps_log(EDIT,TRACE,"pitch %d %s",nv,adjust?"relative":"absolute");
     if (adjust) {
       if (ps_sem_adjust_pitch_in_range(
         WIDGET->sem,WIDGET->startp,WIDGET->endp-WIDGET->startp,
@@ -381,7 +377,6 @@ static int ps_songdlg_execute_MOD(struct ps_widget *widget) {
   }
 
   if (ps_songdlg_read_parameter(&nv,&adjust,ps_songdlg_get_trimfield(widget))>0) {
-    ps_log(EDIT,TRACE,"trim %d %s",nv,adjust?"relative":"absolute");
     if (adjust) {
       if (ps_sem_adjust_trim_in_range(
         WIDGET->sem,WIDGET->startp,WIDGET->endp-WIDGET->startp,
@@ -399,7 +394,6 @@ static int ps_songdlg_execute_MOD(struct ps_widget *widget) {
   }
 
   if (ps_songdlg_read_parameter(&nv,&adjust,ps_songdlg_get_panfield(widget))>0) {
-    ps_log(EDIT,TRACE,"pan %d %s",nv,adjust?"relative":"absolute");
     if (adjust) {
       if (ps_sem_adjust_pan_in_range(
         WIDGET->sem,WIDGET->startp,WIDGET->endp-WIDGET->startp,

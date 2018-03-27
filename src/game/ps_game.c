@@ -485,6 +485,19 @@ int ps_game_setup_deathgate(struct ps_game *game) {
   return 0;
 }
 
+/* Remove all monsters, if this is a boss screen and we've already killed it.
+ */
+
+static int ps_game_remove_all_monsters(struct ps_game *game) {
+  if (ps_sprgrp_kill(game->grpv+PS_SPRGRP_HEROHAZARD)<0) return -1;
+  return 0;
+}
+
+static int ps_game_open_all_switches(struct ps_game *game) {
+  //TODO throw switches in response to deed
+  return 0;
+}
+
 /* Rebuild status report or kill it.
  */
 
@@ -1038,13 +1051,16 @@ static int ps_game_remove_deathgate(struct ps_game *game) {
   for (;i-->0;poi++) {
     if (poi->type==PS_BLUEPRINT_POI_DEATHGATE) {
       struct ps_grid_cell *cell=game->grid->cellv+poi->y*PS_GRID_COLC+poi->x;
-      cell->physics=PS_BLUEPRINT_CELL_VACANT;
-      cell->tileid=poi->argv[1];
-      removec++;
+      if (cell->physics!=PS_BLUEPRINT_CELL_VACANT) {
+        cell->physics=PS_BLUEPRINT_CELL_VACANT;
+        cell->tileid=poi->argv[1];
+        removec++;
+      }
     }
   }
   if (removec) {
     PS_SFX_DEATHGATE
+    if (ps_stats_set_deed(game->stats,game->gridx,game->gridy)<0) return -1;
   }
   return 0;
 }
@@ -1315,6 +1331,12 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
         if (ps_game_force_legal_hero_positions(game)<0) return -1;
       } break;
 
+  }
+
+  /* Has this screen's puzzle already been solved, and should we maintain that solved state? */
+  if (ps_stats_check_deed(game->stats,game->gridx,game->gridy)) {
+    if (ps_game_remove_all_monsters(game)<0) return -1;
+    if (ps_game_open_all_switches(game)<0) return -1;
   }
 
   /* Some final cleanup and resetting of services. */  

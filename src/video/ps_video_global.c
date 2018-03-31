@@ -516,7 +516,7 @@ int ps_video_toggle_fullscreen() {
   #if PS_USE_glx
     return ps_glx_set_fullscreen(-1);
   #elif PS_USE_macwm
-    ps_log(VIDEO,WARN,"TODO: Toggle fullscreen for macwm");
+    return ps_macwm_toggle_fullscreen();
   #elif PS_USE_mswm
     return ps_mswm_set_fullscreen(-1);
   #else

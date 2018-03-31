@@ -103,6 +103,14 @@ int ps_macwm_show_cursor(int show) {
   return 0;
 }
 
+/* Toggle fullscreen.
+ */
+
+int ps_macwm_toggle_fullscreen() {
+  [ps_macwm.window toggleFullScreen:ps_macwm.window];
+  return 0;
+}
+
 /* OpenGL frame control.
  */
 

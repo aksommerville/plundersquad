@@ -4,7 +4,6 @@
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
 - Another freeze at quit on Linux. ALSA?
-- MacOS: fullscreen toggle
 - Rabbit should eat bombs
 - Persist audio levels
 - Generalize configuration: command line and a config file

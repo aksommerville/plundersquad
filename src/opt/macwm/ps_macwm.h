@@ -18,6 +18,9 @@ void ps_macwm_quit();
 
 int ps_macwm_show_cursor(int show);
 
+// We only provide 'toggle', because it's easy on MacOS, and I think it's all we need.
+int ps_macwm_toggle_fullscreen();
+
 int ps_macwm_flush_video();
 
 #endif

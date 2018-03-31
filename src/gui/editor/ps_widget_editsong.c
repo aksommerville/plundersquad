@@ -60,7 +60,7 @@ struct ps_widget_editsong {
 static void _ps_editsong_del(struct ps_widget *widget) {
 
   struct akau_mixer *mixer=akau_get_mixer();
-  akau_mixer_play_song(mixer,0,0);
+  akau_mixer_play_song(mixer,0,0,AKAU_INTENT_BGM);
   akau_song_set_sync_callback(WIDGET->song,0,0);
   
   akau_song_del(WIDGET->song);
@@ -263,7 +263,7 @@ int ps_widget_editsong_toggle_playback(struct ps_widget *widget) {
   struct akau_mixer *mixer=akau_get_mixer();
   if (!mixer) return -1;
   if (WIDGET->playing) {
-    if (akau_mixer_play_song(mixer,0,1)<0) return -1;
+    if (akau_mixer_play_song(mixer,0,1,AKAU_INTENT_BGM)<0) return -1;
     if (akau_mixer_stop_all(mixer,100)<0) return -1;
     WIDGET->playing=0;
     WIDGET->play_beatp=-1;
@@ -272,7 +272,7 @@ int ps_widget_editsong_toggle_playback(struct ps_widget *widget) {
     WIDGET->play_beatp=0;
     if (ps_sem_write_song(WIDGET->song,WIDGET->sem)<0) return -1;
     if (akau_song_set_sync_callback(WIDGET->song,ps_editsong_cb_mixer_sync,widget)<0) return -1;
-    if (akau_mixer_play_song(mixer,0,1)<0) return -1;
+    if (akau_mixer_play_song(mixer,0,1,AKAU_INTENT_BGM)<0) return -1;
 
     if (akau_song_link(WIDGET->song,akau_get_store())<0) {
       ps_log(EDIT,ERROR,"Failed to link song.");
@@ -280,7 +280,7 @@ int ps_widget_editsong_toggle_playback(struct ps_widget *widget) {
       return 0;
     }
     
-    if (akau_mixer_play_song(mixer,WIDGET->song,1)<0) {
+    if (akau_mixer_play_song(mixer,WIDGET->song,1,AKAU_INTENT_BGM)<0) {
       ps_log(EDIT,ERROR,"Failed to begin song playback.");
       WIDGET->play_beatp=-1;
     } else {
@@ -296,7 +296,7 @@ int ps_widget_editsong_play_from_beat(struct ps_widget *widget,int beatp) {
   struct akau_mixer *mixer=akau_get_mixer();
   if (!mixer) return -1;
 
-  if (akau_mixer_play_song(mixer,0,1)<0) return -1;
+  if (akau_mixer_play_song(mixer,0,1,AKAU_INTENT_BGM)<0) return -1;
 
   if (ps_sem_write_song(WIDGET->song,WIDGET->sem)<0) return -1;
   if (akau_song_set_sync_callback(WIDGET->song,ps_editsong_cb_mixer_sync,widget)<0) return -1;
@@ -304,7 +304,7 @@ int ps_widget_editsong_play_from_beat(struct ps_widget *widget,int beatp) {
     ps_log(EDIT,ERROR,"Link failed.");
     return 0;
   }
-  if (akau_mixer_play_song_from_beat(mixer,WIDGET->song,beatp)<0) {
+  if (akau_mixer_play_song_from_beat(mixer,WIDGET->song,beatp,AKAU_INTENT_BGM)<0) {
     ps_log(EDIT,ERROR,"Playback failed.");
     return 0;
   }
@@ -316,7 +316,7 @@ int ps_widget_editsong_play_from_beat(struct ps_widget *widget,int beatp) {
 
 static int ps_editsong_stop(struct ps_widget *widget) {
   struct akau_mixer *mixer=akau_get_mixer();
-  if (akau_mixer_play_song(mixer,0,1)<0) return -1;
+  if (akau_mixer_play_song(mixer,0,1,AKAU_INTENT_BGM)<0) return -1;
   if (akau_mixer_stop_all(mixer,100)<0) return -1;
   WIDGET->playing=0;
   WIDGET->play_beatp=-1;

@@ -54,6 +54,7 @@ struct akau_mixer *akau_mixer_new() {
 
   mixer->refc=1;
   mixer->chanid_next=1;
+  memset(mixer->trim_by_intent,0xff,sizeof(mixer->trim_by_intent));
 
   return mixer;
 }
@@ -235,7 +236,7 @@ int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
       if (mixer->song_delay>0) {
         mixer->song_delay--;
       } else {
-        if (akau_song_update(mixer->song,mixer,mixer->song_cmdp)<0) return -1;
+        if (akau_song_update(mixer->song,mixer,mixer->song_cmdp,mixer->song_intent)<0) return -1;
       }
     }
 
@@ -251,6 +252,13 @@ int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
         case AKAU_MIXER_CHAN_MODE_VERBATIM: sample=akau_mixer_chan_verbatim_update(chan); break;
       }
       if (!sample) continue;
+
+      uint8_t itrim=mixer->trim_by_intent[chan->intent];
+      if (!itrim) continue;
+      if (itrim!=0xff) {
+        sample=(sample*itrim)>>8;
+        if (!sample) continue;
+      }
 
       sample=(sample*chan->trim)>>8;
       if (!sample) continue;
@@ -339,7 +347,8 @@ int akau_mixer_play_note(
   uint8_t pitch,
   uint8_t trim,
   int8_t pan,
-  int duration
+  int duration,
+  uint8_t intent
 ) {
   if (!instrument) return -1;
   if (duration<1) return 0;
@@ -357,6 +366,7 @@ int akau_mixer_play_note(
   chan->trimc=0;
   chan->pan=pan;
   chan->panc=0;
+  chan->intent=intent;
 
   chan->tuned.instrument=instrument;
   chan->tuned.p=0.0;
@@ -379,7 +389,8 @@ int akau_mixer_play_ipcm(
   struct akau_ipcm *ipcm,
   uint8_t trim,
   int8_t pan,
-  int loop
+  int loop,
+  uint8_t intent
 ) {
   if (!ipcm) return -1;
   struct akau_mixer_chan *chan=akau_mixer_chan_new(mixer);
@@ -396,6 +407,7 @@ int akau_mixer_play_ipcm(
   chan->trimc=0;
   chan->pan=pan;
   chan->panc=0;
+  chan->intent=intent;
 
   chan->verbatim.ipcm=ipcm;
   chan->verbatim.p=0;
@@ -574,7 +586,7 @@ int akau_mixer_stop_all_instruments(struct akau_mixer *mixer,int duration) {
 /* Set song.
  */
  
-int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart) {
+int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart,uint8_t intent) {
   if (!mixer) return -1;
 
   /* Abort quick if we won't be doing anything. */
@@ -622,6 +634,7 @@ int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int res
     return -1;
   }
   mixer->song=song;
+  mixer->song_intent=intent;
 
   return 0;
 }
@@ -629,7 +642,7 @@ int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int res
 /* Play song from beat.
  */
 
-int akau_mixer_play_song_from_beat(struct akau_mixer *mixer,struct akau_song *song,int beatp) {
+int akau_mixer_play_song_from_beat(struct akau_mixer *mixer,struct akau_song *song,int beatp,uint8_t intent) {
   if (!mixer||!song) return -1;
 
   /* Get the target command position. */
@@ -653,6 +666,7 @@ int akau_mixer_play_song_from_beat(struct akau_mixer *mixer,struct akau_song *so
   mixer->song_delay=0;
   mixer->song_cmdp=cmdp;
   mixer->song=song;
+  mixer->song_intent=intent;
 
   return 0;
 }
@@ -684,4 +698,18 @@ int akau_mixer_get_clip(int *l,int *r,struct akau_mixer *mixer) {
   mixer->cliplc=0;
   mixer->cliprc=0;
   return 0;
+}
+
+/* Intent.
+ */
+ 
+int akau_mixer_set_trim_for_intent(struct akau_mixer *mixer,uint8_t intent,uint8_t trim) {
+  if (!mixer) return -1;
+  mixer->trim_by_intent[intent]=trim;
+  return 0;
+}
+
+uint8_t akau_mixer_get_trim_for_intent(const struct akau_mixer *mixer,uint8_t intent) {
+  if (!mixer) return 0;
+  return mixer->trim_by_intent[intent];
 }

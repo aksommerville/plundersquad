@@ -20,6 +20,18 @@
 #define AKAU_LOGLEVEL_ERROR       4
 const char *akau_loglevel_repr(int loglevel);
 
+/* "Intent" is a grouping of related sounds, which can share a global trim.
+ * AKAU internally may produce OTHER, SFX, or BGM (0,1,2).
+ * Any other intent is for your own use.
+ * Legal values are 0..255.
+ */
+#define AKAU_INTENT_OTHER     0
+#define AKAU_INTENT_SFX       1
+#define AKAU_INTENT_BGM       2
+#define AKAU_INTENT_FOLEY     3
+#define AKAU_INTENT_UI        4
+#define AKAU_INTENT_VOICE     5
+
 int akau_init(
   const struct akau_driver *driver,
   void (*cb_log)(int loglevel,const char *msg,int msgc)
@@ -44,15 +56,20 @@ int akau_load_resources(const char *path);
 int akau_update();
 
 /* Find a sampled sound effect in the global store and begin playing it.
+ * "intent" was shoe-horned in late, and I didn't want to break the existing interface.
+ * Default intent is 1 (AKAU_INTENT_SFX), or use the "_as" versions for a specific intent.
  */
 int akau_play_sound(int ipcmid,uint8_t trim,int8_t pan);
 int akau_play_loop(int ipcmid,uint8_t trim,int8_t pan);
+int akau_play_sound_as(int ipcmid,uint8_t trim,int8_t pan,uint8_t intent);
+int akau_play_loop_as(int ipcmid,uint8_t trim,int8_t pan,uint8_t intent);
 
 /* Find a song in the global store and replace the current song with it.
  * Use (songid==0) to play silence.
  * Use (restart!=0) if this might be the current song and you want it to play from the beginning.
  */
 int akau_play_song(int songid,int restart);
+int akau_play_song_as(int songid,int restart,uint8_t intent);
 
 /* Driver guarantees that the callback is not running while we hold the lock.
  * With that in mind, don't ever hold it very long.
@@ -61,6 +78,9 @@ int akau_play_song(int songid,int restart);
  */
 int akau_lock();
 int akau_unlock();
+
+int akau_set_trim_for_intent(uint8_t intent,uint8_t trim);
+uint8_t akau_get_trim_for_intent(uint8_t intent);
 
 /* Return the shared global mixer.
  * You should definitely hold the lock if changing anything in it.

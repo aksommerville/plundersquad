@@ -248,7 +248,7 @@ static int ps_wave_play(struct ps_widget *widget,uint8_t pitch) {
     WIDGET->play_chanid=-1;
   }
 
-  int chanid=akau_mixer_play_note(mixer,instrument,pitch,0x40,0,duration);
+  int chanid=akau_mixer_play_note(mixer,instrument,pitch,0x40,0,duration,AKAU_INTENT_SFX);
   if (chanid<0) return -1;
   WIDGET->play_chanid=chanid;
   WIDGET->play_pitch=pitch;

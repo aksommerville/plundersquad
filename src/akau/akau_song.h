@@ -144,7 +144,7 @@ int akau_song_unlink(struct akau_song *song);
 /* Play commands beginning at (cmdp) through the next BEAT, into the given mixer.
  * We call the mixer to set its next delay and position.
  */
-int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp);
+int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp,uint8_t intent);
 
 int akau_song_set_sync_callback(struct akau_song *song,int (*cb_sync)(struct akau_song *song,int beatp,void *userdata),void *userdata);
 void *akau_song_get_userdata(const struct akau_song *song);

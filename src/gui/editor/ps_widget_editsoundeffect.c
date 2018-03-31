@@ -204,7 +204,7 @@ static int ps_editsoundeffect_cb_play(struct ps_widget *button,struct ps_widget 
     WIDGET->iwg->dirty=0;
   }
   
-  if (akau_mixer_play_ipcm(mixer,WIDGET->ipcm,0xff,0,0)<0) return -1;
+  if (akau_mixer_play_ipcm(mixer,WIDGET->ipcm,0xff,0,0,AKAU_INTENT_SFX)<0) return -1;
   return 0;
 }
 

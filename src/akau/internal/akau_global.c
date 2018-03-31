@@ -148,35 +148,52 @@ int akau_update() {
 /* Play sound or song.
  */
  
-int akau_play_sound(int ipcmid,uint8_t trim,int8_t pan) {
+int akau_play_sound_as(int ipcmid,uint8_t trim,int8_t pan,uint8_t intent) {
   if (!akau.init) return -1;
   struct akau_ipcm *ipcm=akau_store_get_ipcm(akau.store,ipcmid);
   if (!ipcm) return -1;
-  return akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,0);
+  return akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,0,intent);
 }
  
-int akau_play_loop(int ipcmid,uint8_t trim,int8_t pan) {
+int akau_play_loop_as(int ipcmid,uint8_t trim,int8_t pan,uint8_t intent) {
   if (!akau.init) return -1;
   struct akau_ipcm *ipcm=akau_store_get_ipcm(akau.store,ipcmid);
   if (!ipcm) return -1;
-  return akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,1);
+  return akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,1,intent);
 }
 
-int akau_play_song(int songid,int restart) {
+int akau_play_song_as(int songid,int restart,uint8_t intent) {
   if (!akau.init) return -1;
   struct akau_song *song=0;
   if (songid) {
     song=akau_store_get_song(akau.store,songid);
     if (!song) return -1;
   }
-  return akau_mixer_play_song(akau.mixer,song,restart);
+  return akau_mixer_play_song(akau.mixer,song,restart,intent);
 }
 
-/* Find a song in the global store and replace the current song with it.
- * Use (songid==0) to play silence.
- * Use (restart!=0) if this might be the current song and you want it to play from the beginning.
+/* Intent.
  */
-int akau_play_song(int songid,int restart);
+ 
+int akau_play_sound(int ipcmid,uint8_t trim,int8_t pan) {
+  return akau_play_sound_as(ipcmid,trim,pan,AKAU_INTENT_SFX);
+}
+
+int akau_play_loop(int ipcmid,uint8_t trim,int8_t pan) {
+  return akau_play_sound_as(ipcmid,trim,pan,AKAU_INTENT_SFX);
+}
+
+int akau_play_song(int songid,int restart) {
+  return akau_play_song_as(songid,restart,AKAU_INTENT_BGM);
+}
+ 
+int akau_set_trim_for_intent(uint8_t intent,uint8_t trim) {
+  return akau_mixer_set_trim_for_intent(akau.mixer,intent,trim);
+}
+
+uint8_t akau_get_trim_for_intent(uint8_t intent) {
+  return akau_mixer_get_trim_for_intent(akau.mixer,intent);
+}
 
 /* Lock.
  */

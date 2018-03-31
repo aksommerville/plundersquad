@@ -5,7 +5,7 @@
  * Return >0 to finish update, <0 on error, or 0 to proceed.
  */
 
-static int akau_song_execute_command(struct akau_song *song,const union akau_song_command *cmd,struct akau_mixer *mixer) {
+static int akau_song_execute_command(struct akau_song *song,const union akau_song_command *cmd,struct akau_mixer *mixer,uint8_t intent) {
   switch (cmd->op) {
 
     case AKAU_SONG_OP_NOOP: return 0;
@@ -21,7 +21,7 @@ static int akau_song_execute_command(struct akau_song *song,const union akau_son
     case AKAU_SONG_OP_NOTE: {
         if (cmd->NOTE.instrid>=song->instrc) return -1;
         struct akau_instrument *instrument=song->instrv[cmd->NOTE.instrid].instrument;
-        int err=akau_mixer_play_note(mixer,instrument,cmd->NOTE.pitch,cmd->NOTE.trim,cmd->NOTE.pan,cmd->NOTE.duration*song->frames_per_beat);
+        int err=akau_mixer_play_note(mixer,instrument,cmd->NOTE.pitch,cmd->NOTE.trim,cmd->NOTE.pan,cmd->NOTE.duration*song->frames_per_beat,intent);
         if (err<0) return -1;
         song->chanid_ref[cmd->NOTE.ref]=err;
       } return 0;
@@ -29,7 +29,7 @@ static int akau_song_execute_command(struct akau_song *song,const union akau_son
     case AKAU_SONG_OP_DRUM: {
         if (cmd->DRUM.drumid>=song->drumc) return -1;
         struct akau_ipcm *ipcm=song->drumv[cmd->DRUM.drumid].ipcm;
-        int err=akau_mixer_play_ipcm(mixer,ipcm,cmd->DRUM.trim,cmd->DRUM.pan,0);
+        int err=akau_mixer_play_ipcm(mixer,ipcm,cmd->DRUM.trim,cmd->DRUM.pan,0,intent);
         if (err<0) return -1;
         song->chanid_ref[cmd->DRUM.ref]=err;
       } return 0;
@@ -65,7 +65,7 @@ static int akau_song_execute_command(struct akau_song *song,const union akau_son
 /* Update.
  */
 
-int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp) {
+int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp,uint8_t intent) {
   if (!song||!mixer) return -1;
   if (song->cmdc<1) return -1;
   int reset=0;
@@ -76,7 +76,7 @@ int akau_song_update(struct akau_song *song,struct akau_mixer *mixer,int cmdp) {
 
   while (cmdp<song->cmdc) {
     const union akau_song_command *cmd=song->cmdv+cmdp;
-    int err=akau_song_execute_command(song,cmd,mixer);
+    int err=akau_song_execute_command(song,cmd,mixer,intent);
     if (err<0) return -1;
     cmdp++;
     if (err>0) break;

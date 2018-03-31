@@ -575,7 +575,7 @@ static int ps_songchart_get_first_visible_voice(const uint8_t *bits) {
 static int ps_songchart_play_drum(struct ps_widget *widget,uint8_t drumid,uint8_t trim,int8_t pan) {
   struct akau_song *song=ps_widget_editsong_get_song(widget);
   struct akau_ipcm *ipcm=akau_song_get_drum(song,drumid);
-  if (akau_mixer_play_ipcm(akau_get_mixer(),ipcm,trim,pan,0)<0) {
+  if (akau_mixer_play_ipcm(akau_get_mixer(),ipcm,trim,pan,0,AKAU_INTENT_BGM)<0) {
   }
   return 0;
 }
@@ -584,7 +584,7 @@ static int ps_songchart_play_instrument(struct ps_widget *widget,uint8_t instrid
   struct akau_song *song=ps_widget_editsong_get_song(widget);
   struct akau_instrument *instrument=akau_song_get_instrument(song,instrid);
   int duration=22050;
-  if (akau_mixer_play_note(akau_get_mixer(),instrument,pitch,trim,pan,duration)<0) {
+  if (akau_mixer_play_note(akau_get_mixer(),instrument,pitch,trim,pan,duration,AKAU_INTENT_BGM)<0) {
   }
   return 0;
 }

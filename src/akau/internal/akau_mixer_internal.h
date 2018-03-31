@@ -24,6 +24,7 @@ struct akau_mixer_chan {
   int chanid;
   int mode;
   int stop_at_silence; // If trim reaches zero, wipe out this channel.
+  uint8_t intent;
   
   uint8_t trim;
   uint8_t trima,trimz;
@@ -69,6 +70,8 @@ struct akau_mixer {
   struct akau_song *song;
   int song_delay;
   int song_cmdp;
+  uint8_t song_intent;
+  uint8_t trim_by_intent[256];
 };
 
 void akau_mixer_chan_cleanup(struct akau_mixer_chan *chan);

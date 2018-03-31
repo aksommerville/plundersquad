@@ -41,7 +41,8 @@ int akau_mixer_play_note(
   uint8_t pitch,
   uint8_t trim,
   int8_t pan,
-  int duration
+  int duration,
+  uint8_t intent
 );
 
 /* Begin playing a sampled sound without adjusting output rate.
@@ -54,7 +55,8 @@ int akau_mixer_play_ipcm(
   struct akau_ipcm *ipcm,
   uint8_t trim,
   int8_t pan,
-  int loop
+  int loop,
+  uint8_t intent
 );
 
 /* Get properties for a given channel.
@@ -95,11 +97,17 @@ int akau_mixer_stop_all_instruments(struct akau_mixer *mixer,int duration);
  * If (song) is currently playing, we either do nothing (restart==0) or restart it (restart!=0).
  * We always lock songs while they are playing.
  */
-int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart);
+int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart,uint8_t intent);
 
 /* Stop whatever is playing and start this song at the given beat.
  */
-int akau_mixer_play_song_from_beat(struct akau_mixer *mixer,struct akau_song *song,int beatp);
+int akau_mixer_play_song_from_beat(struct akau_mixer *mixer,struct akau_song *song,int beatp,uint8_t intent);
+
+/* Set or get a trim applying to arbitrarily-grouped channels.
+ * So you can provide your users eg "sound effects level" and "music level".
+ */
+int akau_mixer_set_trim_for_intent(struct akau_mixer *mixer,uint8_t intent,uint8_t trim);
+uint8_t akau_mixer_get_trim_for_intent(const struct akau_mixer *mixer,uint8_t intent);
 
 /* For song support only.
  * These should only be called from within akau_song_update().

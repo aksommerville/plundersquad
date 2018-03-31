@@ -59,6 +59,25 @@ static const char *_ps_bomb_get_configure_argument_name(int argp) {
   return 0;
 }
 
+/* Play explosion sound effect (PS_SFX_EXPLODE) if there are no other fresh explosions.
+ * Bombs set off other bombs when they blow, and that can cause massive amplification of the sound effect.
+ */
+ 
+int ps_sprite_is_fresh_explosion(const struct ps_sprite *spr); // ps_sprite_explosion.c
+
+static void ps_bomb_explode_sfx(struct ps_game *game) {
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HAZARD;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+    if (ps_sprite_is_fresh_explosion(spr)) {
+      //ps_log(GAME,TRACE,"Suppressing explosion sound effect");
+      return;
+    }
+  }
+  //ps_log(GAME,TRACE,"EXPLODE!");
+  PS_SFX_EXPLODE
+}
+
 /* Explode.
  */
 
@@ -66,7 +85,8 @@ static int ps_bomb_explode(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->finished) return 0;
   SPR->finished=1;
 
-  PS_SFX_EXPLODE
+  ps_bomb_explode_sfx(game);
+  
   struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_BOMB_EXPLOSION_SPRDEFID);
   if (!sprdef) {
     ps_log(GAME,ERROR,"sprdef:%d not found for bomb explosion",PS_BOMB_EXPLOSION_SPRDEFID);

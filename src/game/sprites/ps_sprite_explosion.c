@@ -4,6 +4,7 @@
 
 #define PS_EXPLOSION_TTL_DEFAULT 80
 #define PS_EXPLOSION_FADE_OUT_TIME  20
+#define PS_EXPLOSION_FRESH_TIME 5
 
 /* Private sprite object.
  */
@@ -83,3 +84,13 @@ const struct ps_sprtype ps_sprtype_explosion={
   .draw=_ps_explosion_draw,
   
 };
+
+/* Report to bomb whether I am a "fresh" explosion, ie don't play another sound effect.
+ */
+
+int ps_sprite_is_fresh_explosion(const struct ps_sprite *spr) {
+  if (!spr) return 0;
+  if (spr->type!=&ps_sprtype_explosion) return 0;
+  if (SPR->ttl>=PS_EXPLOSION_TTL_DEFAULT-PS_EXPLOSION_FRESH_TIME) return 1;
+  return 0;
+}

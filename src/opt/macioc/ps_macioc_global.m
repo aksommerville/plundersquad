@@ -1,4 +1,5 @@
 #include "ps_macioc_internal.h"
+#include "util/ps_text.h"
 #include "akgl/akgl.h"
 #include <fcntl.h>
 #include <unistd.h>
@@ -46,6 +47,21 @@ static int ps_macioc_set_default_cmdline() {
 
   ps_macioc.cmdline.akgl_strategy=AKGL_STRATEGY_GL2;
 
+  ps_macioc.cmdline.bgm_level=0xff;
+  ps_macioc.cmdline.sfx_level=0xff;
+
+  return 0;
+}
+
+/* Set integer property from command line.
+ */
+
+static int ps_macioc_set_cmdline_int(int *dst,const char *src,int lo,int hi,const char *propname) {
+  int v=0;
+  if (ps_int_eval_interactive(&v,src,-1,lo,hi,propname)<0) {
+    return 0;
+  }
+  *dst=v;
   return 0;
 }
 
@@ -87,6 +103,16 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
 
     } else if (!strcmp(arg,"--soft-render")) {
       ps_macioc.cmdline.akgl_strategy=AKGL_STRATEGY_SOFT;
+      argc--;
+      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
+
+    } else if (!memcmp(arg,"--music=",8)) {
+      ps_macioc_set_cmdline_int(&ps_macioc.cmdline.bgm_level,arg+8,0,255,"music");
+      argc--;
+      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
+
+    } else if (!memcmp(arg,"--sound=",8)) {
+      ps_macioc_set_cmdline_int(&ps_macioc.cmdline.sfx_level,arg+8,0,255,"sound");
       argc--;
       memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
 

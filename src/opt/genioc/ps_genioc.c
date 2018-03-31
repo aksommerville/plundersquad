@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "os/ps_ioc.h"
 #include "os/ps_clockassist.h"
+#include "util/ps_text.h"
 #include "akgl/akgl.h"
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -106,6 +107,21 @@ static int ps_genioc_default_cmdline(struct ps_cmdline *cmdline) {
     cmdline->akgl_strategy=AKGL_STRATEGY_GL2;
   #endif
 
+  cmdline->bgm_level=0xff;
+  cmdline->sfx_level=0xff;
+
+  return 0;
+}
+
+/* Set integer property from command line.
+ */
+
+static int ps_genioc_set_cmdline_int(int *dst,const char *src,int lo,int hi,const char *propname) {
+  int v=0;
+  if (ps_int_eval_interactive(&v,src,-1,lo,hi,propname)<0) {
+    return 0;
+  }
+  *dst=v;
   return 0;
 }
 
@@ -127,6 +143,16 @@ static int ps_genioc_read_cmdline(struct ps_cmdline *cmdline,int argc,char **arg
 
     } else if (!strcmp(arg,"--soft-render")) {
       cmdline->akgl_strategy=AKGL_STRATEGY_SOFT;
+
+    } else if (!memcmp(arg,"--music=",8)) {
+      ps_genioc_set_cmdline_int(&cmdline->bgm_level,arg+8,0,255,"music");
+      argc--;
+      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
+
+    } else if (!memcmp(arg,"--sound=",8)) {
+      ps_genioc_set_cmdline_int(&cmdline->sfx_level,arg+8,0,255,"sound");
+      argc--;
+      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
     
     } else if (arg[0]=='-') {
       ps_log(,ERROR,"Unexpected option '%s'",arg);

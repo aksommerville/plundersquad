@@ -21,6 +21,8 @@ struct ps_cmdline {
   const char *input_config_path; // REQUIRED.
   int fullscreen;
   int akgl_strategy;
+  int bgm_level;
+  int sfx_level;
 };
 
 struct ps_ioc_delegate {

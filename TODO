@@ -8,6 +8,7 @@
 - Rabbit should eat bombs
 - Persist audio levels
 - Suppress explosion sound when multiple
+- Generalize configuration: command line and a config file
 
 Windows target
 - Freeze on startup, Windows:

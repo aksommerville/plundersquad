@@ -189,6 +189,11 @@ static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
     ps_log(MAIN,WARNING,"No audio provider was configured. All audio is disabled.");
     return 0;
   #endif
+
+  #if PS_AKAU_ENABLE
+    if (akau_set_trim_for_intent(AKAU_INTENT_BGM,cmdline->bgm_level)<0) return -1;
+    if (akau_set_trim_for_intent(AKAU_INTENT_SFX,cmdline->sfx_level)<0) return -1;
+  #endif
   
   return 0;
 }

@@ -7,7 +7,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
 #define _(domain,level) [PS_LOG_DOMAIN_##domain]=PS_LOG_LEVEL_##level,
   _(              ,TRACE)
   _(MACIOC        ,TRACE)
-  _(CLOCK         ,DEBUG)
+  _(CLOCK         ,INFO)
   _(RES           ,INFO)
   _(AUDIO         ,TRACE)
   _(VIDEO         ,TRACE)

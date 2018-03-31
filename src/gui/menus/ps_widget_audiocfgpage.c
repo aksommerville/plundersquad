@@ -130,7 +130,6 @@ static int ps_audiocfgpage_menucb_done(struct ps_widget *widget) {
  
 static int ps_audiocfgpage_cb_menu(struct ps_widget *menu,struct ps_widget *widget) {
   int p=ps_widget_menu_get_selected_index(menu);
-  ps_log(GUI,TRACE,"%s %d",__func__,p);
   switch (p) {
     case 2: return ps_audiocfgpage_menucb_done(widget);
   }

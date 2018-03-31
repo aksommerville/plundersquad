@@ -91,7 +91,7 @@ static void _ps_rabbit_del(struct ps_sprite *spr) {
 
 static int _ps_rabbit_init(struct ps_sprite *spr) {
 
-  SPR->hp=5; // TODO Should rabbit HP be configurable?
+  SPR->hp=5;
   SPR->phase=PS_RABBIT_PHASE_IDLE;
   SPR->counter=PS_RABBIT_COUNTER_INIT;
   if (!(SPR->slave=ps_sprgrp_new())) return -1;
@@ -336,6 +336,17 @@ static int ps_rabbit_grab_pumpkin(struct ps_sprite *spr,struct ps_game *game,str
   return 0;
 }
 
+/* Is this sprite lickable?
+ * We only consider those in the LATCH group.
+ */
+
+static int ps_rabbit_sprite_is_lickable(const struct ps_sprite *spr,const struct ps_game *game,const struct ps_sprite *pumpkin) {
+  if (pumpkin->type==&ps_sprtype_hero) return 1;
+  if (pumpkin->type==&ps_sprtype_dragon) return 1;
+  if (pumpkin->type==&ps_sprtype_bomb) return 1;
+  return 0;
+}
+
 /* Update tongue in LICK phase.
  */
 
@@ -353,15 +364,14 @@ static int ps_rabbit_update_LICK(struct ps_sprite *spr,struct ps_game *game) {
   }
 
   /* Look for lickable sprites.
-   * We'll only lick heroes for now. No problem to revisit this decision and include others later.
-   * Rabbits *can* eat dragons, and it's hilarious.
    */
-  struct ps_sprgrp *lickable=game->grpv+PS_SPRGRP_HERO;
+  struct ps_sprgrp *lickable=game->grpv+PS_SPRGRP_LATCH;
   if (lickable->sprc>0) {
     double x=ps_rabbit_get_extension(spr);
     double y=spr->y+PS_RABBIT_FLAME_ANCHOR_Y;
     int i=lickable->sprc; for (;i-->0;) {
       struct ps_sprite *candidate=lickable->sprv[i];
+      if (!ps_rabbit_sprite_is_lickable(spr,game,candidate)) continue;
       double dx=x-candidate->x;
       if ((dx<-candidate->radius)||(dx>candidate->radius)) continue;
       double dy=y-candidate->y;
@@ -426,6 +436,16 @@ static int _ps_rabbit_update(struct ps_sprite *spr,struct ps_game *game) {
   /* Regardless of the current phase, (counter) counts down to the next one. */
   if (--(SPR->counter)<=0) {
     if (ps_rabbit_end_phase(spr,game)<0) return -1;
+  }
+
+  /* Pumpkins are removed from the UPDATE group.
+   * However, if it's a bomb, we want to continue updating it so it explodes in the belly.
+   */
+  if ((SPR->phase!=PS_RABBIT_PHASE_LICK)&&SPR->slave&&(SPR->slave->sprc>0)) {
+    struct ps_sprite *pumpkin=SPR->slave->sprv[0];
+    if (pumpkin->type==&ps_sprtype_bomb) {
+      if (ps_sprite_update(pumpkin,game)<0) return -1;
+    }
   }
 
   /* Perform phase-specific updates. */

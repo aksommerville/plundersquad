@@ -128,3 +128,19 @@ int ps_grid_test_rect_physics(const struct ps_grid *grid,int x,int y,int w,int h
 
   return 0;
 }
+
+/* Check if a switch should be persisted.
+ */
+ 
+int ps_grid_should_persist_switch(const struct ps_grid *grid,int switchid) {
+  if (!grid) return 0;
+  if (switchid<1) return 0;
+  const struct ps_blueprint_poi *poi=grid->poiv;
+  int i=grid->poic; for (;i-->0;poi++) {
+    if (poi->type==PS_BLUEPRINT_POI_PERMASWITCH) {
+      if (poi->argv[0]<1) return 2;
+      if (poi->argv[0]==switchid) return 1;
+    }
+  }
+  return 0;
+}

@@ -66,4 +66,7 @@ static inline struct ps_grid_cell *ps_grid_get_cell(struct ps_grid *grid,int x,i
   return grid->cellv+y*PS_GRID_COLC+x;
 }
 
+// 0=no, 1=yes, 2=yes if all switches are set
+int ps_grid_should_persist_switch(const struct ps_grid *grid,int switchid);
+
 #endif

@@ -442,6 +442,7 @@ int ps_poi_type_eval(const char *src,int srcc) {
   _(DEATHGATE)
   _(STATUSREPORT)
   _(SUMMONER)
+  _(PERMASWITCH)
   #undef _
   return -1;
 }
@@ -457,6 +458,7 @@ const char *ps_poi_type_repr(int type) {
     _(DEATHGATE)
     _(STATUSREPORT)
     _(SUMMONER)
+    _(PERMASWITCH)
     #undef _
   }
   return 0;

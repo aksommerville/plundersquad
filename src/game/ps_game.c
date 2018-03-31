@@ -494,7 +494,11 @@ static int ps_game_remove_all_monsters(struct ps_game *game) {
 }
 
 static int ps_game_open_all_switches(struct ps_game *game) {
-  //TODO throw switches in response to deed
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+    if (ps_sprite_actuate(spr,game,1)<0) return -1;
+  }
   return 0;
 }
 
@@ -1203,9 +1207,38 @@ int ps_game_get_switch(const struct ps_game *game,int switchid) {
   return ps_switchboard_get_switch(game->switchboard,switchid);
 }
 
+static int ps_game_all_switches_are_set(const struct ps_game *game) {
+  int have_switch=0;
+  const struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+    if (spr->switchid<1) continue;
+    if (!ps_switchboard_get_switch(game->switchboard,spr->switchid)) return 0;
+    have_switch=1;
+  }
+  return have_switch;
+}
+
 int ps_game_set_switch(struct ps_game *game,int switchid,int value) {
   if (!game) return -1;
-  return ps_switchboard_set_switch(game->switchboard,switchid,value);
+  if (switchid<1) return 0;
+  if (ps_switchboard_set_switch(game->switchboard,switchid,value)<0) return -1;
+
+  /* Check whether to persist this. */
+  if (value>0) {
+    int err=ps_grid_should_persist_switch(game->grid,switchid);
+    if (err==2) {
+      if (ps_game_all_switches_are_set(game)) {
+        if (ps_stats_set_deed(game->stats,game->gridx,game->gridy)<0) return -1;
+        ps_log(GAME,DEBUG,"Persisted switches for grid (%d,%d)",game->gridx,game->gridy);
+      }
+    } else if (err) {
+      if (ps_stats_set_deed(game->stats,game->gridx,game->gridy)<0) return -1;
+      ps_log(GAME,DEBUG,"Persisted switches for grid (%d,%d)",game->gridx,game->gridy);
+    }
+  }
+  
+  return 0;
 }
 
 /* Move hero sprites after a neighbor grid transition.
@@ -1333,12 +1366,6 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
 
   }
 
-  /* Has this screen's puzzle already been solved, and should we maintain that solved state? */
-  if (ps_stats_check_deed(game->stats,game->gridx,game->gridy)) {
-    if (ps_game_remove_all_monsters(game)<0) return -1;
-    if (ps_game_open_all_switches(game)<0) return -1;
-  }
-
   /* Some final cleanup and resetting of services. */  
   if (ps_game_setup_deathgate(game)<0) return -1;
   if (ps_summoner_reset(game->summoner,game)<0) return -1;
@@ -1347,6 +1374,12 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
     akau_play_song(game->grid->region->songid,0);
   }
   if (ps_game_check_status_report(game)<0) return -1;
+
+  /* Has this screen's puzzle already been solved, and should we maintain that solved state? */
+  if (ps_stats_check_deed(game->stats,game->gridx,game->gridy)) {
+    if (ps_game_remove_all_monsters(game)<0) return -1;
+    if (ps_game_open_all_switches(game)<0) return -1;
+  }
 
   /* Log the change. */
   int blueprintid=ps_game_get_current_blueprint_id(game);

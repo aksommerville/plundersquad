@@ -144,7 +144,12 @@ static int _ps_switch_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spri
  */
 
 static int _ps_switch_set_switch(struct ps_game *game,struct ps_sprite *spr,int value) {
-  SPR->state=value;
+  if (SPR->stompbox) {
+    SPR->state=value;
+  } else {
+    // Treadle plates can't be actuated this way.
+    // If we did, they would notice on the next update that no one is standing here, and turn right off again.
+  }
   return 0;
 }
 

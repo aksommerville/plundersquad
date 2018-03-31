@@ -209,6 +209,13 @@ struct ps_sprite *ps_sprite_flames_find_for_hero(const struct ps_game *game,cons
 struct ps_sprite *ps_sprite_heroindicator_get_hero(const struct ps_sprite *spr);
 int ps_sprite_heroindicator_set_hero(struct ps_sprite *spr,struct ps_sprite *hero);
 
+/* Toggle a switch.
+ * Works for 'switch' and 'swordswitch', and we'll add other types as needed.
+ * (value) is >0 to turn on, 0 to turn off, or <0 to toggle.
+ * Returns zero if this sprite doesn't support actuation, >0 on success, or <0 for real errors.
+ */
+int ps_sprite_actuate(struct ps_sprite *spr,struct ps_game *game,int value);
+
 int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_hookshot_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,struct ps_game *game); // pumpkin or user

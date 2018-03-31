@@ -56,7 +56,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   }
 
   /* Configure players. */
-  if (ps_game_set_player_count(ps_game,1)<0) return -1;
+  if (ps_game_set_player_count(ps_game,4)<0) return -1;
   for (i=1;i<=PS_PLAYER_LIMIT;i++) {
     ps_game_configure_player(ps_game,i,i,i,0);
   }
@@ -69,7 +69,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
   //if (ps_game_configure_player(ps_game,3,8,1,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,4,2,2,0)<0) return -1;
 
-  if (1) { // Generate a scenario just like normal launches.
+  if (0) { // Generate a scenario just like normal launches.
     if (ps_game_set_difficulty(ps_game,9)<0) return -1;
     if (ps_game_set_length(ps_game,2)<0) return -1;
     if (ps_game_generate(ps_game)<0) return -1;
@@ -78,7 +78,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      2,1
+      2,15,29,19,22,31,43,45
     )<0) return -1;
   }
 

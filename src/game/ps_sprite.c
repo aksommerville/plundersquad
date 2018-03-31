@@ -254,3 +254,23 @@ int ps_sprite_attempt_legal_position(struct ps_sprite *spr,struct ps_game *game)
 
   return 0;
 }
+
+/* Actuate a switch.
+ */
+
+static int ps_sprite_supports_actuation(const struct ps_sprite *spr) {
+  if (spr->switchid<1) return 0;
+  if (spr->type==&ps_sprtype_switch) return 1;
+  if (spr->type==&ps_sprtype_swordswitch) return 1;
+  return 0;
+}
+
+int ps_sprite_actuate(struct ps_sprite *spr,struct ps_game *game,int value) {
+  if (!spr||!game) return -1;
+  if (!ps_sprite_supports_actuation(spr)) return 0;
+  int switchid=spr->switchid;
+  if (switchid<1) return 0;
+  if (value<0) value=!ps_game_get_switch(game,switchid);
+  if (ps_game_set_switch(game,switchid,value)<0) return -1;
+  return 1;
+}

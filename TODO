@@ -6,6 +6,8 @@
 - Another freeze at quit on Linux. ALSA?
 - MacOS: fullscreen toggle
 - Rabbit should eat bombs
+- Persist audio levels
+- Suppress explosion sound when multiple
 
 Windows target
 - Freeze on startup, Windows:

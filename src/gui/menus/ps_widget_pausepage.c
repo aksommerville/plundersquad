@@ -65,6 +65,8 @@ static int _ps_pausepage_init(struct ps_widget *widget) {
   label->fgrgba=textcolor;
   if (!(label=ps_widget_menu_spawn_label(menu,"Input config",-1))) return -1;
   label->fgrgba=textcolor;
+  if (!(label=ps_widget_menu_spawn_label(menu,"Audio",-1))) return -1;
+  label->fgrgba=textcolor;
   if (ps_video_supports_fullscreen_toggle()) {
     if (!(label=ps_widget_menu_spawn_label(menu,"Toggle fullscreen",-1))) return -1;
     label->fgrgba=textcolor;
@@ -255,6 +257,15 @@ static int ps_pausepage_input_config(struct ps_widget *widget) {
   return 0;
 }
 
+/* Configure audio.
+ */
+
+static int ps_pausepage_audio(struct ps_widget *widget) {
+  struct ps_gui *gui=ps_widget_get_gui(widget);
+  if (ps_gui_load_page_audiocfg(gui)<0) return -1;
+  return 0;
+}
+
 /* Toggle fullscreen.
  */
  
@@ -280,7 +291,7 @@ static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
    *TODO: Can we attach the callbacks directly to the menu labels instead?
    */
   int p=ps_widget_menu_get_selected_index(menu);
-  if (p>=5) {
+  if (p>=6) {
     if (!ps_video_supports_fullscreen_toggle()) p++;
   }
   
@@ -290,8 +301,9 @@ static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 2: return ps_pausepage_restart(widget);
     case 3: return ps_pausepage_cancel(widget);
     case 4: return ps_pausepage_input_config(widget);
-    case 5: return ps_pausepage_toggle_fullscreen(widget);
-    case 6: return ps_pausepage_quit(widget);
+    case 5: return ps_pausepage_audio(widget);
+    case 6: return ps_pausepage_toggle_fullscreen(widget);
+    case 7: return ps_pausepage_quit(widget);
   }
   return 0;
 }

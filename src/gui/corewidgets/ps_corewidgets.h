@@ -232,10 +232,15 @@ int ps_widget_scrollbar_adjust(struct ps_widget *widget,int d); // Triggers call
 /* Slider.
  *****************************************************************************/
 
+int ps_widget_slider_set_callback(struct ps_widget *widget,struct ps_callback cb);
 int ps_widget_slider_set_text(struct ps_widget *widget,const char *src,int srcc);
 int ps_widget_slider_set_limits(struct ps_widget *widget,int lo,int hi);
 int ps_widget_slider_set_value(struct ps_widget *widget,int v);
 int ps_widget_slider_get_value(const struct ps_widget *widget);
+int ps_widget_slider_set_increment(struct ps_widget *widget,int increment);
+int ps_widget_slider_set_text_color(struct ps_widget *widget,uint32_t rgba);
+
+// Color of thumb blends from (locolor) to (hicolor) depending on its position.
 int ps_widget_slider_set_variable_color(struct ps_widget *widget,uint32_t locolor,uint32_t hicolor);
 
 #endif

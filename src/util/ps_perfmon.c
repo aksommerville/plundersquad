@@ -34,7 +34,7 @@ static void ps_perfmon_report_recent(const struct ps_perfmon *perfmon,int64_t no
     int64_t elapsed=now-perfmon->t_recent;
     if (elapsed>0) {
       double rate=(perfmon->framec_recent*1000000.0)/elapsed;
-      ps_log(CLOCK,INFO,
+      ps_log(CLOCK,DEBUG,
         "%lld frames in %d.%06d s: %.02f Hz",
         perfmon->framec_recent,(int)(elapsed/1000000),(int)(elapsed%1000000),rate
       );

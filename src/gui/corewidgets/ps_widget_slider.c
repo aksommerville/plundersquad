@@ -21,9 +21,11 @@ struct ps_widget_slider {
   char *text;
   int textc;
   int lo,hi,v;
+  int increment;
   uint32_t textcolor;
   int textsize;
   uint32_t locolor,hicolor;
+  struct ps_callback cb;
 };
 
 #define WIDGET ((struct ps_widget_slider*)widget)
@@ -33,6 +35,7 @@ struct ps_widget_slider {
 
 static void _ps_slider_del(struct ps_widget *widget) {
   if (WIDGET->text) free(WIDGET->text);
+  ps_callback_cleanup(&WIDGET->cb);
 }
 
 /* Initialize.
@@ -101,11 +104,25 @@ static int _ps_slider_draw(struct ps_widget *widget,int parentx,int parenty) {
   int barh=widget->h;
   if (ps_video_draw_rect(barx,bary,barw,barh,widget->bgrgba)<0) return -1;
 
-  /* Thumb width is proportionate to the selectable range, but never narrower than square. */
-  int thumbw=barw/(WIDGET->hi-WIDGET->lo+1);
-  if (thumbw<barh) thumbw=barh;
-  if (thumbw>barw) thumbw=barw;
-  int thumbx=barx+((WIDGET->v-WIDGET->lo)*barw)/(WIDGET->hi-WIDGET->lo+1);
+  /* Calculate size and position of thumb. */
+  int valuec=WIDGET->hi-WIDGET->lo+1; // How many possible values?
+  if (valuec<1) valuec=1;
+  int valuep=WIDGET->v-WIDGET->lo; // Normalized value, in case (lo) is not zero.
+  if (valuep<0) valuep=0; else if (valuep>=valuec) valuep=valuec-1;
+  int thumbw=barw/valuec; // With few values, thumb is proportionately wide.
+  if (thumbw<barh) thumbw=barh; // Thumb is never narrower than square.
+  if (thumbw>barw) thumbw=barw; // Probably not possible, but keep the thumb size within the bar size.
+  int thumblimit=barw-thumbw; // Maximum position for thumb's left edge.
+  int thumbx;
+  if (valuec<2) {
+    thumbx=0;
+  } else {
+    thumbx=(valuep*thumblimit)/(valuec-1);
+    if (thumbx<0) thumbx=0;
+    else if (thumbx>thumblimit) thumbx=thumblimit;
+  }
+  thumbx+=barx; // Offset by bar's position.
+  
   uint32_t thumbcolor=widget->fgrgba;
   if (WIDGET->locolor||WIDGET->hicolor) {
     thumbcolor=ps_rgba_blend(WIDGET->locolor,WIDGET->hicolor,WIDGET->v-WIDGET->lo,WIDGET->hi-WIDGET->lo+1);
@@ -139,9 +156,12 @@ static int _ps_slider_measure(int *w,int *h,struct ps_widget *widget,int maxw,in
  */
 
 static int _ps_slider_adjust(struct ps_widget *widget,int d) {
+  if (d<0) d=-WIDGET->increment;
+  else if (d>0) d=WIDGET->increment;
   WIDGET->v+=d;
   if (WIDGET->v<WIDGET->lo) WIDGET->v=WIDGET->lo;
   else if (WIDGET->v>WIDGET->hi) WIDGET->v=WIDGET->hi;
+  if (ps_callback_call(&WIDGET->cb,widget)<0) return -1;
   return 0;
 }
 
@@ -169,6 +189,13 @@ const struct ps_widget_type ps_widget_type_slider={
 
 /* Accessors.
  */
+ 
+int ps_widget_slider_set_callback(struct ps_widget *widget,struct ps_callback cb) {
+  if (!widget||(widget->type!=&ps_widget_type_slider)) return -1;
+  ps_callback_cleanup(&WIDGET->cb);
+  WIDGET->cb=cb;
+  return 0;
+}
  
 int ps_widget_slider_set_text(struct ps_widget *widget,const char *src,int srcc) {
   if (!widget||(widget->type!=&ps_widget_type_slider)) return -1;
@@ -211,6 +238,19 @@ int ps_widget_slider_set_value(struct ps_widget *widget,int v) {
 int ps_widget_slider_get_value(const struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_slider)) return -1;
   return WIDGET->v;
+}
+
+int ps_widget_slider_set_increment(struct ps_widget *widget,int increment) {
+  if (!widget||(widget->type!=&ps_widget_type_slider)) return -1;
+  if (increment<0) increment=1;
+  WIDGET->increment=increment;
+  return 0;
+}
+
+int ps_widget_slider_set_text_color(struct ps_widget *widget,uint32_t rgba) {
+  if (!widget||(widget->type!=&ps_widget_type_slider)) return -1;
+  WIDGET->textcolor=rgba;
+  return 0;
 }
 
 int ps_widget_slider_set_variable_color(struct ps_widget *widget,uint32_t locolor,uint32_t hicolor) {

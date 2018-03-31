@@ -308,3 +308,11 @@ int ps_gui_load_page_treasure(struct ps_gui *gui,const struct ps_res_trdef *trde
   if (ps_widget_pack(gui->root)<0) return -1;
   return 0;
 }
+
+int ps_gui_load_page_audiocfg(struct ps_gui *gui) {
+  if (!gui) return -1;
+  struct ps_widget *page=ps_widget_spawn(gui->root,&ps_widget_type_audiocfgpage);
+  if (!page) return -1;
+  if (ps_widget_pack(gui->root)<0) return -1;
+  return 0;
+}

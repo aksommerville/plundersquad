@@ -536,10 +536,13 @@ static int ps_editpoi_refresh_ui(struct ps_widget *widget,int populate_fields) {
         if (ps_widget_label_set_text(arg1label,"volume",6)<0) return -1;
         if (ps_widget_label_set_text(arg2label,"unused",6)<0) return -1;
         if (WIDGET->poi.argv[0]<1) {
-          //TODO confirm i am the only permaswitch
-          if (ps_widget_label_set_text(messagelabel,"all switches",-1)<0) return -1;
+          if (ps_blueprint_count_poi_of_type(WIDGET->blueprint,PS_BLUEPRINT_POI_PERMASWITCH)>1) {
+            if (ps_widget_label_set_text(messagelabel,"set id or make only",-1)<0) return -1;
+          } else {
+            if (ps_widget_label_set_text(messagelabel,"all switches",-1)<0) return -1;
+          }
         } else {
-          if (ps_widget_label_set_text(messagelabel,"",0)<0) return -1; //TODO confirm switch exists
+          if (ps_widget_label_set_text(messagelabel,"",0)<0) return -1;
         }
       } break;
     default: {

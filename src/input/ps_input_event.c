@@ -42,7 +42,6 @@ int ps_input_event_connect(struct ps_input_device *device) {
       ps_log(INPUT,ERROR,"Failed to apply map template to device '%.*s'.",device->namec,device->name);
       return -1;
     }
-    ps_input.mapped_devices_changed=1;
   }
 
   /* Call watchers. */
@@ -75,7 +74,6 @@ int ps_input_event_disconnect(struct ps_input_device *device) {
   if (device->map) {
     ps_input_map_del(device->map);
     device->map=0;
-    ps_input.mapped_devices_changed=1;
   }
   
   return 0;

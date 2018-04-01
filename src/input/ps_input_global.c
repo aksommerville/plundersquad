@@ -63,10 +63,6 @@ int ps_input_update() {
     }
   }
 
-  if (ps_input.mapped_devices_changed) {//XXX we probably don't need mapped_devices_changed anymore
-    ps_input.mapped_devices_changed=0;
-  }
-  
   return 0;
 }
 

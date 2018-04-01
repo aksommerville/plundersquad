@@ -13,7 +13,6 @@ Actionable:
 - Persist audio levels
 - Generalize configuration: command line and a config file
 - Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
-- src/input/ps_input_global.c:66:  if (ps_input.mapped_devices_changed) {//XXX we probably don't need mapped_devices_changed anymore
 - src/input/ps_input_action.c:1:// XXX I don't think "input action" is something we actually use. Look into removing this.
 - Dynamic adjustment of log levels (config file)
 - Prize "unflingable", track sword swipes instead

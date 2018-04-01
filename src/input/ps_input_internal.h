@@ -24,7 +24,6 @@ extern struct ps_input {
 
   struct ps_input_config *config;
 
-  int mapped_devices_changed; // If set, we reconsider player assignments at the end of the cycle.
   int preconfig; // If set, don't bother trying to connect devices. They'll try again after configuration loads.
 
   uint16_t plrbtnv[1+PS_PLAYER_LIMIT];

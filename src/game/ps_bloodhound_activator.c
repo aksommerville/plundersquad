@@ -5,8 +5,6 @@
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 
-//TODO Tweak bloodhound activation constants.
-
 #define PS_BLOODHOUND_MAX_DIFFICULTY 5 /* Bloodhound is present at this difficulty but no higher. */
 #define PS_BLOODHOUND_AFTER_TREASURE_TIME 600 /* Don't appear soon after a treasure is collected. */
 #define PS_BLOODHOUND_STEPC_EACH_MIN 300 /* Each player must walk so far between bloodhound, also must be alive. */
@@ -15,19 +13,19 @@
 static const int ps_bloodhound_stepc_average_by_difficulty[]={
   600, // dummy
   600, // 1
-  600, // 2
-  600, // 3
-  600, // 4
-  600, // 5
+  800, // 2
+ 1000, // 3
+ 1500, // 4
+ 2000, // 5
 };
 
 static const int ps_bloodhound_activation_interval_by_difficulty[]={
   0,   // dummy
   1200, // 1
-  1200, // 2
-  1200, // 3
-  1200, // 4
-  1200, // 5
+  1500, // 2
+  1800, // 3
+  2100, // 4
+  2400, // 5
 };
 
 /* Object lifecycle.

@@ -41,7 +41,6 @@ int ps_gui_load_page_edithome(struct ps_gui *gui) {
  */
 
 static void ps_log_akau(int level,const char *msg,int msgc) {
-  //TODO translate log levels from akau to ps
   ps_log(AUDIO,INFO,"[%s] %.*s",akau_loglevel_repr(level),msgc,msg);
 }
 

@@ -150,13 +150,18 @@ int ps_heroselect_rebuild_children_for_phase(struct ps_widget *widget,int phase)
     case PS_HEROSELECT_PHASE_CONFIG: {
         if (ps_heroselect_spawn_device_label(widget)<0) return -1;
         if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1;
+        child->fgrgba=0xa0ff60ff;
         int btnid=ps_input_icfg_get_current_button(WIDGET->icfg);
         const char *btnname=ps_plrbtn_repr(btnid);
-        char message[32];
-        int messagec=snprintf(message,sizeof(message),"Press %s",btnname);
+        char message[128];
+        int messagec;
+        switch (ps_input_icfg_get_qualifier(WIDGET->icfg)) {
+          case PS_ICFG_QUALIFIER_REPEAT: messagec=snprintf(message,sizeof(message),"Press %s again",btnname); break;
+          case PS_ICFG_QUALIFIER_MISMATCH: child->fgrgba=0xffa0a0ff; messagec=snprintf(message,sizeof(message),"Error! Press %s",btnname); break;
+          default: messagec=snprintf(message,sizeof(message),"Press %s",btnname); break;
+        }
         if ((messagec<0)||(messagec>sizeof(message))) messagec=0;
         if (ps_widget_label_set_text(child,message,messagec)<0) return -1;
-        child->fgrgba=0xa0ff60ff;
       } break;
 
   }
@@ -375,13 +380,17 @@ static int ps_heroselect_input_config_event(struct ps_widget *widget,int btnid,i
 
   err=ps_input_icfg_event(WIDGET->icfg,btnid,value);
   if (err<0) return -1;
+  int committed=0;
   if (err) {
     if (ps_input_icfg_is_ready(WIDGET->icfg)) {
       if (ps_heroselect_finalize_mapping(widget)<0) return -1;
-    } else {
-      if (ps_heroselect_update_ui_for_input_config(widget)<0) return -1;
+      committed=1;
     }
   }
+  if (!committed) {
+    if (ps_heroselect_update_ui_for_input_config(widget)<0) return -1;
+  }
+  
   return 0;
 }
 

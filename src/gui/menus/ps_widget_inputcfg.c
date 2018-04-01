@@ -222,7 +222,6 @@ static int ps_inputcfg_commit_reset(struct ps_widget *widget) {
 }
 
 /* Update UI during full reset.
- * TODO error messages, and "press again"
  */
 
 static int ps_inputcfg_update_reset(struct ps_widget *widget) {
@@ -233,7 +232,18 @@ static int ps_inputcfg_update_reset(struct ps_widget *widget) {
   if (!btnname) return -1;
 
   char msg[256];
-  int msgc=snprintf(msg,sizeof(msg),"Press %s",btnname);
+  int msgc;
+  switch (ps_input_icfg_get_qualifier(WIDGET->icfg)) {
+    case PS_ICFG_QUALIFIER_REPEAT: {
+        msgc=snprintf(msg,sizeof(msg),"Press %s again",btnname);
+      } break;
+    case PS_ICFG_QUALIFIER_MISMATCH: {
+        msgc=snprintf(msg,sizeof(msg),"Mismatch! Press %s",btnname);
+      } break;
+    default: {
+        msgc=snprintf(msg,sizeof(msg),"Press %s",btnname);
+      } break;
+  }
   if ((msgc<1)||(msgc>=sizeof(msg))) return -1;
 
   if (ps_widget_textblock_set_text(ps_inputcfg_get_message(widget),msg,msgc)<0) return -1;
@@ -259,14 +269,17 @@ static int ps_inputcfg_cb_button(struct ps_input_device *device,int btnid,int va
   /* Are we gathering buttons for reset? */
   if (WIDGET->icfg) {
     if (mapped) return 0;
+    int committed=0;
     int err=ps_input_icfg_event(WIDGET->icfg,btnid,value);
     if (err<0) return -1;
     if (err) {
       if (ps_input_icfg_is_ready(WIDGET->icfg)) {
         if (ps_inputcfg_commit_reset(widget)<0) return -1;
-      } else {
-        if (ps_inputcfg_update_reset(widget)<0) return -1;
+        committed=1;
       }
+    }
+    if (!committed) {
+      if (ps_inputcfg_update_reset(widget)<0) return -1;
     }
 
   /* Not resetting -- is the menu open? */

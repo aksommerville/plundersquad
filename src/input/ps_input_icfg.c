@@ -90,6 +90,24 @@ int ps_input_icfg_get_current_button(const struct ps_input_icfg *icfg) {
   if (icfg->mapc>=PS_INPUT_ICFG_MAP_COUNT) return 0;
   return icfg->mapv[icfg->mapc].dstbtnid;
 }
+
+int ps_input_icfg_get_qualifier(const struct ps_input_icfg *icfg) {
+  if (!icfg) return PS_ICFG_QUALIFIER_INVALID;
+  if (icfg->mapc<0) return PS_ICFG_QUALIFIER_INVALID;
+  if (icfg->mapc>=PS_INPUT_ICFG_MAP_COUNT) return PS_ICFG_QUALIFIER_INVALID;
+  switch (icfg->collection_phase) {
+    case PS_ICFG_PHASE_INIT:
+    case PS_ICFG_PHASE_HOLD1: {
+        if (icfg->mismatch) return PS_ICFG_QUALIFIER_MISMATCH;
+        return PS_ICFG_QUALIFIER_COLLECT;
+      }
+    case PS_ICFG_PHASE_CONFIRM:
+    case PS_ICFG_PHASE_HOLD2: {
+        return PS_ICFG_QUALIFIER_REPEAT;
+      }
+  }
+  return PS_ICFG_QUALIFIER_INVALID;
+}
  
 int ps_input_icfg_restart(struct ps_input_icfg *icfg) {
   if (!icfg) return -1;
@@ -152,6 +170,7 @@ static int ps_input_icfg_accept_collection(struct ps_input_icfg *icfg,struct ps_
 
   icfg->srcbtnid=0;
   icfg->collection_phase=PS_ICFG_PHASE_INIT;
+  icfg->mismatch=0;
   icfg->value=0;
 
   if (icfg->interlude_us>0) {
@@ -236,6 +255,7 @@ int ps_input_icfg_event(struct ps_input_icfg *icfg,int btnid,int value) {
           return 0;
         } else if (!nvalue) {
           icfg->collection_phase=PS_ICFG_PHASE_CONFIRM;
+          icfg->mismatch=0;
         } else if (nvalue!=icfg->value) {
           return ps_input_icfg_discard_collection(icfg);
         }
@@ -244,7 +264,9 @@ int ps_input_icfg_event(struct ps_input_icfg *icfg,int btnid,int value) {
     case PS_ICFG_PHASE_CONFIRM: {
         if (btnid!=icfg->srcbtnid) {
           if (!nvalue) return 0;
-          return ps_input_icfg_discard_collection(icfg);
+          if (ps_input_icfg_discard_collection(icfg)<0) return -1;
+          icfg->mismatch=1;
+          return 0;
         } else if (!nvalue) {
         } else if (nvalue==icfg->value) {
           icfg->collection_phase=PS_ICFG_PHASE_HOLD2;

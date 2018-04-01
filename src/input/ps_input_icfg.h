@@ -19,6 +19,11 @@ struct ps_input_maptm;
 
 #define PS_INPUT_ICFG_MAP_COUNT 7
 
+#define PS_ICFG_QUALIFIER_INVALID       0 /* Not collecting input now. Done or error. */
+#define PS_ICFG_QUALIFIER_COLLECT       1 /* Initial collection for this button, normal case. */
+#define PS_ICFG_QUALIFIER_REPEAT        2 /* Collected one keystroke, awaiting confirmation. */
+#define PS_ICFG_QUALIFIER_MISMATCH      3 /* Failed a repeat collection, starting over. */
+
 struct ps_input_icfg_map {
   int dstbtnid;
   int srcbtnid;
@@ -35,6 +40,7 @@ struct ps_input_icfg {
   int srcbtnid;
   int collection_phase;
   int value;
+  int mismatch;
 
   /* Minimum time in microseconds between events.
    * After we apply an event, for so long, any further events are discarded.
@@ -59,6 +65,10 @@ int ps_input_icfg_is_ready(const struct ps_input_icfg *icfg);
  * Zero if complete or any other problem.
  */
 int ps_input_icfg_get_current_button(const struct ps_input_icfg *icfg);
+
+/* Return one of PS_ICFG_QUALIFIER_*, whatever is relevant now.
+ */
+int ps_input_icfg_get_qualifier(const struct ps_input_icfg *icfg);
 
 /* Discard any work in progress and begin mapping again from the first button.
  */

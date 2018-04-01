@@ -1,5 +1,4 @@
 General errors:
-- Blueprint:47 (two snakes): After killing and returning, they stayed dead but the switch activated, deathgate did not.
 
 Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!

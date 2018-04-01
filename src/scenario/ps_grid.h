@@ -24,7 +24,6 @@ struct ps_region;
 #define PS_GRID_CELL_SHAPE_CIRCLE 0x0f
 
 struct ps_grid_cell {
-  uint8_t tsid; // Resource ID of tilesheet. XXX all tiles must be from the same sheet
   uint8_t tileid; // Tile within sheet.
   uint8_t physics; // PS_BLUEPRINT_CELL_*
   uint8_t shape; // Used transiently during skinning. Once live, mask of PS_GRID_CELL_SHAPE_*. Zero default.
@@ -34,7 +33,7 @@ struct ps_grid {
   int refc;
   struct ps_blueprint_poi *poiv;
   int poic;
-  struct ps_region *region; // WEAK, optional
+  struct ps_region *region; // WEAK
   uint8_t monsterc_min,monsterc_max; // Copied from blueprint.
   int visited; // Set by game first time player sees this grid.
   struct ps_grid_cell cellv[PS_GRID_SIZE];

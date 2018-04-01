@@ -45,7 +45,6 @@ static struct ps_scenario *generate_scenario() {
  */
 
 static int assert_grid_cells_identical(const struct ps_grid_cell *a,const struct ps_grid_cell *b) {
-  PS_ASSERT_INTS(a->tsid,b->tsid) // XXX unused?
   PS_ASSERT_INTS(a->tileid,b->tileid)
   PS_ASSERT_INTS(a->physics,b->physics)
   PS_ASSERT_INTS(a->shape,b->shape)

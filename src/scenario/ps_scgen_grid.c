@@ -19,7 +19,6 @@ static int ps_gridgen_initialize(struct ps_scgen *scgen,struct ps_screen *screen
   int cellc=PS_GRID_SIZE;
   struct ps_grid_cell *cell=screen->grid->cellv;
   for (;cellc-->0;cell++) {
-    cell->tsid=screen->region->tsid;
     cell->shape=0;
   }
   

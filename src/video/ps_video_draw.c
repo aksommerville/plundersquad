@@ -1,5 +1,6 @@
 #include "ps_video_internal.h"
 #include "scenario/ps_grid.h"
+#include "scenario/ps_region.h"
 #include "game/ps_sprite.h"
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
@@ -146,9 +147,13 @@ int ps_video_draw_grid(const struct ps_grid *grid,int offx,int offy) {
   struct akgl_vtx_mintile *vtxv=ps_video_vtxv_add(PS_GRID_SIZE);
   if (!vtxv) return -1;
 
-  struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,grid->cellv[0].tsid);
+  if (!grid->region) {
+    ps_log(VIDEO,ERROR,"Can't draw grid without region (is null)");
+    return -1;
+  }
+  struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,grid->region->tsid);
   if (!tilesheet) {
-    ps_log(VIDEO,ERROR,"Tilesheet %d not found, required for grid.",grid->cellv[0].tsid);
+    ps_log(VIDEO,ERROR,"Tilesheet %d not found, required for grid.",grid->region->tsid);
     return -1;
   }
 

@@ -182,11 +182,11 @@ static int ps_scenario_encode_screen(struct ps_buffer *dst,const struct ps_scree
   }
 
   /* Cells are packed in the format we want -- happily, there are no multibyte fields. */
-  if (sizeof(struct ps_grid_cell)!=4) {
-    ps_log(RES,ERROR,"sizeof(struct ps_grid_cell)==%d, we really thought this would be 4.",(int)sizeof(struct ps_grid_cell));
+  if (sizeof(struct ps_grid_cell)!=3) {
+    ps_log(RES,ERROR,"sizeof(struct ps_grid_cell)==%d, we really thought this would be 3.",(int)sizeof(struct ps_grid_cell));
     return -1;
   }
-  if (ps_buffer_append(dst,screen->grid->cellv,PS_GRID_SIZE*4)<0) return -1;
+  if (ps_buffer_append(dst,screen->grid->cellv,PS_GRID_SIZE*3)<0) return -1;
   
   return 0;
 }
@@ -300,12 +300,12 @@ static int ps_scenario_decode_screen(struct ps_screen *screen,struct ps_scenario
     screen->grid->poic=poic;
   }
 
-  if (srcp>srcc-PS_GRID_SIZE*4) {
+  if (srcp>srcc-PS_GRID_SIZE*3) {
     ps_log(RES,ERROR,"Unexpected end of file decode grid.");
     return -1;
   }
-  memcpy(screen->grid->cellv,src+srcp,PS_GRID_SIZE*4);
-  srcp+=PS_GRID_SIZE*4;
+  memcpy(screen->grid->cellv,src+srcp,PS_GRID_SIZE*3);
+  srcp+=PS_GRID_SIZE*3;
 
   return srcp;
 }

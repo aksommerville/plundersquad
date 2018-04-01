@@ -64,7 +64,6 @@ int ps_scenario_reallocate_screens(struct ps_scenario *scenario,int w,int h);
  *     0004  12 argv[3]
  *     0010
  *  .... ... cellv:
- *     0000   1 tsid
  *     0001   1 tileid
  *     0002   1 physics
  *     0003   1 shape

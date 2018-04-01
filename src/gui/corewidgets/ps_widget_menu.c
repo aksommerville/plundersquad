@@ -312,3 +312,14 @@ struct ps_widget *ps_widget_menu_spawn_label(struct ps_widget *widget,const char
   if (ps_widget_label_set_text(label,src,srcc)<0) return 0;
   return label;
 }
+
+struct ps_widget *ps_widget_menu_spawn_button(struct ps_widget *widget,const char *src,int srcc,struct ps_callback cb) {
+  if (!widget||(widget->type!=&ps_widget_type_menu)||(widget->childc!=2)) return 0;
+  struct ps_widget *button=ps_widget_spawn(widget->childv[1],&ps_widget_type_button);
+  if (!button) return 0;
+  button->bgrgba=0x00000000;
+  if (ps_widget_button_set_text(button,src,srcc)<0) return 0;
+  if (ps_widget_button_set_margins(button,0,0)<0) return 0;
+  if (ps_widget_button_set_callback(button,cb)<0) return 0;
+  return button;
+}

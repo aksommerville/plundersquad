@@ -17,7 +17,14 @@
 #define PS_PAUSEPAGE_CHEAT_LIMIT 8
 #define PS_PAUSEPAGE_CHEAT_TIME  2000000
 
-static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
+static int ps_pausepage_menucb_resume(struct ps_widget *button,struct ps_widget *widget);
+static int ps_pausepage_menucb_to_beginning(struct ps_widget *button,struct ps_widget *widget);
+static int ps_pausepage_menucb_restart(struct ps_widget *button,struct ps_widget *widget);
+static int ps_pausepage_menucb_end_game(struct ps_widget *button,struct ps_widget *widget);
+static int ps_pausepage_menucb_input(struct ps_widget *button,struct ps_widget *widget);
+static int ps_pausepage_menucb_audio(struct ps_widget *button,struct ps_widget *widget);
+static int ps_pausepage_menucb_fullscreen(struct ps_widget *button,struct ps_widget *widget);
+static int ps_pausepage_menucb_quit(struct ps_widget *button,struct ps_widget *widget);
 
 /* Object definition.
  */
@@ -47,32 +54,27 @@ static int _ps_pausepage_init(struct ps_widget *widget) {
   struct ps_widget *menu=ps_widget_spawn(widget,&ps_widget_type_menu);
   struct ps_widget *menupacker=ps_widget_menu_get_packer(menu);
   if (!menupacker) return -1;
-  if (ps_widget_menu_set_callback(menu,ps_callback(ps_pausepage_cb_menu,0,widget))<0) return -1;
 
   struct ps_widget *thumb=ps_widget_menu_get_thumb(menu);
   if (!thumb) return -1;
   thumb->bgrgba=0x206080ff;
 
-  struct ps_widget *label;
-  const uint32_t textcolor=0xffffffff;
-  if (!(label=ps_widget_menu_spawn_label(menu,"Resume",6))) return -1;
-  label->fgrgba=textcolor;
-  if (!(label=ps_widget_menu_spawn_label(menu,"To beginning",12))) return -1;
-  label->fgrgba=textcolor;
-  if (!(label=ps_widget_menu_spawn_label(menu,"Restart",7))) return -1;
-  label->fgrgba=textcolor;
-  if (!(label=ps_widget_menu_spawn_label(menu,"End game",8))) return -1;
-  label->fgrgba=textcolor;
-  if (!(label=ps_widget_menu_spawn_label(menu,"Input config",-1))) return -1;
-  label->fgrgba=textcolor;
-  if (!(label=ps_widget_menu_spawn_label(menu,"Audio",-1))) return -1;
-  label->fgrgba=textcolor;
-  if (ps_video_supports_fullscreen_toggle()) {
-    if (!(label=ps_widget_menu_spawn_label(menu,"Toggle fullscreen",-1))) return -1;
-    label->fgrgba=textcolor;
+  #define MENUITEM(label,cbtag) { \
+    struct ps_widget *item=ps_widget_menu_spawn_button(menu,label,sizeof(label)-1,ps_callback(ps_pausepage_menucb_##cbtag,0,widget)); \
+    if (!item) return -1; \
+    if (ps_widget_button_set_text_color(item,0xffffffff)<0) return -1; \
   }
-  if (!(label=ps_widget_menu_spawn_label(menu,"Quit",4))) return -1;
-  label->fgrgba=textcolor;
+  MENUITEM("Resume",resume)
+  MENUITEM("To beginning",to_beginning)
+  MENUITEM("Restart",restart)
+  MENUITEM("End game",end_game)
+  MENUITEM("Input",input)
+  MENUITEM("Audio",audio)
+  if (ps_video_supports_fullscreen_toggle()) {
+    MENUITEM("Toggle fullscreen",fullscreen)
+  }
+  MENUITEM("Quit",quit)
+  #undef MENUITEM
   
   return 0;
 }
@@ -208,7 +210,7 @@ const struct ps_widget_type ps_widget_type_pausepage={
 /* Dismiss menu.
  */
 
-static int ps_pausepage_resume(struct ps_widget *widget) {
+static int ps_pausepage_menucb_resume(struct ps_widget *button,struct ps_widget *widget) {
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
   if (ps_input_suppress_player_actions(30)<0) return -1;
   if (ps_game_pause(game,0)<0) return -1;
@@ -219,7 +221,7 @@ static int ps_pausepage_resume(struct ps_widget *widget) {
 /* Go to beginning of game.
  */
 
-static int ps_pausepage_to_beginning(struct ps_widget *widget) {
+static int ps_pausepage_menucb_to_beginning(struct ps_widget *button,struct ps_widget *widget) {
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
   if (ps_input_suppress_player_actions(30)<0) return -1;
   if (ps_game_return_to_start_screen(game)<0) return -1;
@@ -230,7 +232,7 @@ static int ps_pausepage_to_beginning(struct ps_widget *widget) {
 /* Restart game.
  */
 
-static int ps_pausepage_restart(struct ps_widget *widget) {
+static int ps_pausepage_menucb_restart(struct ps_widget *button,struct ps_widget *widget) {
   struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
   if (ps_input_suppress_player_actions(30)<0) return -1;
   if (ps_game_restart(game)<0) return -1;
@@ -241,7 +243,7 @@ static int ps_pausepage_restart(struct ps_widget *widget) {
 /* Cancel game, return to menu.
  */
 
-static int ps_pausepage_cancel(struct ps_widget *widget) {
+static int ps_pausepage_menucb_end_game(struct ps_widget *button,struct ps_widget *widget) {
   struct ps_gui *gui=ps_widget_get_gui(widget);
   if (ps_gui_load_page_assemble(gui)<0) return -1;
   if (ps_widget_kill(widget)<0) return -1;
@@ -251,7 +253,7 @@ static int ps_pausepage_cancel(struct ps_widget *widget) {
 /* Configure input.
  */
 
-static int ps_pausepage_input_config(struct ps_widget *widget) {
+static int ps_pausepage_menucb_input(struct ps_widget *button,struct ps_widget *widget) {
   struct ps_gui *gui=ps_widget_get_gui(widget);
   if (ps_gui_load_page_inputcfg(gui)<0) return -1;
   return 0;
@@ -260,7 +262,7 @@ static int ps_pausepage_input_config(struct ps_widget *widget) {
 /* Configure audio.
  */
 
-static int ps_pausepage_audio(struct ps_widget *widget) {
+static int ps_pausepage_menucb_audio(struct ps_widget *button,struct ps_widget *widget) {
   struct ps_gui *gui=ps_widget_get_gui(widget);
   if (ps_gui_load_page_audiocfg(gui)<0) return -1;
   return 0;
@@ -269,7 +271,7 @@ static int ps_pausepage_audio(struct ps_widget *widget) {
 /* Toggle fullscreen.
  */
  
-static int ps_pausepage_toggle_fullscreen(struct ps_widget *widget) {
+static int ps_pausepage_menucb_fullscreen(struct ps_widget *button,struct ps_widget *widget) {
   if (ps_video_toggle_fullscreen()<0) return -1;
   return 0;
 }
@@ -277,33 +279,7 @@ static int ps_pausepage_toggle_fullscreen(struct ps_widget *widget) {
 /* Quit.
  */
 
-static int ps_pausepage_quit(struct ps_widget *widget) {
+static int ps_pausepage_menucb_quit(struct ps_widget *button,struct ps_widget *widget) {
   if (ps_input_request_termination()<0) return -1;
-  return 0;
-}
-
-/* Menu callback.
- */
- 
-static int ps_pausepage_cb_menu(struct ps_widget *menu,struct ps_widget *widget) {
-
-  /* "Toggle fullscreen" is conditional, so we have to check.
-   *TODO: Can we attach the callbacks directly to the menu labels instead?
-   */
-  int p=ps_widget_menu_get_selected_index(menu);
-  if (p>=6) {
-    if (!ps_video_supports_fullscreen_toggle()) p++;
-  }
-  
-  switch (p) {
-    case 0: return ps_pausepage_resume(widget);
-    case 1: return ps_pausepage_to_beginning(widget);
-    case 2: return ps_pausepage_restart(widget);
-    case 3: return ps_pausepage_cancel(widget);
-    case 4: return ps_pausepage_input_config(widget);
-    case 5: return ps_pausepage_audio(widget);
-    case 6: return ps_pausepage_toggle_fullscreen(widget);
-    case 7: return ps_pausepage_quit(widget);
-  }
   return 0;
 }

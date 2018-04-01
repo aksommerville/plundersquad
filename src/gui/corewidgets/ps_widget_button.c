@@ -397,3 +397,17 @@ struct ps_widget *ps_widget_button_spawn(
 
   return widget;
 }
+
+/* Set text color.
+ */
+ 
+int ps_widget_button_set_text_color(struct ps_widget *widget,uint32_t rgba) {
+  if (!widget||(widget->type!=&ps_widget_type_button)) return -1;
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *child=widget->childv[i];
+    if (child->type==&ps_widget_type_label) {
+      child->fgrgba=rgba;
+    }
+  }
+  return 0;
+}

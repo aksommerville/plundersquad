@@ -77,6 +77,7 @@ int ps_widget_button_set_margins(struct ps_widget *widget,int bevel_width,int bo
 int ps_widget_button_set_icon(struct ps_widget *widget,uint16_t tileid);
 int ps_widget_button_set_text(struct ps_widget *widget,const char *src,int srcc);
 const char *ps_widget_button_get_text(const struct ps_widget *widget);
+int ps_widget_button_set_text_color(struct ps_widget *widget,uint32_t rgba);
 
 /* Toggle.
  *****************************************************************************/
@@ -144,7 +145,10 @@ int ps_widget_menu_change_selection(struct ps_widget *widget,int d);
 int ps_widget_menu_adjust_selection(struct ps_widget *widget,int d);
 int ps_widget_menu_activate(struct ps_widget *widget);
 
+/* Button callbacks will not fire if you have set a callback on the menu.
+ */
 struct ps_widget *ps_widget_menu_spawn_label(struct ps_widget *widget,const char *src,int srcc);
+struct ps_widget *ps_widget_menu_spawn_button(struct ps_widget *widget,const char *src,int srcc,struct ps_callback cb);
 
 /* Scrolllist.
  *****************************************************************************/

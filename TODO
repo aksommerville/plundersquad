@@ -1,3 +1,6 @@
+General errors:
+- Blueprint:47 (two snakes): After killing and returning, they stayed dead but the switch activated, deathgate did not.
+
 Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
@@ -15,7 +18,6 @@ Actionable:
 - Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
 - Dynamic adjustment of log levels (config file)
 - src/game/ps_bloodhound_activator.c:8://TODO Tweak bloodhound activation constants.
-- src/gui/menus/ps_widget_pausepage.c:291:   *TODO: Can we attach the callbacks directly to the menu labels instead?
 - src/gui/editor/ps_widget_editpoi.c:539:          //TODO confirm i am the only permaswitch
 - src/opt/genioc/ps_genioc.c:182:    //TODO create input config in a sensible location
 - Scissor for sdraw blits. Only needed by editor.

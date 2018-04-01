@@ -290,7 +290,6 @@ int ps_widget_editor_set_resource(struct ps_widget *widget,int id,void *obj,cons
 }
 
 /* Create new song.
- * TODO Didn't look at creating new song during akau/ps_res merge
  */
 
 static int ps_edithome_create_song(struct ps_widget *widget) {
@@ -312,7 +311,6 @@ static int ps_edithome_create_song(struct ps_widget *widget) {
 }
 
 /* Create new sound effect.
- * TODO Didn't look at creating new ipcm during akau/ps_res merge
  */
 
 static int ps_edithome_create_sound_effect(struct ps_widget *widget) {

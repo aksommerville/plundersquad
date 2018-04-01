@@ -54,7 +54,6 @@ static int ps_glx_evt_mmotion(XMotionEvent *evt) {
  
 static int ps_glx_evt_client(XClientMessageEvent *evt) {
   //mpi_log(EVENT,"X11 ClientMessage");
-  //mpi_log(DEBUG,"message_type %s",XGetAtomName(ps_glx.dpy,evt->message_type));//XXX memory leak
   if (evt->message_type==ps_glx.atom_WM_PROTOCOLS) {
     if (evt->format==32) {
       if (evt->data.l[0]==ps_glx.atom_WM_DELETE_WINDOW) {

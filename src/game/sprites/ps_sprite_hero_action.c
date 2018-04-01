@@ -33,7 +33,7 @@ static int ps_hero_assess_damage_to_other(struct ps_sprite *spr,struct ps_game *
   if (hazardbox.e<=fragilebox.w) return 0;
   if (hazardbox.w>=fragilebox.e) return 0;
 
-  //TODO Is it worth considering circle shapes? That might be unnecessary.
+  // We don't bother recognizing circle shapes. I don't think it matters.
 
   if (ps_sprite_receive_damage(game,fragile,spr)<0) return -1;
 
@@ -132,7 +132,6 @@ static int ps_hero_arrow(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprite *arrow=ps_sprite_arrow_new(spr,game);
   if (!arrow) return -1;
   PS_SFX_ARROW
-  //TODO hero animation when firing an arrow
   return 0;
 }
 

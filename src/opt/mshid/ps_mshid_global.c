@@ -220,9 +220,6 @@ static int ps_mshid_apply_preparsed_data(struct ps_input_device *device,const vo
     srcp+=PS_MSHID_HIDP_USAGE_SIZE;
   }
 
-  //XXX HID footer does not appear useful.
-  //if (ps_mshid_apply_footer(device,(char*)src+srcp,srcc-srcp)<0) return -1;
-  
   return 0;
 }
 

@@ -152,9 +152,9 @@ static int ps_gridgen_select_shape_for_zone(struct ps_scgen *scgen,struct ps_scr
     }
   }
 
-  // TODO: Consider splitting down to embedded 3X3
+  // Embedded 3x3, this never comes up.
   if (zone->contains3x3) {
-    ps_log(GENERATOR,DEBUG,"(TODO) Opportunity to split down to 3X3 for physics %d, tsid=%d.",zone->physics,screen->region->tsid);
+    ps_log(GENERATOR,DEBUG,"Opportunity to split down to 3X3 for physics %d, tsid=%d.",zone->physics,screen->region->tsid);
   }
 
   /* Done with special logic. Pick any universal shape. */

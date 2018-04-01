@@ -1,14 +1,82 @@
-- Review dragoncharger with multiple real players.
-- Final boss?
-- Record top scores
+Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
 - Another freeze at quit on Linux. ALSA?
-- Persist audio levels
-- Generalize configuration: command line and a config file
 
-Windows target
+Windows errors:
 - Freeze on startup, Windows:
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
-- Build with GL2 support
 - Toggling out of fullscreen, other windows don't repaint
+
+Actionable:
+- Record top scores
+- Persist audio levels
+- Generalize configuration: command line and a config file
+- test_res_content currently failing
+- Remove tsid from ps_grid_cell
+- Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
+- src/input/ps_input_global.c:66:  if (ps_input.mapped_devices_changed) {//XXX we probably don't need mapped_devices_changed anymore
+- src/input/ps_input_action.c:1:// XXX I don't think "input action" is something we actually use. Look into removing this.
+- Dynamic adjustment of log levels (config file)
+- Prize "unflingable", track sword swipes instead
+- src/game/ps_bloodhound_activator.c:8://TODO Tweak bloodhound activation constants.
+- src/edit/ps_edit_main.c:44:  //TODO translate log levels from akau to ps
+- src/gui/menus/ps_widget_inputcfg.c:225: * TODO error messages, and "press again"
+- src/gui/menus/ps_widget_pausepage.c:291:   *TODO: Can we attach the callbacks directly to the menu labels instead?
+- src/gui/editor/ps_widget_editpoi.c:539:          //TODO confirm i am the only permaswitch
+- src/opt/genioc/ps_genioc.c:182:    //TODO create input config in a sensible location
+- Scissor for sdraw blits. Only needed by editor.
+
+Windows:
+- Build with GL2 support
+- src/opt/msaudio/ps_msaudio.c:6://TODO Need a mutex to protect callback
+- src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
+- src/opt/mswm/ps_mswm_global.c:66:  int x=100,y=100;//TODO window position
+- src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
+- src/opt/mswm/ps_mswm_graphics.c:25:  //TODO Assert OpenGL features.
+
+MacOS:
+- Developer license
+- Sign code
+- src/opt/machid/ps_machid.h:4: * It does not need to be the main thread. (TODO confirm this)
+
+Linux:
+- src/opt/genioc/ps_genioc.c:22:static int ps_genioc_get_executable_path(char *dst,int dsta) {//TODO linux
+- src/opt/glx/ps_glx_global.c:298:      //TODO Test window icon for big-endian GLX. Do we have a PowerPC box somewhere?
+
+Raspi:
+
+Optimization, cleanup, low priority:
+- src/input/ps_input_report_reader.c:365:  // TODO This comparison could be more efficient. Especially with bitfields; it seems wasteful to examine each bit individually.
+- Store background image to texture
+- Remove gradient draw from video and sdraw (confirm we're not using it)
+- ps_sdraw_draw_line(): Optimize writes
+- sdraw: optimize blits
+- Clean up logging
+- Remove FROG and CARRY skills
+- src/game/sprites/ps_sprite_hero.c:182:  if (SPR->state&PS_HERO_STATE_HOOKSHOT) { //TODO generalize with a state query
+- src/game/sprites/ps_sprite_hero.c:236:static int ps_hero_walk_inhibited_by_actions(struct ps_sprite *spr) {//TODO generalize with state query
+- src/scenario/ps_scgen.c:844: * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
+- ps_region.c:413: Handle region shape flags as independant bits even though there's only one flag in use
+- Review ps_widget_inputcfgpage for cases with (a) no devices or (b) only joysticks
+- src/gui/editor/ps_widget_sfxchan.c:300:  //TODO coordinate graph value limits with button in channel widget
+- src/opt/msaudio/ps_msaudio.c:117:  int buffer_size=8192; // bytes (TODO optimal size?)
+- Review stubs in akgl_soft_shaders.c
+
+Ongoing, loosely-defined items:
+- Review dragoncharger with multiple real players.
+- src/video/ps_image_decode.c:242:  /* TODO Image filter: Either improve it or take it out.
+- Revisit scenario encoding, make it work, add UI to support it
+- Input swap: Should we enable this for production use?
+- Review award assignment with realistic data
+- Should we pause or something when window loses focus?
+
+Optional:
+- Final boss?
+- src/input/ps_input_report_reader.h:3: * TODO We don't support collection fields, like for HID keyboards. Should we? Our focus is joysticks.
+
+Blocked:
+- Full review of data
+- Documentation
+- Promo
+- Final packaging

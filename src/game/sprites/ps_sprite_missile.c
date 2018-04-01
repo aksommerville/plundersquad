@@ -4,7 +4,7 @@
 #include <math.h>
 
 #define PS_MISSILE_SPRDEF_ID_DEFAULT 11
-#define PS_MISSILE_SPEED 3.0 /* TODO configurable? */
+#define PS_MISSILE_SPEED 3.0
 #define PS_MISSILE_FRAME_TIME 5
 
 /* Private sprite object.

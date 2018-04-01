@@ -78,7 +78,7 @@ static int ps_arrow_check_collisions(struct ps_sprite *spr,struct ps_game *game)
     }
   }
 
-  //TODO arrows maybe should stop at solid sprites too
+  // Arrows can pass through SOLID sprites; that's by design.
 
   return 0;
 }

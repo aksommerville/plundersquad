@@ -81,8 +81,6 @@ int ps_input_maptm_match_device(const struct ps_input_maptm *maptm,const struct 
     if (score<INT_MAX) score++;
   }
 
-  //TODO Should we consider the available button maps here too?
-
   return score;
 }
 

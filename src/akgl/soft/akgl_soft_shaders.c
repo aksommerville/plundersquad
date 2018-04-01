@@ -107,7 +107,8 @@ int akgl_soft_raw_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc,int w
   }
   
   int i=1; for (;i<vtxc;i++) {
-    //TODO If we want to keep the contract strictly, we'd need a gradient line function from sdraw. Doable.
+    // If we want to keep the contract strictly, we'd need a gradient line function from sdraw.
+    // That's easy enough to implement, but we don't ever draw lines like that.
     if (ps_sdraw_draw_line(dst,vtxv[i-1].x,vtxv[i-1].y,vtxv[i].x,vtxv[i].y,ps_sdraw_rgba(vtxv[i].r,vtxv[i].g,vtxv[i].b,vtxv[i].a))<0) return -1;
   }
   

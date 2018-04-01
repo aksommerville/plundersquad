@@ -1,7 +1,6 @@
 /* ps_enums.h
  * There are a whole bunch of constant string sets that must be easily convertible to integers.
  * This file is meant to organize them all in one place.
- * TODO: Move all enums here.
  */
 
 #ifndef PS_ENUMS_H

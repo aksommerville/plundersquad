@@ -343,7 +343,6 @@ static int ps_dragon_head_check_kills(struct ps_sprite *spr,struct ps_game *game
     struct ps_sprite *fragile=grp->sprv[i];
     if (fragile==spr) continue;
     if (ps_sprite_collide_circle(fragile,&firecircle)) {
-      //TODO Passing dragon as assailant, will we get stats for the players? Should we?
       if (ps_sprite_receive_damage(game,fragile,spr)<0) return -1;
     }
   }

@@ -139,8 +139,6 @@ static int _ps_heroindicator_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct 
     case PS_DIRECTION_SOUTH: default: vtxv[0].xform=AKGL_XFORM_NONE; dy=-1;
   }
 
-  //TODO rock back and forth?
-
   if (plrdef) {
     vtxv[1].x=vtxv[0].x+dx*displacement;
     vtxv[1].y=vtxv[0].y+dy*displacement;

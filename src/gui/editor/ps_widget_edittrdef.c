@@ -8,7 +8,6 @@
  *   [4] name field
  *   [5] tile field
  *   [6] image field
- * TODO callback on field mutation
  */
 
 #include "ps.h"

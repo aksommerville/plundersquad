@@ -100,7 +100,6 @@ static int assert_screens_identical(const struct ps_screen *a,const struct ps_sc
   PS_ASSERT_INTS(a->x,b->x)
   PS_ASSERT_INTS(a->y,b->y)
 
-  //TODO These fields may be transient, maybe we don't want to encode them.
   PS_ASSERT_INTS(a->xform,b->xform)
   PS_ASSERT_INTS(a->features,b->features)
   PS_ASSERT_INTS(a->doorn,b->doorn)
@@ -169,7 +168,6 @@ PS_TEST(test_scenario_encode,scgen,functional,ignore) {
   PS_ASSERT_CALL(ps_scenario_decode(readback,serial,serialc))
 
   if (assert_scenarios_identical(scenario,readback)<0) {
-    //TODO dump serialized scenario?
     return -1;
   }
 

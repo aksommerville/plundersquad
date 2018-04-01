@@ -13,9 +13,7 @@ Actionable:
 - Persist audio levels
 - Generalize configuration: command line and a config file
 - Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
-- src/input/ps_input_action.c:1:// XXX I don't think "input action" is something we actually use. Look into removing this.
 - Dynamic adjustment of log levels (config file)
-- Prize "unflingable", track sword swipes instead
 - src/game/ps_bloodhound_activator.c:8://TODO Tweak bloodhound activation constants.
 - src/edit/ps_edit_main.c:44:  //TODO translate log levels from akau to ps
 - src/gui/menus/ps_widget_inputcfg.c:225: * TODO error messages, and "press again"
@@ -73,6 +71,7 @@ Optional:
 - src/input/ps_input_report_reader.h:3: * TODO We don't support collection fields, like for HID keyboards. Should we? Our focus is joysticks.
 
 Blocked:
+- src/input/ps_input_action.c:1:// XXX I don't think "input action" is something we actually use. Look into removing this.
 - Full review of data
 - Documentation
 - Promo

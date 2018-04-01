@@ -95,6 +95,20 @@ static struct ps_fbox ps_hero_get_sword_bounds(const struct ps_sprite *spr) {
 static int ps_hero_sword_begin(struct ps_sprite *spr,struct ps_game *game) {
   //ps_log(GAME,TRACE,"%s",__func__);
   if (ps_hero_add_state(spr,PS_HERO_STATE_SWORD,game)<0) return -1;
+
+  /* Fling prizes.
+   * We do this only on the initial stroke, so it won't happen to prizes instantly upon killing something.
+   * This used to be part of ps_hero_sword_continue, with a goofy "unflingable" counter in the prize. Ugly.
+   */
+  struct ps_fbox bounds=ps_hero_get_sword_bounds(spr);
+  struct ps_sprgrp *prizes=game->grpv+PS_SPRGRP_PRIZE;
+  int i=prizes->sprc; while (i-->0) {
+    struct ps_sprite *prize=prizes->sprv[i];
+    if (ps_sprite_collide_fbox(prize,&bounds)) {
+      if (ps_prize_fling(prize,SPR->facedir)<0) return -1;
+    }
+  }
+  
   return 0;
 }
 
@@ -112,15 +126,6 @@ static int ps_hero_sword_continue(struct ps_sprite *spr,struct ps_game *game) {
   /* Hurt fragile things. */
   if (ps_hero_assess_damage_to_others(spr,game,bounds)<0) return -1;
   if (ps_hero_check_swordswitch(spr,game,bounds,0)<0) return -1;
-
-  /* Fling prizes. */
-  struct ps_sprgrp *prizes=game->grpv+PS_SPRGRP_PRIZE;
-  int i=prizes->sprc; while (i-->0) {
-    struct ps_sprite *prize=prizes->sprv[i];
-    if (ps_sprite_collide_fbox(prize,&bounds)) {
-      if (ps_prize_fling(prize,SPR->facedir)<0) return -1;
-    }
-  }
   
   return 0;
 }

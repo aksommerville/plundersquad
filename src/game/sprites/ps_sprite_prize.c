@@ -10,7 +10,6 @@
 #define PS_PRIZE_TTL 600
 #define PS_PRIZE_FADE_TIME 120
 #define PS_PRIZE_SPEED 3
-#define PS_PRIZE_UNFLINGABLE_TIME 60 /* TODO: I'm not crazy about "unflingable". Better to prevent the sword swipe that created me from flinging me. */
 
 /* Private sprite object.
  */
@@ -21,7 +20,6 @@ struct ps_sprite_prize {
   int counter,frame;
   int ttl;
   int dx,dy;
-  int unflingable;
 };
 
 #define SPR ((struct ps_sprite_prize*)spr)
@@ -40,7 +38,6 @@ static int _ps_prize_init(struct ps_sprite *spr) {
   SPR->tileid_base=0x04df;
   spr->tileid=SPR->tileid_base;
   SPR->ttl=PS_PRIZE_TTL;
-  SPR->unflingable=PS_PRIZE_UNFLINGABLE_TIME;
 
   return 0;
 }
@@ -94,12 +91,8 @@ static int _ps_prize_update(struct ps_sprite *spr,struct ps_game *game) {
   }
 
   /* Get flung. */
-  if (SPR->unflingable) {
-    SPR->unflingable--;
-  } else {
-    spr->x+=SPR->dx*PS_PRIZE_SPEED;
-    spr->y+=SPR->dy*PS_PRIZE_SPEED;
-  }
+  spr->x+=SPR->dx*PS_PRIZE_SPEED;
+  spr->y+=SPR->dy*PS_PRIZE_SPEED;
 
   /* Force on-screen. */
   if (spr->x<spr->radius) spr->x=spr->radius;
@@ -162,7 +155,6 @@ const struct ps_sprtype ps_sprtype_prize={
 int ps_prize_fling(struct ps_sprite *spr,int dir) {
   if (!spr) return -1;
   if (spr->type!=&ps_sprtype_prize) return -1;
-  if (SPR->unflingable) return 0;
   struct ps_vector d=ps_vector_from_direction(dir);
   SPR->dx=d.dx;
   SPR->dy=d.dy;

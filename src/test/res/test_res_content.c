@@ -174,6 +174,7 @@ static int count_blueprint_solutions_by_skill() {
   /* This skill is never directly required to solve a challenge alone., and therefore must not be listed in a solution. */
   #define MUST_NOT_HAVE_SOLUTION(tag) { \
     ITERATE { \
+      if (solution->skills==0xffff) continue; /* intentionally unusable blueprint */ \
       PS_ASSERT( \
         !(solution->skills&PS_SKILL_##tag), \
         "Skill %s should never be part of a solution. blueprint:%d", \
@@ -199,6 +200,7 @@ static int count_blueprint_solutions_by_skill() {
   #define MUST_HAVE_SOLUTION(tag) { \
     int have_solution_for_##tag=0; \
     ITERATE { \
+      if (solution->skills==0xffff) continue; /* intentionally unusable blueprint */ \
       if (solution->skills&PS_SKILL_##tag) { \
         have_solution_for_##tag=1; \
         goto _solution_##tag##_ready_; \
@@ -208,15 +210,27 @@ static int count_blueprint_solutions_by_skill() {
     REQUIRE(have_solution_for_##tag) \
   }
 
+  /* For transient use: List all blueprints that have a solution involving this skill. */
+  #define SHOW_SOLUTIONS_FOR_SKILL(tag) { \
+    ITERATE { \
+      if (solution->skills&PS_SKILL_##tag) { \
+        ps_log(TEST,INFO,"%s: %3d %04x",#tag,res->id,solution->skills); \
+      } \
+    } \
+  }
+
+  /* Because it's convenient right here, optionally do some extra analysis: */
+  //SHOW_SOLUTIONS_FOR_SKILL(SPEED)
+
   /* Now declare how each skill is required to be used: */
   MUST_HAVE_LONE_SOLUTION(SWORD)
-  MUST_HAVE_LONE_SOLUTION(ARROW)
+  MUST_HAVE_SOLUTION(ARROW)
   MUST_HAVE_LONE_SOLUTION(HOOKSHOT)
-  MUST_NOT_HAVE_SOLUTION(FLAME)
+  MUST_HAVE_LONE_SOLUTION(FLAME)
   MUST_HAVE_LONE_SOLUTION(HEAL)
   MUST_HAVE_LONE_SOLUTION(IMMORTAL)
   MUST_HAVE_LONE_SOLUTION(FLY)
-  MUST_NOT_HAVE_SOLUTION(MARTYR)
+  MUST_HAVE_SOLUTION(MARTYR)
   MUST_NOT_HAVE_SOLUTION(SPEED)
   MUST_NOT_HAVE_SOLUTION(WEIGHT)
   MUST_NOT_HAVE_SOLUTION(FROG)
@@ -228,7 +242,49 @@ static int count_blueprint_solutions_by_skill() {
   #undef MUST_NOT_HAVE_SOLUTION
   #undef MUST_NOT_HAVE_LONE_SOLUTION
   #undef MUST_HAVE_SOLUTION
+  #undef SHOW_SOLUTIONS_FOR_SKILL
 
+  return 0;
+}
+
+/* Count blueprints 2-dimensionally: player count against difficulty.
+ * Ensure that each configuration has a healthy blueprint count.
+ * Hmmm... This test doesn't tell us much, because it disregards skills.
+ */
+
+static int count_blueprints_by_player_count_and_difficulty() {
+
+  const struct ps_restype *restype=PS_RESTYPE(BLUEPRINT);
+  PS_ASSERT(restype);
+
+  // These are both 1-based dimensions. For sanity's sake, leave an empty column and row.
+  int blueprintc[1+PS_PLAYER_LIMIT][1+PS_DIFFICULTY_MAX]={0};
+
+  int resi=restype->resc; while (resi-->0) {
+    const struct ps_blueprint *blueprint=restype->resv[resi].obj;
+    PS_ASSERT(blueprint)
+    int playerc=1; for (;playerc<=PS_PLAYER_LIMIT;playerc++) {
+      int difficulty=1; for (;difficulty<=PS_DIFFICULTY_MAX;difficulty++) {
+        uint8_t solution_difficulty;
+        if (ps_blueprint_is_solvable(&solution_difficulty,blueprint,playerc,0xffff)) {
+          if (solution_difficulty<=difficulty) {
+            blueprintc[playerc][difficulty]++;
+          }
+        }
+      }
+    }
+  }
+
+  ps_log(TEST,INFO,"PC   1   2   3   4   5   6   7   8   9");
+  int playerc=1; for (;playerc<=PS_PLAYER_LIMIT;playerc++) {
+    char message[256];
+    int messagec=0;
+    int difficulty=1; for (;difficulty<=PS_DIFFICULTY_MAX;difficulty++) {
+      messagec+=snprintf(message+messagec,sizeof(message)-messagec,"%4d",blueprintc[playerc][difficulty]);
+    }
+    ps_log(TEST,INFO,"%2d%.*s",playerc,messagec,message);
+  }
+  
   return 0;
 }
 
@@ -248,7 +304,7 @@ PS_TEST(test_res_content,res,functional,ignore) {
   PS_ASSERT(at_least_one_treasure_blueprint())
   if (count_blueprint_solutions_by_player_count()<0) return -1;
   if (count_blueprint_solutions_by_skill()<0) return -1;
-  //TODO analyze solutions for skills and difficulty -- what does that mean?
+  if (count_blueprints_by_player_count_and_difficulty()<0) return -1;
 
   /* plrdef */
   PS_ASSERT(plrdef_for_skill(PS_SKILL_SWORD))
@@ -268,17 +324,39 @@ PS_TEST(test_res_content,res,functional,ignore) {
   /* sprdef */
   //TODO There are specific sprdef IDs called out in code that we should validate here.
   PS_ASSERT(sprdef_for_type(&ps_sprtype_arrow))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_healmissile))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_explosion))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_switch))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_bug))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_seamonster))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_missile))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_treasurechest))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_dragonbug))
-  PS_ASSERT(sprdef_for_type(&ps_sprtype_bumblebat))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_bloodhound))
   PS_ASSERT(sprdef_for_type(&ps_sprtype_blueberry))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_bomb))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_boxingglove))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_bug))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_bumblebat))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_chicken))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_dragon))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_dragonbug))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_dummy))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_elefence))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_explosion))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_giraffe))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_gorilla))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_hero))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_hookshot))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_killozap))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_lobster))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_lwizard))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_missile))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_motionsensor))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_penguin))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_prize))
   PS_ASSERT(sprdef_for_type(&ps_sprtype_rabbit))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_seamonster))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_skeleton))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_snake))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_switch))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_swordswitch))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_teleporter))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_treasurechest))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_turtle))
+  PS_ASSERT(sprdef_for_type(&ps_sprtype_yak))
 
   /* tilesheet */
   PS_ASSERT(resource_exists(PS_RESTYPE_TILESHEET,1),"UI chrome")

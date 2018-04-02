@@ -46,6 +46,10 @@ int ps_int_eval_interactive(int *dst,const char *src,int srcc,int lo,int hi,cons
 int ps_decsint_repr(char *dst,int dsta,int src);
 int ps_hexuint_repr(char *dst,int dsta,int src);
 
+// Any integer, and many common case-insensitive strings eg "true", "false", "yes", "no"
+// Returns 0 or 1 on success, or -1 on error.
+int ps_bool_eval(const char *src,int srcc);
+
 // We only accept plain decimal floats. Whole part is required, fraction optional, exponent forbidden.
 int ps_double_eval(double *dst,const char *src,int srcc);
 

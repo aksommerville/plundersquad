@@ -30,6 +30,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(MSWM          ,TRACE)
   _(MSAUDIO       ,TRACE)
   _(MSHID         ,TRACE)
+  _(CONFIG        ,TRACE)
 #undef _
 };
 

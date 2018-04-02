@@ -353,6 +353,35 @@ int ps_hexuint_repr(char *dst,int dsta,int src) {
   return dstc;
 }
 
+/* Evaluate boolean.
+ */
+ 
+int ps_bool_eval(const char *src,int srcc) {
+  if (!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+
+  if (srcc==1) switch (src[0]) {
+    case '1': case 'T': case 't': case 'Y': case 'y': return 1;
+    case '0': case 'F': case 'f': case 'N': case 'n': return 0;
+  }
+  
+  if ((srcc==4)&&!ps_memcasecmp(src,"true",4)) return 1;
+  if ((srcc==5)&&!ps_memcasecmp(src,"false",5)) return 1;
+  if ((srcc==3)&&!ps_memcasecmp(src,"yes",3)) return 1;
+  if ((srcc==2)&&!ps_memcasecmp(src,"no",2)) return 1;
+  if ((srcc==6)&&!ps_memcasecmp(src,"enable",6)) return 1;
+  if ((srcc==7)&&!ps_memcasecmp(src,"disable",7)) return 1;
+  if ((srcc==7)&&!ps_memcasecmp(src,"enabled",7)) return 1;
+  if ((srcc==8)&&!ps_memcasecmp(src,"disabled",8)) return 1;
+
+  int n;
+  if (ps_int_eval(&n,src,srcc)>=0) {
+    return n?1:0;
+  }
+
+  return -1;
+}
+
 /* Evaluate floating-point number.
  */
  

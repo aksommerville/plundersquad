@@ -34,7 +34,8 @@
 #define PS_LOG_DOMAIN_MSWM            22
 #define PS_LOG_DOMAIN_MSAUDIO         23
 #define PS_LOG_DOMAIN_MSHID           24
-#define PS_LOG_DOMAIN_COUNT           25
+#define PS_LOG_DOMAIN_CONFIG          25
+#define PS_LOG_DOMAIN_COUNT           26
 // Feel free to add domains. Please update PS_LOG_DOMAIN_COUNT, and add default level in ps_log.c.
 
 #define PS_LOG_LEVEL_ALL           0

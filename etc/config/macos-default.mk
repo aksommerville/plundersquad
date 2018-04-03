@@ -14,28 +14,28 @@ BUNDLE_MAIN:=$(OUTDIR)/PlunderSquad.app
 PLIST_MAIN:=$(BUNDLE_MAIN)/Contents/Info.plist
 NIB_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/Main.nib
 EXE_MAIN:=$(BUNDLE_MAIN)/Contents/MacOS/PlunderSquad
-RESDIR_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/data
+DATA_ARCHIVE:=$(BUNDLE_MAIN)/Contents/Resources/ps-data
 INPUTCFG_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/input.cfg
-
-RES_SRC:=$(shell find src/data -type f)
-RES_MAIN:=$(patsubst src/data/%,$(RESDIR_MAIN)/%,$(RES_SRC))
-$(RESDIR_MAIN)/%:src/data/%;$(PRECMD) cp $< $@
-
-$(INPUTCFG_MAIN):etc/input.cfg;$(PRECMD) cp $< $@
+CFG_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/plundersquad.cfg
 
 BUNDLE_EDIT:=$(OUTDIR)/EditPlunderSquad.app
 PLIST_EDIT:=$(BUNDLE_EDIT)/Contents/Info.plist
 NIB_EDIT:=$(BUNDLE_EDIT)/Contents/Resources/Main.nib
 EXE_EDIT:=$(BUNDLE_EDIT)/Contents/MacOS/EditPlunderSquad
+CFG_EDIT:=$(BUNDLE_EDIT)/Contents/Resources/plundersquad.cfg
 
-$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN) $(RES_MAIN) $(INPUTCFG_MAIN)
-$(EXE_EDIT):$(PLIST_EDIT) $(NIB_EDIT)
+$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN) $(CFG_MAIN) $(INPUTCFG_MAIN)
+$(EXE_EDIT):$(PLIST_EDIT) $(NIB_EDIT) $(CFG_EDIT)
 
 $(PLIST_MAIN):src/main/Info.plist;$(PRECMD) cp $< $@
 $(NIB_MAIN):src/main/Main.xib;$(PRECMD) ibtool --compile $@ $<
 
 $(PLIST_EDIT):src/edit/Info.plist;$(PRECMD) cp $< $@
 $(NIB_EDIT):src/edit/Main.xib;$(PRECMD) ibtool --compile $@ $<
+
+$(INPUTCFG_MAIN):etc/input.cfg;$(PRECMD) cp $< $@
+$(CFG_MAIN):etc/plundersquad.cfg;$(PRECMD) cp $< $@
+$(CFG_EDIT):etc/plundersquad.cfg;$(PRECMD) cp $< $@
 
 CMD_MAIN:=open -W $(BUNDLE_MAIN) --args --reopen-tty=$$(tty) --chdir=$$(pwd)
 CMD_EDIT:=open -W $(BUNDLE_EDIT) --args --reopen-tty=$$(tty) --chdir=$$(pwd)

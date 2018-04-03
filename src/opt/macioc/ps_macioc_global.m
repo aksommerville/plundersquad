@@ -1,4 +1,5 @@
 #include "ps_macioc_internal.h"
+#include "os/ps_fs.h"
 #include "util/ps_text.h"
 #include "akgl/akgl.h"
 #include <fcntl.h>
@@ -6,62 +7,136 @@
 
 struct ps_macioc ps_macioc={0};
 
-/* Reopen TTY.
+/* Log to a text file. Will work even if the TTY is unset.
  */
-
-static void ps_macioc_reopen_tty(const char *path) {
-  int fd=open(path,O_RDWR);
-  if (fd<0) return;
-  dup2(fd,STDIN_FILENO);
-  dup2(fd,STDOUT_FILENO);
-  dup2(fd,STDERR_FILENO);
-  close(fd);
+#if 0 // I'll just leave this here in case we need it again...
+static void ps_macioc_surelog(const char *fmt,...) {
+  va_list vargs;
+  va_start(vargs,fmt);
+  char message[256];
+  int messagec=vsnprintf(message,sizeof(message),fmt,vargs);
+  if ((messagec<0)||(messagec>=sizeof(message))) {
+    messagec=snprintf(message,sizeof(message),"(unable to generate message)");
+  }
+  int f=open("/Users/andy/proj/plundersquad/surelog",O_WRONLY|O_APPEND|O_CREAT,0666);
+  if (f<0) return;
+  int err=write(f,message,messagec);
+  close(f);
 }
 
-/* Set default command line.
+#define SURELOG(fmt,...) ps_macioc_surelog("%s:%d:%s: "fmt"\n",__FILE__,__LINE__,__func__,##__VA_ARGS__);
+#endif
+
+/* Get a path under the main bundle's "Resources" directory.
  */
 
-static int ps_macioc_set_default_cmdline() {
+static int ps_macioc_get_resource_path(char *dst,int dsta,const char *suffix) {
+
+  /* Copy bundle's resourcePath to dst. */
   NSBundle *bundle=[NSBundle mainBundle];
+  const char *src=[[bundle resourcePath] UTF8String];
+  if (!src) return -1;
+  int srcc=0; while (src[srcc]) srcc++;
+  if (!srcc) return -1;
+  if (srcc>=dsta) return -1;
+  memcpy(dst,src,srcc);
+  int dstc=srcc;
+  if ((dstc>0)&&(dst[dstc-1]!='/')) dst[dstc++]='/';
 
-  const char *respath=[[bundle resourcePath] UTF8String];
-  if (!respath) {
-    NSLog(@"Failed to acquire resources path.");
-    return -1;
+  /* Measure suffix and ensure it fits with terminator -- error if not. */
+  int suffixc=0;
+  if (suffix) while (suffix[suffixc]) suffixc++;
+  if (dstc>=dsta-suffixc) return -1;
+  memcpy(dst+dstc,suffix,suffixc);
+  dstc+=suffixc;
+
+  dst[dstc]=0;
+  return dstc;
+}
+
+/* First pass through argv.
+ */
+
+static int ps_macioc_argv_prerun(int argc,char **argv) {
+  int argp;
+  for (argp=1;argp<argc;argp++) {
+    const char *k=argv[argp];
+    if (!k) continue;
+    if ((k[0]!='-')||(k[1]!='-')||!k[2]) continue;
+    k+=2;
+    int kc=0;
+    while (k[kc]&&(k[kc]!='=')) kc++;
+    const char *v=k+kc;
+    int vc=0;
+    if (v[0]=='=') {
+      v++;
+      while (v[vc]) vc++;
+    }
+
+    if ((kc==10)&&!memcmp(k,"reopen-tty",10)) {
+      if (ps_os_reopen_tty(v)<0) return -1;
+      argv[argp]="";
+
+    } else if ((kc==5)&&!memcmp(k,"chdir",5)) {
+      if (chdir(v)<0) return -1;
+      argv[argp]="";
+
+    } else if ((kc==6)&&!memcmp(k,"config",6)) {
+      if (ps_userconfig_set_path(ps_macioc.userconfig,v)<0) return -1;
+      argv[argp]="";
+
+    }
   }
-  int c=snprintf(ps_macioc.respath,sizeof(ps_macioc.respath),"%s/data",respath);
-  if ((c<1)||(c>=sizeof(ps_macioc.respath))) {
-    NSLog(@"Failed to acquire resources path.");
-    return -1;
-  }
-  ps_macioc.cmdline.resources_path=ps_macioc.respath;
+  return 0;
+}
 
-  c=snprintf(ps_macioc.inputpath,sizeof(ps_macioc.inputpath),"%s/input.cfg",respath);
-  if ((c<1)||(c>=sizeof(ps_macioc.inputpath))) {
-    NSLog(@"Failed to acquire input config path.");
-    return -1;
-  }
-  ps_macioc.cmdline.input_config_path=ps_macioc.inputpath;
-  int fd=open(ps_macioc.inputpath,O_RDONLY|O_CREAT,0666); // Force input config file to exist.
-  if (fd>=0) close(fd);
+/* Default config path.
+ */
 
-  ps_macioc.cmdline.akgl_strategy=AKGL_STRATEGY_GL2;
+static int ps_macioc_set_default_config_path() {
+  char path[1024];
+  int pathc=ps_macioc_get_resource_path(path,sizeof(path),"plundersquad.cfg");
+  if (pathc<0) return -1;
+  if (ps_userconfig_set_path(ps_macioc.userconfig,path)<0) return -1;
+  return 0;
+}
 
-  ps_macioc.cmdline.bgm_level=0xff;
-  ps_macioc.cmdline.sfx_level=0xff;
+/* Other defaults, before config file.
+ */
+
+static int ps_macioc_set_defaults() {
+  char path[1024];
+  int pathc;
+
+  if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"input.cfg"))<0) return -1;
+  if (ps_userconfig_set(ps_macioc.userconfig,"input",5,path,pathc)<0) return -1;
+
+  if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"ps-data"))<0) return -1;
+  if (ps_userconfig_set(ps_macioc.userconfig,"resources",9,path,pathc)<0) return -1;
 
   return 0;
 }
 
-/* Set integer property from command line.
+/* Configure.
  */
 
-static int ps_macioc_set_cmdline_int(int *dst,const char *src,int lo,int hi,const char *propname) {
-  int v=0;
-  if (ps_int_eval_interactive(&v,src,-1,lo,hi,propname)<0) {
-    return 0;
+static int ps_macioc_configure(int argc,char **argv) {
+  int argp;
+
+  if (ps_userconfig_declare_default_fields(ps_macioc.userconfig)<0) return -1;
+  if (ps_macioc_argv_prerun(argc,argv)<0) return -1;
+  if (!ps_userconfig_get_path(ps_macioc.userconfig)) {
+    if (ps_macioc_set_default_config_path()<0) return -1;
   }
-  *dst=v;
+  if (ps_macioc_set_defaults()<0) return -1;
+  if (ps_userconfig_load_file(ps_macioc.userconfig)<0) return -1;
+
+  int err=ps_userconfig_load_argv(ps_macioc.userconfig,argc,argv);
+  if (err<0) return -1;
+  if (err) {
+    if (ps_userconfig_save_file(ps_macioc.userconfig)<0) return -1;
+  }
+
   return 0;
 }
 
@@ -73,63 +148,11 @@ int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
   if (ps_macioc.init) return 1;
   memset(&ps_macioc,0,sizeof(struct ps_macioc));
   ps_macioc.init=1;
-
+  
   if (delegate) memcpy(&ps_macioc.delegate,delegate,sizeof(struct ps_ioc_delegate));
 
-  if (ps_macioc_set_default_cmdline()<0) return 1;
-
-  int argp=1; while (argp<argc) {
-    const char *arg=argv[argp];
-    
-    if (!memcmp(arg,"--reopen-tty=",13)) {
-      ps_macioc_reopen_tty(arg+13);
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (!memcmp(arg,"--chdir=",8)) {
-      chdir(arg+8);
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (!memcmp(arg,"--resources=",12)) {
-      ps_macioc.cmdline.resources_path=arg+12;
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (!memcmp(arg,"--input=",8)) {
-      ps_macioc.cmdline.input_config_path=arg+8;
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (!strcmp(arg,"--soft-render")) {
-      ps_macioc.cmdline.akgl_strategy=AKGL_STRATEGY_SOFT;
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (!memcmp(arg,"--music=",8)) {
-      ps_macioc_set_cmdline_int(&ps_macioc.cmdline.bgm_level,arg+8,0,255,"music");
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (!memcmp(arg,"--sound=",8)) {
-      ps_macioc_set_cmdline_int(&ps_macioc.cmdline.sfx_level,arg+8,0,255,"sound");
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (arg[0]=='-') {
-      ps_log(MACIOC,ERROR,"Unexpected command line option: %s",arg);
-      return 1;
-    } else if (ps_macioc.cmdline.saved_game_path) {
-      ps_log(MACIOC,ERROR,"Unexpected command line argument: %s",arg);
-      return 1;
-
-    } else {
-      ps_macioc.cmdline.saved_game_path=arg;
-      argp++;
-    }
-  }
-
-  ps_log(MACIOC,DEBUG,"launching with akgl strategy %d",ps_macioc.cmdline.akgl_strategy);
+  if (!(ps_macioc.userconfig=ps_userconfig_new())) return 1;
+  if (ps_macioc_configure(argc,argv)<0) return 1;
 
   return NSApplicationMain(argc,(const char**)argv);
 }
@@ -162,7 +185,7 @@ void ps_macioc_abort(const char *fmt,...) {
  */
  
 int ps_macioc_call_init() {
-  int result=(ps_macioc.delegate.init?ps_macioc.delegate.init(&ps_macioc.cmdline):0);
+  int result=(ps_macioc.delegate.init?ps_macioc.delegate.init(ps_macioc.userconfig):0);
   ps_macioc.delegate.init=0; // Guarantee only one call.
   return result;
 }

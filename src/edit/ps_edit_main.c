@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "os/ps_ioc.h"
+#include "os/ps_userconfig.h"
 #include "video/ps_video.h"
 #include "input/ps_input.h"
 #include "res/ps_resmgr.h"
@@ -47,10 +48,10 @@ static void ps_log_akau(int level,const char *msg,int msgc) {
 /* Init.
  */
 
-static int ps_edit_init(const struct ps_cmdline *cmdline) {
+static int ps_edit_init(struct ps_userconfig *userconfig) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
-  if (ps_video_init(cmdline)<0) return -1;
+  if (ps_video_init(userconfig)<0) return -1;
   
   if (ps_input_init()<0) return -1;
   #if PS_USE_macioc

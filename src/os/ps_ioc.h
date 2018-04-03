@@ -1,32 +1,23 @@
 /* ps_ioc.h
  *
  * We provide an abstraction over inversion-of-control frameworks.
- * MacOS and Windows both prefer to control applications through native IoC.
+ * MacOS prefers to control applications through native IoC.
  * We want to play nice with that, and we do.
  * We also provide a generic IoC implementation for other platforms like Linux.
- * All three units export the same symbols, defined here.
+ * All IoC units export the same symbols, defined here.
  *
  * To use this interface, you must enable exactly one of these units:
  *   - macioc
- *   - msioc
  *   - genioc
  */
 
 #ifndef PS_IOC_H
 #define PS_IOC_H
 
-struct ps_cmdline {
-  const char *saved_game_path; // If not NULL, restore from this saved game.
-  const char *resources_path; // REQUIRED.
-  const char *input_config_path; // REQUIRED.
-  int fullscreen;
-  int akgl_strategy;
-  int bgm_level;
-  int sfx_level;
-};
+struct ps_userconfig;
 
 struct ps_ioc_delegate {
-  int (*init)(const struct ps_cmdline *cmdline);
+  int (*init)(struct ps_userconfig *userconfig);
   void (*quit)();
   int (*update)();
 };

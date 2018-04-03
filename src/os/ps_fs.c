@@ -3,6 +3,8 @@
 #include <zlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 /* Read whole file.
  */
@@ -63,6 +65,64 @@ int ps_file_write(const char *path,const void *src,int srcc) {
     }
     srcp+=err;
   }
+  close(fd);
+  return 0;
+}
+
+/* Recursive mkdir.
+ */
+
+#define PS_MKDIR_ARGS ,0775
+ 
+int ps_mkdir_parents(const char *path) {
+  if (!path) return -1;
+  int pathc=0; while (path[pathc]) pathc++;
+
+  /* Strip final component and separator. */
+  while (pathc&&(path[pathc-1]!='/')&&(path[pathc-1]!='\\')) pathc--;
+  while ((pathc>1)&&((path[pathc-1]=='/')||(path[pathc-1]=='\\'))) pathc--;
+  if (!pathc) return 0;
+
+  /* Try mkdir. */
+  char subpath[1024];
+  if (pathc>=sizeof(subpath)) return -1;
+  memcpy(subpath,path,pathc);
+  subpath[pathc]=0;
+  if (mkdir(subpath PS_MKDIR_ARGS)>=0) return 0;
+
+  /* Respond to errors. */
+  if (errno==EEXIST) return 0;
+  if (errno!=ENOENT) return -1;
+
+  /* Recur. */
+  if (ps_mkdir_parents(subpath)<0) return -1;
+
+  /* Try again. */
+  if (mkdir(subpath PS_MKDIR_ARGS)<0) return -1;
+  return 0;
+}
+
+/* Plain mkdir.
+ */
+
+int ps_mkdir(const char *path) {
+  if (!path) return -1;
+  if (mkdir(path PS_MKDIR_ARGS)<0) {
+    if (errno==EEXIST) return 0;
+    return -1;
+  }
+  return 0;
+}
+
+/* Reopen TTY.
+ */
+ 
+int ps_os_reopen_tty(const char *path) {
+  int fd=open(path,O_RDWR);
+  if (fd<0) return -1;
+  dup2(fd,STDIN_FILENO);
+  dup2(fd,STDOUT_FILENO);
+  dup2(fd,STDERR_FILENO);
   close(fd);
   return 0;
 }

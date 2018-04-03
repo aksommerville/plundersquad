@@ -2,6 +2,7 @@
 #include "os/ps_ioc.h"
 #include "os/ps_fs.h"
 #include "os/ps_emergency_abort.h"
+#include "os/ps_userconfig.h"
 #include "util/ps_perfmon.h"
 #include "video/ps_video.h"
 #include "input/ps_input.h"
@@ -48,7 +49,7 @@ static struct ps_perfmon *ps_perfmon=0;
  * Return 0 to fall back to interactive setup -- production builds should always do that.
  */
 
-static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
+static int ps_setup_test_game(struct ps_userconfig *userconfig) {
   int i;
 
   if (0) { // Normal interactive setup.
@@ -111,7 +112,7 @@ static int ps_setup_restore_game(const char *path) {
 /* Init input.
  */
 
-static int ps_main_init_input(const struct ps_cmdline *cmdline) {
+static int ps_main_init_input(struct ps_userconfig *userconfig) {
 
   /* Initialize generic input core. */
   if (ps_input_init()<0) return -1;
@@ -144,7 +145,9 @@ static int ps_main_init_input(const struct ps_cmdline *cmdline) {
   #endif
 
   /* Load configuration and take it live. */
-  if (ps_input_load_configuration(cmdline->input_config_path)<0) return -1;
+  const char *input_config_path=0;
+  if (ps_userconfig_peek_field_as_string(&input_config_path,userconfig,ps_userconfig_search_field(userconfig,"input",5))<0) return -1;
+  if (ps_input_load_configuration(input_config_path)<0) return -1;
   if (ps_input_update()<0) return -1; // Reassigns input devices and gets the core running.
   
   return 0;
@@ -166,14 +169,7 @@ static void ps_log_akau(int level,const char *msg,int msgc) {
 /* Init audio.
  */
 
-static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
-
-  char audiorespath[1024];
-  int audiorespathc=snprintf(audiorespath,sizeof(audiorespath),"%s/audio",cmdline->resources_path);
-  if ((audiorespathc<1)||(audiorespathc>=sizeof(audiorespath))) {
-    ps_log(MAIN,ERROR,"Failed to acquire path for audio resources.");
-    return -1;
-  }
+static int ps_main_init_audio(struct ps_userconfig *userconfig) {
 
   #define PS_AKAU_ENABLE 1
   
@@ -191,8 +187,10 @@ static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
   #endif
 
   #if PS_AKAU_ENABLE
-    if (akau_set_trim_for_intent(AKAU_INTENT_BGM,cmdline->bgm_level)<0) return -1;
-    if (akau_set_trim_for_intent(AKAU_INTENT_SFX,cmdline->sfx_level)<0) return -1;
+    int bgm_level=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"music",5));
+    int sfx_level=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"sound",5));
+    if (akau_set_trim_for_intent(AKAU_INTENT_BGM,bgm_level)<0) return -1;
+    if (akau_set_trim_for_intent(AKAU_INTENT_SFX,sfx_level)<0) return -1;
   #endif
   
   return 0;
@@ -201,7 +199,7 @@ static int ps_main_init_audio(const struct ps_cmdline *cmdline) {
 /* Init.
  */
 
-static int ps_main_init(const struct ps_cmdline *cmdline) {
+static int ps_main_init(struct ps_userconfig *userconfig) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
   ps_perfmon=ps_perfmon_new();
@@ -215,19 +213,21 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
 
-  if (ps_video_init(cmdline)<0) return -1;
+  if (ps_video_init(userconfig)<0) return -1;
 
-  if (ps_main_init_input(cmdline)<0) {
+  if (ps_main_init_input(userconfig)<0) {
     ps_log(MAIN,ERROR,"Failed to initialize input.");
     return -1;
   }
 
-  if (ps_main_init_audio(cmdline)<0) {
+  if (ps_main_init_audio(userconfig)<0) {
     ps_log(MAIN,ERROR,"Failed to initialize audio.");
     return -1;
   }
 
-  if (ps_resmgr_init(cmdline->resources_path,0)<0) return -1;
+  const char *resources_path=0;
+  if (ps_userconfig_peek_field_as_string(&resources_path,userconfig,ps_userconfig_search_field(userconfig,"resources",9))<0) return -1;
+  if (ps_resmgr_init(resources_path,0)<0) return -1;
 
   if (!(ps_game=ps_game_new())) return -1;
 
@@ -235,15 +235,15 @@ static int ps_main_init(const struct ps_cmdline *cmdline) {
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
   if (ps_input_set_gui(ps_gui)<0) return -1;
 
-  if (cmdline->saved_game_path) {
-    if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
-  } else {
-    int err=ps_setup_test_game(cmdline);
+  //if (cmdline->saved_game_path) { //TODO saved game
+  //  if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
+  //} else {
+    int err=ps_setup_test_game(userconfig);
     if (err<0) return -1;
     if (!err) {
       if (ps_gui_load_page_assemble(ps_gui)<0) return -1;
     }
-  }
+  //}
 
   ps_perfmon_finish_load(ps_perfmon);
   

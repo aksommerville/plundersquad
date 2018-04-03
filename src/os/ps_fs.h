@@ -8,6 +8,11 @@
 int ps_file_read(void *dstpp,const char *path);
 int ps_file_write(const char *path,const void *src,int srcc);
 
+int ps_mkdir_parents(const char *path);
+int ps_mkdir(const char *path);
+
+int ps_os_reopen_tty(const char *path);
+
 struct ps_zlib_file;
 struct ps_zlib_file *ps_zlib_open(const char *path,int output);
 void ps_zlib_close(struct ps_zlib_file *file);

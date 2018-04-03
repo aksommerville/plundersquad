@@ -4,7 +4,7 @@
 #include "akgl/akgl.h"
 #include <math.h>
 
-#define PS_SNAKE_INITIAL_LENGTH 3/*12*/
+#define PS_SNAKE_INITIAL_LENGTH 12
 #define PS_SNAKE_INITIAL_OFFSET 12.0
 #define PS_SNAKE_OFFSET 12.0
 #define PS_SNAKE_TOO_CLOSE 8.0

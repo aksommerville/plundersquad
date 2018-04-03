@@ -89,6 +89,30 @@ int ps_userconfig_ref(struct ps_userconfig *userconfig) {
   return 0;
 }
 
+/* Declare default fields.
+ */
+ 
+int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig) {
+  if (!userconfig) return -1;
+  #define BOOLEAN(k,v) if (ps_userconfig_declare_boolean(userconfig,k,v)<0) return -1;
+  #define INTEGER(k,v,lo,hi) if (ps_userconfig_declare_integer(userconfig,k,v,lo,hi)<0) return -1;
+  #define STRING(k,v) if (ps_userconfig_declare_string(userconfig,k,v,sizeof(v)-1)<0) return -1;
+  #define PATH(k,v) if (ps_userconfig_declare_path(userconfig,k,v,sizeof(v)-1,0)<0) return -1;
+
+  PATH("resources","")
+  PATH("input","")
+  BOOLEAN("fullscreen",1)
+  BOOLEAN("soft-render",0)
+  INTEGER("music",255,0,255)
+  INTEGER("sound",255,0,255)
+
+  #undef BOOLEAN
+  #undef INTEGER
+  #undef STRING
+  #undef PATH  
+  return 0;
+}
+
 /* Set path to some existing file.
  */
 
@@ -97,10 +121,12 @@ int ps_userconfig_set_first_existing_path(struct ps_userconfig *userconfig,const
   va_list vargs;
   va_start(vargs,path);
   while (path) {
-    struct stat st;
-    if (stat(path,&st)>=0) {
-      if (S_ISREG(st.st_mode)) {
-        return ps_userconfig_set_path(userconfig,path);
+    if (path[0]) { // Skip empty strings.
+      struct stat st;
+      if (stat(path,&st)>=0) {
+        if (S_ISREG(st.st_mode)) {
+          return ps_userconfig_set_path(userconfig,path);
+        }
       }
     }
     path=va_arg(vargs,const char*);
@@ -120,6 +146,11 @@ int ps_userconfig_set_path(struct ps_userconfig *userconfig,const char *path) {
     userconfig->path=0;
   }
   return 0;
+}
+
+const char *ps_userconfig_get_path(const struct ps_userconfig *userconfig) {
+  if (!userconfig) return 0;
+  return userconfig->path;
 }
 
 /* Encode text.
@@ -202,7 +233,7 @@ int ps_userconfig_load_file(struct ps_userconfig *userconfig) {
   if (!userconfig) return -1;
   if (!userconfig->path) return 0;
   char *src=0;
-  int srcc=ps_file_read(userconfig,userconfig->path);
+  int srcc=ps_file_read(&src,userconfig->path);
   if (srcc<0) {
     ps_log(CONFIG,WARNING,"%s: Failed to read configuration from file.",userconfig->path);
     return 0;
@@ -211,6 +242,45 @@ int ps_userconfig_load_file(struct ps_userconfig *userconfig) {
   if (src) free(src);
   if (err<0) return -1;
   return 0;
+}
+
+/* Load argv.
+ */
+ 
+int ps_userconfig_load_argv(struct ps_userconfig *userconfig,int argc,char **argv) {
+  if (!userconfig) return -1;
+  int processedc=0;
+  int i=1; for (;i<argc;i++) {
+    const char *arg=argv[i];
+    if (!arg||!arg[0]) continue;
+    
+    if ((arg[0]!='-')||(arg[1]!='-')) {
+      ps_log(CONFIG,ERROR,"Unexpected command-line argument '%s'.",arg);
+      return -1;
+    }
+
+    const char *k=arg+2,*v=0;
+    int kc=0,vc=0;
+    while (k[kc]&&(k[kc]!='=')) kc++;
+    if (k[kc]) {
+      v=k+kc+1;
+      while (v[vc]) vc++;
+    } else {
+      if ((kc>=3)&&!memcmp(k,"no-",3)) {
+        v="false";
+        vc=5;
+        k+=3;
+        kc-=3;
+      } else {
+        v="true";
+        vc=4;
+      }
+    }
+
+    if (ps_userconfig_set(userconfig,k,kc,v,vc)<0) return -1;
+    processedc++;
+  }
+  return processedc;
 }
 
 /* Save file.
@@ -224,6 +294,7 @@ int ps_userconfig_save_file(struct ps_userconfig *userconfig) {
     ps_buffer_cleanup(&buffer);
     return -1;
   }
+  if (ps_mkdir_parents(userconfig->path)<0) return -1;
   int err=ps_file_write(userconfig->path,buffer.v,buffer.c);
   ps_buffer_cleanup(&buffer);
   return err;
@@ -444,6 +515,7 @@ static int ps_userconfig_declare(struct ps_userconfig *userconfig,const char *k,
   memcpy(nk,k,kc);
   nk[kc]=0;
   memmove(field+1,field,sizeof(struct ps_userconfig_field)*(userconfig->fldc-fldp));
+  userconfig->fldc++;
   memset(field,0,sizeof(struct ps_userconfig_field));
   field->k=nk;
   field->kc=kc;
@@ -510,4 +582,15 @@ int ps_userconfig_declare_path(struct ps_userconfig *userconfig,const char *k,co
     return -1;
   }
   return fldp;
+}
+
+/* Undeclare field.
+ */
+ 
+int ps_userconfig_undeclare(struct ps_userconfig *userconfig,const char *k) {
+  if (!userconfig) return -1;
+  int fldp=ps_userconfig_search_field(userconfig,k,-1);
+  if (fldp<0) return -1;
+  if (ps_userconfig_remove_field(userconfig,fldp)<0) return -1;
+  return 0;
 }

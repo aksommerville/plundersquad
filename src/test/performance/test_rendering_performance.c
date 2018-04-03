@@ -185,6 +185,7 @@ MAIN:INFO:        500   10526867         81 0.021053734 [src/test/performance/te
 #include "test/ps_test.h"
 #include "os/ps_ioc.h"
 #include "os/ps_fs.h"
+#include "os/ps_userconfig.h"
 #include "video/ps_video.h"
 #include "input/ps_input.h"
 #include "input/ps_input_button.h"
@@ -251,7 +252,7 @@ static void record_test_result(int repc,clock_t elapsed) {
  * Return 0 to fall back to interactive setup -- production builds should always do that.
  */
 
-static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
+static int ps_setup_test_game(struct ps_userconfig *userconfig) {
   int i;
 
   /* Configure players. */
@@ -279,7 +280,7 @@ static int ps_setup_test_game(const struct ps_cmdline *cmdline) {
 /* Init input.
  */
 
-static int ps_main_init_input(const struct ps_cmdline *cmdline) {
+static int ps_main_init_input(struct ps_userconfig *userconfig) {
 
   /* Initialize generic input core. */
   if (ps_input_init()<0) return -1;
@@ -312,7 +313,9 @@ static int ps_main_init_input(const struct ps_cmdline *cmdline) {
   #endif
 
   /* Load configuration and take it live. */
-  if (ps_input_load_configuration(cmdline->input_config_path)<0) return -1;
+  const char *input_config_path=0;
+  if (ps_userconfig_peek_field_as_string(&input_config_path,userconfig,ps_userconfig_search_field(userconfig,"input",5))<0) return -1;
+  if (ps_input_load_configuration(input_config_path)<0) return -1;
   if (ps_input_update()<0) return -1; // Reassigns input devices and gets the core running.
   
   return 0;
@@ -321,29 +324,29 @@ static int ps_main_init_input(const struct ps_cmdline *cmdline) {
 /* Init.
  */
 
-static int ps_main_init(const struct ps_cmdline *cmdline) {
+static int ps_main_init(struct ps_userconfig *userconfig) {
   ps_log(MAIN,TRACE,"%s",__func__);
 
-  struct ps_cmdline altcmdline;
-  memcpy(&altcmdline,cmdline,sizeof(struct ps_cmdline));
-  altcmdline.akgl_strategy=AKGL_STRATEGY_SOFT;
+  if (ps_userconfig_set(userconfig,"soft-render",11,"1",1)<0) return -1;
 
   int randseed=time(0);
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
 
-  if (ps_video_init(&altcmdline)<0) return -1;
+  if (ps_video_init(userconfig)<0) return -1;
 
-  if (ps_main_init_input(&altcmdline)<0) {
+  if (ps_main_init_input(userconfig)<0) {
     ps_log(MAIN,ERROR,"Failed to initialize input.");
     return -1;
   }
 
-  if (ps_resmgr_init(cmdline->resources_path,0)<0) return -1;
+  const char *resources_path=0;
+  if (ps_userconfig_peek_field_as_string(&resources_path,userconfig,ps_userconfig_search_field(userconfig,"resources",9))<0) return -1;
+  if (ps_resmgr_init(resources_path,0)<0) return -1;
 
   if (!(ps_game=ps_game_new())) return -1;
 
-  if (ps_setup_test_game(cmdline)<0) return -1;
+  if (ps_setup_test_game(userconfig)<0) return -1;
   
   return 0;
 }

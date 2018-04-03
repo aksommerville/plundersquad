@@ -1,5 +1,5 @@
 #include "ps_video_internal.h"
-#include "os/ps_ioc.h"
+#include "os/ps_userconfig.h"
 #include "sdraw/ps_sdraw.h"
 
 struct ps_video ps_video={0};
@@ -51,10 +51,10 @@ static int ps_video_init_akgl(int strategy) {
 /* Init.
  */
 
-int ps_video_init(const struct ps_cmdline *cmdline) {
+int ps_video_init(struct ps_userconfig *userconfig) {
 
   if (ps_video.init) return -1;
-  if (!cmdline) return -1;
+  if (!userconfig) return -1;
   memset(&ps_video,0,sizeof(struct ps_video));
   ps_video.init=1;
 
@@ -65,8 +65,10 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
   ps_video.dstw=ps_video.winw;
   ps_video.dsth=ps_video.winh;
 
+  int fullscreen=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"fullscreen",10));
+
   #if PS_USE_macwm
-    if (ps_macwm_init(ps_video.winw,ps_video.winh,cmdline->fullscreen,"Plunder Squad")<0) {
+    if (ps_macwm_init(ps_video.winw,ps_video.winh,fullscreen,"Plunder Squad")<0) {
       ps_log(VIDEO,ERROR,"Failed to create MacOS window.");
       ps_video_quit();
       return -1;
@@ -80,7 +82,7 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
     }
     
   #elif PS_USE_glx
-    if (ps_glx_init(ps_video.winw,ps_video.winh,cmdline->fullscreen,"Plunder Squad")<0) {
+    if (ps_glx_init(ps_video.winw,ps_video.winh,fullscreen,"Plunder Squad")<0) {
       ps_log(VIDEO,ERROR,"Failed to initialize X11/GLX video.");
       ps_video_quit();
       return -1;
@@ -93,7 +95,7 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
     }
 
   #elif PS_USE_mswm
-    if (ps_mswm_init(ps_video.winw,ps_video.winh,cmdline->fullscreen,"Plunder Squad")<0) {
+    if (ps_mswm_init(ps_video.winw,ps_video.winh,fullscreen,"Plunder Squad")<0) {
       ps_log(VIDEO,ERROR,"Failed to create window.");
       ps_video_quit();
       return -1;
@@ -103,7 +105,8 @@ int ps_video_init(const struct ps_cmdline *cmdline) {
     }
   #endif
 
-  if (ps_video_init_akgl(cmdline->akgl_strategy)<0) {
+  int soft_render=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"soft-render",11));
+  if (ps_video_init_akgl(soft_render?AKGL_STRATEGY_SOFT:AKGL_STRATEGY_GL2)<0) {
     ps_log(VIDEO,ERROR,"Failed to initialize OpenGL.");
     ps_video_quit();
     return -1;

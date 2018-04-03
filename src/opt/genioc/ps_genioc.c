@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "os/ps_ioc.h"
 #include "os/ps_clockassist.h"
+#include "os/ps_userconfig.h"
 #include "util/ps_text.h"
 #include "akgl/akgl.h"
 #include <sys/stat.h>
@@ -11,177 +12,177 @@
   #include <windows.h>
 #endif
 
+#if PS_ARCH==PS_ARCH_mswin
+  #define PS_PATH_SEPARATOR_CHAR '\\'
+#else
+  #define PS_PATH_SEPARATOR_CHAR '/'
+#endif
+
 static struct {
   int quit;
   struct ps_clockassist clockassist;
+  struct ps_userconfig *userconfig;
 } ps_genioc={0};
 
 /* Get executable path.
  */
 
-static int ps_genioc_get_executable_path(char *dst,int dsta) {//TODO linux
+static int ps_genioc_get_executable_path(char *dst,int dsta) {
+
   #if PS_ARCH==PS_ARCH_mswin
     int dstc=GetModuleFileName(0,dst,dsta);
     ps_log(,DEBUG,"GetModuleFileName(%d): %d '%.*s'",dsta,dstc,((dstc>=0)&&(dstc<dsta))?dstc:0,dst);
     return dstc;
+    
+  #elif PS_ARCH==PS_ARCH_linux || PS_ARCH==PS_ARCH_raspi
+    #error "Get executable path for Linux" //TODO
+  
   #endif
   return -1;
 }
 
-/* First existing file.
+/* First pass through argv.
  */
 
-static const char *_ps_genioc_first_existing_file(int directory,...) {
-  va_list vargs;
-  const char *path;
-  va_start(vargs,directory);
-  while (path=va_arg(vargs,const char*)) {
-    if (!path[0]) continue;
-    struct stat st;
-    if (stat(path,&st)>=0) {
-      if (directory) {
-        if (!S_ISDIR(st.st_mode)) continue;
-      } else {
-        if (!S_ISREG(st.st_mode)) continue;
-      }
-      return path;
+static int ps_genioc_argv_prerun(struct ps_userconfig *userconfig,int argc,char **argv) {
+  for (argp=1;argp<argc;argp++) {
+    const char *k=argv[argp];
+    if (!k) continue;
+    if ((k[0]!='-')||(k[1]!='-')||!k[2]) continue;
+    k+=2;
+    int kc=0;
+    while (k[kc]&&(k[kc]!='=')) kc++;
+    const char *v=k+kc;
+    int vc=0;
+    if (v[0]=='=') {
+      v++;
+      while (v[vc]) vc++;
+    }
+
+    if ((kc==10)&&!memcmp(k,"reopen-tty",10)) {
+      if (ps_os_reopen_tty(v)<0) return -1;
+      argv[argp]="";
+
+    } else if ((kc==5)&&!memcmp(k,"chdir",5)) {
+      if (chdir(v)<0) return -1;
+      argv[argp]="";
+
+    } else if ((kc==6)&&!memcmp(k,"config",6)) {
+      if (ps_userconfig_set_path(userconfig,v,vc)<0) return -1;
+      argv[argp]="";
+
     }
   }
   return 0;
 }
 
-#define ps_genioc_first_existing_directory(...) _ps_genioc_first_existing_file(1,##__VA_ARGS__,(void*)0)
-#define ps_genioc_first_existing_file(...) _ps_genioc_first_existing_file(0,##__VA_ARGS__,(void*)0)
-
-/* Set default command line.
- * It's OK if a file can't be found in the default locations.
- * We will read the command line next, and then validate in a separate pass.
+/* Set config path if not provided with --config
  */
 
-static int ps_genioc_default_cmdline(struct ps_cmdline *cmdline) {
+static int ps_genioc_set_default_config_path(struct ps_userconfig *userconfig) {
+
+  /* Regardless of the platform, we will look for "plundersquad.cfg" next to the executable.
+   */
+  char neighbor[1024];
+  int neighborc=ps_genioc_get_executable_path(neighbor,sizeof(neighbor));
+  if ((neighborc<1)||(neighborc>=sizeof(neighbor)-17)) {
+    neighborc=0;
+    neighbor[0]=0;
+  } else {
+    neighbor[neighborc++]=PS_PATH_SEPARATOR_CHAR;
+    memcpy(neighbor+neighborc,"plundersquad.cfg",16);
+    neighborc+=16;
+    neighbor[neighborc]=0;
+  }
+
+  #if PS_ARCH==PS_ARCH_linux || PS_ARCH==PS_ARCH_raspi
+    if (ps_userconfig_set_first_existing_path(userconfig,
+      neighbor,
+      "/usr/local/share/plundersquad/plundersquad.cfg",
+      "/usr/share/plundersquad/plundersquad.cfg",
+    NULL)<0) {
+      if (ps_userconfig_set_path(userconfig,neighbor)<0) return -1;
+    }
+
+  #elif PS_ARCH==PS_ARCH_mswin
+    if (ps_userconfig_set_first_existing_path(userconfig,
+      neighbor,
+    NULL)<0) {
+      if (ps_userconfig_set_path(userconfig,neighbor)<0) return -1;
+    }
+
+  #else
+    #error "Please define default config paths for this platform."
+  #endif
+  return 0;
+}
+
+/* Tweak userconfig declarations for this platform.
+ */
+
+static int ps_genioc_set_platform_defaults(struct ps_userconfig *userconfig) {
 
   char exepath[1024];
   int exepathc=ps_genioc_get_executable_path(exepath,sizeof(exepath));
-  if ((exepathc<0)||(exepathc>=sizeof(exepath))) exepathc=0;
-  while (exepathc&&(exepath[exepathc-1]!='/')&&(exepath[exepathc-1]!='\\')) exepathc--;
-  char subpath[1024];
-  int subpathc=snprintf(subpath,sizeof(subpath),"%.*sps-data",exepathc,exepath);
-  if ((subpathc<0)||(subpathc>=sizeof(subpath))) subpathc=0;
-  subpath[subpathc]=0;
-
-  if (!(cmdline->resources_path=ps_genioc_first_existing_file(
-    subpath,
-    "ps-data",
-    "../plundersquad/out/linux-default/ps-data",
-    "../plundersquad/out/raspi-default/ps-data",
-    "../plundersquad/out/mswin-default/ps-data",
-    "/usr/local/games/plundersquad/data",
-    "/usr/games/plundersquad/data"
-  ))) {
-    cmdline->resources_path=ps_genioc_first_existing_directory(
-      "../plundersquad/src/data",
-      "/usr/local/games/plundersquad/data",
-      "/usr/games/plundersquad/data"
-    );
-  }
-
-  if (cmdline->resources_path==subpath) cmdline->resources_path=strdup(cmdline->resources_path);
-
-  subpathc=snprintf(subpath,sizeof(subpath),"%.*s../../etc/input.cfg",exepathc,exepath);
-  if ((subpathc<0)||(subpathc>=sizeof(subpath))) subpathc=0;
-  subpath[subpathc]=0;
-
-  cmdline->input_config_path=ps_genioc_first_existing_file(
-    subpath,
-    "../plundersquad/etc/input.cfg",
-    "/usr/local/games/plundersquad/config/input.cfg",
-    "/usr/games/plundersquad/config/input.cfg",
-    "~/plundersquad/config/input.cfg"
-  );
-
-  if (cmdline->input_config_path==subpath) cmdline->input_config_path=strdup(cmdline->input_config_path);
-
-  #if PS_NO_OPENGL2
-    cmdline->akgl_strategy=AKGL_STRATEGY_SOFT;
-  #else
-    cmdline->akgl_strategy=AKGL_STRATEGY_GL2;
-  #endif
-
-  cmdline->bgm_level=0xff;
-  cmdline->sfx_level=0xff;
-
-  return 0;
-}
-
-/* Set integer property from command line.
- */
-
-static int ps_genioc_set_cmdline_int(int *dst,const char *src,int lo,int hi,const char *propname) {
-  int v=0;
-  if (ps_int_eval_interactive(&v,src,-1,lo,hi,propname)<0) {
-    return 0;
-  }
-  *dst=v;
-  return 0;
-}
-
-/* Read command-line arguments.
- */
-
-static int ps_genioc_read_cmdline(struct ps_cmdline *cmdline,int argc,char **argv) {
-  int argp=1; while (argp<argc) {
-    const char *arg=argv[argp++];
-
-    if (!memcmp(arg,"--resources=",12)) {
-      cmdline->resources_path=arg+12;
-
-    } else if (!memcmp(arg,"--input=",8)) {
-      cmdline->input_config_path=arg+8;
-      
-    } else if (!strcmp(arg,"--fullscreen")) {
-      cmdline->fullscreen=1;
-
-    } else if (!strcmp(arg,"--soft-render")) {
-      cmdline->akgl_strategy=AKGL_STRATEGY_SOFT;
-
-    } else if (!memcmp(arg,"--music=",8)) {
-      ps_genioc_set_cmdline_int(&cmdline->bgm_level,arg+8,0,255,"music");
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
-
-    } else if (!memcmp(arg,"--sound=",8)) {
-      ps_genioc_set_cmdline_int(&cmdline->sfx_level,arg+8,0,255,"sound");
-      argc--;
-      memmove(argv+argp,argv+argp+1,sizeof(void*)*(argc-argp));
+  if ((exepathc>0)&&(exepathc<sizeof(exepath))) {
+    exepath[exepathc++]=PS_PATH_SEPARATOR_CHAR;
     
-    } else if (arg[0]=='-') {
-      ps_log(,ERROR,"Unexpected option '%s'",arg);
-      return -1;
-    } else if (cmdline->saved_game_path) {
-      ps_log(,ERROR,"Unexpected argument '%s'",arg);
-      return -1;
+    if (exepathc<=sizeof(exepath)-10) {
+      memcpy(exepath+exepathc,"input.cfg",10);
+      if (ps_userconfig_set(userconfig,"input",5,exepath,exepathc+9)<0) return -1;
+    }
 
-    } else {
-      cmdline->saved_game_path=arg;
+    if (exepathc<=sizeof(exepath)-8) {
+      memcpy(exepath+exepathc,"ps-data",8);
+      if (ps_userconfig_set(userconfig,"resources",9,exepath,exepathc+7)<0) return -1;
     }
   }
+
   return 0;
 }
 
-/* Validate command line.
+/* After reading all config sources, confirm that we have a sane configuration.
  */
 
-static int ps_genioc_validate_cmdline(struct ps_cmdline *cmdline) {
+static int ps_genioc_assert_configuration(struct ps_userconfig *userconfig) {
+  const char *v;
+  int vc;
 
-  if (!cmdline->resources_path) {
-    ps_log(,ERROR,"Resources not found. Copy to a known location or provide '--resources=PATH'.");
+  if ((vc=ps_userconfig_peek_field_as_string(&v,userconfig,ps_userconfig_search_field(userconfig,"input",5)))<0) return -1;
+  if (vc<1) {
+    ps_log(CONFIG,ERROR,"Input config path unset. Please rerun with '--input=PATH' (we'll remember it after that)");
+    return -1;
+  }
+  if (ps_mkdir_parents(v)<0) return -1;
+
+  if ((vc=ps_userconfig_peek_field_as_string(&v,userconfig,ps_userconfig_search_field(userconfig,"resources",9)))<0) return -1;
+  if (vc<1) {
+    ps_log(CONFIG,ERROR,"Failed to locate 'ps-data'. Please rerun with '--resources=PATH' (we'll remember it after that)");
     return -1;
   }
 
-  if (!cmdline->input_config_path) {
-    //TODO create input config in a sensible location
-    ps_log(,ERROR,"Input config not found. Provide '--input=PATH'.");
-    return -1;
+  return 0;
+}
+
+/* Configure.
+ */
+
+static int ps_genioc_configure(struct ps_userconfig *userconfig,int argc,char **argv) {
+  int argp;
+  
+  if (ps_userconfig_declare_default_fields(userconfig)<0) return -1;
+  if (ps_genioc_argv_prerun(userconfig,argc,argv)<0) return -1;
+  if (!ps_userconfig_get_path(userconfig)) {
+    if (ps_genioc_set_default_config_path(userconfig)<0) return -1;
+  }
+  if (ps_genioc_set_platform_defaults(userconfig)<0) return -1;
+  if (ps_userconfig_load_file(userconfig)<0) return -1;
+  
+  int err=ps_userconfig_load_argv(userconfig,argc,argv);
+  if (err<0) return -1;
+  if (ps_genioc_assert_config(userconfig)<0) return -1;
+  if (err) {
+    if (ps_userconfig_save_file(userconfig)<0) return -1;
   }
 
   return 0;
@@ -192,14 +193,10 @@ static int ps_genioc_validate_cmdline(struct ps_cmdline *cmdline) {
  
 int ps_ioc_main(int argc,char **argv,const struct ps_ioc_delegate *delegate) {
 
-  struct ps_cmdline cmdline={0};
-  if (ps_genioc_default_cmdline(&cmdline)<0) return 1;
-  if (ps_genioc_read_cmdline(&cmdline,argc,argv)<0) return 1;
-  if (ps_genioc_validate_cmdline(&cmdline)<0) return 1;
-  
-  ps_log(MAIN,INFO,"resource path: %s",cmdline.resources_path);
+  if (!(ps_genioc.userconfig=ps_userconfig_new())) return 1;
+  if (ps_genioc_configure(ps_genioc.userconfig,argc,argv)<0) return 1;
 
-  if (delegate->init(&cmdline)<0) {
+  if (delegate->init(ps_genioc.userconfig)<0) {
     return 1;
   }
   if (ps_clockassist_setup(&ps_genioc.clockassist,PS_FRAME_RATE)<0) return 1;

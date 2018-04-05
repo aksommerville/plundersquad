@@ -155,22 +155,27 @@ const char *ps_userconfig_get_path(const struct ps_userconfig *userconfig) {
 
 /* Encode text.
  */
+
+static int ps_userconfig_encode_value_to_buffer(struct ps_buffer *output,const struct ps_userconfig *userconfig,int fldp) {
+  while (1) {
+    int err=ps_userconfig_get_field_as_string(output->v+output->c,output->a-output->c,userconfig,fldp);
+    if (err<0) return -1;
+    if (output->c>=INT_MAX-err) return -1;
+    if (output->c<=output->a-err) {
+      output->c+=err;
+      break;
+    }
+    if (ps_buffer_require(output,err)<0) return -1;
+  }
+  return 0;
+}
  
 int ps_userconfig_encode(struct ps_buffer *output,const struct ps_userconfig *userconfig) {
   const struct ps_userconfig_field *field=userconfig->fldv;
   int fldp=0; for (;fldp<userconfig->fldc;fldp++,field++) {
     if (ps_buffer_append(output,field->k,-1)<0) return -1;
     if (ps_buffer_append(output,"=",1)<0) return -1;
-    while (1) {
-      int err=ps_userconfig_get_field_as_string(output->v+output->c,output->a-output->c,userconfig,fldp);
-      if (err<0) return -1;
-      if (output->c>=INT_MAX-err) return -1;
-      if (output->c<=output->a-err) {
-        output->c+=err;
-        break;
-      }
-      if (ps_buffer_require(output,err)<0) return -1;
-    }
+    if (ps_userconfig_encode_value_to_buffer(output,userconfig,fldp)<0) return -1;
     if (ps_buffer_append(output,"\n",1)<0) return -1;
   }
   return 0;
@@ -217,12 +222,374 @@ static int ps_userconfig_load_line(struct ps_userconfig *userconfig,const char *
   return 0;
 }
 
-static int ps_userconfig_load_text(struct ps_userconfig *userconfig,const char *src,int srcc) {
+int ps_userconfig_decode(struct ps_userconfig *userconfig,const char *src,int srcc) {
+  if (!userconfig) return -1;
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
   struct ps_line_reader reader={0};
   if (ps_line_reader_begin(&reader,src,srcc,1)<0) return -1;
   while (ps_line_reader_next(&reader)>0) {
     if (ps_userconfig_load_line(userconfig,reader.line,reader.linec,reader.lineno)<0) return -1;
   }
+  return 0;
+}
+
+/* Context for reencode file.
+ */
+
+#define PS_USERCONFIG_LINE_PRESENCE_ABSENT    0 /* Haven't seen it yet. */
+#define PS_USERCONFIG_LINE_PRESENCE_DONE      1 /* Already committed to output. */
+#define PS_USERCONFIG_LINE_PRESENCE_DIFFERENT 2 /* Found once previously, uncommented, with different value. */
+#define PS_USERCONFIG_LINE_PRESENCE_COMMENTED 3 /* Found at least once previously, commented, with different value. */
+
+struct ps_userconfig_line {
+  int presence;
+  int srcp; // Invalid if presence==ABSENT
+  int dstp; // Corrollary of (srcp), in output
+};
+
+struct ps_userconfig_reencode_context {
+  const struct ps_userconfig *userconfig;
+  const char *src; // We don't use a line reader because we have to preserve newlines verbatim.
+  int srcc;
+  int srcp;
+  struct ps_buffer *dst;
+  struct ps_userconfig_line *linev;
+};
+
+static int ps_userconfig_context_setup(struct ps_userconfig_reencode_context *ctx) {
+  if (!(ctx->linev=calloc(sizeof(struct ps_userconfig_line),ctx->userconfig->fldc))) return -1;
+  return 0;
+}
+
+static void ps_userconfig_context_cleanup(struct ps_userconfig_reencode_context *ctx) {
+  if (ctx->linev) free(ctx->linev);
+}
+
+/* Adjust all output positions beyond (p).
+ */
+
+static int ps_userconfig_reencode_adjusted_output(struct ps_userconfig_reencode_context *ctx,int p,int d) {
+  struct ps_userconfig_line *line=ctx->linev;
+  int i=ctx->userconfig->fldc;
+  for (;i-->0;line++) {
+    if (line->dstp>p) line->dstp+=d;
+  }
+  return 0;
+}
+
+/* Reencode: Compare value text to stored value.
+ * Return 0==different or 1==equivalent, nothing else.
+ */
+
+static int ps_userconfig_reencode_check_value(struct ps_userconfig_reencode_context *ctx,int fldp,const char *nv,int nvc) {
+  const struct ps_userconfig_field *field=ctx->userconfig->fldv+fldp;
+  switch (field->type) {
+  
+    case PS_USERCONFIG_TYPE_BOOLEAN: {
+        int v=ps_bool_eval(nv,nvc);
+        return (v==field->b.v)?1:0;
+      } break;
+
+    case PS_USERCONFIG_TYPE_INTEGER: {
+        int v;
+        if (ps_int_eval(&v,nv,nvc)<0) return 0;
+        return (v==field->i.v)?1:0;
+      } break;
+
+    case PS_USERCONFIG_TYPE_STRING: {
+        if (nvc!=field->s.c) return 0;
+        if (memcmp(nv,field->s.v,nvc)) return 0;
+      } return 1;
+
+    case PS_USERCONFIG_TYPE_PATH: {
+        if (nvc!=field->p.c) return 0;
+        if (memcmp(nv,field->p.v,nvc)) return 0;
+      } return 1;
+
+  }
+  return 0;
+}
+
+/* Reencode: Process single line of input.
+ */
+
+static int ps_userconfig_reencode_line(struct ps_userconfig_reencode_context *ctx,const char *line,int linec,int line_srcp) {
+  int linep=0;
+
+  /* Skip leading whitespace. If that's all there is, preserve it verbatim. */
+  while ((linep<linec)&&((unsigned char)line[linep]<=0x20)) linep++;
+  if (linep>=linec) {
+    return ps_buffer_append(ctx->dst,line,linec);
+  }
+
+  /* If it's commented with a single '#', note that, skip it, and continue processing. */
+  int comment=0;
+  if (line[linep]=='#') {
+    comment=1;
+    linep++;
+    while ((linep<linec)&&((unsigned char)line[linep]<=0x20)) linep++;
+  }
+  int startp=linep; // Starting position if commented.
+
+  /* Now locate a trailing comment and identify the end of the useful part of the line. */
+  int cmtp=linec;
+  int i=linep;
+  for (;i<linec;i++) if (line[i]=='#') {
+    cmtp=i;
+    break;
+  }
+  while ((cmtp>linep)&&((unsigned char)line[cmtp-1]<=0x20)) cmtp--;
+
+  /* Split key and value.
+   * We must follow the same somewhat goofy rules as ps_userconfig_load_line().
+   */
+  const char *k=line+linep;
+  int kc=0,have_separator=0;
+  while ((linep<cmtp)&&((unsigned char)line[linep]>0x20)&&(line[linep]!='=')&&(line[linep]!=':')) { linep++; kc++; }
+  while (linep<cmtp) {
+    if ((line[linep]==':')||(line[linep]=='=')) {
+      if (have_separator) break;
+      have_separator=1;
+    } else if ((unsigned char)line[linep]>0x20) {
+      break;
+    }
+    linep++;
+  }
+  const char *v=line+linep;
+  int vc=cmtp-linep;
+
+  /* Look up key. */
+  int fldp=ps_userconfig_search_field(ctx->userconfig,k,kc);
+
+  /* If the key is not known, either leave comment untouched or prefix the line with '#'. */
+  if (fldp<0) {
+    if (!comment) {
+      if (ps_buffer_append(ctx->dst,"# ",2)<0) return -1;
+    }
+    if (ps_buffer_append(ctx->dst,line,linec)<0) return -1;
+    return 0;
+  }
+
+  /* If we've already committed this field, comment out this line. Do not change line presence. */
+  int presence=ctx->linev[fldp].presence;
+  if (presence==PS_USERCONFIG_LINE_PRESENCE_DONE) {
+    if (!comment) {
+      if (ps_buffer_append(ctx->dst,"# ",2)<0) return -1;
+    }
+    if (ps_buffer_append(ctx->dst,line,linec)<0) return -1;
+    return 0;
+  }
+
+  /* Parse value and check whether it is equivalent to the value we have. */
+  int equivalent=ps_userconfig_reencode_check_value(ctx,fldp,v,vc);
+
+  /* If the values are equivalent, we're keeping it. Uncomment if necessary. */
+  if (equivalent) {
+    int ndstp=ctx->dst->c;
+    if (comment) {
+      if (ps_buffer_append(ctx->dst,line+startp,linec-startp)<0) return -1;
+    } else {
+      if (ps_buffer_append(ctx->dst,line,linec)<0) return -1;
+    }
+    if (presence==PS_USERCONFIG_LINE_PRESENCE_DIFFERENT) { // Comment out prior occurrence.
+      if (ps_buffer_replace(ctx->dst,ctx->linev[fldp].dstp,0,"# ",2)<0) return -1;
+      if (ps_userconfig_reencode_adjusted_output(ctx,ctx->linev[fldp].dstp,2)<0) return -1;
+    }
+    ctx->linev[fldp].presence=PS_USERCONFIG_LINE_PRESENCE_DONE;
+    ctx->linev[fldp].srcp=line_srcp;
+    ctx->linev[fldp].dstp=ndstp;
+    return 0;
+  }
+
+  /* If we already have a DIFFERENT value, keep it and ensure that this line be commented. */
+  if (presence==PS_USERCONFIG_LINE_PRESENCE_DIFFERENT) {
+    if (!comment) {
+      if (ps_buffer_append(ctx->dst,"# ",2)<0) return -1;
+    }
+    if (ps_buffer_append(ctx->dst,line,linec)<0) return -1;
+    return 0;
+  }
+
+  /* At this point, we can update the line presence to either DIFFERENT or COMMENTED. */
+  ctx->linev[fldp].dstp=ctx->dst->c;
+  ctx->linev[fldp].srcp=line_srcp;
+  ctx->linev[fldp].presence=(comment?PS_USERCONFIG_LINE_PRESENCE_COMMENTED:PS_USERCONFIG_LINE_PRESENCE_DIFFERENT);
+  if (ps_buffer_append(ctx->dst,line,linec)<0) return -1;
+
+  return 0;
+}
+
+/* Reencode: replace value in existing line.
+ */
+
+static int ps_userconfig_reencode_populate_different_line(struct ps_userconfig_reencode_context *ctx,int fldp) {
+
+  /* Locate value in output. */
+  const char *src=ctx->dst->v+ctx->linev[fldp].dstp;
+  int srcc=ctx->dst->c-ctx->linev[fldp].dstp;
+  int srcp=0,sep=0;
+  while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
+  while ((srcp<srcc)&&((unsigned char)src[srcp]>0x20)&&(src[srcp]!=':')&&(src[srcp]!='=')&&(src[srcp]!='#')) srcp++;
+  while (srcp<srcc) {
+    if ((src[srcp]==':')||(src[srcp]=='=')) {
+      if (sep) break;
+      sep=1;
+    } else if ((unsigned char)src[srcp]>0x20) {
+      break;
+    } else if ((src[srcp]==0x0a)||(src[srcp]==0x0d)) {
+      break;
+    }
+    srcp++;
+  }
+  int oldvp=srcp;
+  int oldvc=0;
+  while ((srcp<srcc)&&(src[srcp]!='#')&&(src[srcp]!=0x0a)&&(src[srcp]!=0x0d)) { srcp++; oldvc++; }
+  while (oldvc&&((unsigned char)src[oldvp+oldvc-1]<=0x20)) oldvc--;
+  oldvp+=ctx->linev[fldp].dstp;
+
+  /* Encode new value in a separate buffer. */
+  struct ps_buffer tmp={0};
+  if (ps_userconfig_encode_value_to_buffer(&tmp,ctx->userconfig,fldp)<0) {
+    ps_buffer_cleanup(&tmp);
+    return -1;
+  }
+
+  /* Replace. */
+  int d=tmp.c-oldvc;
+  if (ps_buffer_replace(ctx->dst,oldvp,oldvc,tmp.v,tmp.c)<0) {
+    ps_buffer_cleanup(&tmp);
+    return -1;
+  }
+  ps_buffer_cleanup(&tmp);
+  if (ps_userconfig_reencode_adjusted_output(ctx,oldvp,d)<0) return -1;
+  ctx->linev[fldp].presence=PS_USERCONFIG_LINE_PRESENCE_DONE;
+
+  return 0;
+}
+
+/* Reencode: insert line after a commented one.
+ */
+
+static int ps_userconfig_reencode_insert_after_line(struct ps_userconfig_reencode_context *ctx,int fldp) {
+
+  struct ps_buffer tmp={0};
+  if (
+    (ps_buffer_append(&tmp,ctx->userconfig->fldv[fldp].k,ctx->userconfig->fldv[fldp].kc)<0)||
+    (ps_buffer_append(&tmp,"=",1)<0)||
+    (ps_userconfig_encode_value_to_buffer(&tmp,ctx->userconfig,fldp)<0)||
+    (ps_buffer_append(&tmp,"\n",1)<0)
+  ) {
+    ps_buffer_cleanup(&tmp);
+    return -1;
+  }
+
+  int dstp=ctx->linev[fldp].dstp;
+  while (dstp<ctx->dst->c) {
+    char ch=ctx->dst->v[dstp];
+    if (++dstp>=ctx->dst->c) break;
+    if ((ch==0x0a)||(ch==0x0d)) {
+      if ((ctx->dst->v[dstp]!=ch)&&((ctx->dst->v[dstp]==0x0a)||(ctx->dst->v[dstp]==0x0d))) dstp++;
+      break;
+    }
+  }
+
+  if (ps_buffer_replace(ctx->dst,dstp,0,tmp.v,tmp.c)<0) {
+    ps_buffer_cleanup(&tmp);
+    return -1;
+  }
+  ps_buffer_cleanup(&tmp);
+  if (ps_userconfig_reencode_adjusted_output(ctx,ctx->linev[fldp].dstp,tmp.c)<0) return -1;
+  
+  ctx->linev[fldp].dstp=dstp;
+  ctx->linev[fldp].presence=PS_USERCONFIG_LINE_PRESENCE_DONE;
+  return 0;
+}
+
+/* Reencode file with established context.
+ */
+
+static int ps_userconfig_reencode_inner(struct ps_userconfig_reencode_context *ctx) {
+
+  /* First read through the input, copying to output.
+   */
+  while (ctx->srcp<ctx->srcc) {
+
+    /* Measure line, including terminator (LF, CR, LFCR, CRLF). */
+    int line_srcp=ctx->srcp;
+    const char *line=ctx->src+ctx->srcp;
+    int linec=0;
+    while (ctx->srcp<ctx->srcc) {
+      if ((line[linec]==0x0a)||(line[linec]==0x0d)) {
+        linec++;
+        ctx->srcp++;
+        if ((ctx->srcp<ctx->srcc)&&(line[linec]!=line[linec-1])&&((line[linec]==0x0a)||(line[linec]==0x0d))) {
+          linec++;
+          ctx->srcp++;
+        }
+        break;
+      }
+      linec++;
+      ctx->srcp++;
+    }
+
+    if (ps_userconfig_reencode_line(ctx,line,linec,line_srcp)<0) return -1;
+    
+  }
+
+  /* Apply deferred changes. */
+  struct ps_userconfig_line *line=ctx->linev;
+  const struct ps_userconfig_field *field=ctx->userconfig->fldv;
+  int fldp=0; 
+  for (;fldp<ctx->userconfig->fldc;fldp++,line++,field++) {
+    if (line->presence==PS_USERCONFIG_LINE_PRESENCE_DONE) continue;
+    switch (line->presence) {
+    
+      case PS_USERCONFIG_LINE_PRESENCE_ABSENT: {
+          line->presence=PS_USERCONFIG_LINE_PRESENCE_DONE;
+          line->srcp=-1;
+          line->dstp=ctx->dst->c;
+          if (ps_buffer_append(ctx->dst,field->k,field->kc)<0) return -1;
+          if (ps_buffer_append(ctx->dst,"=",1)<0) return -1;
+          if (ps_userconfig_encode_value_to_buffer(ctx->dst,ctx->userconfig,fldp)<0) return -1;
+          if (ps_buffer_append(ctx->dst,"\n",1)<0) return -1;
+        } break;
+
+      case PS_USERCONFIG_LINE_PRESENCE_DIFFERENT: {
+          if (ps_userconfig_reencode_populate_different_line(ctx,fldp)<0) return -1;
+        } break;
+
+      case PS_USERCONFIG_LINE_PRESENCE_COMMENTED: {
+          if (ps_userconfig_reencode_insert_after_line(ctx,fldp)<0) return -1;
+        } break;
+    }
+  }
+  
+  return 0;
+}
+
+/* Reencode file, main entry point.
+ */
+ 
+int ps_userconfig_reencode(struct ps_buffer *dst,const char *src,int srcc,const struct ps_userconfig *userconfig) {
+  if (!dst||!userconfig) return -1;
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  int dstc0=dst->c;
+  struct ps_userconfig_reencode_context ctx={
+    .userconfig=userconfig,
+    .src=src,
+    .srcc=srcc,
+    .dst=dst,
+  };
+  if (ps_userconfig_context_setup(&ctx)<0) {
+    ps_userconfig_context_cleanup(&ctx);
+    return -1;
+  }
+  if (ps_userconfig_reencode_inner(&ctx)<0) {
+    ps_userconfig_context_cleanup(&ctx);
+    dst->c=dstc0;
+    return -1;
+  }
+  ps_userconfig_context_cleanup(&ctx);
   return 0;
 }
 
@@ -238,10 +605,46 @@ int ps_userconfig_load_file(struct ps_userconfig *userconfig) {
     ps_log(CONFIG,WARNING,"%s: Failed to read configuration from file.",userconfig->path);
     return 0;
   }
-  int err=ps_userconfig_load_text(userconfig,src,srcc);
+  int err=ps_userconfig_decode(userconfig,src,srcc);
   if (src) free(src);
   if (err<0) return -1;
   return 0;
+}
+
+/* Save file.
+ */
+
+int ps_userconfig_save_file(struct ps_userconfig *userconfig) {
+  if (!userconfig) return -1;
+  if (!userconfig->path) return -1;
+  struct ps_buffer buffer={0};
+
+  /* If it already exists, use 'reencode'. */
+  char *oldsrc=0;
+  int oldsrcc=ps_file_read(&oldsrc,userconfig->path);
+  if ((oldsrcc>=0)&&oldsrc) {
+    if (ps_userconfig_reencode(&buffer,oldsrc,oldsrcc,userconfig)<0) {
+      free(oldsrc);
+      ps_buffer_cleanup(&buffer);
+      return -1;
+    }
+
+  /* File doesn't exist, write it from scratch. */
+  } else {
+    if (ps_userconfig_encode(&buffer,userconfig)<0) {
+      ps_buffer_cleanup(&buffer);
+      return -1;
+    }
+  }
+
+  /* Write it. */
+  if (ps_mkdir_parents(userconfig->path)<0) {
+    ps_buffer_cleanup(&buffer);
+    return -1;
+  }
+  int err=ps_file_write(userconfig->path,buffer.v,buffer.c);
+  ps_buffer_cleanup(&buffer);
+  return err;
 }
 
 /* Load argv.
@@ -281,23 +684,6 @@ int ps_userconfig_load_argv(struct ps_userconfig *userconfig,int argc,char **arg
     processedc++;
   }
   return processedc;
-}
-
-/* Save file.
- */
-
-int ps_userconfig_save_file(struct ps_userconfig *userconfig) {
-  if (!userconfig) return -1;
-  if (!userconfig->path) return -1;
-  struct ps_buffer buffer={0};
-  if (ps_userconfig_encode(&buffer,userconfig)<0) {
-    ps_buffer_cleanup(&buffer);
-    return -1;
-  }
-  if (ps_mkdir_parents(userconfig->path)<0) return -1;
-  int err=ps_file_write(userconfig->path,buffer.v,buffer.c);
-  ps_buffer_cleanup(&buffer);
-  return err;
 }
 
 /* Read declarations.
@@ -378,6 +764,23 @@ int ps_userconfig_peek_field_as_string(void *dstpp,const struct ps_userconfig *u
       }
   }
   return -1;
+}
+
+/* More convenient getters.
+ */
+ 
+int ps_userconfig_get_int(const struct ps_userconfig *userconfig,const char *k,int kc) {
+  int fldp=ps_userconfig_search_field(userconfig,k,kc);
+  if (fldp<0) return 0;
+  return ps_userconfig_get_field_as_int(userconfig,fldp);
+}
+
+const char *ps_userconfig_get_str(const struct ps_userconfig *userconfig,const char *k,int kc) {
+  int fldp=ps_userconfig_search_field(userconfig,k,kc);
+  if (fldp<0) return 0;
+  const char *v=0;
+  if (ps_userconfig_peek_field_as_string(&v,userconfig,fldp)<0) return 0;
+  return v;
 }
 
 /* Confirm that file exists.

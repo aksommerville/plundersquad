@@ -366,13 +366,13 @@ int ps_bool_eval(const char *src,int srcc) {
   }
   
   if ((srcc==4)&&!ps_memcasecmp(src,"true",4)) return 1;
-  if ((srcc==5)&&!ps_memcasecmp(src,"false",5)) return 1;
+  if ((srcc==5)&&!ps_memcasecmp(src,"false",5)) return 0;
   if ((srcc==3)&&!ps_memcasecmp(src,"yes",3)) return 1;
-  if ((srcc==2)&&!ps_memcasecmp(src,"no",2)) return 1;
+  if ((srcc==2)&&!ps_memcasecmp(src,"no",2)) return 0;
   if ((srcc==6)&&!ps_memcasecmp(src,"enable",6)) return 1;
-  if ((srcc==7)&&!ps_memcasecmp(src,"disable",7)) return 1;
+  if ((srcc==7)&&!ps_memcasecmp(src,"disable",7)) return 0;
   if ((srcc==7)&&!ps_memcasecmp(src,"enabled",7)) return 1;
-  if ((srcc==8)&&!ps_memcasecmp(src,"disabled",8)) return 1;
+  if ((srcc==8)&&!ps_memcasecmp(src,"disabled",8)) return 0;
 
   int n;
   if (ps_int_eval(&n,src,srcc)>=0) {

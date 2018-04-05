@@ -50,6 +50,7 @@ const char *ps_userconfig_get_path(const struct ps_userconfig *userconfig);
  * Reading from a file that doesn't exist is *not* an error, but will log a warning.
  */
 int ps_userconfig_load_file(struct ps_userconfig *userconfig);
+int ps_userconfig_decode(struct ps_userconfig *userconfig,const char *src,int srcc);
 
 /* Set fields directly from (argc,argv).
  * We ignore the first argument (presumably executable name).
@@ -63,6 +64,17 @@ int ps_userconfig_load_argv(struct ps_userconfig *userconfig,int argc,char **arg
 int ps_userconfig_save_file(struct ps_userconfig *userconfig);
 int ps_userconfig_encode(struct ps_buffer *output,const struct ps_userconfig *userconfig);
 
+/* Take an existing encoded file and rewrite with keys from this userconfig.
+ * The basic rules:
+ *  - Comments and whitespace in (src) are preserved.
+ *  - If a key is defined with the same value but commented, we uncomment that line and comment out any others.
+ *  - Otherwise, first uncommented definition of a key, we replace its value.
+ *  - Otherwise, if a key is present but commented, we insert the definition below.
+ *  - If a key is not found at all, we append at the bottom.
+ *  - If input contains an invalid key, we comment it out.
+ */
+int ps_userconfig_reencode(struct ps_buffer *dst,const char *src,int srcc,const struct ps_userconfig *userconfig);
+
 /* Helpers to read the set of declared fields, and their current values.
  */
 int ps_userconfig_count_fields(const struct ps_userconfig *userconfig);
@@ -71,6 +83,12 @@ int ps_userconfig_get_field_declaration(int *type,const char **k,const struct ps
 int ps_userconfig_get_field_as_int(const struct ps_userconfig *userconfig,int fldp); // BOOLEAN or INTEGER only
 int ps_userconfig_get_field_as_string(char *dst,int dsta,const struct ps_userconfig *userconfig,int fldp); // any type
 int ps_userconfig_peek_field_as_string(void *dstpp,const struct ps_userconfig *userconfig,int fldp); // STRING or PATH only
+
+/* Convenient getters.
+ * Only work for the correct types.
+ */
+int ps_userconfig_get_int(const struct ps_userconfig *userconfig,const char *k,int kc);
+const char *ps_userconfig_get_str(const struct ps_userconfig *userconfig,const char *k,int kc);
 
 /* Helpers to set fields.
  * IoC should in order:

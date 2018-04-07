@@ -11,7 +11,6 @@ Windows errors:
 - Toggling out of fullscreen, other windows don't repaint
 
 MacOS errors:
-- Requiring two taps on pausepage? Is this only after toggling fullscreen?
 
 Actionable:
 - Storing 'resources' and 'input' -- Either don't store them at all, or make it best-effort when we read them from a file. Or something...

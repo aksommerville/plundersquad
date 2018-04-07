@@ -155,6 +155,8 @@
   int key=ps_macwm_translate_keysym(event.keyCode);
   if (!codepoint&&!key) return;
 
+  ps_macwm_record_key_down(event.keyCode);
+
   if (ps_input_event_button(ps_macwm.device_keyboard,key,state)<0) {
     ps_macwm_abort("Failure in key event handler.");
   }
@@ -165,6 +167,7 @@
 
 -(void)keyUp:(NSEvent*)event {
   if (!ps_macwm.device_keyboard) return;
+  ps_macwm_release_key_down(event.keyCode);
   int key=ps_macwm_translate_keysym(event.keyCode);
   if (!key) return;
   if (ps_input_event_button(ps_macwm.device_keyboard,key,0)<0) {
@@ -288,12 +291,18 @@ static void ps_macwm_event_mouse_button(int btnid,int value) {
   if ([window isKindOfClass:PsWindow.class]) {
     window->fullscreen=1;
   }
+  if (ps_macwm_drop_all_keys()<0) {
+    ps_macwm_abort("Failure in key release handler.");
+  }
 }
 
 -(void)windowDidExitFullScreen:(NSNotification*)note {
   PsWindow *window=(PsWindow*)note.object;
   if ([window isKindOfClass:PsWindow.class]) {
     window->fullscreen=0;
+  }
+  if (ps_macwm_drop_all_keys()<0) {
+    ps_macwm_abort("Failure in key release handler.");
   }
 }
 

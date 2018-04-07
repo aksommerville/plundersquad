@@ -107,7 +107,9 @@ int ps_macwm_show_cursor(int show) {
  */
 
 int ps_macwm_toggle_fullscreen() {
+
   [ps_macwm.window toggleFullScreen:ps_macwm.window];
+
   // Take it on faith that the state will change:
   return ps_macwm.window->fullscreen^1;
 }
@@ -118,4 +120,46 @@ int ps_macwm_toggle_fullscreen() {
 int ps_macwm_flush_video() {
   if (!ps_macwm.window) return -1;
   return [ps_macwm.window endFrame];
+}
+
+/* Ridiculous hack to ensure key-up events.
+ * Unfortunately, during a fullscreen transition we do not receive keyUp events.
+ * If the main input is a keyboard, and the user strikes a key to toggle fullscreen,
+ * odds are very strong that they will release that key during the transition.
+ * We record every key currently held, and forcibly release them after on a fullscreen transition.
+ */
+ 
+int ps_macwm_record_key_down(int key) {
+  int p=-1;
+  int i=PS_MACWM_KEYS_DOWN_LIMIT; while (i-->0) {
+    if (ps_macwm.keys_down[i]==key) return 0;
+    if (!ps_macwm.keys_down[i]) p=i;
+  }
+  if (p>=0) {
+    ps_macwm.keys_down[p]=key;
+  }
+  return 0;
+}
+
+int ps_macwm_release_key_down(int key) {
+  int i=PS_MACWM_KEYS_DOWN_LIMIT; while (i-->0) {
+    if (ps_macwm.keys_down[i]==key) {
+      ps_macwm.keys_down[i]=0;
+    }
+  }
+  return 0;
+}
+
+int ps_macwm_drop_all_keys() {
+  int i=PS_MACWM_KEYS_DOWN_LIMIT; while (i-->0) {
+    if (ps_macwm.keys_down[i]) {
+      int key=ps_macwm_translate_keysym(ps_macwm.keys_down[i]);
+      if (key) {
+        if (ps_input_event_button(ps_macwm.device_keyboard,key,0)<0) return -1;
+        if (ps_input_event_key(key,0,0)<0) return -1;
+      }
+      ps_macwm.keys_down[i]=0;
+    }
+  }
+  return 0;
 }

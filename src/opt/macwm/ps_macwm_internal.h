@@ -46,12 +46,15 @@
 /* Globals.
  */
 
+#define PS_MACWM_KEYS_DOWN_LIMIT 8
+
 extern struct ps_macwm {
   PsWindow *window;
   struct ps_input_provider *input_provider;
   struct ps_input_device *device_wm;
   struct ps_input_device *device_keyboard;
   struct ps_input_device *device_mouse;
+  int keys_down[PS_MACWM_KEYS_DOWN_LIMIT];
 } ps_macwm;
 
 /* Miscellaneous.
@@ -70,5 +73,9 @@ int ps_macwm_btnid_eval(int *btnid,const char *src,int srcc);
 int ps_macwm_report_buttons_wm(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
 int ps_macwm_report_buttons_keyboard(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
 int ps_macwm_report_buttons_mouse(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
+
+int ps_macwm_record_key_down(int key);
+int ps_macwm_release_key_down(int key);
+int ps_macwm_drop_all_keys();
 
 #endif

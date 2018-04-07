@@ -119,6 +119,7 @@ void ps_gui_del(struct ps_gui *gui) {
   }
 
   ps_widget_del(gui->root);
+  ps_userconfig_del(gui->userconfig);
 
   free(gui);
 }
@@ -155,6 +156,25 @@ int ps_gui_set_game(struct ps_gui *gui,struct ps_game *game) {
   if (!gui) return -1;
   if (gui->game==game) return 0;
   gui->game=game;
+  return 0;
+}
+
+struct ps_userconfig *ps_gui_get_userconfig(const struct ps_gui *gui) {
+  if (!gui) return 0;
+  return gui->userconfig;
+}
+
+int ps_gui_set_userconfig(struct ps_gui *gui,struct ps_userconfig *userconfig) {
+  if (!gui) return -1;
+  if (gui->userconfig==userconfig) return 0;
+  if (userconfig) {
+    if (ps_userconfig_ref(userconfig)<0) return -1;
+    ps_userconfig_del(gui->userconfig);
+    gui->userconfig=userconfig;
+  } else {
+    ps_userconfig_del(gui->userconfig);
+    gui->userconfig=0;
+  }
   return 0;
 }
 

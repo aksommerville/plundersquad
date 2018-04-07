@@ -1,5 +1,6 @@
 #include "ps.h"
 #include "ps_widget.h"
+#include "ps_gui.h"
 #include "video/ps_video.h"
 #include "corewidgets/ps_corewidgets.h"
 
@@ -228,6 +229,12 @@ struct ps_widget *ps_widget_get_root(const struct ps_widget *widget) {
 struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget) {
   if (!(widget=ps_widget_get_root(widget))) return 0;
   return ps_widget_root_get_gui(widget);
+}
+
+struct ps_userconfig *ps_widget_get_userconfig(const struct ps_widget *widget) {
+  if (!(widget=ps_widget_get_root(widget))) return 0;
+  struct ps_gui *gui=ps_widget_root_get_gui(widget);
+  return ps_gui_get_userconfig(gui);
 }
 
 /* Generic property accessors.

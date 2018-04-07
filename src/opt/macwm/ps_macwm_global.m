@@ -108,7 +108,8 @@ int ps_macwm_show_cursor(int show) {
 
 int ps_macwm_toggle_fullscreen() {
   [ps_macwm.window toggleFullScreen:ps_macwm.window];
-  return 0;
+  // Take it on faith that the state will change:
+  return ps_macwm.window->fullscreen^1;
 }
 
 /* OpenGL frame control.

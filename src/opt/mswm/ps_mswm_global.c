@@ -172,16 +172,24 @@ static int ps_mswm_exit_fullscreen() {
  
 int ps_mswm_set_fullscreen(int flag) {
   if (!ps_mswm.window_setup_complete) return -1;
+
   if (flag>0) {
-    if (ps_mswm.fullscreen) return 0;
-    return ps_mswm_enter_fullscreen();
+    if (ps_mswm.fullscreen) return 1;
+    if (ps_mswm_enter_fullscreen()<0) return -1;
+    return 1;
+
   } else if (!flag) {
     if (!ps_mswm.fullscreen) return 0;
-    return ps_mswm_exit_fullscreen();
+    if (ps_mswm_exit_fullscreen()<0) return -1;
+    return 0;
+
   } else if (ps_mswm.fullscreen) {
-    return ps_mswm_exit_fullscreen();
+    if (ps_mswm_exit_fullscreen()<0) return -1;
+    return 0;
+
   } else {
-    return ps_mswm_enter_fullscreen();
+    if (ps_mswm_enter_fullscreen()<0) return -1;
+    return 1;
   }
 }
 

@@ -6,6 +6,7 @@
 #include "ps_animation.h"
 #include "ps_widget.h"
 #include "video/ps_video_layer.h"
+#include "os/ps_userconfig.h"
 
 extern struct ps_gui *ps_gui_global;
 
@@ -16,6 +17,7 @@ struct ps_gui {
   struct ps_animation **animationv;
   int animationc,animationa;
   struct ps_video_layer *layer;
+  struct ps_userconfig *userconfig;
 };
 
 struct ps_gui_layer {

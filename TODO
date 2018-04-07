@@ -10,7 +10,11 @@ Windows errors:
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
 - Toggling out of fullscreen, other windows don't repaint
 
+MacOS errors:
+- Requiring two taps on pausepage? Is this only after toggling fullscreen?
+
 Actionable:
+- Storing 'resources' and 'input' -- Either don't store them at all, or make it best-effort when we read them from a file. Or something...
 - Record top scores
 - Persist audio levels and other config
 - Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.

@@ -29,6 +29,7 @@
   int w,h;
   int mousex,mousey;
   int modifiers;
+  int fullscreen;
 }
 
 +(PsWindow*)newWithWidth:(int)width 

@@ -283,6 +283,20 @@ static void ps_macwm_event_mouse_button(int btnid,int value) {
 -(void)windowDidEndLiveResize:(NSNotification*)note {
 }
 
+-(void)windowDidEnterFullScreen:(NSNotification*)note {
+  PsWindow *window=(PsWindow*)note.object;
+  if ([window isKindOfClass:PsWindow.class]) {
+    window->fullscreen=1;
+  }
+}
+
+-(void)windowDidExitFullScreen:(NSNotification*)note {
+  PsWindow *window=(PsWindow*)note.object;
+  if ([window isKindOfClass:PsWindow.class]) {
+    window->fullscreen=0;
+  }
+}
+
 /* NSWindowDelegate hooks.
  */
 

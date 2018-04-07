@@ -60,9 +60,11 @@ int ps_userconfig_decode(struct ps_userconfig *userconfig,const char *src,int sr
 int ps_userconfig_load_argv(struct ps_userconfig *userconfig,int argc,char **argv);
 
 /* Encode the entire configuration to text and rewrite the file.
+ * ps_userconfig_save_file() tracks our state and will quickly do nothing if we're still clean.
  */
 int ps_userconfig_save_file(struct ps_userconfig *userconfig);
 int ps_userconfig_encode(struct ps_buffer *output,const struct ps_userconfig *userconfig);
+int ps_userconfig_set_dirty(struct ps_userconfig *userconfig,int dirty);
 
 /* Take an existing encoded file and rewrite with keys from this userconfig.
  * The basic rules:

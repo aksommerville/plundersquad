@@ -177,6 +177,7 @@ static int ps_genioc_configure(struct ps_userconfig *userconfig,int argc,char **
   }
   if (ps_genioc_set_platform_defaults(userconfig)<0) return -1;
   if (ps_userconfig_load_file(userconfig)<0) return -1;
+  if (ps_userconfig_set_dirty(userconfig,0)<0) return -1;
   
   int err=ps_userconfig_load_argv(userconfig,argc,argv);
   if (err<0) return -1;

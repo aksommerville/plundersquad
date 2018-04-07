@@ -12,6 +12,7 @@
 #include "game/ps_game.h"
 #include "game/ps_switchboard.h"
 #include "os/ps_clockassist.h"
+#include "os/ps_userconfig.h"
 #include "video/ps_video.h"
 
 #define PS_PAUSEPAGE_CHEAT_LIMIT 8
@@ -272,7 +273,15 @@ static int ps_pausepage_menucb_audio(struct ps_widget *button,struct ps_widget *
  */
  
 static int ps_pausepage_menucb_fullscreen(struct ps_widget *button,struct ps_widget *widget) {
-  if (ps_video_toggle_fullscreen()<0) return -1;
+  int fullscreen=ps_video_toggle_fullscreen();
+  if (fullscreen<0) return -1;
+
+  struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
+  if (userconfig) {
+    if (ps_userconfig_set_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"fullscreen",10),fullscreen)>=0) {
+    }
+  }
+  
   return 0;
 }
 

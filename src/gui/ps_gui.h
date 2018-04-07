@@ -11,6 +11,7 @@ struct ps_gui;
 struct ps_widget;
 struct ps_game;
 struct ps_res_trdef;
+struct ps_userconfig;
 
 /* There should be only one ps_gui, and it should be created by the main unit.
  * The first ps_gui instantiated automatically becomes the global.
@@ -37,6 +38,8 @@ int ps_gui_is_global(const struct ps_gui *gui);
  */
 struct ps_game *ps_gui_get_game(const struct ps_gui *gui);
 int ps_gui_set_game(struct ps_gui *gui,struct ps_game *game);
+struct ps_userconfig *ps_gui_get_userconfig(const struct ps_gui *gui);
+int ps_gui_set_userconfig(struct ps_gui *gui,struct ps_userconfig *userconfig);
 
 /* Every GUI has a root widget which never changes.
  * The children of that widget swap out frequently.

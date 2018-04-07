@@ -234,6 +234,7 @@ static int ps_main_init(struct ps_userconfig *userconfig) {
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;
   if (ps_input_set_gui(ps_gui)<0) return -1;
+  if (ps_gui_set_userconfig(ps_gui,userconfig)<0) return -1;
 
   //if (cmdline->saved_game_path) { //TODO saved game
   //  if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
@@ -318,6 +319,7 @@ static int ps_main_update() {
 
   if (ps_gui_is_active(ps_gui)) {
     if (ps_gui_update(ps_gui)<0) return -1;
+    if (ps_userconfig_save_file(ps_gui_get_userconfig(ps_gui))<0) return -1; // It's OK to spam this; it has a dirty flag.
   } else if (ps_game) {
     if (ps_game->paused) {
       if (ps_gui_load_page_pause(ps_gui)<0) return -1;

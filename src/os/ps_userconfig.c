@@ -38,6 +38,7 @@ struct ps_userconfig {
   int fldc,flda;
   char *path;
   int refc;
+  int dirty;
 };
 
 /* Single-field primitives.
@@ -617,6 +618,7 @@ int ps_userconfig_load_file(struct ps_userconfig *userconfig) {
 int ps_userconfig_save_file(struct ps_userconfig *userconfig) {
   if (!userconfig) return -1;
   if (!userconfig->path) return -1;
+  if (!userconfig->dirty) return 0;
   struct ps_buffer buffer={0};
 
   /* If it already exists, use 'reencode'. */
@@ -644,7 +646,19 @@ int ps_userconfig_save_file(struct ps_userconfig *userconfig) {
   }
   int err=ps_file_write(userconfig->path,buffer.v,buffer.c);
   ps_buffer_cleanup(&buffer);
-  return err;
+  if (err<0) return -1;
+  userconfig->dirty=0;
+  ps_log(CONFIG,INFO,"%s: Rewrote general config file",userconfig->path);
+  return 0;
+}
+
+/* Dirty flag.
+ */
+ 
+int ps_userconfig_set_dirty(struct ps_userconfig *userconfig,int dirty) {
+  if (!userconfig) return -1;
+  userconfig->dirty=dirty?1:0;
+  return 0;
 }
 
 /* Load argv.
@@ -806,8 +820,20 @@ int ps_userconfig_set_field_as_int(struct ps_userconfig *userconfig,int fldp,int
   if ((fldp<0)||(fldp>=userconfig->fldc)) return -1;
   struct ps_userconfig_field *field=userconfig->fldv+fldp;
   switch (field->type) {
-    case PS_USERCONFIG_TYPE_BOOLEAN: field->b.v=src?1:0; return 0;
-    case PS_USERCONFIG_TYPE_INTEGER: field->i.v=src; return 0;
+  
+    case PS_USERCONFIG_TYPE_BOOLEAN: {
+        src=src?1:0;
+        if (field->b.v==src) return 0;
+        field->b.v=src;
+        userconfig->dirty=1;
+      } return 0;
+
+    case PS_USERCONFIG_TYPE_INTEGER: {
+        if (field->i.v==src) return 0;
+        field->i.v=src;
+        userconfig->dirty=1;
+      } return 0;
+
   }
   return -1;
 }
@@ -825,6 +851,8 @@ int ps_userconfig_set_field_as_string(struct ps_userconfig *userconfig,int fldp,
           ps_log(CONFIG,ERROR,"Value for '%.*s' must be boolean, '%.*s' is invalid",field->kc,field->k,srcc,src);
           return -1;
         }
+        if (field->b.v==nv) return 0;
+        userconfig->dirty=1;
         field->b.v=nv;
       } return 0;
 
@@ -838,10 +866,13 @@ int ps_userconfig_set_field_as_string(struct ps_userconfig *userconfig,int fldp,
           ps_log(CONFIG,ERROR,"Value %d out of range for '%.*s' (%d..%d)",nv,field->kc,field->k,field->i.lo,field->i.hi);
           return -1;
         }
+        if (field->i.v==nv) return 0;
+        userconfig->dirty=1;
         field->i.v=nv;
       } return 0;
 
     case PS_USERCONFIG_TYPE_STRING: {
+        if ((srcc==field->s.c)&&!memcmp(src,field->s.v,srcc)) return 0;
         char *nv=malloc(srcc+1);
         if (!nv) return -1;
         memcpy(nv,src,srcc);
@@ -849,6 +880,7 @@ int ps_userconfig_set_field_as_string(struct ps_userconfig *userconfig,int fldp,
         if (field->s.v) free(field->s.v);
         field->s.v=nv;
         field->s.c=srcc;
+        userconfig->dirty=1;
       } return 0;
 
     case PS_USERCONFIG_TYPE_PATH: {
@@ -858,6 +890,7 @@ int ps_userconfig_set_field_as_string(struct ps_userconfig *userconfig,int fldp,
             return -1;
           }
         }
+        if ((srcc==field->p.c)&&!memcmp(src,field->p.v,srcc)) return 0;
         char *nv=malloc(srcc+1);
         if (!nv) return -1;
         memcpy(nv,src,srcc);
@@ -865,6 +898,7 @@ int ps_userconfig_set_field_as_string(struct ps_userconfig *userconfig,int fldp,
         if (field->p.v) free(field->p.v);
         field->p.v=nv;
         field->p.c=srcc;
+        userconfig->dirty=1;
       } return 0;
 
   }

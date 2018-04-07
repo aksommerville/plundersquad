@@ -118,6 +118,7 @@ int ps_widget_contains_screen_point(const struct ps_widget *widget,int x,int y);
  */
 struct ps_widget *ps_widget_get_root(const struct ps_widget *widget);
 struct ps_gui *ps_widget_get_gui(const struct ps_widget *widget);
+struct ps_userconfig *ps_widget_get_userconfig(const struct ps_widget *widget);
 
 /* Generic property accessors, used heavily by animation.
  */

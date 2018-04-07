@@ -243,16 +243,24 @@ static int ps_glx_exit_fullscreen() {
  
 int ps_glx_set_fullscreen(int state) {
   if (!ps_glx.dpy) return -1;
+  
   if (state>0) {
-    if (ps_glx.fullscreen) return 0;
-    return ps_glx_enter_fullscreen();
+    if (ps_glx.fullscreen) return 1;
+    if (ps_glx_enter_fullscreen()<0) return -1;
+    return 1;
+
   } else if (state==0) {
     if (!ps_glx.fullscreen) return 0;
-    return ps_glx_exit_fullscreen();
+    if (ps_glx_exit_fullscreen()<0) return -1;
+    return 0;
+
   } else if (ps_glx.fullscreen) {
-    return ps_glx_exit_fullscreen();
+    if (ps_glx_exit_fullscreen()<0) return -1;
+    return 0;
+
   } else {
-    return ps_glx_enter_fullscreen();
+    if (ps_glx_enter_fullscreen()<0) return -1;
+    return 1;
   }
 }
 

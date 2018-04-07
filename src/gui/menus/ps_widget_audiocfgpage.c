@@ -6,6 +6,7 @@
 #include "../ps_widget.h"
 #include "gui/menus/ps_menus.h"
 #include "gui/corewidgets/ps_corewidgets.h"
+#include "os/ps_userconfig.h"
 #include "akau/akau.h"
 
 static int ps_audiocfgpage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
@@ -121,6 +122,19 @@ const struct ps_widget_type ps_widget_type_audiocfgpage={
  */
 
 static int ps_audiocfgpage_menucb_done(struct ps_widget *widget) {
+
+  int bgm=akau_get_trim_for_intent(AKAU_INTENT_BGM);
+  int sfx=akau_get_trim_for_intent(AKAU_INTENT_SFX);
+  if ((bgm>=0)&&(sfx>=0)) {
+    struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
+    if (userconfig) {
+      if (ps_userconfig_set_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"music",5),bgm)>=0) {
+      }
+      if (ps_userconfig_set_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"sound",5),sfx)>=0) {
+      }
+    }
+  }
+
   if (ps_widget_kill(widget)<0) return -1;
   return 0;
 }

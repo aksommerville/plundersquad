@@ -155,6 +155,8 @@ static int ps_snake_update_follower(struct ps_sprite *spr,struct ps_game *game) 
   struct ps_sprite_snake *LEADER=(struct ps_sprite_snake*)leader;
 
   SPR->t=atan2(leader->x-spr->x,spr->y-leader->y);
+  while (SPR->t<0.0) SPR->t+=M_PI*2.0;
+  while (SPR->t>M_PI*2.0) SPR->t-=M_PI*2.0;
 
   double dx=leader->x-spr->x;
   double dy=leader->y-spr->y;
@@ -266,7 +268,7 @@ static int _ps_snake_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_s
   if (ps_game_decorate_monster_death(game,spr->x,spr->y)<0) return -1;
   ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr);
   if (ps_game_report_kill(game,assailant,spr)<0) return -1;
-  
+
   return 0;
 }
 

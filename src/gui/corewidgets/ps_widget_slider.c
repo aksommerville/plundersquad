@@ -47,6 +47,7 @@ static int _ps_slider_init(struct ps_widget *widget) {
   widget->fgrgba=0xffff00ff;
   WIDGET->textcolor=0x000000ff;
   WIDGET->textsize=12;
+  WIDGET->increment=1;
 
   return 0;
 }
@@ -242,7 +243,7 @@ int ps_widget_slider_get_value(const struct ps_widget *widget) {
 
 int ps_widget_slider_set_increment(struct ps_widget *widget,int increment) {
   if (!widget||(widget->type!=&ps_widget_type_slider)) return -1;
-  if (increment<0) increment=1;
+  if (increment<1) increment=1;
   WIDGET->increment=increment;
   return 0;
 }

@@ -498,8 +498,8 @@ static int ps_userconfig_reencode_insert_after_line(struct ps_userconfig_reencod
     ps_buffer_cleanup(&tmp);
     return -1;
   }
+  if (ps_userconfig_reencode_adjusted_output(ctx,dstp-1,tmp.c)<0) return -1;
   ps_buffer_cleanup(&tmp);
-  if (ps_userconfig_reencode_adjusted_output(ctx,ctx->linev[fldp].dstp,tmp.c)<0) return -1;
   
   ctx->linev[fldp].dstp=dstp;
   ctx->linev[fldp].presence=PS_USERCONFIG_LINE_PRESENCE_DONE;

@@ -288,3 +288,65 @@ PS_TEST(test_userconfig_reencode_comments_line_if_invalid,userconfig) {
   ps_userconfig_del(userconfig);
   return 0;
 }
+
+/* Defect observed on Raspberry Pi:
+ * On the first launch, when "resources" and "input" are defaulted, if we change "sound", it gets assigned to "soft-render".
+ *
+ * OK, reproduced the defect. Please don't modify this test.
+ * Before any repairs, it encodes this:
+#resources=
+resources=1
+#input=
+input=/path/to/input
+fullscreen=false199
+soft-render=198
+music=255
+sound=255
+ */
+
+PS_TEST(test_defect_userconfig_assigns_sound_to_soft_render,userconfig) {
+  struct ps_userconfig *userconfig=ps_userconfig_new();
+  PS_ASSERT(userconfig)
+  PS_ASSERT_CALL(ps_userconfig_declare_default_fields(userconfig))
+
+  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"resources",-1,"/path/to/resources",-1))
+  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"input",-1,"/path/to/input",-1))
+  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"music",-1,"199",-1))
+  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"sound",-1,"198",-1))
+
+  const char *tmp;
+  int tmpc;
+  PS_ASSERT_CALL(tmpc=ps_userconfig_peek_field_as_string(&tmp,userconfig,ps_userconfig_search_field(userconfig,"resources",-1)))
+  PS_ASSERT_STRINGS(tmp,tmpc,"/path/to/resources",-1)
+  PS_ASSERT_CALL(tmpc=ps_userconfig_peek_field_as_string(&tmp,userconfig,ps_userconfig_search_field(userconfig,"input",-1)))
+  PS_ASSERT_STRINGS(tmp,tmpc,"/path/to/input",-1)
+  PS_ASSERT_INTS(1,ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"fullscreen",-1)))
+  PS_ASSERT_INTS(0,ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"soft-render",-1)))
+  PS_ASSERT_INTS(199,ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"music",-1)))
+  PS_ASSERT_INTS(198,ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"sound",-1)))
+
+  struct ps_buffer buffer={0};
+  PS_ASSERT_CALL(ps_userconfig_reencode(&buffer,
+    "#resources=\n"
+    "#input=\n"
+    "fullscreen=false\n"
+    "soft-render=false\n"
+    "music=255\n"
+    "sound=255\n"
+  ,-1,userconfig))
+
+  PS_ASSERT_STRINGS(buffer.v,buffer.c,
+    "#resources=\n"
+    "resources=/path/to/resources\n"
+    "#input=\n"
+    "input=/path/to/input\n"
+    "fullscreen=1\n"
+    "soft-render=false\n"
+    "music=199\n"
+    "sound=198\n"
+  ,-1)
+
+  ps_buffer_cleanup(&buffer);
+  ps_userconfig_del(userconfig);
+  return 0;
+}

@@ -1,7 +1,9 @@
 General errors:
 - Die while on turtle 
 - Dragon too big to go offscreen?
-- Left/right on sliders not working? (Only on Pi?)
+- Left/right on sliders not working
+
+Raspi errors:
 
 Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!

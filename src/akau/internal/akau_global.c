@@ -51,7 +51,7 @@ int akau_init(
   }
 
   akau.rate=44100;
-  const int chanc=2;
+  const int chanc=2; // Can change this to 1, just comment out one channel in akau_mixer.c:akau_mixer_update().
   if (akau.driver.init(akau.rate,chanc,akau_cb)<0) {
     akau_quit();
     return -1;

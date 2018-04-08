@@ -289,6 +289,7 @@ int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
       mixer->cliplc++;
     } else *dst=l;
     dst++;
+    dstc--;
     if (r<-32768) {
       *dst=-32768;
       mixer->cliprc++;
@@ -297,7 +298,7 @@ int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
       mixer->cliprc++;
     } else *dst=r;
     dst++;
-    dstc-=2;
+    dstc--;
     
   }
   return 0;

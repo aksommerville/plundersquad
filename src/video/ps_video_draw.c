@@ -18,6 +18,7 @@ int ps_video_draw_rect(int x,int y,int w,int h,uint32_t rgba) {
   }
 
   uint8_t r=rgba>>24,g=rgba>>16,b=rgba>>8,a=rgba;
+  if (!a) return 0;
   struct akgl_vtx_raw vtxv[4]={
     {x  ,y  ,r,g,b,a},
     {x+w,y  ,r,g,b,a},

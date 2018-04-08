@@ -8,7 +8,7 @@ static struct akau_fpcm *akau_wavegen_shared_sine=0;
  
 struct akau_fpcm *akau_wavegen_get_shared_sine() {
   if (!akau_wavegen_shared_sine) {
-    akau_wavegen_shared_sine=akau_generate_fpcm_sine(44100,0);
+    akau_wavegen_shared_sine=akau_generate_fpcm_sine(akau_get_master_rate(),0);
     akau_fpcm_lock(akau_wavegen_shared_sine);
   }
   return akau_wavegen_shared_sine;

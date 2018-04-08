@@ -36,11 +36,9 @@ MacOS:
 - Sign code
 
 Linux:
-- src/opt/genioc/ps_genioc.c:22:static int ps_genioc_get_executable_path(char *dst,int dsta) {//TODO linux
 - src/opt/glx/ps_glx_global.c:298:      //TODO Test window icon for big-endian GLX. Do we have a PowerPC box somewhere?
 
 Raspi:
-- Running slow in menus?
 
 Optimization, cleanup, low priority:
 - src/input/ps_input_report_reader.c:365:  // TODO This comparison could be more efficient. Especially with bitfields; it seems wasteful to examine each bit individually.

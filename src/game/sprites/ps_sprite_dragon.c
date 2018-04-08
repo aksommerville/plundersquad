@@ -166,6 +166,15 @@ static int ps_dragon_walk(struct ps_sprite *spr,struct ps_game *game,int dx,int 
 
   SPR->walking=1;
 
+  /* Ugly hack to prevent screen-switch troubles.
+   * game->inhibit_screen_switch is set when we move to a neighbor grid.
+   * Normal heroes unset it when anybody leaves the OFFSCREEN state (ie returns into play).
+   * Dragon doesn't use hero state, so we'll participate manually.
+   */
+  if ((spr->x>1.0)&&(spr->y>1.0)&&(spr->x<PS_SCREENW-1.0)&&(spr->y<PS_SCREENH-1.0)) {
+    game->inhibit_screen_switch=0;
+  }
+
   return 0;
 }
 

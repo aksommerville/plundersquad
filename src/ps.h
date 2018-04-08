@@ -61,9 +61,6 @@
 #define PS_SKILL_BOMB        0x0040
 #define PS_SKILL_FLY         0x0080
 #define PS_SKILL_MARTYR      0x0100
-#define PS_SKILL_SPEED       0x0200
-#define PS_SKILL_WEIGHT      0x0400
-#define PS_SKILL_FROG        0x0800 /* Not implemented, might be removed. */
 #define PS_SKILL_COMBAT      0x1000 /* Generic: hero can kill monsters */
 // Remaining 3 reserved for generic skills
 

@@ -318,15 +318,6 @@ static int ps_hero_bomb(struct ps_sprite *spr,struct ps_game *game) {
   return 0;
 }
 
-/* Frog.
- * TODO Frog skill probably doesn't need to exist.
- */
-
-static int ps_hero_frog(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,TRACE,"%s",__func__);
-  return 0;
-}
-
 /* Dispatchers.
  */
 
@@ -351,7 +342,6 @@ static int ps_hero_action_begin_1(struct ps_sprite *spr,struct ps_game *game,int
     case PS_HERO_ACTION_BOMB: return ps_hero_bomb(spr,game);
     case PS_HERO_ACTION_FLY: return ps_hero_fly_begin(spr,game);
     case PS_HERO_ACTION_MARTYR: return ps_hero_martyr(spr,game);
-    case PS_HERO_ACTION_FROG: return ps_hero_frog(spr,game);
   }
   return 0;
 }
@@ -426,7 +416,6 @@ int ps_hero_auxaction_continue(struct ps_sprite *spr,struct ps_game *game) {
   PS_SKILL_BOMB| \
   PS_SKILL_FLY| \
   PS_SKILL_MARTYR| \
-  PS_SKILL_FROG| \
 0)
  
 int ps_hero_get_principal_action(const struct ps_sprite *spr) {
@@ -441,7 +430,6 @@ int ps_hero_get_principal_action(const struct ps_sprite *spr) {
     case PS_SKILL_BOMB: return PS_HERO_ACTION_BOMB;
     case PS_SKILL_FLY: return PS_HERO_ACTION_FLY;
     case PS_SKILL_MARTYR: return PS_HERO_ACTION_MARTYR;
-    case PS_SKILL_FROG: return PS_HERO_ACTION_FROG;
   }
   return PS_HERO_ACTION_NONE;
 }
@@ -458,7 +446,6 @@ int ps_hero_get_auxiliary_action(const struct ps_sprite *spr) {
     case PS_SKILL_BOMB: return PS_HERO_ACTION_BOMB;
     case PS_SKILL_FLY: return PS_HERO_ACTION_FLY;
     case PS_SKILL_MARTYR: return PS_HERO_ACTION_MARTYR;
-    case PS_SKILL_FROG: return PS_HERO_ACTION_FROG;
   }
   return PS_HERO_ACTION_NONE;
 }

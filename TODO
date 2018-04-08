@@ -15,7 +15,6 @@ MacOS errors:
 Actionable:
 - Storing 'resources' and 'input' -- Either don't store them at all, or make it best-effort when we read them from a file. Or something...
 - Record top scores
-- Persist audio levels and other config
 - Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
 - Dynamic adjustment of log levels (config file)
 - src/opt/genioc/ps_genioc.c:182:    //TODO create input config in a sensible location
@@ -43,7 +42,6 @@ Raspi:
 Optimization, cleanup, low priority:
 - src/input/ps_input_report_reader.c:365:  // TODO This comparison could be more efficient. Especially with bitfields; it seems wasteful to examine each bit individually.
 - Store background image to texture
-- Remove gradient draw from video and sdraw (confirm we're not using it)
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits
 - Clean up logging

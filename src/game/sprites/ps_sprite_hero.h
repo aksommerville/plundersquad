@@ -103,6 +103,5 @@ int ps_hero_force_kill(struct ps_sprite *spr,struct ps_game *game);
 #define PS_HERO_ACTION_BOMB         6
 #define PS_HERO_ACTION_FLY          7
 #define PS_HERO_ACTION_MARTYR       8
-#define PS_HERO_ACTION_FROG         9
 
 #endif

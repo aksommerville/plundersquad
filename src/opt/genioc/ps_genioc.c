@@ -2,6 +2,7 @@
 #include "os/ps_ioc.h"
 #include "os/ps_clockassist.h"
 #include "os/ps_userconfig.h"
+#include "os/ps_fs.h"
 #include "util/ps_text.h"
 #include "akgl/akgl.h"
 #include <sys/stat.h>
@@ -35,7 +36,16 @@ static int ps_genioc_get_executable_path(char *dst,int dsta) {
     return dstc;
     
   #elif PS_ARCH==PS_ARCH_linux || PS_ARCH==PS_ARCH_raspi
-    #error "Get executable path for Linux" //TODO
+    int pid=getpid();
+    char linkpath[64];
+    snprintf(linkpath,sizeof(linkpath),"/proc/%d/exe",pid);
+    char tmp[1024];
+    int tmpc=readlink(linkpath,tmp,sizeof(tmp));
+    if ((tmpc>0)&&(tmpc<=sizeof(tmp))) {
+      if (tmpc<=dsta) memcpy(dst,tmp,dsta);
+      if (tmpc<dsta) dst[tmpc]=0;
+      return tmpc;
+    }
   
   #endif
   return -1;
@@ -45,7 +55,7 @@ static int ps_genioc_get_executable_path(char *dst,int dsta) {
  */
 
 static int ps_genioc_argv_prerun(struct ps_userconfig *userconfig,int argc,char **argv) {
-  for (argp=1;argp<argc;argp++) {
+  int argp; for (argp=1;argp<argc;argp++) {
     const char *k=argv[argp];
     if (!k) continue;
     if ((k[0]!='-')||(k[1]!='-')||!k[2]) continue;
@@ -68,7 +78,7 @@ static int ps_genioc_argv_prerun(struct ps_userconfig *userconfig,int argc,char 
       argv[argp]="";
 
     } else if ((kc==6)&&!memcmp(k,"config",6)) {
-      if (ps_userconfig_set_path(userconfig,v,vc)<0) return -1;
+      if (ps_userconfig_set_path(userconfig,v)<0) return -1;
       argv[argp]="";
 
     }
@@ -89,7 +99,7 @@ static int ps_genioc_set_default_config_path(struct ps_userconfig *userconfig) {
     neighborc=0;
     neighbor[0]=0;
   } else {
-    neighbor[neighborc++]=PS_PATH_SEPARATOR_CHAR;
+    while ((neighborc>0)&&(neighbor[neighborc-1]!=PS_PATH_SEPARATOR_CHAR)) neighborc--;
     memcpy(neighbor+neighborc,"plundersquad.cfg",16);
     neighborc+=16;
     neighbor[neighborc]=0;
@@ -125,7 +135,7 @@ static int ps_genioc_set_platform_defaults(struct ps_userconfig *userconfig) {
   char exepath[1024];
   int exepathc=ps_genioc_get_executable_path(exepath,sizeof(exepath));
   if ((exepathc>0)&&(exepathc<sizeof(exepath))) {
-    exepath[exepathc++]=PS_PATH_SEPARATOR_CHAR;
+    while ((exepathc>0)&&(exepath[exepathc-1]!=PS_PATH_SEPARATOR_CHAR)) exepathc--;
     
     if (exepathc<=sizeof(exepath)-10) {
       memcpy(exepath+exepathc,"input.cfg",10);
@@ -181,7 +191,7 @@ static int ps_genioc_configure(struct ps_userconfig *userconfig,int argc,char **
   
   int err=ps_userconfig_load_argv(userconfig,argc,argv);
   if (err<0) return -1;
-  if (ps_genioc_assert_config(userconfig)<0) return -1;
+  if (ps_genioc_assert_configuration(userconfig)<0) return -1;
   if (err) {
     if (ps_userconfig_save_file(userconfig)<0) return -1;
   }

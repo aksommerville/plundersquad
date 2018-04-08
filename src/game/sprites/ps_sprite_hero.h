@@ -90,6 +90,12 @@ int ps_hero_set_dragon_charge(struct ps_sprite *spr,int p,int c);
 int ps_hero_add_state(struct ps_sprite *spr,uint32_t incoming,struct ps_game *game);
 int ps_hero_remove_state(struct ps_sprite *spr,uint32_t outgoing,struct ps_game *game);
 
+/* State queries.
+ * Return 0 or 1 (no errors), answer the given question by examining state.
+ */
+int ps_hero_stateq_can_change_direction(const struct ps_sprite *spr);
+int ps_hero_stateq_can_walk(const struct ps_sprite *spr);
+
 // Hurt hero even if he is invincible.
 int ps_hero_force_kill(struct ps_sprite *spr,struct ps_game *game);
 

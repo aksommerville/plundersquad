@@ -45,9 +45,6 @@ Optimization, cleanup, low priority:
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits
 - Clean up logging
-- Remove FROG and CARRY skills
-- src/game/sprites/ps_sprite_hero.c:182:  if (SPR->state&PS_HERO_STATE_HOOKSHOT) { //TODO generalize with a state query
-- src/game/sprites/ps_sprite_hero.c:236:static int ps_hero_walk_inhibited_by_actions(struct ps_sprite *spr) {//TODO generalize with state query
 - src/scenario/ps_scgen.c:844: * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
 - ps_region.c:413: Handle region shape flags as independant bits even though there's only one flag in use
 - Review ps_widget_inputcfgpage for cases with (a) no devices or (b) only joysticks

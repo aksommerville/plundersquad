@@ -420,3 +420,21 @@ int ps_hero_remove_state(struct ps_sprite *spr,uint32_t outgoing,struct ps_game 
   }
   return 0;
 }
+
+/* Public queries.
+ */
+ 
+int ps_hero_stateq_can_change_direction(const struct ps_sprite *spr) {
+  if (!spr||(spr->type!=&ps_sprtype_hero)) return 0;
+  if (SPR->state&PS_HERO_STATE_HOOKSHOT) return 0;
+  return 1;
+}
+ 
+int ps_hero_stateq_can_walk(const struct ps_sprite *spr) {
+  if (!spr||(spr->type!=&ps_sprtype_hero)) return 0;
+  if (SPR->state&PS_HERO_STATE_HOOKSHOT) return 0;
+  if (SPR->state&PS_HERO_STATE_SWORD) return 0;
+  if (SPR->state&PS_HERO_STATE_PUMPKIN) return 0;
+  // FERRY is not listed because the turtle will pull us back, and a little push looks cool.
+  return 1;
+}

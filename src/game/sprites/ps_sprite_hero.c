@@ -179,7 +179,7 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
     return 0;
   }
 
-  if (SPR->state&PS_HERO_STATE_HOOKSHOT) { //TODO generalize with a state query
+  if (!ps_hero_stateq_can_change_direction(spr)) {
     SPR->indx=0;
     SPR->indy=0;
   } else {
@@ -233,21 +233,13 @@ static int ps_hero_animate(struct ps_sprite *spr) {
 /* Walking.
  */
 
-static int ps_hero_walk_inhibited_by_actions(struct ps_sprite *spr) {//TODO generalize with state query
-  //if (SPR->sword_in_progress) return 1;
-  //if (SPR->hookshot_in_progress) return 1;
-  if (SPR->state&(PS_HERO_STATE_SWORD|PS_HERO_STATE_HOOKSHOT)) return 1;
-  return 0;
-}
-
 static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
-
 
   if (!SPR->indx&&!SPR->indy) {
     if (ps_hero_remove_state(spr,PS_HERO_STATE_WALK,game)<0) return -1;
     return 0;
   }
-  if (ps_hero_walk_inhibited_by_actions(spr)) {
+  if (!ps_hero_stateq_can_walk(spr)) {
     if (ps_hero_remove_state(spr,PS_HERO_STATE_WALK,game)<0) return -1;
     return 0;
   }

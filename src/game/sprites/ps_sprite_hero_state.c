@@ -45,6 +45,10 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
       (1<<PS_BLUEPRINT_CELL_LATCH)|
     0;
     spr->collide_sprites=0;
+    if (SPR->state&PS_HERO_STATE_FERRY) {
+      if (ps_sprite_release_from_master(spr,game)<0) return -1;
+      SPR->state&=~PS_HERO_STATE_FERRY;
+    }
 
   /* Onscreen and alive. */
   } else {

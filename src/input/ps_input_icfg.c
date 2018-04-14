@@ -177,6 +177,17 @@ static int ps_input_icfg_accept_collection(struct ps_input_icfg *icfg,struct ps_
     icfg->delay=ps_time_now()+icfg->interlude_us;
   }
 
+  //XXX Skip 'B'
+  if (0) {
+    if (icfg->mapc==5) {
+      icfg->mapv[5].srcbtnid=0;
+      icfg->mapv[5].srclo=1;
+      icfg->mapv[5].srchi=1;
+      icfg->mapv[5].nvalue=0;
+      icfg->mapc++;
+    }
+  }
+
   return 0;
 }
 

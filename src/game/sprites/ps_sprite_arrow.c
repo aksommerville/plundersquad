@@ -161,14 +161,14 @@ struct ps_sprite *ps_sprite_arrow_new(struct ps_sprite *user,struct ps_game *gam
         SPR->left=-2.0;
         SPR->right=2.0;
         SPR->top=-7.0;
-        SPR->bottom=-7.0;
+        SPR->bottom=7.0;
       } break;
     case PS_DIRECTION_SOUTH: {
         SPR->dy=1.0;
         SPR->left=-2.0;
         SPR->right=2.0;
         SPR->top=-7.0;
-        SPR->bottom=-7.0;
+        SPR->bottom=7.0;
       } break;
     case PS_DIRECTION_WEST: {
         SPR->dx=-1.0;

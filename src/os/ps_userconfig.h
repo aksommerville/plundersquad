@@ -12,6 +12,7 @@
 
 struct ps_userconfig;
 struct ps_buffer;
+struct ps_file_list;
 
 struct ps_userconfig *ps_userconfig_new();
 void ps_userconfig_del(struct ps_userconfig *userconfig);
@@ -35,12 +36,26 @@ int ps_userconfig_ref(struct ps_userconfig *userconfig);
  */
 int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig);
 
-/* Select a path, either the first existing one from a NULL-terminated list, or one explicit path existing or not.
- * This only records the path internally; it doesn't read or write the file.
+/* There are three files external to the application: config, input, and data.
+ * Each has a ps_file_list where you can configure possible paths in order.
  */
-int ps_userconfig_set_first_existing_path(struct ps_userconfig *userconfig,const char *path,...);
+struct ps_file_list *ps_userconfig_get_config_file_list(const struct ps_userconfig *userconfig);
+struct ps_file_list *ps_userconfig_get_input_file_list(const struct ps_userconfig *userconfig);
+struct ps_file_list *ps_userconfig_get_data_file_list(const struct ps_userconfig *userconfig);
+
+/* Set values for "input" and "resources" based on the file lists.
+ * Call this after populating the userconfig.
+ */
+int ps_userconfig_commit_paths(struct ps_userconfig *userconfig);
+
+/* Path for the main config file "plundersquad.cfg".
+ * ps_userconfig_acquire_path() ensures that path is set by consulting our file list as needed.
+ * With (reset) nonzero, any previously acquired path is discarded; I don't think we'll actually need that.
+ * All of this is automatic in normal cases. Just populate the "config_file_list" before loading or saving config.
+ */
 int ps_userconfig_set_path(struct ps_userconfig *userconfig,const char *path);
 const char *ps_userconfig_get_path(const struct ps_userconfig *userconfig);
+int ps_userconfig_acquire_path(struct ps_userconfig *userconfig,int reset);
 
 /* Read a text file where each line is a single configuration item or blank.
  * Hash begins a line comment.

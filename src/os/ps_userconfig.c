@@ -2,6 +2,7 @@
 #include "os/ps_ioc.h"
 #include "os/ps_userconfig.h"
 #include "os/ps_fs.h"
+#include "os/ps_file_list.h"
 #include "util/ps_buffer.h"
 #include "util/ps_text.h"
 #include <sys/stat.h>
@@ -39,6 +40,9 @@ struct ps_userconfig {
   char *path;
   int refc;
   int dirty;
+  struct ps_file_list *config_file_list;
+  struct ps_file_list *input_file_list;
+  struct ps_file_list *data_file_list;
 };
 
 /* Single-field primitives.
@@ -65,6 +69,15 @@ struct ps_userconfig *ps_userconfig_new() {
 
   userconfig->refc=1;
 
+  if (
+    !(userconfig->config_file_list=ps_file_list_new())||
+    !(userconfig->input_file_list=ps_file_list_new())||
+    !(userconfig->data_file_list=ps_file_list_new())
+  ) {
+    ps_userconfig_del(userconfig);
+    return 0;
+  }
+
   return userconfig;
 }
 
@@ -73,6 +86,9 @@ void ps_userconfig_del(struct ps_userconfig *userconfig) {
   if (userconfig->refc-->1) return;
 
   if (userconfig->path) free(userconfig->path);
+  ps_file_list_del(userconfig->config_file_list);
+  ps_file_list_del(userconfig->input_file_list);
+  ps_file_list_del(userconfig->data_file_list);
 
   if (userconfig->fldv) {
     while (userconfig->fldc-->0) ps_userconfig_field_cleanup(userconfig->fldv+userconfig->fldc);
@@ -114,6 +130,55 @@ int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig) {
   return 0;
 }
 
+/* File lists.
+ */
+
+struct ps_file_list *ps_userconfig_get_config_file_list(const struct ps_userconfig *userconfig) {
+  if (!userconfig) return 0;
+  return userconfig->config_file_list;
+}
+
+struct ps_file_list *ps_userconfig_get_input_file_list(const struct ps_userconfig *userconfig) {
+  if (!userconfig) return 0;
+  return userconfig->input_file_list;
+}
+
+struct ps_file_list *ps_userconfig_get_data_file_list(const struct ps_userconfig *userconfig) {
+  if (!userconfig) return 0;
+  return userconfig->data_file_list;
+}
+
+/* Acquire "input" and "resources".
+ */
+ 
+int ps_userconfig_commit_paths(struct ps_userconfig *userconfig) {
+  if (!userconfig) return -1;
+  const char *path;
+
+  /* Input config file doesn't have to exist, but its parent directory does.
+   */
+  if (path=ps_file_list_get_first_existing_file(userconfig->input_file_list)) {
+    if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"input",5),path,-1)<0) return -1;
+  } else if (path=ps_file_list_get_first_existing_parent(userconfig->input_file_list)) {
+    if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"input",5),path,-1)<0) return -1;
+  } else {
+    int choicec=ps_file_list_count(userconfig->input_file_list);
+    ps_log(CONFIG,ERROR,"Failed to acquire input config path from %d choice%s.",choicec,(choicec==1)?"":"s");
+    return -1;
+  }
+
+  /* Data must exist, and can be either regular or directory.
+   */
+  if (!(path=ps_file_list_get_first_existing_file_or_directory(userconfig->data_file_list))) {
+    int choicec=ps_file_list_count(userconfig->data_file_list);
+    ps_log(CONFIG,ERROR,"Failed to acquire data path from %d choice%s.",choicec,(choicec==1)?"":"s");
+    return -1;
+  }
+  if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"resources",9),path,-1)<0) return -1;
+  
+  return 0;
+}
+
 /* Set path to some existing file.
  */
 
@@ -135,7 +200,7 @@ int ps_userconfig_set_first_existing_path(struct ps_userconfig *userconfig,const
   return -1;
 }
 
-/* Set path.
+/* Set path directly.
  */
 
 int ps_userconfig_set_path(struct ps_userconfig *userconfig,const char *path) {
@@ -152,6 +217,24 @@ int ps_userconfig_set_path(struct ps_userconfig *userconfig,const char *path) {
 const char *ps_userconfig_get_path(const struct ps_userconfig *userconfig) {
   if (!userconfig) return 0;
   return userconfig->path;
+}
+
+/* Acquire path from file list.
+ */
+ 
+int ps_userconfig_acquire_path(struct ps_userconfig *userconfig,int reset) {
+  if (!userconfig) return -1;
+  if (userconfig->path&&!reset) return 0;
+
+  const char *path=ps_file_list_get_first_existing_file(userconfig->config_file_list);
+  if (path) return ps_userconfig_set_path(userconfig,path);
+
+  path=ps_file_list_get_first_existing_parent(userconfig->config_file_list);
+  if (path) return ps_userconfig_set_path(userconfig,path);
+
+  int choicec=ps_file_list_count(userconfig->config_file_list);
+  ps_log(CONFIG,ERROR,"Failed to acquire valid configuration path from %d choice%s.",choicec,(choicec==1)?"":"s");
+  return -1;
 }
 
 /* Encode text.
@@ -599,6 +682,7 @@ int ps_userconfig_reencode(struct ps_buffer *dst,const char *src,int srcc,const 
 
 int ps_userconfig_load_file(struct ps_userconfig *userconfig) {
   if (!userconfig) return -1;
+  if (ps_userconfig_acquire_path(userconfig,0)<0) return -1;
   if (!userconfig->path) return 0;
   char *src=0;
   int srcc=ps_file_read(&src,userconfig->path);
@@ -617,6 +701,7 @@ int ps_userconfig_load_file(struct ps_userconfig *userconfig) {
 
 int ps_userconfig_save_file(struct ps_userconfig *userconfig) {
   if (!userconfig) return -1;
+  if (ps_userconfig_acquire_path(userconfig,0)<0) return -1;
   if (!userconfig->path) return -1;
   if (!userconfig->dirty) return 0;
   struct ps_buffer buffer={0};
@@ -912,6 +997,18 @@ int ps_userconfig_set(struct ps_userconfig *userconfig,const char *k,int kc,cons
   if (!userconfig) return -1;
   if (!k) kc=0; else if (kc<0) { kc=0; while (k[kc]) kc++; }
   if (!v) vc=0; else if (vc<0) { vc=0; while (v[vc]) vc++; }
+
+  /* If the key is "input" or "resources", push the value in the front of the associated file list.
+   */
+  if ((kc==5)&&!memcmp(k,"input",5)) {
+    return ps_file_list_add(userconfig->input_file_list,0,v,vc);
+  }
+  if ((kc==9)&&!memcmp(k,"resources",9)) {
+    return ps_file_list_add(userconfig->data_file_list,0,v,vc);
+  }
+
+  /* Normal cases, set the field directly.
+   */
   int fldp=ps_userconfig_search_field(userconfig,k,kc);
   if (fldp<0) {
     ps_log(CONFIG,ERROR,"Unknown config key '%.*s'",kc,k);

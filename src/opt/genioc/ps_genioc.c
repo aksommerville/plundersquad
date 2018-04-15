@@ -3,6 +3,7 @@
 #include "os/ps_clockassist.h"
 #include "os/ps_userconfig.h"
 #include "os/ps_fs.h"
+#include "os/ps_file_list.h"
 #include "util/ps_text.h"
 #include "akgl/akgl.h"
 #include <sys/stat.h>
@@ -51,6 +52,28 @@ static int ps_genioc_get_executable_path(char *dst,int dsta) {
   return -1;
 }
 
+/* Get neighbor path to executable.
+ * Fails if buffer too small.
+ */
+
+static int ps_genioc_get_executable_neighbor_path(char *dst,int dsta,const char *suffix) {
+  if (!dst||(dsta<0)) dsta=0;
+  if (!suffix) return -1;
+  char tmp[1024];
+  int tmpc=ps_genioc_get_executable_path(tmp,sizeof(tmp));
+  if ((tmpc<1)||(tmpc>=sizeof(tmp))) return -1;
+  int dstc=ps_file_dirname(dst,dsta,tmp,tmpc);
+  if ((dstc<1)||(dstc>=dsta)) return -1;
+  int suffixc=0;
+  while (suffix[suffixc]) suffixc++;
+  if (dstc>=dsta-suffixc-1) return -1;
+  dst[dstc++]=PS_PATH_SEPARATOR_CHAR;
+  memcpy(dst+dstc,suffix,suffixc);
+  dstc+=suffixc;
+  dst[dstc]=0;
+  return dstc;
+}
+
 /* First pass through argv.
  */
 
@@ -78,7 +101,7 @@ static int ps_genioc_argv_prerun(struct ps_userconfig *userconfig,int argc,char 
       argv[argp]="";
 
     } else if ((kc==6)&&!memcmp(k,"config",6)) {
-      if (ps_userconfig_set_path(userconfig,v)<0) return -1;
+      if (ps_file_list_add(ps_userconfig_get_config_file_list(userconfig),0,v,vc)<0) return -1;
       argv[argp]="";
 
     }
@@ -86,43 +109,27 @@ static int ps_genioc_argv_prerun(struct ps_userconfig *userconfig,int argc,char 
   return 0;
 }
 
-/* Set config path if not provided with --config
+/* Set possible config paths.
  */
 
-static int ps_genioc_set_default_config_path(struct ps_userconfig *userconfig) {
+static int ps_genioc_set_default_config_paths(struct ps_userconfig *userconfig) {
+  char tmp[1024];
+  int tmpc;
+  struct ps_file_list *list=ps_userconfig_get_config_file_list(userconfig);
+  if (!list) return -1;
 
-  /* Regardless of the platform, we will look for "plundersquad.cfg" next to the executable.
+  /* Regardless of the platform, we will first look for "plundersquad.cfg" next to the executable.
    */
-  char neighbor[1024];
-  int neighborc=ps_genioc_get_executable_path(neighbor,sizeof(neighbor));
-  if ((neighborc<1)||(neighborc>=sizeof(neighbor)-17)) {
-    neighborc=0;
-    neighbor[0]=0;
-  } else {
-    while ((neighborc>0)&&(neighbor[neighborc-1]!=PS_PATH_SEPARATOR_CHAR)) neighborc--;
-    memcpy(neighbor+neighborc,"plundersquad.cfg",16);
-    neighborc+=16;
-    neighbor[neighborc]=0;
+  if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"plundersquad.cfg"))>0) {
+    if (ps_file_list_add(list,-1,tmp,tmpc)<0) return -1;
   }
 
   #if PS_ARCH==PS_ARCH_linux || PS_ARCH==PS_ARCH_raspi
-    if (ps_userconfig_set_first_existing_path(userconfig,
-      neighbor,
-      "/usr/local/share/plundersquad/plundersquad.cfg",
-      "/usr/share/plundersquad/plundersquad.cfg",
-    NULL)<0) {
-      if (ps_userconfig_set_path(userconfig,neighbor)<0) return -1;
-    }
+    if (ps_file_list_add(list,-1,"/usr/local/share/plundersquad/plundersquad.cfg",-1)<0) return -1;
+    if (ps_file_list_add(list,-1,"/usr/share/plundersquad/plundersquad.cfg",-1)<0) return -1;
 
   #elif PS_ARCH==PS_ARCH_mswin
-    if (ps_userconfig_set_first_existing_path(userconfig,
-      neighbor,
-    NULL)<0) {
-      if (ps_userconfig_set_path(userconfig,neighbor)<0) return -1;
-    }
 
-  #else
-    #error "Please define default config paths for this platform."
   #endif
   return 0;
 }
@@ -131,22 +138,29 @@ static int ps_genioc_set_default_config_path(struct ps_userconfig *userconfig) {
  */
 
 static int ps_genioc_set_platform_defaults(struct ps_userconfig *userconfig) {
+  char tmp[1024];
+  int tmpc;
+  struct ps_file_list *inputs=ps_userconfig_get_input_file_list(userconfig);
+  struct ps_file_list *datas=ps_userconfig_get_data_file_list(userconfig);
+  if (!inputs||!datas) return -1;
 
-  char exepath[1024];
-  int exepathc=ps_genioc_get_executable_path(exepath,sizeof(exepath));
-  if ((exepathc>0)&&(exepathc<sizeof(exepath))) {
-    while ((exepathc>0)&&(exepath[exepathc-1]!=PS_PATH_SEPARATOR_CHAR)) exepathc--;
-    
-    if (exepathc<=sizeof(exepath)-10) {
-      memcpy(exepath+exepathc,"input.cfg",10);
-      if (ps_userconfig_set(userconfig,"input",5,exepath,exepathc+9)<0) return -1;
-    }
-
-    if (exepathc<=sizeof(exepath)-8) {
-      memcpy(exepath+exepathc,"ps-data",8);
-      if (ps_userconfig_set(userconfig,"resources",9,exepath,exepathc+7)<0) return -1;
-    }
+  /* First look for both files adjacent to the executable.
+   */
+  if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"input.cfg"))>0) {
+    if (ps_file_list_add(inputs,-1,tmp,tmpc)<0) return -1;
   }
+  if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"ps_data"))>0) {
+    if (ps_file_list_add(datas,-1,tmp,tmpc)<0) return -1;
+  }
+
+  /* Look in some shared places for Linux.
+   */
+  #if PS_ARCH==PS_ARCH_linux || PS_ARCH==PS_ARCH_raspi
+    if (ps_file_list_add(inputs,-1,"/usr/local/share/plundersquad/input.cfg",-1)<0) return -1;
+    if (ps_file_list_add(inputs,-1,"/usr/share/plundersquad/input.cfg",-1)<0) return -1;
+    if (ps_file_list_add(datas,-1,"/usr/local/share/plundersquad/ps-data",-1)<0) return -1;
+    if (ps_file_list_add(datas,-1,"/usr/share/plundersquad/ps-data",-1)<0) return -1;
+  #endif
 
   return 0;
 }
@@ -182,10 +196,9 @@ static int ps_genioc_configure(struct ps_userconfig *userconfig,int argc,char **
   
   if (ps_userconfig_declare_default_fields(userconfig)<0) return -1;
   if (ps_genioc_argv_prerun(userconfig,argc,argv)<0) return -1;
-  if (!ps_userconfig_get_path(userconfig)) {
-    if (ps_genioc_set_default_config_path(userconfig)<0) return -1;
-  }
+  if (ps_genioc_set_default_config_paths(userconfig)<0) return -1;
   if (ps_genioc_set_platform_defaults(userconfig)<0) return -1;
+  if (ps_userconfig_commit_paths(userconfig)<0) return -1;
   if (ps_userconfig_load_file(userconfig)<0) return -1;
   if (ps_userconfig_set_dirty(userconfig,0)<0) return -1;
   

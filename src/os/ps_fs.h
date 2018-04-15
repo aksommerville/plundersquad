@@ -11,6 +11,8 @@ int ps_file_write(const char *path,const void *src,int srcc);
 int ps_mkdir_parents(const char *path);
 int ps_mkdir(const char *path);
 
+int ps_file_dirname(char *dst,int dsta,const char *src,int srcc);
+
 int ps_os_reopen_tty(const char *path);
 
 struct ps_zlib_file;

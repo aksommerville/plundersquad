@@ -1,5 +1,6 @@
 #include "ps_macioc_internal.h"
 #include "os/ps_fs.h"
+#include "os/ps_file_list.h"
 #include "util/ps_text.h"
 #include "akgl/akgl.h"
 #include <fcntl.h>
@@ -82,22 +83,12 @@ static int ps_macioc_argv_prerun(int argc,char **argv) {
       argv[argp]="";
 
     } else if ((kc==6)&&!memcmp(k,"config",6)) {
-      if (ps_userconfig_set_path(ps_macioc.userconfig,v)<0) return -1;
+      struct ps_file_list *list=ps_userconfig_get_config_file_list(ps_macioc.userconfig);
+      if (ps_file_list_add(list,0,v,vc)<0) return -1;
       argv[argp]="";
 
     }
   }
-  return 0;
-}
-
-/* Default config path.
- */
-
-static int ps_macioc_set_default_config_path() {
-  char path[1024];
-  int pathc=ps_macioc_get_resource_path(path,sizeof(path),"plundersquad.cfg");
-  if (pathc<0) return -1;
-  if (ps_userconfig_set_path(ps_macioc.userconfig,path)<0) return -1;
   return 0;
 }
 
@@ -108,11 +99,14 @@ static int ps_macioc_set_defaults() {
   char path[1024];
   int pathc;
 
+  if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"plundersquad.cfg"))<0) return -1;
+  if (ps_file_list_add(ps_userconfig_get_config_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
+
   if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"input.cfg"))<0) return -1;
-  if (ps_userconfig_set(ps_macioc.userconfig,"input",5,path,pathc)<0) return -1;
+  if (ps_file_list_add(ps_userconfig_get_input_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
 
   if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"ps-data"))<0) return -1;
-  if (ps_userconfig_set(ps_macioc.userconfig,"resources",9,path,pathc)<0) return -1;
+  if (ps_file_list_add(ps_userconfig_get_data_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
 
   return 0;
 }
@@ -125,10 +119,8 @@ static int ps_macioc_configure(int argc,char **argv) {
 
   if (ps_userconfig_declare_default_fields(ps_macioc.userconfig)<0) return -1;
   if (ps_macioc_argv_prerun(argc,argv)<0) return -1;
-  if (!ps_userconfig_get_path(ps_macioc.userconfig)) {
-    if (ps_macioc_set_default_config_path()<0) return -1;
-  }
   if (ps_macioc_set_defaults()<0) return -1;
+  if (ps_userconfig_commit_paths(ps_macioc.userconfig)<0) return -1;
   if (ps_userconfig_load_file(ps_macioc.userconfig)<0) return -1;
   if (ps_userconfig_set_dirty(ps_macioc.userconfig,0)<0) return -1;
 

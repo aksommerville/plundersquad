@@ -114,6 +114,29 @@ int ps_mkdir(const char *path) {
   return 0;
 }
 
+/* Directory name.
+ */
+ 
+int ps_file_dirname(char *dst,int dsta,const char *src,int srcc) {
+  if (!dst||(dsta<0)) dsta=0;
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+
+  /* Drop trailing slashes, but do not drop one leading slash. */
+  while ((srcc>1)&&((src[srcc-1]=='/')||(src[srcc-1]=='\\'))) srcc--;
+
+  /* Drop srcc until it ends with slash. */
+  while ((srcc>0)&&(src[srcc-1]!='/')&&(src[srcc-1]!='\\')) srcc--;
+
+  /* Drop slashes again. */
+  while ((srcc>1)&&((src[srcc-1]=='/')||(src[srcc-1]=='\\'))) srcc--;
+
+  if (srcc<=dsta) {
+    memcpy(dst,src,srcc);
+    if (srcc<dsta) dst[srcc]=0;
+  }
+  return srcc;
+}
+
 /* Reopen TTY.
  */
  

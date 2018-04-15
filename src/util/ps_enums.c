@@ -457,3 +457,105 @@ const char *ps_poi_type_repr(int type) {
   }
   return 0;
 }
+
+/* Log domain.
+ */
+ 
+int ps_log_domain_eval(const char *src,int srcc) {
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_LOG_DOMAIN_##tag;
+  _()
+  _(MACIOC)
+  _(CLOCK)
+  _(RES)
+  _(AUDIO)
+  _(VIDEO)
+  _(GENERATOR)
+  _(INPUT)
+  _(MAIN)
+  _(EDIT)
+  _(MACWM)
+  _(TEST)
+  _(SPRITE)
+  _(GAME)
+  _(TEXT)
+  _(PHYSICS)
+  _(MACHID)
+  _(GUI)
+  _(HEROSTATE)
+  _(EVDEV)
+  _(GLX)
+  _(RESPACK)
+  _(MSWM)
+  _(MSAUDIO)
+  _(MSHID)
+  #undef _
+  return -1;
+}
+
+const char *ps_log_domain_repr(int domain) {
+  switch (domain) {
+    #define _(tag) case PS_LOG_DOMAIN_##tag: return #tag;
+    _()
+    _(MACIOC)
+    _(CLOCK)
+    _(RES)
+    _(AUDIO)
+    _(VIDEO)
+    _(GENERATOR)
+    _(INPUT)
+    _(MAIN)
+    _(EDIT)
+    _(MACWM)
+    _(TEST)
+    _(SPRITE)
+    _(GAME)
+    _(TEXT)
+    _(PHYSICS)
+    _(MACHID)
+    _(GUI)
+    _(HEROSTATE)
+    _(EVDEV)
+    _(GLX)
+    _(RESPACK)
+    _(MSWM)
+    _(MSAUDIO)
+    _(MSHID)
+    #undef _
+  }
+  return 0;
+}
+
+/* Log level.
+ */
+ 
+int ps_log_level_eval(const char *src,int srcc) {
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return PS_LOG_LEVEL_##tag;
+  _(ALL)
+  _(TRACE)
+  _(DEBUG)
+  _(INFO)
+  _(WARN)
+  _(ERROR)
+  _(FATAL)
+  _(SILENT)
+  #undef _
+  return -1;
+}
+
+const char *ps_log_level_repr(int level) {
+  switch (level) {
+    #define _(tag) case PS_LOG_LEVEL_##tag: return #tag;
+    _(ALL)
+    _(TRACE)
+    _(DEBUG)
+    _(INFO)
+    _(WARN)
+    _(ERROR)
+    _(FATAL)
+    _(SILENT)
+    #undef _
+  }
+  return 0;
+}

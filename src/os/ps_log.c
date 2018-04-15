@@ -31,6 +31,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(MSAUDIO       ,TRACE)
   _(MSHID         ,TRACE)
   _(CONFIG        ,TRACE)
+// Adding a log domain? Don't forget to add it in ps_enums.c
 #undef _
 };
 

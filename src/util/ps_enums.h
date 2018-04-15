@@ -71,4 +71,16 @@ const char *ps_award_describe(int award);
 int ps_poi_type_eval(const char *src,int srcc);
 const char *ps_poi_type_repr(int type);
 
+/* ps_log.h:PS_LOG_DOMAIN_*
+ * Zero-based integer.
+ */
+int ps_log_domain_eval(const char *src,int srcc);
+const char *ps_log_domain_repr(int domain);
+
+/* ps_log.h:PS_LOG_LEVEL_*
+ * Zero-based integer.
+ */
+int ps_log_level_eval(const char *src,int srcc);
+const char *ps_log_level_repr(int level);
+
 #endif

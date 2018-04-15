@@ -44,6 +44,7 @@ static void ps_genioc_print_help(const char *exename) {
     "  --sound=INT           0..255, sound effects volume.\n"
     "  --reopen-tty=PATH     (debug) Reopen standard streams.\n"
     "  --chdir=PATH          (debug) Change directory before loading.\n"
+    "  --log.DOMAIN=LEVEL    Set a log level (TRACE,DEBUG,INFO,WARN,ERROR).\n"
     "\n"
     "All options may also be provided in the config file (--config).\n"
     "Command line overrides config file, and will cause the file to be rewritten.\n"

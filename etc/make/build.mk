@@ -68,16 +68,16 @@ ifeq ($(PS_ARCH),mswin)
     $(shell sed -E '/$(PS_CONFIG)\/(test|main|respack)\//d' $(OFILES_LIST) > $(OFILES_LIST_EDIT))
     $(shell sed -E '/$(PS_CONFIG)\/(test|edit|main)\//d' $(OFILES_LIST) > $(OFILES_LIST_RESPACK))
   endif
-  $(EXE_MAIN):$(OFILES_MAIN) $(DATA_ARCHIVE);$(PRECMD) $(LD) -o $@ @$(OFILES_LIST_MAIN) $(LDPOST)
+  $(EXE_MAIN):$(OFILES_MAIN) $(DATA_ARCHIVE) $(INPUTCFG) $(MAINCFG);$(PRECMD) $(LD) -o $@ @$(OFILES_LIST_MAIN) $(LDPOST)
   $(EXE_TEST):$(OFILES_TEST);$(PRECMD) $(LD) -o $@ @$(OFILES_LIST_TEST) $(LDPOST)
-  $(EXE_EDIT):$(OFILES_EDIT);$(PRECMD) $(LD) -o $@ @$(OFILES_LIST_EDIT) $(LDPOST)
+  $(EXE_EDIT):$(OFILES_EDIT) $(INPUTCFG) $(MAINCFG);$(PRECMD) $(LD) -o $@ @$(OFILES_LIST_EDIT) $(LDPOST)
   $(EXE_RESPACK):$(OFILES_RESPACK);$(PRECMD) $(LD) -o $@ @$(OFILES_LIST_RESPACK) $(LDPOST)
 
 # Meanwhile, in the civilized world:
 else
-  $(EXE_MAIN):$(OFILES_MAIN) $(DATA_ARCHIVE);$(PRECMD) $(LD) -o $@ $(OFILES_MAIN) $(LDPOST)
+  $(EXE_MAIN):$(OFILES_MAIN) $(DATA_ARCHIVE) $(INPUTCFG) $(MAINCFG);$(PRECMD) $(LD) -o $@ $(OFILES_MAIN) $(LDPOST)
   $(EXE_TEST):$(OFILES_TEST);$(PRECMD) $(LD) -o $@ $(OFILES_TEST) $(LDPOST)
-  $(EXE_EDIT):$(OFILES_EDIT);$(PRECMD) $(LD) -o $@ $(OFILES_EDIT) $(LDPOST)
+  $(EXE_EDIT):$(OFILES_EDIT) $(INPUTCFG) $(MAINCFG);$(PRECMD) $(LD) -o $@ $(OFILES_EDIT) $(LDPOST)
   $(EXE_RESPACK):$(OFILES_RESPACK);$(PRECMD) $(LD) -o $@ $(OFILES_RESPACK) $(LDPOST)
 endif
 
@@ -85,3 +85,6 @@ all:$(EXE_MAIN) $(EXE_TEST) $(EXE_EDIT) $(EXE_RESPACK) $(DATA_ARCHIVE)
 
 DATA_SRC_FILES:=$(shell find src/data -type f)
 $(DATA_ARCHIVE):$(DATA_SRC_FILES) $(EXE_RESPACK);$(PRECMD) $(CMD_RESPACK) $@ src/data
+
+$(INPUTCFG):etc/input.cfg;$(PRECMD) cp $< $@
+$(MAINCFG):etc/plundersquad.cfg;$(PRECMD) cp $< $@

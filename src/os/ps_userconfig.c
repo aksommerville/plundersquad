@@ -5,6 +5,7 @@
 #include "os/ps_file_list.h"
 #include "util/ps_buffer.h"
 #include "util/ps_text.h"
+#include "util/ps_enums.h"
 #include <sys/stat.h>
 
 /* Private definitions.
@@ -180,27 +181,6 @@ int ps_userconfig_commit_paths(struct ps_userconfig *userconfig) {
   if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"resources",9),path,-1)<0) return -1;
   
   return 0;
-}
-
-/* Set path to some existing file.
- */
-
-int ps_userconfig_set_first_existing_path(struct ps_userconfig *userconfig,const char *path,...) {
-  if (!userconfig) return -1;
-  va_list vargs;
-  va_start(vargs,path);
-  while (path) {
-    if (path[0]) { // Skip empty strings.
-      struct stat st;
-      if (stat(path,&st)>=0) {
-        if (S_ISREG(st.st_mode)) {
-          return ps_userconfig_set_path(userconfig,path);
-        }
-      }
-    }
-    path=va_arg(vargs,const char*);
-  }
-  return -1;
 }
 
 /* Set path directly.
@@ -448,10 +428,14 @@ static int ps_userconfig_reencode_line(struct ps_userconfig_reencode_context *ct
   /* Look up key. */
   int fldp=ps_userconfig_search_field(ctx->userconfig,k,kc);
 
-  /* If the key is not known, either leave comment untouched or prefix the line with '#'. */
+  /* If the key is not known, either leave comment untouched or prefix the line with '#'.
+   * Update: If it starts with "log.", assume it's valid and leave it untouched.
+   */
   if (fldp<0) {
     if (!comment) {
-      if (ps_buffer_append(ctx->dst,"# ",2)<0) return -1;
+      if ((kc<4)||memcmp(k,"log.",4)) {
+        if (ps_buffer_append(ctx->dst,"# ",2)<0) return -1;
+      }
     }
     if (ps_buffer_append(ctx->dst,line,linec)<0) return -1;
     return 0;
@@ -993,6 +977,40 @@ int ps_userconfig_set_field_as_string(struct ps_userconfig *userconfig,int fldp,
   return -1;
 }
 
+/* Set log level.
+ * These are not stored with the userconfig, but we accept them as a convenience.
+ * Important: This means if you set a log level at the command line, it will not be persisted.
+ *TODO: Ensure that "log." entries in a config file are preserved at reencode.
+ */
+
+static int ps_userconfig_set_log_level(struct ps_userconfig *userconfig,const char *domainname,int domainnamec,const char *levelname,int levelnamec) {
+  int domain,level;
+
+  if ((domain=ps_log_domain_eval(domainname,domainnamec))<0) {
+    if (
+      (ps_int_eval(&domain,domainname,domainnamec)<0)||
+      (domain<0)||(domain>=PS_LOG_DOMAIN_COUNT)
+    ) {
+      ps_log(CONFIG,ERROR,"Invalid log domain '%.*s'.",domainnamec,domainname);
+      return -1;
+    }
+  }
+
+  if ((level=ps_log_level_eval(levelname,levelnamec))<0) {
+    if (
+      (ps_int_eval(&level,levelname,levelnamec)<0)||
+      (level<PS_LOG_LEVEL_ALL)||(level>PS_LOG_LEVEL_SILENT)
+    ) {
+      ps_log(CONFIG,ERROR,"Invalid log level '%.*s'.",levelnamec,levelname);
+      return -1;
+    }
+  }
+
+  ps_log_level_by_domain[domain]=level;
+
+  return 0;
+}
+
 /* Set field, general entry point.
  */
   
@@ -1008,6 +1026,12 @@ int ps_userconfig_set(struct ps_userconfig *userconfig,const char *k,int kc,cons
   }
   if ((kc==9)&&!memcmp(k,"resources",9)) {
     return ps_file_list_add(userconfig->data_file_list,0,v,vc);
+  }
+
+  /* If the key starts with "log.", set a log level.
+   */
+  if ((kc>=4)&&!memcmp(k,"log.",4)) {
+    return ps_userconfig_set_log_level(userconfig,k+4,kc-4,v,vc);
   }
 
   /* Normal cases, set the field directly.

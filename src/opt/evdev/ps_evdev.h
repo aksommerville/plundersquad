@@ -63,11 +63,6 @@ int ps_evdev_has_rel(int devid,int code); // => presence
  */
 int ps_evdev_report_capabilities(int devid,int (*cb)(int devid,int type,int code,int lo,int hi,int value,void *userdata),void *userdata);
 
-/* Produce or consume a string of any event name.
- */
-int ps_evdev_btnid_repr(char *dst,int dsta,int btnid);
-int ps_evdev_btnid_eval(int *btnid,const char *src,int srcc);
-
 /* Return our best guess at a USB-HID usage code for this event, or zero.
  */
 int ps_evdev_default_usage_for_event(int type,int code);

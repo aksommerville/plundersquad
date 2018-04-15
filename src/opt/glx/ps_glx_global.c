@@ -176,8 +176,6 @@ int ps_glx_connect_input() {
   
   if (!(ps_glx.input_provider=ps_input_provider_new(0))) return -1;
   ps_glx.input_provider->providerid=PS_INPUT_PROVIDER_x11;
-  ps_glx.input_provider->btnid_repr=ps_glx_btnid_repr;
-  ps_glx.input_provider->btnid_eval=ps_glx_btnid_eval;
   ps_glx.input_provider->update=ps_glx_update;
   if (ps_input_install_provider(ps_glx.input_provider)<0) return -1;
   

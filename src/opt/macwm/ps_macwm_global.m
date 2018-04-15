@@ -31,8 +31,6 @@ int ps_macwm_connect_input() {
   if (ps_macwm.input_provider) return 0;
   if (!(ps_macwm.input_provider=ps_input_provider_new(0))) return -1;
   ps_macwm.input_provider->providerid=PS_INPUT_PROVIDER_macwm;
-  ps_macwm.input_provider->btnid_repr=ps_macwm_btnid_repr;
-  ps_macwm.input_provider->btnid_eval=ps_macwm_btnid_eval;
   if (ps_input_install_provider(ps_macwm.input_provider)<0) return -1;
 
   if (!(ps_macwm.device_wm=ps_input_device_new(0))) return -1;

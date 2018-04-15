@@ -211,23 +211,6 @@ int ps_macwm_translate_mbtn(int src) {
   return src;
 }
 
-/* Represent button id.
- */
-
-int ps_macwm_btnid_repr(char *dst,int dsta,int btnid) {
-  //TODO macwm btnid
-  return ps_input_hid_usage_repr(dst,dsta,btnid);
-}
-
-/* Evaluate button id.
- */
- 
-int ps_macwm_btnid_eval(int *btnid,const char *src,int srcc) {
-  if (!btnid) return -1;
-  //TODO macwm btnid
-  return ps_input_hid_usage_eval(btnid,src,srcc);
-}
-
 /* Report buttons.
  */
 

@@ -16,7 +16,6 @@ MacOS errors:
 
 Actionable:
 - Record top scores
-- Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
 - Scissor for sdraw blits. Only needed by editor.
 - Resource test to validate switch ID assignment
 

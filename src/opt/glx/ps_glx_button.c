@@ -1,22 +1,6 @@
 #include "ps_glx_internal.h"
 #include <X11/keysym.h>
 
-/* Represent button.
- */
- 
-int ps_glx_btnid_repr(char *dst,int dsta,int btnid) {
-  //TODO glx button names
-  return -1;
-}
-
-/* Evaluate button name.
- */
- 
-int ps_glx_btnid_eval(int *btnid,const char *src,int srcc) {
-  //TODO glx button names.
-  return -1;
-}
-
 /* Report buttons for keyboard.
  */
  

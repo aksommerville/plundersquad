@@ -68,8 +68,6 @@ static int ps_evdev_init_provider() {
   if (!provider) return -1;
 
   provider->providerid=PS_INPUT_PROVIDER_evdev;
-  provider->btnid_repr=ps_evdev_btnid_repr;
-  provider->btnid_eval=ps_evdev_btnid_eval;
   provider->update=ps_evdev_default_update;
   provider->report_buttons=ps_evdev_default_report_buttons;
 

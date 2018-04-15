@@ -24,7 +24,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(MACHID        ,DEBUG)
   _(GUI           ,TRACE)
   _(HEROSTATE     ,DEBUG)
-  _(EVDEV         ,TRACE)
+  _(EVDEV         ,INFO)
   _(GLX           ,TRACE)
   _(RESPACK       ,TRACE)
   _(MSWM          ,TRACE)

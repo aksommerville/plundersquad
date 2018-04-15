@@ -17,8 +17,6 @@ MacOS errors:
 Actionable:
 - Record top scores
 - Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
-- Dynamic adjustment of log levels (config file)
-- src/opt/genioc/ps_genioc.c:182:    //TODO create input config in a sensible location
 - Scissor for sdraw blits. Only needed by editor.
 - Resource test to validate switch ID assignment
 

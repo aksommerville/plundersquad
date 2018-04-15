@@ -86,7 +86,7 @@ static int ps_evdev_init_provider() {
  */
 
 static int ps_evdev_default_cb_connect(int devid) {
-  ps_log(INPUT,DEBUG,"%s %d",__func__,devid);
+  ps_log(EVDEV,TRACE,"%s %d",__func__,devid);
 
   if (!ps_input_provider_evdev) return -1;
   struct ps_input_device *device=ps_input_provider_get_device_by_devid(ps_input_provider_evdev,devid);
@@ -125,7 +125,7 @@ static int ps_evdev_default_cb_connect(int devid) {
 }
 
 static int ps_evdev_default_cb_disconnect(int devid,int reason) {
-  ps_log(INPUT,DEBUG,"%s %d %d",__func__,devid,reason);
+  ps_log(EVDEV,TRACE,"%s %d %d",__func__,devid,reason);
 
   struct ps_input_device *device=ps_input_provider_get_device_by_devid(ps_input_provider_evdev,devid);
   if (device) {
@@ -140,7 +140,7 @@ static int ps_evdev_default_cb_event(int devid,int type,int code,int value) {
 
   if (type==EV_MSC) return 0;
 
-  //ps_log(INPUT,DEBUG,"%s %d.%d:%d=%d",__func__,devid,type,code,value);
+  ps_log(EVDEV,TRACE,"%s %d.%d:%d=%d",__func__,devid,type,code,value);
 
   /* EV_KEY will arrive with a value of 2 if it is an automatic key repeat.
    * That's cool and all, but the range still reports as 0..1, which it should.
@@ -160,7 +160,6 @@ static int ps_evdev_default_cb_event(int devid,int type,int code,int value) {
  */
  
 int ps_evdev_init_default() {
-  ps_log(INPUT,DEBUG,"");
 
   if (ps_input_provider_evdev) return -1;
   if (ps_evdev_init_provider()<0) return -1;
@@ -172,6 +171,5 @@ int ps_evdev_init_default() {
     return -1;
   }
 
-  ps_log(INPUT,DEBUG,"");
   return 0;
 }

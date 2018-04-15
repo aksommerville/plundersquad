@@ -133,8 +133,9 @@ int ps_input_config_load(struct ps_input_config *config,const char *path) {
   char *src=0;
   int srcc=ps_file_read(&src,path);
   if (srcc<0) {
+    // This is bad but we won't cause a failure.
     ps_log(INPUT,ERROR,"%s: Failed to read input configuration.",path);
-    return -1;
+    return 0;
   }
   int err=ps_input_config_decode(config,src,srcc);
   if (src) free(src);

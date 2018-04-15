@@ -431,7 +431,7 @@ static int ps_input_maptm_decode_provider(struct ps_input_maptm *maptm,const cha
   maptm->providerid=providerid;
 
   if (!ps_input_get_provider_by_id(maptm->providerid)) {
-    ps_log(INPUT,ERROR,"Ignoring map template due to uninstalled provider '%.*s'.",srcc,src);
+    ps_log(INPUT,WARN,"Ignoring map template due to uninstalled provider '%.*s'.",srcc,src);
     maptm->invalid_provider=1;
   }
   

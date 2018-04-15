@@ -149,7 +149,7 @@ static int ps_genioc_set_platform_defaults(struct ps_userconfig *userconfig) {
   if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"input.cfg"))>0) {
     if (ps_file_list_add(inputs,-1,tmp,tmpc)<0) return -1;
   }
-  if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"ps_data"))>0) {
+  if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"ps-data"))>0) {
     if (ps_file_list_add(datas,-1,tmp,tmpc)<0) return -1;
   }
 

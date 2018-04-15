@@ -172,6 +172,9 @@ int ps_userconfig_commit_paths(struct ps_userconfig *userconfig) {
   if (!(path=ps_file_list_get_first_existing_file_or_directory(userconfig->data_file_list))) {
     int choicec=ps_file_list_count(userconfig->data_file_list);
     ps_log(CONFIG,ERROR,"Failed to acquire data path from %d choice%s.",choicec,(choicec==1)?"":"s");
+    int i; for (i=0;i<choicec;i++) {
+      ps_log(CONFIG,ERROR,"  [%d] %s",i,ps_file_list_get_by_index(userconfig->data_file_list,i));
+    }
     return -1;
   }
   if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"resources",9),path,-1)<0) return -1;

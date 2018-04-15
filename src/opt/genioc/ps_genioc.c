@@ -26,6 +26,31 @@ static struct {
   struct ps_userconfig *userconfig;
 } ps_genioc={0};
 
+/* Print help.
+ */
+
+static void ps_genioc_print_help(const char *exename) {
+  printf("\nUsage: %s [OPTIONS]\n",exename);
+  printf(
+    "\n"
+    "OPTIONS:\n"
+    "  --help                Print this message and abort.\n"
+    "  --config=PATH         Location of main config file (plundersquad.cfg).\n"
+    "  --resources=PATH      Location of data file or directory (ps-data).\n"
+    "  --input=PATH          Location of input config file (input.cfg).\n"
+    "  --fullscreen=BOOL     Start in fullscreen mode if supported.\n"
+    "  --soft-render=BOOL    Use software rendering if supported.\n"
+    "  --music=INT           0..255, background music volume.\n"
+    "  --sound=INT           0..255, sound effects volume.\n"
+    "  --reopen-tty=PATH     (debug) Reopen standard streams.\n"
+    "  --chdir=PATH          (debug) Change directory before loading.\n"
+    "\n"
+    "All options may also be provided in the config file (--config).\n"
+    "Command line overrides config file, and will cause the file to be rewritten.\n"
+    "\n"
+  );
+}
+
 /* Get executable path.
  */
 
@@ -104,6 +129,10 @@ static int ps_genioc_argv_prerun(struct ps_userconfig *userconfig,int argc,char 
       if (ps_file_list_add(ps_userconfig_get_config_file_list(userconfig),0,v,vc)<0) return -1;
       argv[argp]="";
 
+    } else if ((kc==4)&&!memcmp(k,"help",4)) {
+      ps_genioc_print_help((argc>=1)?argv[0]:"plundersquad");
+      ps_ioc_quit(1);
+
     }
   }
   return 0;
@@ -178,12 +207,14 @@ static int ps_genioc_assert_configuration(struct ps_userconfig *userconfig) {
     return -1;
   }
   if (ps_mkdir_parents(v)<0) return -1;
+  ps_log(CONFIG,INFO,"Input path: %.*s",vc,v);
 
   if ((vc=ps_userconfig_peek_field_as_string(&v,userconfig,ps_userconfig_search_field(userconfig,"resources",9)))<0) return -1;
   if (vc<1) {
     ps_log(CONFIG,ERROR,"Failed to locate 'ps-data'. Please rerun with '--resources=PATH' (we'll remember it after that)");
     return -1;
   }
+  ps_log(CONFIG,INFO,"Data path: %.*s",vc,v);
 
   return 0;
 }
@@ -198,12 +229,12 @@ static int ps_genioc_configure(struct ps_userconfig *userconfig,int argc,char **
   if (ps_genioc_argv_prerun(userconfig,argc,argv)<0) return -1;
   if (ps_genioc_set_default_config_paths(userconfig)<0) return -1;
   if (ps_genioc_set_platform_defaults(userconfig)<0) return -1;
-  if (ps_userconfig_commit_paths(userconfig)<0) return -1;
   if (ps_userconfig_load_file(userconfig)<0) return -1;
   if (ps_userconfig_set_dirty(userconfig,0)<0) return -1;
   
   int err=ps_userconfig_load_argv(userconfig,argc,argv);
   if (err<0) return -1;
+  if (ps_userconfig_commit_paths(userconfig)<0) return -1;
   if (ps_genioc_assert_configuration(userconfig)<0) return -1;
   if (err) {
     if (ps_userconfig_save_file(userconfig)<0) return -1;

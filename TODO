@@ -15,7 +15,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Storing 'resources' and 'input' -- Either don't store them at all, or make it best-effort when we read them from a file. Or something...
 - Record top scores
 - Will input button name ever be exposed to the user? Fill in all providers, or remove it where implemented.
 - Dynamic adjustment of log levels (config file)

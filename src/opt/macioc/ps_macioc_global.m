@@ -120,12 +120,12 @@ static int ps_macioc_configure(int argc,char **argv) {
   if (ps_userconfig_declare_default_fields(ps_macioc.userconfig)<0) return -1;
   if (ps_macioc_argv_prerun(argc,argv)<0) return -1;
   if (ps_macioc_set_defaults()<0) return -1;
-  if (ps_userconfig_commit_paths(ps_macioc.userconfig)<0) return -1;
   if (ps_userconfig_load_file(ps_macioc.userconfig)<0) return -1;
   if (ps_userconfig_set_dirty(ps_macioc.userconfig,0)<0) return -1;
 
   int err=ps_userconfig_load_argv(ps_macioc.userconfig,argc,argv);
   if (err<0) return -1;
+  if (ps_userconfig_commit_paths(ps_macioc.userconfig)<0) return -1;
   if (err) {
     if (ps_userconfig_save_file(ps_macioc.userconfig)<0) return -1;
   }

@@ -14,6 +14,7 @@
 #include "ps_stats.h"
 #include "ps_plrdef.h"
 #include "ps_gamelog.h"
+#include "ps_score_store.h"
 #include "sprites/ps_sprite_hero.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
@@ -805,5 +806,44 @@ int ps_game_find_random_cell_with_physics(int *col,int *row,const struct ps_game
   int coordp=rand()%coordc;
   *col=coordv[coordp].x;
   *row=coordv[coordp].y;
+  return 0;
+}
+
+/* Save to score store.
+ */
+ 
+int ps_game_save_to_score_store(struct ps_game *game) {
+  if (!game) return -1;
+  if (!game->score_store) return -1;
+  if (!game->stats) return -1;
+
+  /* Gather the per-player stats. */
+  int monster_kills=0,hero_kills=0,hero_deaths=0,i;
+  for (i=game->playerc;i-->0;) {
+    monster_kills+=game->stats->playerv[i].killc_monster;
+    hero_kills+=game->stats->playerv[i].killc_hero;
+    hero_deaths+=game->stats->playerv[i].deathc;
+  }
+
+  /* hero_deaths shouldn't count hero_kills; it's the "heroes killed by other" */
+  if ((hero_deaths-=hero_kills)<0) hero_deaths=0;
+
+  /* Let score store take over. */
+  if (ps_score_store_add_record(
+    game->score_store,
+    game->playerc,
+    game->difficulty,
+    game->length,
+    game->treasurec,
+    game->stats->playtime,
+    monster_kills,
+    hero_kills,
+    hero_deaths
+  )<0) {
+    // Log the error but don't cascade it.
+    ps_log(GAME,ERROR,"Failed to save to score store.");
+    return 0;
+  }
+  
   return 0;
 }

@@ -16,7 +16,6 @@ MacOS errors:
 
 Actionable:
 - Record top scores
-- Scissor for sdraw blits. Only needed by editor.
 - Resource test to validate switch ID assignment
 
 Windows:
@@ -67,3 +66,7 @@ Blocked:
 - Documentation
 - Promo
 - Final packaging
+
+Rejected:
+- Scissor for sdraw blits. Only needed by editor.
+  sdraw is already a performance problem. Don't make it any worse, just for the editor's sake.

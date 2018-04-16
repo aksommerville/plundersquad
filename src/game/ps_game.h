@@ -22,6 +22,7 @@ struct ps_res_trdef;
 struct ps_summoner;
 struct ps_switchboard;
 struct ps_gamelog;
+struct ps_score_store;
 
 /* Global sprite groups. */
 #define PS_SPRGRP_KEEPALIVE        0 /* All active sprites belong to this group. */
@@ -64,6 +65,7 @@ struct ps_game {
   struct ps_summoner *summoner;
   struct ps_switchboard *switchboard;
   struct ps_gamelog *gamelog;
+  struct ps_score_store *score_store;
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];
   struct ps_grid *grid; // WEAK
@@ -232,6 +234,8 @@ int ps_game_highlight_enabled_players(struct ps_game *game);
  * eg (1<<PS_BLUEPRINT_CELL_VACANT).
  */
 int ps_game_find_random_cell_with_physics(int *col,int *row,const struct ps_game *game,uint16_t mask);
+
+int ps_game_save_to_score_store(struct ps_game *game);
 
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"

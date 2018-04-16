@@ -13,6 +13,7 @@
 #include "ps_summoner.h"
 #include "ps_switchboard.h"
 #include "ps_gamelog.h"
+#include "ps_score_store.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -58,6 +59,7 @@ static int ps_game_initialize(struct ps_game *game) {
   if (ps_switchboard_set_callback(game->switchboard,ps_game_cb_switch,game)<0) return -1;
 
   if (!(game->gamelog=ps_gamelog_new())) return -1;
+  if (!(game->score_store=ps_score_store_new())) return -1;
 
   return 0;
 }
@@ -89,6 +91,7 @@ void ps_game_del(struct ps_game *game) {
   ps_summoner_del(game->summoner);
   ps_switchboard_del(game->switchboard);
   ps_gamelog_del(game->gamelog);
+  ps_score_store_del(game->score_store);
 
   ps_scenario_del(game->scenario);
   while (game->playerc-->0) ps_player_del(game->playerv[game->playerc]);
@@ -785,6 +788,7 @@ static int ps_game_check_completion(struct ps_game *game) {
   ps_log(GAME,INFO,"Game complete!");
   game->finished=1;
   if (ps_game_assign_awards(game)<0) return -1;
+  if (ps_game_save_to_score_store(game)<0) return -1;
   return 0;
 }
 

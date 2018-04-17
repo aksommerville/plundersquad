@@ -24,6 +24,7 @@ int ps_userconfig_ref(struct ps_userconfig *userconfig);
  * The default fields are:
  *   PATH resources = ""
  *   PATH input = ""
+ *   PATH highscores = ""
  *   BOOLEAN fullscreen = 1
  *   BOOLEAN soft-render = 0
  *   INTEGER music = 255
@@ -42,6 +43,7 @@ int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig);
 struct ps_file_list *ps_userconfig_get_config_file_list(const struct ps_userconfig *userconfig);
 struct ps_file_list *ps_userconfig_get_input_file_list(const struct ps_userconfig *userconfig);
 struct ps_file_list *ps_userconfig_get_data_file_list(const struct ps_userconfig *userconfig);
+struct ps_file_list *ps_userconfig_get_highscores_file_list(const struct ps_userconfig *userconfig);
 
 /* Set values for "input" and "resources" based on the file lists.
  * Call this after populating the userconfig.

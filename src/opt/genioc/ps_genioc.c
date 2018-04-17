@@ -38,6 +38,7 @@ static void ps_genioc_print_help(const char *exename) {
     "  --config=PATH         Location of main config file (plundersquad.cfg).\n"
     "  --resources=PATH      Location of data file or directory (ps-data).\n"
     "  --input=PATH          Location of input config file (input.cfg).\n"
+    "  --highscores=PATH     Location of high scores file (highscores).\n"
     "  --fullscreen=BOOL     Start in fullscreen mode if supported.\n"
     "  --soft-render=BOOL    Use software rendering if supported.\n"
     "  --music=INT           0..255, background music volume.\n"
@@ -172,7 +173,8 @@ static int ps_genioc_set_platform_defaults(struct ps_userconfig *userconfig) {
   int tmpc;
   struct ps_file_list *inputs=ps_userconfig_get_input_file_list(userconfig);
   struct ps_file_list *datas=ps_userconfig_get_data_file_list(userconfig);
-  if (!inputs||!datas) return -1;
+  struct ps_file_list *highscores=ps_userconfig_get_highscores_file_list(userconfig);
+  if (!inputs||!datas||!highscores) return -1;
 
   /* First look for both files adjacent to the executable.
    */
@@ -182,6 +184,9 @@ static int ps_genioc_set_platform_defaults(struct ps_userconfig *userconfig) {
   if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"ps-data"))>0) {
     if (ps_file_list_add(datas,-1,tmp,tmpc)<0) return -1;
   }
+  if ((tmpc=ps_genioc_get_executable_neighbor_path(tmp,sizeof(tmp),"highscores"))>0) {
+    if (ps_file_list_add(highscores,-1,tmp,tmpc)<0) return -1;
+  }
 
   /* Look in some shared places for Linux.
    */
@@ -190,6 +195,8 @@ static int ps_genioc_set_platform_defaults(struct ps_userconfig *userconfig) {
     if (ps_file_list_add(inputs,-1,"/usr/share/plundersquad/input.cfg",-1)<0) return -1;
     if (ps_file_list_add(datas,-1,"/usr/local/share/plundersquad/ps-data",-1)<0) return -1;
     if (ps_file_list_add(datas,-1,"/usr/share/plundersquad/ps-data",-1)<0) return -1;
+    if (ps_file_list_add(highscores,-1,"/usr/local/share/plundersquad/highscores",-1)<0) return -1;
+    if (ps_file_list_add(highscores,-1,"/usr/share/plundersquad/highscores",-1)<0) return -1;
   #endif
 
   return 0;
@@ -216,6 +223,12 @@ static int ps_genioc_assert_configuration(struct ps_userconfig *userconfig) {
     return -1;
   }
   ps_log(CONFIG,INFO,"Data path: %.*s",vc,v);
+
+  if ((vc=ps_userconfig_peek_field_as_string(&v,userconfig,ps_userconfig_search_field(userconfig,"highscores",10)))<0) return -1;
+  if (vc<1) {
+  } else {
+    ps_log(CONFIG,INFO,"High scores path: %.*s",vc,v);
+  }
 
   return 0;
 }

@@ -44,6 +44,7 @@ struct ps_userconfig {
   struct ps_file_list *config_file_list;
   struct ps_file_list *input_file_list;
   struct ps_file_list *data_file_list;
+  struct ps_file_list *highscores_file_list;
 };
 
 /* Single-field primitives.
@@ -73,7 +74,8 @@ struct ps_userconfig *ps_userconfig_new() {
   if (
     !(userconfig->config_file_list=ps_file_list_new())||
     !(userconfig->input_file_list=ps_file_list_new())||
-    !(userconfig->data_file_list=ps_file_list_new())
+    !(userconfig->data_file_list=ps_file_list_new())||
+    !(userconfig->highscores_file_list=ps_file_list_new())
   ) {
     ps_userconfig_del(userconfig);
     return 0;
@@ -90,6 +92,7 @@ void ps_userconfig_del(struct ps_userconfig *userconfig) {
   ps_file_list_del(userconfig->config_file_list);
   ps_file_list_del(userconfig->input_file_list);
   ps_file_list_del(userconfig->data_file_list);
+  ps_file_list_del(userconfig->highscores_file_list);
 
   if (userconfig->fldv) {
     while (userconfig->fldc-->0) ps_userconfig_field_cleanup(userconfig->fldv+userconfig->fldc);
@@ -119,6 +122,7 @@ int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig) {
 
   PATH("resources","")
   PATH("input","")
+  PATH("highscores","")
   BOOLEAN("fullscreen",1)
   BOOLEAN("soft-render",0)
   INTEGER("music",255,0,255)
@@ -147,6 +151,11 @@ struct ps_file_list *ps_userconfig_get_input_file_list(const struct ps_userconfi
 struct ps_file_list *ps_userconfig_get_data_file_list(const struct ps_userconfig *userconfig) {
   if (!userconfig) return 0;
   return userconfig->data_file_list;
+}
+
+struct ps_file_list *ps_userconfig_get_highscores_file_list(const struct ps_userconfig *userconfig) {
+  if (!userconfig) return 0;
+  return userconfig->highscores_file_list;
 }
 
 /* Acquire "input" and "resources".
@@ -179,6 +188,17 @@ int ps_userconfig_commit_paths(struct ps_userconfig *userconfig) {
     return -1;
   }
   if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"resources",9),path,-1)<0) return -1;
+
+  /* High scores file doesn't have to exist at all.
+   */
+  if (path=ps_file_list_get_first_existing_file(userconfig->highscores_file_list)) {
+    if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"highscores",10),path,-1)<0) return -1;
+  } else if (path=ps_file_list_get_first_existing_parent(userconfig->highscores_file_list)) {
+    if (ps_userconfig_set_field_as_string(userconfig,ps_userconfig_search_field(userconfig,"highscores",10),path,-1)<0) return -1;
+  } else {
+    int choicec=ps_file_list_count(userconfig->highscores_file_list);
+    ps_log(CONFIG,WARN,"Failed to acquire high scores file path from %d choice%s.",choicec,(choicec==1)?"":"s");
+  }
   
   return 0;
 }
@@ -1019,13 +1039,16 @@ int ps_userconfig_set(struct ps_userconfig *userconfig,const char *k,int kc,cons
   if (!k) kc=0; else if (kc<0) { kc=0; while (k[kc]) kc++; }
   if (!v) vc=0; else if (vc<0) { vc=0; while (v[vc]) vc++; }
 
-  /* If the key is "input" or "resources", push the value in the front of the associated file list.
+  /* If the key is "input", "highscores", or "resources", push the value in the front of the associated file list.
    */
   if ((kc==5)&&!memcmp(k,"input",5)) {
     return ps_file_list_add(userconfig->input_file_list,0,v,vc);
   }
   if ((kc==9)&&!memcmp(k,"resources",9)) {
     return ps_file_list_add(userconfig->data_file_list,0,v,vc);
+  }
+  if ((kc==10)&&!memcmp(k,"highscores",10)) {
+    return ps_file_list_add(userconfig->highscores_file_list,0,v,vc);
   }
 
   /* If the key starts with "log.", set a log level.

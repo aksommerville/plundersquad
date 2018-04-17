@@ -52,7 +52,7 @@ static struct ps_perfmon *ps_perfmon=0;
 static int ps_setup_test_game(struct ps_userconfig *userconfig) {
   int i;
 
-  if (0) { // Normal interactive setup.
+  if (1) { // Normal interactive setup.
     return 0;
   }
 
@@ -229,7 +229,7 @@ static int ps_main_init(struct ps_userconfig *userconfig) {
   if (ps_userconfig_peek_field_as_string(&resources_path,userconfig,ps_userconfig_search_field(userconfig,"resources",9))<0) return -1;
   if (ps_resmgr_init(resources_path,0)<0) return -1;
 
-  if (!(ps_game=ps_game_new())) return -1;
+  if (!(ps_game=ps_game_new(userconfig))) return -1;
 
   if (!(ps_gui=ps_gui_new())) return -1;
   if (ps_gui_set_game(ps_gui,ps_game)<0) return -1;

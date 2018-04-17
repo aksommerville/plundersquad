@@ -829,17 +829,7 @@ int ps_game_save_to_score_store(struct ps_game *game) {
   if ((hero_deaths-=hero_kills)<0) hero_deaths=0;
 
   /* Let score store take over. */
-  if (ps_score_store_add_record(
-    game->score_store,
-    game->playerc,
-    game->difficulty,
-    game->length,
-    game->treasurec,
-    game->stats->playtime,
-    monster_kills,
-    hero_kills,
-    hero_deaths
-  )<0) {
+  if (ps_score_store_add_record(game->score_store,game)<0) {
     // Log the error but don't cascade it.
     ps_log(GAME,ERROR,"Failed to save to score store.");
     return 0;

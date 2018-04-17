@@ -108,6 +108,9 @@ static int ps_macioc_set_defaults() {
   if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"ps-data"))<0) return -1;
   if (ps_file_list_add(ps_userconfig_get_data_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
 
+  if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"highscores"))<0) return -1;
+  if (ps_file_list_add(ps_userconfig_get_highscores_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
+
   return 0;
 }
 

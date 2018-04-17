@@ -27,6 +27,7 @@
 #include "video/ps_video_layer.h"
 #include "input/ps_input.h"
 #include "util/ps_enums.h"
+#include "os/ps_userconfig.h"
 
 #define PS_PRIZE_SPRDEF_ID 17
 #define PS_SPLASH_SPRDEF_ID 24
@@ -38,7 +39,7 @@ int ps_game_assign_awards(struct ps_game *game);
 /* New game.
  */
 
-static int ps_game_initialize(struct ps_game *game) {
+static int ps_game_initialize(struct ps_game *game,struct ps_userconfig *userconfig) {
 
   game->grpv[PS_SPRGRP_VISIBLE].order=PS_SPRGRP_ORDER_RENDER;
 
@@ -59,15 +60,20 @@ static int ps_game_initialize(struct ps_game *game) {
   if (ps_switchboard_set_callback(game->switchboard,ps_game_cb_switch,game)<0) return -1;
 
   if (!(game->gamelog=ps_gamelog_new())) return -1;
-  if (!(game->score_store=ps_score_store_new())) return -1;
+
+  { const char *path=0;
+    int pathc=ps_userconfig_peek_field_as_string(&path,userconfig,ps_userconfig_search_field(userconfig,"highscores",10));
+    if (pathc<0) return -1;
+    if (!(game->score_store=ps_score_store_new(path,pathc))) return -1;
+  }
 
   return 0;
 }
 
-struct ps_game *ps_game_new() {
+struct ps_game *ps_game_new(struct ps_userconfig *userconfig) {
   struct ps_game *game=calloc(1,sizeof(struct ps_game));
   if (!game) return 0;
-  if (ps_game_initialize(game)<0) {
+  if (ps_game_initialize(game,userconfig)<0) {
     ps_game_del(game);
     return 0;
   }

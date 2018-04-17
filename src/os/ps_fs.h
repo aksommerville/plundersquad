@@ -7,6 +7,7 @@
 
 int ps_file_read(void *dstpp,const char *path);
 int ps_file_write(const char *path,const void *src,int srcc);
+int ps_file_append(const char *path,const void *src,int srcc);
 
 int ps_mkdir_parents(const char *path);
 int ps_mkdir(const char *path);

@@ -69,6 +69,33 @@ int ps_file_write(const char *path,const void *src,int srcc) {
   return 0;
 }
 
+/* Append to file.
+ */
+ 
+int ps_file_append(const char *path,const void *src,int srcc) {
+  if (!path||(srcc<0)||(srcc&&!src)) return -1;
+  #ifdef O_BINARY
+    int fd=open(path,O_WRONLY|O_CREAT|O_APPEND|O_BINARY,0666);
+  #else
+    int fd=open(path,O_WRONLY|O_CREAT|O_APPEND,0666);
+  #endif
+  if (fd<0) {
+    return -1;
+  }
+  int srcp=0;
+  while (srcp<srcc) {
+    int err=write(fd,(char*)src+srcp,srcc-srcp);
+    if (err<0) {
+      close(fd);
+      unlink(path);
+      return -1;
+    }
+    srcp+=err;
+  }
+  close(fd);
+  return 0;
+}
+
 /* Recursive mkdir.
  */
 

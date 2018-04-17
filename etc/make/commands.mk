@@ -7,7 +7,7 @@ run-%:$(EXE_MAIN);$(CMD_MAIN) $(subst +,=,$*)
 
 test:$(EXE_TEST);$(CMD_TEST)
 test-%:$(EXE_TEST);$(CMD_TEST) $*
-edit:$(EXE_EDIT);$(CMD_EDIT)
-edit-%:$(EXE_EDIT);$(CMD_EDIT) $*
+edit:$(EXE_EDIT);$(CMD_EDIT) --resources=src/data
+edit-%:$(EXE_EDIT);$(CMD_EDIT) --resources=src/data $*
 
 clean:;rm -rf mid out

@@ -1,4 +1,5 @@
 General errors:
+- Bomber multiexplode on heal point
 
 Raspi errors:
 
@@ -15,6 +16,7 @@ Windows errors:
 MacOS errors:
 
 Actionable:
+- Forbid multiple heroes of same color (make 8 colors for each)
 - Record top scores
 - Resource test to validate switch ID assignment
 

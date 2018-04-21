@@ -1,7 +1,11 @@
 head 0x0c
 body 0x89
-skill hookshot
-colors f0e0a0 808080
-colors 604020 a0a0a0
-colors 402010 606060
-colors a06010 8080c0
+skill HOOKSHOT
+colors f0e0a0ff 808080ff
+colors 604020ff a0a0a0ff
+colors 402010ff 606060ff
+colors a06010ff 8080c0ff
+colors 845b32ff b54980ff
+colors 80461aff 80b780ff
+colors a84956ff d7a73eff
+colors 66341aff 5d3480ff

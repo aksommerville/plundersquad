@@ -1,6 +1,11 @@
 head 0x40
 body 0x8c
-skill fly
-colors 604020 404040
-colors 604020 401018
-colors 604020 502080
+skill FLY
+colors 604020ff 404040ff
+colors 604020ff 401018ff
+colors 604020ff 502080ff
+colors 80807bff 9a394bff
+colors 808080ff 4280a7ff
+colors 808080ff 328822ff
+colors 808080ff 9a602eff
+colors 808080ff 9e9644ff

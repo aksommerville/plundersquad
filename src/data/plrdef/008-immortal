@@ -1,10 +1,12 @@
 head 0x46
 body 0xc3
 head_on_top_always
-skill immortal
-colors 808080 808080
-colors a0a0a0 a0a0a0
-colors c0c0c0 c0c0c0
-colors 505050 505050
-colors c0d0e0 c0d0e0
-colors ffc0c8 ffc0c8
+skill IMMORTAL
+colors 808080ff 808080ff
+colors a0a0a0ff a0a0a0ff
+colors c0c0c0ff c0c0c0ff
+colors 505050ff 505050ff
+colors c0d0e0ff c0d0e0ff
+colors ffc0c8ff ffc0c8ff
+colors 95ba80ff 60a147ff
+colors 6893beff 255680ff

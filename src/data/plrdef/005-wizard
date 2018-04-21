@@ -1,8 +1,12 @@
 head 0x43
 body 0xc0
-skill flame
-skill combat
-colors c0c0c0 a04080
-colors f0d0b0 8040a0
-colors d8d8d0 304050
-colors c8c8c8 504030
+skill FLAME
+skill COMBAT
+colors c0c0c0ff a04080ff
+colors f0d0b0ff 8040a0ff
+colors d8d8d0ff 304050ff
+colors c8c8c8ff 504030ff
+colors ae6030ff 136d29ff
+colors c5a880ff 4452b1ff
+colors 80522cff c1b340ff
+colors bab3a5ff cac3bcff

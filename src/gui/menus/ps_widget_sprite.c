@@ -239,6 +239,76 @@ int ps_widget_sprite_load_sprdef(struct ps_widget *widget,int sprdefid) {
   return 0;
 }
 
+/* Scan descendants of heropacker for heroselect widgets using a given plrdefid.
+ * Mark the output vector for each palette in use.
+ * This looks at IDs committed to the heroselect, so it doesn't matter that the sprite widget in question is already modified.
+ */
+
+static void ps_widget_sprite_identify_palettes_in_use(int *dst,int dsta,const struct ps_widget *heropacker,int plrdefid) {
+  int ai=heropacker->childc; while (ai-->0) {
+    struct ps_widget *heroselect=heropacker->childv[ai];
+    if (!heroselect||(heroselect->type!=&ps_widget_type_heroselect)) continue;
+    int qplrdefid=ps_widget_heroselect_get_plrdefid(heroselect);
+    if (qplrdefid!=plrdefid) continue;
+    int qpalette=ps_widget_heroselect_get_palette(heroselect);
+    if ((qpalette<0)||(qpalette>=dsta)) continue;
+    dst[qpalette]=1;
+  }
+}
+
+/* Considering all peer sprite widgets, ensure that my plrdef and palette are unique.
+ * Do not change plrdefid.
+ * If we can't find a unique palette, leave it be.
+ * (d) is the preferred direction to move, to ensure that we don't lock out any options.
+ */
+
+static void ps_widget_sprite_force_unique_palette(struct ps_widget *widget,int d) {
+
+  /* Ensure we are a sprite widget with a valid plrdef. */
+  if (!widget||(widget->type!=&ps_widget_type_sprite)) return;
+  if (!WIDGET->player) return;
+  if (!WIDGET->player->plrdef) return;
+
+  /* If the plrdef has fewer than 2 palettes, there's nothing we can do. */
+  if (WIDGET->player->plrdef->palettec<2) return;
+
+  /* Find the heropacker, which is the parent of all relevant heroselect. */
+  struct ps_widget *heropacker=widget;
+  while (heropacker&&(heropacker->type!=&ps_widget_type_heropacker)) heropacker=heropacker->parent;
+  if (!heropacker) return;
+
+  /* Identify which palettes for this plrdefid are in use by my peers.
+   * In general, we make plrdef resources with 8 palettes.
+   * That's not a guarantee. But if we allow 16, that should be plenty.
+   */
+  if ((WIDGET->player->palette<0)||(WIDGET->player->palette>=16)) return;
+  int palette_in_use[16]={0};
+  ps_widget_sprite_identify_palettes_in_use(palette_in_use,16,heropacker,WIDGET->plrdefid);
+
+  /* Is the palette we want available? */
+  if (!palette_in_use[WIDGET->player->palette]) {
+    //ps_log(GUI,DEBUG,"Selecting hero palette %d:%d, valid directly.",WIDGET->plrdefid,WIDGET->player->palette);
+    return;
+  }
+
+  /* Advance in direction (d) until one is available or we've taken too many steps.
+   */
+  int palette=WIDGET->player->palette;
+  int ttl=WIDGET->player->plrdef->palettec;
+  while (ttl-->0) {
+    palette+=d;
+    if (palette>=WIDGET->player->plrdef->palettec) palette=0;
+    else if (palette<0) palette=WIDGET->player->plrdef->palettec-1;
+    if (!palette_in_use[palette]) {
+      WIDGET->player->palette=palette;
+      //ps_log(GUI,DEBUG,"Selecting hero palette %d:%d because default choice was taken.",WIDGET->plrdefid,WIDGET->player->palette);
+      return;
+    }
+  }
+
+  //ps_log(GUI,DEBUG,"Selecting hero palette %d:%d because no palette was available.",WIDGET->plrdefid,WIDGET->player->palette);
+}
+
 /* Set plrdefid.
  */
  
@@ -258,6 +328,8 @@ int ps_widget_sprite_set_plrdefid(struct ps_widget *widget,int plrdefid) {
     WIDGET->player->palette=0;
   }
 
+  ps_widget_sprite_force_unique_palette(widget,1);
+
   return 0;
 }
 
@@ -271,6 +343,7 @@ int ps_widget_sprite_set_palette(struct ps_widget *widget,int palette) {
   } else {
     WIDGET->player->palette=palette;
   }
+  ps_widget_sprite_force_unique_palette(widget,1);
   return 0;
 }
 
@@ -319,6 +392,8 @@ int ps_widget_sprite_modify_plrdefid(struct ps_widget *widget,int d) {
     WIDGET->player->palette=WIDGET->player->plrdef->palettec-1;
   }
 
+  ps_widget_sprite_force_unique_palette(widget,1);
+
   return 0;
 }
 
@@ -337,6 +412,8 @@ int ps_widget_sprite_modify_palette(struct ps_widget *widget,int d) {
   } else if (WIDGET->player->palette>=WIDGET->player->plrdef->palettec) {
     WIDGET->player->palette=0;
   }
+
+  ps_widget_sprite_force_unique_palette(widget,d);
   
   return 0;
 }

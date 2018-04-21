@@ -1,8 +1,11 @@
 head 0x06
 body 0x83
-skill heal
-colors 604020 50e080
-colors 403010 40a0f0
-colors 403010 0040a0
-colors 807030 c06060
-colors 604020 ff0000
+skill HEAL
+colors 604020ff 50e080ff
+colors 403010ff 40a0f0ff
+colors 403010ff 0040a0ff
+colors 807030ff c06060ff
+colors 604020ff ff0000ff
+colors dbc993ff d06937ff
+colors 805037ff 30711cff
+colors ceb191ff e7c0bcff

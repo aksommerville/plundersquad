@@ -12,6 +12,7 @@
 #include "../corewidgets/ps_corewidgets.h"
 #include "gui/ps_gui.h"
 #include "game/ps_game.h"
+#include "input/ps_input_device.h"
 
 // Checking the ready state might be a little expensive, so only do it once per 15 frames.
 // That is desirable anyway, since we want a brief oh-shit delay after all players are ready.
@@ -192,9 +193,10 @@ static int ps_assemblepage_commit_to_game(struct ps_widget *widget) {
     struct ps_widget *heroselect=heropacker->childv[i];
     if (ps_widget_heroselect_is_ready(heroselect)) {
       if (playerc>=PS_PLAYER_LIMIT) {
-        ps_log(GUI,ERROR,"Ignoring player plrdef:%d on device '%s'; 8 players already selected.",
+        struct ps_input_device *device=ps_widget_heroselect_get_device(heroselect);
+        ps_log(GUI,ERROR,"Ignoring player plrdef:%d on device '%.*s'; 8 players already selected.",
           ps_widget_heroselect_get_plrdefid(heroselect),
-          ps_input_device_get_name(ps_widget_heroselect_get_device(heroselect))
+          device?device->namec:0,device?device->name:""
         );
       } else {
         struct ps_plrcfg *plrcfg=playerv+playerc++;

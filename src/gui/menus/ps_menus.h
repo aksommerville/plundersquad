@@ -52,6 +52,13 @@ int ps_widget_sprite_get_palette(const struct ps_widget *widget);
 int ps_widget_sprite_modify_plrdefid(struct ps_widget *widget,int d);
 int ps_widget_sprite_modify_palette(struct ps_widget *widget,int d);
 
+/* Pausepage.
+ *****************************************************************************/
+
+/* Call early, after inserting in GUI.
+ */
+int ps_widget_pausepage_skin_for_player(struct ps_widget *widget);
+
 /* Gameoverpage.
  *****************************************************************************/
 

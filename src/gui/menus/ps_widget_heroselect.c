@@ -112,13 +112,18 @@ static int ps_heroselect_spawn_device_label(struct ps_widget *widget) {
   return 0;
 }
 
-static int ps_heroselect_spawn_sprite(struct ps_widget *widget) {
+static int ps_heroselect_spawn_sprite(struct ps_widget *widget,int force_same_palette) {
   struct ps_widget *sprite=ps_widget_spawn(widget,&ps_widget_type_sprite);
   if (!sprite) return -1;
   if (ps_widget_sprite_load_sprdef(sprite,PS_HEROSELECT_SPRDEF_ID)<0) return -1;
+
+  int palette0=WIDGET->palette;
+  if (force_same_palette) {
+    WIDGET->palette=-1;
+  }
   
   if (ps_widget_sprite_set_plrdefid(sprite,WIDGET->plrdefid)<0) return -1;
-  if (ps_widget_sprite_set_palette(sprite,WIDGET->palette)<0) return -1;
+  if (ps_widget_sprite_set_palette(sprite,palette0)<0) return -1;
 
   // Setting plrdefid and palette may modify our choices to ensure uniqueness.
   // It is important that we read them back immediately.
@@ -143,12 +148,12 @@ int ps_heroselect_rebuild_children_for_phase(struct ps_widget *widget,int phase)
 
     case PS_HEROSELECT_PHASE_QUERY: {
         if (ps_heroselect_spawn_device_label(widget)<0) return -1;
-        if (ps_heroselect_spawn_sprite(widget)<0) return -1;
+        if (ps_heroselect_spawn_sprite(widget,0)<0) return -1;
       } break;
 
     case PS_HEROSELECT_PHASE_READY: {
         if (ps_heroselect_spawn_device_label(widget)<0) return -1;
-        if (ps_heroselect_spawn_sprite(widget)<0) return -1;
+        if (ps_heroselect_spawn_sprite(widget,1)<0) return -1;
         if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1;
         if (ps_widget_label_set_text(child,"Ready",5)<0) return -1;
         child->fgrgba=0xffa0c0ff;

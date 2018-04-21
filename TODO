@@ -18,7 +18,6 @@ MacOS errors:
 
 Actionable:
 - What happens if a 9th input device tries to click in?
-- One 'pausepage' user at a time, only the initiator can interact
 - Record top scores
 - Resource test to validate switch ID assignment
 

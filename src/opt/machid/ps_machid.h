@@ -71,11 +71,4 @@ const char *ps_machid_dev_get_serial_number(int devid);
 int ps_machid_dev_count_buttons(int devid);
 int ps_machid_dev_get_button_info(int *btnid,int *usage,int *lo,int *hi,int *value,int devid,int index);
 
-int ps_machid_dev_get_button(int devid,int btnid);
-
-/* If (value) is not the most recent reported for this button, change it and notify delegate.
- * Returns 0 if no change, 1 if change, -1 if no such device or button, or <0 delegate error.
- */
-int ps_machid_dev_set_button(int devid,int btnid,int value);
-
 #endif

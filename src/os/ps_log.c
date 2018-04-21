@@ -21,7 +21,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(GAME          ,TRACE)
   _(TEXT          ,TRACE)
   _(PHYSICS       ,TRACE)
-  _(MACHID        ,DEBUG)
+  _(MACHID        ,INFO)
   _(GUI           ,TRACE)
   _(HEROSTATE     ,DEBUG)
   _(EVDEV         ,INFO)

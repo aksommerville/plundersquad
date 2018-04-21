@@ -1,4 +1,6 @@
 #include "ps_machid.h"
+#include <stdio.h>
+#include "os/ps_log.h"
 #include <IOKit/hid/IOHIDLib.h>
 
 /* Private definitions.
@@ -11,6 +13,7 @@ struct ps_machid_btn {
   int usage;
   int value;
   int lo,hi;
+  int btnid_aux; // If nonzero, this is a hat switch to convert from polar to cartesian.
 };
 
 struct ps_machid_dev {
@@ -162,6 +165,7 @@ static int ps_machid_dev_search_button(struct ps_machid_dev *dev,int btnid) {
 
 static int ps_machid_dev_insert_button(struct ps_machid_dev *dev,int p,int btnid,int usage,int lo,int hi,int v) {
   if (!dev||(p<0)||(p>dev->btnc)) return -1;
+  
   if (dev->btnc>=dev->btna) {
     int na=dev->btna+8;
     if (na>INT_MAX/sizeof(struct ps_machid_btn)) return -1;
@@ -170,6 +174,7 @@ static int ps_machid_dev_insert_button(struct ps_machid_dev *dev,int p,int btnid
     dev->btnv=nv;
     dev->btna=na;
   }
+
   struct ps_machid_btn *btn=dev->btnv+p;
   memmove(btn+1,btn,sizeof(struct ps_machid_btn)*(dev->btnc-p));
   dev->btnc++;
@@ -182,6 +187,15 @@ static int ps_machid_dev_insert_button(struct ps_machid_dev *dev,int p,int btnid
   else if ((lo<=0)&&(hi>=0)) btn->value=0;
   else if (lo>0) btn->value=lo;
   else btn->value=hi;
+
+  /* Is this a hat switch? Our logic here is not perfect. I'm testing against my Zelda joystick. */
+  if ((usage==0x00010039)&&(lo==0)&&(hi==7)) {
+    btn->btnid_aux=1; // Just make it nonzero, and we will assign final IDs after reading all real buttons.
+    btn->lo=INT_MIN; // Hats report a value outside the declared range for "none", which is annoying.
+    btn->hi=INT_MAX; // Annoying but well within spec (see USB-HID HUT)
+    btn->value=8; // Start out of range, ie (0,0)
+  }
+
   return 0;
 }
 
@@ -189,6 +203,35 @@ static int ps_machid_dev_define_button(struct ps_machid_dev *dev,int btnid,int u
   int p=ps_machid_dev_search_button(dev,btnid);
   if (p>=0) return 0; // Already have this btnid, don't panic. Keep the first definition.
   return ps_machid_dev_insert_button(dev,-p-1,btnid,usage,lo,hi,v);
+}
+
+/* Look for any nonzero (btnid_aux) and give it a positive unused ID.
+ */
+
+static int ps_machid_unused_btnid(const struct ps_machid_dev *dev) {
+  int highest=0,i=dev->btnc;
+  const struct ps_machid_btn *btn=dev->btnv;
+  for (;i-->0;btn++) {
+    if (btn->btnid>=highest) highest=btn->btnid;
+    if (btn->btnid_aux>=highest) highest=btn->btnid_aux;
+  }
+  if (highest==INT_MAX) return -1;
+  return highest+1;
+}
+
+static int ps_machid_dev_assign_aux_btnid(struct ps_machid_dev *dev) {
+  struct ps_machid_btn *btn=dev->btnv;
+  int i=dev->btnc; for (;i-->0;btn++) {
+    if (!btn->btnid_aux) continue;
+    if ((btn->btnid_aux=ps_machid_unused_btnid(dev))<0) {
+      // This is extremely improbable, but don't fail entirely if it happens.
+      ps_log(MACHID,WARN,"Ignoring hat %d due to no available aux ID.",btn->btnid);
+      btn->btnid_aux=0;
+    } else {
+      ps_log(MACHID,DEBUG,"Assigned fake btnid %d for hat switch %d.",btn->btnid_aux,btn->btnid);
+    }
+  }
+  return 0;
 }
 
 /* Welcome a new device, before exposing to user.
@@ -237,6 +280,8 @@ static int ps_machid_dev_apply_IOHIDElement(struct ps_machid_dev *dev,IOHIDEleme
     if (v<lo) v=lo; else if (v>hi) v=hi;
   }
 
+  ps_log(MACHID,DEBUG,"  cookie=%d, range=%d..%d, value=%d, usage=%04x%04x",(int)cookie,(int)lo,(int)hi,v,usagepage,usage);
+
   ps_machid_dev_define_button(dev,cookie,(usagepage<<16)|usage,lo,hi,v);
 
   return 0;
@@ -254,6 +299,8 @@ static int ps_machid_dev_handshake(struct ps_machid_dev *dev,int vid,int pid,int
   dev->prodname=ps_machid_dev_get_string(dev,CFSTR(kIOHIDProductKey));
   dev->serial=ps_machid_dev_get_string(dev,CFSTR(kIOHIDSerialNumberKey));
 
+  ps_log(MACHID,DEBUG,"mfr='%s' prod='%s' serial='%s'...",dev->mfrname,dev->prodname,dev->serial);
+
   /* Get limits and current value for each reported element. */
   CFArrayRef elements=IOHIDDeviceCopyMatchingElements(dev->obj,0,0);
   if (elements) {
@@ -267,6 +314,8 @@ static int ps_machid_dev_handshake(struct ps_machid_dev *dev,int vid,int pid,int
     }
     CFRelease(elements);
   }
+
+  if (ps_machid_dev_assign_aux_btnid(dev)<0) return -1;
 
   return 0;
 }
@@ -311,7 +360,24 @@ static void ps_machid_cb_DeviceRemoval(void *context,IOReturn result,void *sende
 /* Event callback from IOHIDManager.
  */
 
+static void ps_machid_axis_values_from_hat(int *x,int *y,int v) {
+  *x=*y=0;
+  switch (v) {
+    case 0: *y=-1; break;
+    case 1: *x=1; *y=-1; break;
+    case 2: *x=1; break;
+    case 3: *x=1; *y=1; break;
+    case 4: *y=1; break;
+    case 5: *x=-1; *y=1; break;
+    case 6: *x=-1; break;
+    case 7: *x=-1; *y=-1; break;
+  }
+  ps_log(MACHID,TRACE,"hat(%d) => (%+d,%+d)",v,*x,*y);
+}
+
 static void ps_machid_cb_InputValue(void *context,IOReturn result,void *sender,IOHIDValueRef value) {
+
+  /* Locate device and buttons. */
   IOHIDElementRef element=IOHIDValueGetElement(value);
   int btnid=IOHIDElementGetCookie(element);
   if (btnid<0) return;
@@ -323,11 +389,33 @@ static void ps_machid_cb_InputValue(void *context,IOReturn result,void *sender,I
   int btnp=ps_machid_dev_search_button(dev,btnid);
   if (btnp<0) return;
   struct ps_machid_btn *btn=dev->btnv+btnp;
+
+  /* Clamp value and confirm it actually changed. */
   CFIndex v=IOHIDValueGetIntegerValue(value);
+  ps_log(MACHID,TRACE,"%d[%d..%d]",(int)v,btn->lo,btn->hi);
   if (v<btn->lo) v=btn->lo;
   else if (v>btn->hi) v=btn->hi;
   if (v==btn->value) return;
+  int ov=btn->value;
   btn->value=v;
+
+  /* If this is a hat switch, split into two axes. */
+  if (btn->btnid_aux) {
+    int ovx,ovy,nvx,nvy;
+    ps_machid_axis_values_from_hat(&ovx,&ovy,ov);
+    ps_machid_axis_values_from_hat(&nvx,&nvy,v);
+    if (ovx!=nvx) {
+      int err=ps_machid.delegate.button(dev->devid,btnid,nvx);
+      if (err<0) ps_machid.error=err;
+    }
+    if (ovy!=nvy) {
+      int err=ps_machid.delegate.button(dev->devid,btn->btnid_aux,nvy);
+      if (err<0) ps_machid.error=err;
+    }
+    return;
+  }
+
+  /* Report ordinary scalar buttons. */
   int err=ps_machid.delegate.button(dev->devid,btnid,v);
   if (err<0) ps_machid.error=err;
 }
@@ -453,56 +541,74 @@ int ps_machid_dev_get_usage(int devid) GETINT(usage)
 const char *ps_machid_dev_get_manufacturer_name(int devid) GETSTR(mfrname)
 const char *ps_machid_dev_get_product_name(int devid) GETSTR(prodname)
 const char *ps_machid_dev_get_serial_number(int devid) GETSTR(serial)
-int ps_machid_dev_count_buttons(int devid) GETINT(btnc)
 
 #undef GETINT
 #undef GETSTR
+
+/* Count buttons.
+ * We need to report the 'aux' as distinct buttons.
+ */
+
+int ps_machid_dev_count_buttons(int devid) {
+  int devp=ps_machid_dev_search_devid(devid);
+  if (devp<0) return 0;
+  const struct ps_machid_dev *dev=ps_machid.devv+devp;
+  int btnc=dev->btnc;
+  const struct ps_machid_btn *btn=dev->btnv;
+  int i=dev->btnc; for (;i-->0;btn++) {
+    if (btn->btnid_aux) btnc++;
+  }
+  return btnc;
+}
 
 /* Get button properties.
  */
 
 int ps_machid_dev_get_button_info(int *btnid,int *usage,int *lo,int *hi,int *value,int devid,int index) {
+  if (index<0) return -1;
   int devp=ps_machid_dev_search_devid(devid);
   if (devp<0) return -1;
   struct ps_machid_dev *dev=ps_machid.devv+devp;
-  if ((index<0)||(index>=dev->btnc)) return -1;
-  struct ps_machid_btn *btn=dev->btnv+index;
-  if (btnid) *btnid=btn->btnid;
-  if (usage) *usage=btn->usage;
-  if (lo) *lo=btn->lo;
-  if (hi) *hi=btn->hi;
-  if (value) *value=btn->value;
-  return 0;
-}
 
-/* Get button value.
- */
+  /* Scalar or hat X, the principal button. */
+  if (index<dev->btnc) {
+    struct ps_machid_btn *btn=dev->btnv+index;
+    if (btnid) *btnid=btn->btnid;
+    if (usage) *usage=btn->usage;
+    if (btn->btnid_aux) {
+      if (lo) *lo=-1;
+      if (hi) *hi=1;
+      if (value) switch (btn->value) {
+        case 1: case 2: case 3: *value=1; break;
+        case 5: case 6: case 7: *value=-1; break;
+        default: *value=0;
+      }
+    } else {
+      if (lo) *lo=btn->lo;
+      if (hi) *hi=btn->hi;
+      if (value) *value=btn->value;
+    }
+    return 0;
+  }
 
-int ps_machid_dev_get_button(int devid,int btnid) {
-  int devp=ps_machid_dev_search_devid(devid);
-  if (devp<0) return 0;
-  struct ps_machid_dev *dev=ps_machid.devv+devp;
-  int btnp=ps_machid_dev_search_button(dev,btnid);
-  if (btnp<0) return 0;
-  struct ps_machid_btn *btn=dev->btnv+btnp;
-  return btn->value;
-}
+  /* Is this an 'aux' button? */
+  index-=dev->btnc;
+  const struct ps_machid_btn *btn=dev->btnv;
+  int i=dev->btnc; for (;i-->0;btn++) {
+    if (!btn->btnid_aux) continue;
+    if (!index--) {
+      if (btnid) *btnid=btn->btnid_aux;
+      if (usage) *usage=btn->usage;
+      if (lo) *lo=-1;
+      if (hi) *hi=1;
+      if (value) switch (btn->value) {
+        case 7: case 0: case 1: *value=-1; break;
+        case 3: case 4: case 5: *value=1; break;
+        default: *value=0;
+      }
+      return 0;
+    }
+  }
 
-/* Set button value.
- */
-
-int ps_machid_dev_set_button(int devid,int btnid,int value) {
-  int devp=ps_machid_dev_search_devid(devid);
-  if (devp<0) return -1;
-  struct ps_machid_dev *dev=ps_machid.devv+devp;
-  int btnp=ps_machid_dev_search_button(dev,btnid);
-  if (btnp<0) return -1;
-  struct ps_machid_btn *btn=dev->btnv+btnp;
-  if (value<btn->lo) value=btn->lo;
-  else if (value>btn->hi) value=btn->hi;
-  if (value==btn->value) return 0;
-  btn->value=value;
-  int err=ps_machid.delegate.button(devid,btnid,value);
-  if (err<0) return err;
-  return 1;
+  return -1;
 }

@@ -1,5 +1,6 @@
 General errors:
 - Bomber multiexplode on heal point
+...I can't reproduce this except by tapping button repeatedly
 
 Raspi errors:
 
@@ -17,6 +18,7 @@ MacOS errors:
 
 Actionable:
 - Forbid multiple heroes of same color (make 8 colors for each)
+- One 'pausepage' user at a time, only the initiator can interact
 - Record top scores
 - Resource test to validate switch ID assignment
 

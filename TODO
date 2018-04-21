@@ -17,7 +17,7 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- What happens if a 9th input device tries to click in?
+- Prevent heroselect from entering QUERY phase if 8 players already pending.
 - Record top scores
 - Resource test to validate switch ID assignment
 

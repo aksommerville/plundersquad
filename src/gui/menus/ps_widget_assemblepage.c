@@ -191,12 +191,18 @@ static int ps_assemblepage_commit_to_game(struct ps_widget *widget) {
   for (i=heropacker->childc;i-->0;) {
     struct ps_widget *heroselect=heropacker->childv[i];
     if (ps_widget_heroselect_is_ready(heroselect)) {
-      struct ps_plrcfg *plrcfg=playerv+playerc++;
-      plrcfg->plrdefid=ps_widget_heroselect_get_plrdefid(heroselect);
-      plrcfg->palette=ps_widget_heroselect_get_palette(heroselect);
-      plrcfg->device=ps_widget_heroselect_get_device(heroselect);
+      if (playerc>=PS_PLAYER_LIMIT) {
+        ps_log(GUI,ERROR,"Ignoring player plrdef:%d on device '%s'; 8 players already selected.",
+          ps_widget_heroselect_get_plrdefid(heroselect),
+          ps_input_device_get_name(ps_widget_heroselect_get_device(heroselect))
+        );
+      } else {
+        struct ps_plrcfg *plrcfg=playerv+playerc++;
+        plrcfg->plrdefid=ps_widget_heroselect_get_plrdefid(heroselect);
+        plrcfg->palette=ps_widget_heroselect_get_palette(heroselect);
+        plrcfg->device=ps_widget_heroselect_get_device(heroselect);
+      }
     }
-    if (playerc>=PS_PLAYER_LIMIT) break;
   }
 
   if (!playerc) {

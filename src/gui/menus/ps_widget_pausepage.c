@@ -209,7 +209,7 @@ static int ps_pausepage_check_cheat_code(struct ps_widget *widget,int plrid,int 
 static int _ps_pausepage_userinput(struct ps_widget *widget,int plrid,int btnid,int value) {
   if (widget->childc<1) return -1;
   if (plrid&&WIDGET->playerid&&(plrid!=WIDGET->playerid)) {
-    ps_log(GUI,DEBUG,"Discarding event %d.%d=%d due to WIDGET->playerid==%d",plrid,btnid,value,WIDGET->playerid);
+    //ps_log(GUI,DEBUG,"Discarding event %d.%d=%d due to WIDGET->playerid==%d",plrid,btnid,value,WIDGET->playerid);
     return 0;
   }
   int err=ps_pausepage_check_cheat_code(widget,plrid,btnid,value);

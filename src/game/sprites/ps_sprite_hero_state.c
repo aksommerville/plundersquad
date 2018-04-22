@@ -10,6 +10,8 @@
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_grid.h"
 
+#define PS_GHOST_HAZARD_DIFFICULTY 3
+
 #define SPR ((struct ps_sprite_hero*)spr)
 
 /* React to any state change by setting groups and similar things, from scratch.
@@ -37,7 +39,7 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
   /* Ghosts have a decidedly different profile from the living. */
   } else if (SPR->state&PS_HERO_STATE_GHOST) {
     grpmask|=
-      (1<<PS_SPRGRP_HEROHAZARD)|
+      ((game->difficulty>=PS_GHOST_HAZARD_DIFFICULTY)?(1<<PS_SPRGRP_HEROHAZARD):0)|
       (1<<PS_SPRGRP_PHYSICS)|
     0;
     spr->impassable=

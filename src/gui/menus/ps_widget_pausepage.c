@@ -382,6 +382,12 @@ static uint32_t ps_pausepage_ensure_thumb_contrast(uint32_t fg,uint32_t bg,uint3
   return fg;
 }
 
+static uint32_t ps_rgba_darken(uint32_t src) {
+  uint8_t *v=(uint8_t*)&src;
+  int i; for (i=0;i<4;i++) v[i]>>=1;
+  return src;
+}
+
 /* If we have an exclusive controlling player, update my appearance to reflect it.
  */
  
@@ -403,7 +409,7 @@ int ps_widget_pausepage_skin_for_player(struct ps_widget *widget) {
 
   /* Set my background color based on hero's body color. */
   if (player->plrdef&&(player->palette<player->plrdef->palettec)) {
-    widget->bgrgba=(player->plrdef->palettev[player->palette].rgba_body&0x7f7f7f00)|0x000000c0;
+    widget->bgrgba=(ps_rgba_darken(player->plrdef->palettev[player->palette].rgba_body)&0xffffff00)|0x000000c0;
     struct ps_widget *thumb=ps_widget_menu_get_thumb(widget->childv[0]);
     if (thumb) {
       thumb->bgrgba=ps_pausepage_ensure_thumb_contrast(PS_PAUSEPAGE_DEFAULT_THUMB_COLOR,widget->bgrgba,PS_PAUSEPAGE_TEXT_COLOR);
@@ -416,6 +422,7 @@ int ps_widget_pausepage_skin_for_player(struct ps_widget *widget) {
   if (ps_widget_sprite_load_sprdef(sprite,1)<0) return -1;
   if (ps_widget_sprite_set_plrdefid(sprite,ps_res_get_id_by_obj(PS_RESTYPE_PLRDEF,player->plrdef))<0) return -1;
   if (ps_widget_sprite_set_palette(sprite,player->palette)<0) return -1;
+  if (ps_widget_sprite_set_action_walk_down(sprite)<0) return -1;
 
   return 0;
 }

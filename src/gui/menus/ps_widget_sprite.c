@@ -52,6 +52,12 @@ static struct ps_input_record *ps_sprite_build_input_record() {
   return record;
 }
 
+static struct ps_input_record *ps_sprite_build_input_record_walk_down() {
+  struct ps_input_record *record=ps_input_record_new();
+  if (ps_input_record_add_event(record,  0,PS_PLRBTN_DOWN)<0) return 0;
+  return record;
+}
+
 /* Create a mock game object to permit updating sprite.
  * Don't use ps_game_new(); it interacts with video and input.
  */
@@ -415,5 +421,15 @@ int ps_widget_sprite_modify_palette(struct ps_widget *widget,int d) {
 
   ps_widget_sprite_force_unique_palette(widget,d);
   
+  return 0;
+}
+
+/* Rebuild input record so the sprite faces down, walking constantly.
+ */
+
+int ps_widget_sprite_set_action_walk_down(struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_sprite)) return -1;
+  ps_input_record_del(WIDGET->record);
+  if (!(WIDGET->record=ps_sprite_build_input_record_walk_down())) return -1;
   return 0;
 }

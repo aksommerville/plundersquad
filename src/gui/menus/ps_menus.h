@@ -48,6 +48,7 @@ int ps_widget_sprite_set_plrdefid(struct ps_widget *widget,int plrdefid);
 int ps_widget_sprite_set_palette(struct ps_widget *widget,int palette);
 int ps_widget_sprite_get_plrdefid(const struct ps_widget *widget);
 int ps_widget_sprite_get_palette(const struct ps_widget *widget);
+int ps_widget_sprite_set_action_walk_down(struct ps_widget *widget);
 
 /* Move value by one in either direction, and try to ensure that it remain valid.
  */

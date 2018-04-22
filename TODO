@@ -43,8 +43,6 @@ Optimization, cleanup, low priority:
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits
 - Clean up logging
-- src/scenario/ps_scgen.c:844: * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
-- ps_region.c:413: Handle region shape flags as independant bits even though there's only one flag in use
 - Review ps_widget_inputcfgpage for cases with (a) no devices or (b) only joysticks
 - src/gui/editor/ps_widget_sfxchan.c:300:  //TODO coordinate graph value limits with button in channel widget
 - src/opt/msaudio/ps_msaudio.c:117:  int buffer_size=8192; // bytes (TODO optimal size?)
@@ -54,7 +52,6 @@ Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
 - src/video/ps_image_decode.c:242:  /* TODO Image filter: Either improve it or take it out.
 - Revisit scenario encoding, make it work, add UI to support it
-- Input swap: Should we enable this for production use?
 - Review award assignment with realistic data
 - Should we pause or something when window loses focus?
 
@@ -63,7 +60,6 @@ Optional:
 - src/input/ps_input_report_reader.h:3: * TODO We don't support collection fields, like for HID keyboards. Should we? Our focus is joysticks.
 
 Blocked:
-- src/input/ps_input_action.c:1:// XXX I don't think "input action" is something we actually use. Look into removing this.
 - Full review of data
 - Documentation
 - Promo
@@ -72,3 +68,7 @@ Blocked:
 Rejected:
 - Scissor for sdraw blits. Only needed by editor.
   sdraw is already a performance problem. Don't make it any worse, just for the editor's sake.
+- Input swap: Should we enable this for production use?
+  No. Too complicated.
+- src/scenario/ps_scgen.c:844: * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
+  No harm, not worth the trouble.

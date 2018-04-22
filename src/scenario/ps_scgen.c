@@ -841,8 +841,10 @@ static int ps_scgen_populate_grid_margins(struct ps_scgen *scgen) {
 
 /* Given a screen with no region, how many regionless screens are contiguously attached?
  * Uses and resets screen->visited.
- * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
  * You may provide a limit to improve performance.
+ * This will give bad counts if there is a loop, due to resetting screen->visited after each step.
+ * That doesn't come up very often, and does no real harm when it does.
+ * We could fix it with an external list of visited screens, but I don't think that that's worthwhile.
  */
 
 static int ps_scgen_count_unassigned_regions(struct ps_scgen *scgen,struct ps_screen *screen,int limit) {

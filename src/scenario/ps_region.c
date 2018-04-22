@@ -410,8 +410,10 @@ static int ps_region_encode_to_buffer(struct ps_buffer *buffer,const struct ps_r
   for (i=region->shapec;i-->0;shape++) {
     const char *physics=ps_blueprint_cell_repr(shape->physics);
     const char *style=ps_region_shape_style_repr(shape->style);
-    const char *flags=ps_region_shape_flag_repr(shape->flags); //TODO must change if we add a second flag
-    if (!physics||!style||!flags) {
+    char flags[256];
+    int flagsc=ps_enum_repr_multiple(flags,sizeof(flags),shape->flags,1,ps_region_shape_flag_repr);
+    if (flagsc>=(int)sizeof(flags)) flagsc=-1;
+    if (!physics||!style||(flagsc<0)) {
       ps_log(RES,ERROR,"Unable to represent region shape (%d,%d,%d) = (%s,%s,%s)",shape->physics,shape->style,shape->flags,physics,style,flags);
       return -1;
     }

@@ -31,6 +31,7 @@ static void _ps_texture_del(struct ps_widget *widget) {
 static int _ps_texture_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
   if (WIDGET->texture) {
+    if (ps_video_flush_cached_drawing()<0) return -1;
     if (ps_video_draw_texture(WIDGET->texture,parentx+widget->x,parenty+widget->y,widget->w,widget->h)<0) return -1;
   }
   return 0;

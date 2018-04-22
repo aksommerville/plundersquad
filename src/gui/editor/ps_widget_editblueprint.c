@@ -16,6 +16,7 @@
 #include "util/ps_enums.h"
 #include "res/ps_resmgr.h"
 #include "os/ps_fs.h"
+#include "video/ps_video.h"
 
 static int ps_editblueprint_cb_back(struct ps_widget *button,struct ps_widget *widget);
 static int ps_editblueprint_cb_save(struct ps_widget *button,struct ps_widget *widget);
@@ -96,6 +97,7 @@ static struct ps_widget *ps_editblueprint_get_bpchart(const struct ps_widget *wi
 
 static int _ps_editblueprint_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
   if (ps_widget_draw_children(widget,parentx,parenty)<0) return -1;
   return 0;
 }

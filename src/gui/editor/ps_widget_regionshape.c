@@ -147,6 +147,7 @@ static int ps_regionshape_draw_preview(struct ps_widget *widget,int parentx,int 
   int dstx=parentx+widget->x+PS_REGIONSHAPE_MARGIN;
   int dsty=parenty+widget->y+(widget->h>>1)-((rowc*PS_TILESIZE)>>1);
   if (ps_video_draw_rect(dstx-1,dsty-1,colc*PS_TILESIZE+2,rowc*PS_TILESIZE+2,0x000000ff)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
   dstx+=PS_TILESIZE>>1;
   dsty+=PS_TILESIZE>>1;
 

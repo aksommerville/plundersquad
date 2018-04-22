@@ -132,6 +132,8 @@ static int ps_button_draw_border(struct ps_widget *widget,int parentx,int parent
 
 static int _ps_button_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
+  
   if (WIDGET->bevel_width>0) {
     if (ps_button_draw_bevel(widget,parentx,parenty)<0) return -1;
   }

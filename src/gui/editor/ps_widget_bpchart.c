@@ -146,10 +146,12 @@ static int _ps_bpchart_draw(struct ps_widget *widget,int parentx,int parenty) {
         ps_video_draw_rect(x,y,WIDGET->colw,WIDGET->rowh,ps_bpchart_color_for_cell(*cell));
       }
     }
+    if (ps_video_flush_cached_drawing()<0) return -1;
 
     /* Draw lines if wide enough. */
     if (WIDGET->colw>=4) ps_bpchart_draw_vertical_lines(widget,parentx,parenty);
     if (WIDGET->rowh>=4) ps_bpchart_draw_horizontal_lines(widget,parentx,parenty);
+    if (ps_video_flush_cached_drawing()<0) return -1;
 
     /* Draw POI. */
     if (blueprint->poic>0) {

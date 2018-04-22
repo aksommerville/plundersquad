@@ -100,8 +100,10 @@ static int ps_scrolllist_draw_children(struct ps_widget *widget,int parentx,int 
 
 static int _ps_scrolllist_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
   akgl_scissor(parentx+widget->x,parenty+widget->y,widget->w,widget->h);
   int err=ps_scrolllist_draw_children(widget,parentx,parenty);
+  if (ps_video_flush_cached_drawing()<0) return -1;
   akgl_scissor_none();
   return err;
 }

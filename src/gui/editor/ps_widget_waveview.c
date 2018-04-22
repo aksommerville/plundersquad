@@ -67,6 +67,7 @@ static void ps_waveview_offset_vertices(struct ps_widget *widget,int dx,int dy) 
 
 static int _ps_waveview_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
 
   if (WIDGET->vtxc>0) {
     parentx+=widget->x;

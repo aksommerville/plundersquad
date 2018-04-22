@@ -17,6 +17,7 @@
 #include "os/ps_fs.h"
 #include "util/ps_text.h"
 #include "akau/akau.h"
+#include "video/ps_video.h"
 
 #define PS_EDITREGION_SHAPE_COLOR_EVEN  0x80a0e0ff
 #define PS_EDITREGION_SHAPE_COLOR_ODD   0xa0c0e0ff
@@ -91,6 +92,7 @@ static struct ps_widget *ps_editregion_get_shapelist(const struct ps_widget *wid
 
 static int _ps_editregion_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
   if (ps_widget_draw_children(widget,parentx,parenty)<0) return -1;
   return 0;
 }

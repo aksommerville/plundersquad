@@ -88,7 +88,7 @@ int ps_video_draw_vert_gradient(int x,int y,int w,int h,uint32_t rgba_top,uint32
  */
  
 int ps_video_text_begin() {
-  if (ps_video_vtxv_reset(sizeof(struct akgl_vtx_textile))<0) return -1;
+  //if (ps_video_vtxv_reset(sizeof(struct akgl_vtx_textile))<0) return -1;
   return 0;
 }
 
@@ -143,6 +143,7 @@ int ps_video_text_addfv(int size,uint32_t rgba,int x,int y,const char *fmt,va_li
 }
 
 int ps_video_text_end(int resid) {
+#if 0//XXX
   if (ps_video.vtxsize!=sizeof(struct akgl_vtx_textile)) return -1;
   if (ps_video.vtxc<1) return 0;
 
@@ -156,6 +157,7 @@ int ps_video_text_end(int resid) {
   if (akgl_program_textile_draw(
     ps_video.program_textile,font,(struct akgl_vtx_textile*)ps_video.vtxv,ps_video.vtxc
   )<0) return -1;
+#endif
   return 0;
 }
 

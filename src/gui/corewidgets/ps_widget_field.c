@@ -81,6 +81,8 @@ static int _ps_field_draw(struct ps_widget *widget,int parentx,int parenty) {
     if (ps_video_text_end(WIDGET->font_resid)<0) return -1;
   }
 
+  if (ps_video_flush_cached_drawing()<0) return -1;
+
   if (WIDGET->focus) {
     if (++(WIDGET->insp_blink)>=PS_FIELD_INSERTION_POINT_BLINK_TIME) {
       WIDGET->insp_blink=-PS_FIELD_INSERTION_POINT_BLINK_TIME;

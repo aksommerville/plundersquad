@@ -206,7 +206,7 @@ int ps_video_update() {
     return -1;
   }
 
-  akgl_log_command_count();
+  //akgl_log_command_count();
   
   if (akgl_framebuffer_use(0)<0) return -1;
   

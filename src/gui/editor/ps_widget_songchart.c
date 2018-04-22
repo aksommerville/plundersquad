@@ -409,6 +409,7 @@ static int ps_songchart_draw_beats(struct ps_widget *widget,const struct ps_sem 
 
 static int _ps_songchart_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_songchart_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
 
   const struct ps_sem *sem=ps_widget_editsong_get_sem(widget);
   if (sem) {
@@ -419,7 +420,9 @@ static int _ps_songchart_draw(struct ps_widget *widget,int parentx,int parenty) 
 
     if (
       (ps_songchart_draw_lines(widget,sem,parentx,parenty)<0)||
-      (ps_songchart_draw_beats(widget,sem,parentx,parenty)<0)
+      (ps_video_flush_cached_drawing()<0)||
+      (ps_songchart_draw_beats(widget,sem,parentx,parenty)<0)||
+      (ps_video_flush_cached_drawing()<0)
     ) {
       akgl_scissor_none();
       return -1;

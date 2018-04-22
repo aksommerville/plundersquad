@@ -39,3 +39,6 @@ $(CFG_EDIT):etc/plundersquad.cfg;$(PRECMD) cp $< $@
 
 CMD_MAIN:=open -W $(BUNDLE_MAIN) --args --reopen-tty=$$(tty) --chdir=$$(pwd)
 CMD_EDIT:=open -W $(BUNDLE_EDIT) --args --reopen-tty=$$(tty) --chdir=$$(pwd)
+
+clean:remove-macos-preferences
+remove-macos-preferences:;rm -rf ~/Library/Preferences/com.aksommerville.plundersquad

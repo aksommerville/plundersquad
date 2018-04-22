@@ -23,6 +23,10 @@ extern struct ps_macioc {
   struct ps_input_provider *provider_system;
   struct ps_input_device *device_system;
   struct ps_userconfig *userconfig;
+  char *path_resources;
+  int path_resourcesc;
+  char *path_preferences;
+  int path_preferencesc;
 } ps_macioc;
 
 void ps_macioc_abort(const char *fmt,...);

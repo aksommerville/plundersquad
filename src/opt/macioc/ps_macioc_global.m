@@ -5,6 +5,7 @@
 #include "akgl/akgl.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 struct ps_macioc ps_macioc={0};
 
@@ -32,7 +33,7 @@ static void ps_macioc_surelog(const char *fmt,...) {
  */
 
 static int ps_macioc_get_resource_path(char *dst,int dsta,const char *suffix) {
-
+#if 0 // XXX We now cache the resources path globally.
   /* Copy bundle's resourcePath to dst. */
   NSBundle *bundle=[NSBundle mainBundle];
   const char *src=[[bundle resourcePath] UTF8String];
@@ -53,6 +54,112 @@ static int ps_macioc_get_resource_path(char *dst,int dsta,const char *suffix) {
 
   dst[dstc]=0;
   return dstc;
+#endif
+
+  if (!dst||(dsta<0)) dsta=0;
+  int dstc=snprintf(dst,dsta,"%.*s/%s",ps_macioc.path_resourcesc,ps_macioc.path_resources,suffix);
+  if ((dstc<1)||(dstc>=dsta)) return -1;
+  return dstc;
+}
+
+static int ps_macioc_get_preferences_path(char *dst,int dsta,const char *suffix) {
+  if (!dst||(dsta<0)) dsta=0;
+  int dstc=snprintf(dst,dsta,"%.*s/%s",ps_macioc.path_preferencesc,ps_macioc.path_preferences,suffix);
+  if ((dstc<1)||(dstc>=dsta)) return -1;
+  return dstc;
+}
+
+/* If a file doesn't exist in ~/Library/Preferences/com.aksommerville.plundersquad, copy it from the app bundle.
+ */
+
+static int ps_macioc_ensure_preferences_file(const char *basename) {
+
+  char dstpath[1024];
+  int dstpathc=snprintf(dstpath,sizeof(dstpath),"%.*s/%s",ps_macioc.path_preferencesc,ps_macioc.path_preferences,basename);
+  if ((dstpathc<1)||(dstpathc>=sizeof(dstpath))) return -1;
+
+  struct stat st;
+  if (stat(dstpath,&st)>=0) return 0;
+  
+  char srcpath[1024];
+  int srcpathc=snprintf(srcpath,sizeof(srcpath),"%.*s/%s",ps_macioc.path_resourcesc,ps_macioc.path_resources,basename);
+  if ((srcpathc<1)||(srcpathc>=sizeof(srcpath))) return -1;
+
+  void *src=0;
+  int srcc=ps_file_read(&src,srcpath);
+  if ((srcc<0)||!src) {
+    ps_log(MACIOC,ERROR,"%s: failed to copy file to preferences",srcpath);
+    return -1;
+  }
+  if (ps_file_write(dstpath,src,srcc)<0) {
+    ps_log(MACIOC,ERROR,"%s: failed to copy file to preferences",dstpath);
+    free(src);
+    return -1;
+  }
+  free(src);
+
+  return 0;
+}
+
+/* Check whether the preferences directory exists.
+ * Copy from app bundle as needed.
+ * The volatile config files in our app bundle must not be changed, otherwise we would break the code signature.
+ */
+
+static int ps_macioc_copy_resources_to_preferences() {
+
+  /* Acquire resources path. */
+  if (!ps_macioc.path_resources) {
+    const char *src=[[[NSBundle mainBundle] resourcePath] UTF8String];
+    if (!src) {
+      ps_log(MACIOC,FATAL,"Failed to acquire bundle resource path.");
+      return -1;
+    }
+    int srcc=0;
+    while (src[srcc]) srcc++;
+    if (!(ps_macioc.path_resources=malloc(srcc+1))) return -1;
+    memcpy(ps_macioc.path_resources,src,srcc);
+    ps_macioc.path_resources[srcc]=0;
+    ps_macioc.path_resourcesc=srcc;
+  }
+
+  /* Acquire preferences path. */
+  if (!ps_macioc.path_preferences) {
+    const char *sfx="/Library/Preferences/com.aksommerville.plundersquad";
+    const char *pfx="";
+    const char *src=getenv("HOME");
+    if (!src||!src[0]) {
+      src=getenv("USER");
+      if (!src||!src[0]) {
+        ps_log(MACIOC,FATAL,"Failed to acquire home directory.");
+        return -1;
+      }
+      pfx="/Users/";
+    }
+    int pfxc=0; while (pfx[pfxc]) pfxc++;
+    int srcc=0; while (src[srcc]) srcc++;
+    int sfxc=0; while (sfx[sfxc]) sfxc++;
+    int dstc=pfxc+srcc+sfxc;
+    if (!(ps_macioc.path_preferences=malloc(dstc+1))) return -1;
+    memcpy(ps_macioc.path_preferences,pfx,pfxc);
+    memcpy(ps_macioc.path_preferences+pfxc,src,srcc);
+    memcpy(ps_macioc.path_preferences+pfxc+srcc,sfx,sfxc);
+    ps_macioc.path_preferences[dstc]=0;
+    ps_macioc.path_preferencesc=dstc;
+  }
+
+  /* Create preferences directory if not existing. */
+  if (ps_mkdir(ps_macioc.path_preferences)<0) {
+    ps_log(MACIOC,FATAL,"%s: Failed to create preferences directory.",ps_macioc.path_preferences);
+    return -1;
+  }
+
+  /* Copy each of the volatile files if it doesn't exist in preferences. */
+  if (ps_macioc_ensure_preferences_file("plundersquad.cfg")<0) return -1;
+  if (ps_macioc_ensure_preferences_file("input.cfg")<0) return -1;
+  //if (ps_macioc_ensure_preferences_file("highscores")<0) return -1; // highscores is optional and doesn't exist in the bundle
+
+  return 0;
 }
 
 /* First pass through argv.
@@ -99,16 +206,16 @@ static int ps_macioc_set_defaults() {
   char path[1024];
   int pathc;
 
-  if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"plundersquad.cfg"))<0) return -1;
+  if ((pathc=ps_macioc_get_preferences_path(path,sizeof(path),"plundersquad.cfg"))<0) return -1;
   if (ps_file_list_add(ps_userconfig_get_config_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
 
-  if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"input.cfg"))<0) return -1;
+  if ((pathc=ps_macioc_get_preferences_path(path,sizeof(path),"input.cfg"))<0) return -1;
   if (ps_file_list_add(ps_userconfig_get_input_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
 
   if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"ps-data"))<0) return -1;
   if (ps_file_list_add(ps_userconfig_get_data_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
 
-  if ((pathc=ps_macioc_get_resource_path(path,sizeof(path),"highscores"))<0) return -1;
+  if ((pathc=ps_macioc_get_preferences_path(path,sizeof(path),"highscores"))<0) return -1;
   if (ps_file_list_add(ps_userconfig_get_highscores_file_list(ps_macioc.userconfig),-1,path,pathc)<0) return -1;
 
   return 0;
@@ -119,6 +226,8 @@ static int ps_macioc_set_defaults() {
 
 static int ps_macioc_configure(int argc,char **argv) {
   int argp;
+
+  if (ps_macioc_copy_resources_to_preferences()<0) return -1;
 
   if (ps_userconfig_declare_default_fields(ps_macioc.userconfig)<0) return -1;
   if (ps_macioc_argv_prerun(argc,argv)<0) return -1;
@@ -132,6 +241,9 @@ static int ps_macioc_configure(int argc,char **argv) {
   if (err) {
     if (ps_userconfig_save_file(ps_macioc.userconfig)<0) return -1;
   }
+
+  ps_log(MACIOC,INFO,"Resources: %.*s",ps_macioc.path_resourcesc,ps_macioc.path_resources);
+  ps_log(MACIOC,INFO,"Preferences: %.*s",ps_macioc.path_preferencesc,ps_macioc.path_preferences);
 
   return 0;
 }

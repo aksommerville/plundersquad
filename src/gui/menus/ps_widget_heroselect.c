@@ -18,6 +18,7 @@
 #include "video/ps_video.h"
 #include "os/ps_clockassist.h"
 #include "game/ps_sound_effects.h"
+#include "util/ps_enums.h"
 
 #define PS_HEROSELECT_PHASE_WELCOME   1 /* Not clicked in. */
 #define PS_HEROSELECT_PHASE_QUERY     2 /* Select hero and colors. */

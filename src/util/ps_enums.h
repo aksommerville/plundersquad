@@ -83,4 +83,18 @@ const char *ps_log_domain_repr(int domain);
 int ps_log_level_eval(const char *src,int srcc);
 const char *ps_log_level_repr(int level);
 
+/* ps_input_button.h:PS_PLRBTN_*
+ * 16-bit mask.
+ */
+const char *ps_plrbtn_repr(int btnid);
+int ps_plrbtn_eval(const char *src,int srcc);
+int ps_btnid_repr(char *dst,int dsta,int btnid);
+int ps_btnid_eval(const char *src,int srcc);
+
+/* ps_input_button.h:PS_INPUT_PROVIDER_*
+ * Zero-based integer.
+ */
+int ps_input_provider_repr(char *dst,int dsta,int providerid);
+int ps_input_provider_eval(const char *src,int srcc);
+
 #endif

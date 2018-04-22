@@ -20,6 +20,7 @@
 #include "input/ps_input_config.h"
 #include "input/ps_input_icfg.h"
 #include "os/ps_clockassist.h"
+#include "util/ps_enums.h"
 
 #define PS_INPUTCFG_TEXT_MARGIN 5
 #define PS_INPUTCFG_MAP_COUNT 7

@@ -37,16 +37,4 @@
 #define PS_INPUT_PROVIDER_mswm         6
 #define PS_INPUT_PROVIDER_mshid        7
 
-const char *ps_plrbtn_repr(int btnid);
-int ps_plrbtn_eval(const char *src,int srcc);
-
-int ps_btnid_repr(char *dst,int dsta,int btnid);
-int ps_btnid_eval(const char *src,int srcc);
-
-int ps_input_provider_repr(char *dst,int dsta,int providerid);
-int ps_input_provider_eval(const char *src,int srcc);
-
-int ps_input_hid_usage_repr(char *dst,int dsta,int usage);
-int ps_input_hid_usage_eval(int *usage,const char *src,int srcc);
-
 #endif

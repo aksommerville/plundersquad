@@ -5,6 +5,7 @@
 #include "ps_input_map.h"
 #include "ps_input.h"
 #include "util/ps_text.h"
+#include "util/ps_enums.h"
 
 /* Object lifecycle.
  */

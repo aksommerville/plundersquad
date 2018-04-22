@@ -3,6 +3,7 @@
 #include "ps_input_maptm.h"
 #include "ps_input_map.h"
 #include "ps_input_config.h"
+#include "util/ps_enums.h"
 #include "gui/ps_gui.h"
 #include "video/ps_video.h"
 

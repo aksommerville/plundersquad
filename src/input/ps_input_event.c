@@ -92,23 +92,17 @@ static int ps_input_event_button_cb(int plrid,int btnid,int value,void *userdata
 
   if (ps_input_device_call_button_watchers(device,btnid,value,1)<0) return -1;
 
-  if (btnid&~0xffff) {
+  if ((plrid>=1)&&(plrid<=PS_PLAYER_LIMIT)) {
     if (value) {
-      return ps_input_fire_action(btnid);
-    }
-  } else {
-    if ((plrid>=1)&&(plrid<=PS_PLAYER_LIMIT)) {
-      if (value) {
-        ps_input.plrbtnv[plrid]|=btnid;
-      } else {
-        ps_input.plrbtnv[plrid]&=~btnid;
-      }
-    }
-    if (value) {
-      ps_input.plrbtnv[0]|=btnid;
+      ps_input.plrbtnv[plrid]|=btnid;
     } else {
-      ps_input.plrbtnv[0]&=~btnid;
+      ps_input.plrbtnv[plrid]&=~btnid;
     }
+  }
+  if (value) {
+    ps_input.plrbtnv[0]|=btnid;
+  } else {
+    ps_input.plrbtnv[0]&=~btnid;
   }
   
   return 0;

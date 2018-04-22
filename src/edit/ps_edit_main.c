@@ -147,13 +147,6 @@ static int ps_edit_update() {
   return 0;
 }
 
-/* Respond to input actions.
- */
- 
-int ps_main_input_action_callback(int actionid) {
-  return 0;
-}
-
 /* Main entry point.
  */
 

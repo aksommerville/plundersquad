@@ -181,10 +181,3 @@ int main(int argc,char **argv) {
 
   return ps_test_report_results();
 }
-
-/* Stubs.
- */
-
-int ps_main_input_action_callback(int actionid) {
-  return 0;
-}

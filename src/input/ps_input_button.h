@@ -23,20 +23,6 @@
 #define PS_PLRBTN_THUMB  (PS_PLRBTN_A|PS_PLRBTN_B)
 #define PS_PLRBTN_AUX    (PS_PLRBTN_START)
 
-#define PS_ACTION_WARPN         0x00010001
-#define PS_ACTION_WARPS         0x00010002
-#define PS_ACTION_WARPW         0x00010003
-#define PS_ACTION_WARPE         0x00010004
-#define PS_ACTION_PAUSE         0x00010005 /* toggle */
-#define PS_ACTION_PAUSEON       0x00010006
-#define PS_ACTION_PAUSEOFF      0x00010007
-#define PS_ACTION_FULLSCREEN    0x00010008 /* toggle */
-#define PS_ACTION_FULLSCREENON  0x00010009
-#define PS_ACTION_FULLSCREENOFF 0x0001000a
-#define PS_ACTION_QUIT          0x0001000b
-#define PS_ACTION_SCREENSHOT    0x0001000c
-#define PS_ACTION_DEBUG         0x0001000d
-
 #define PS_MBTN_LEFT    1
 #define PS_MBTN_MIDDLE  2
 #define PS_MBTN_RIGHT   3
@@ -53,8 +39,6 @@
 
 const char *ps_plrbtn_repr(int btnid);
 int ps_plrbtn_eval(const char *src,int srcc);
-const char *ps_action_repr(int action);
-int ps_action_eval(const char *src,int srcc);
 
 int ps_btnid_repr(char *dst,int dsta,int btnid);
 int ps_btnid_eval(const char *src,int srcc);

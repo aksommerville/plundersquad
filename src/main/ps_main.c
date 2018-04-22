@@ -341,19 +341,6 @@ static int ps_main_update() {
   return 0;
 }
 
-/* Respond to actions from the input core.
- */
-
-int ps_main_input_action_callback(int actionid) {
-  switch (actionid) {
-    case PS_ACTION_WARPW: return ps_game_force_next_screen(ps_game,-1,0);
-    case PS_ACTION_WARPE: return ps_game_force_next_screen(ps_game,1,0);
-    case PS_ACTION_WARPN: return ps_game_force_next_screen(ps_game,0,-1);
-    case PS_ACTION_WARPS: return ps_game_force_next_screen(ps_game,0,1);
-  }
-  return 0;
-}
-
 /* Main entry point.
  */
 

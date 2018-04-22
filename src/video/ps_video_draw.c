@@ -263,15 +263,14 @@ int ps_video_draw_mintile(const struct akgl_vtx_mintile *vtxv,int vtxc,uint8_t t
 int ps_video_draw_maxtile(const struct akgl_vtx_maxtile *vtxv,int vtxc,uint8_t tsid) {
   if ((vtxc<0)||(vtxc&&!vtxv)) return -1;
 
-  struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,tsid);
-  if (!tilesheet) {
-    ps_log(VIDEO,ERROR,"Tilesheet %d not found.",tsid);
-    return -1;
+  if (ps_video.vtxc_maxtile&&(ps_video.tsid_maxtile!=tsid)) {
+    if (ps_video_flush_cached_drawing()<0) return -1;
   }
+  ps_video.tsid_maxtile=tsid;
 
-  if (akgl_program_maxtile_draw(
-    ps_video.program_maxtile,tilesheet->texture,vtxv,vtxc
-  )<0) return -1;
+  if (ps_video_vtxv_maxtile_require(vtxc)<0) return -1;
+  memcpy(ps_video.vtxv_maxtile+ps_video.vtxc_maxtile,vtxv,sizeof(struct akgl_vtx_maxtile)*vtxc);
+  ps_video.vtxc_maxtile+=vtxc;
   
   return 0;
 }

@@ -103,6 +103,8 @@ int akgl_program_mintile_draw(struct akgl_program *program,struct akgl_texture *
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
 
+  akgl.cmdc++;
+
   return 0;
 }
 

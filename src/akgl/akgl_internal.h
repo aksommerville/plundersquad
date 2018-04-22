@@ -63,6 +63,8 @@ extern struct akgl {
   int screenw,screenh;
   struct akgl_framebuffer *framebuffer;
   GLuint soft_fbtexid;
+  int cmdc;
+  int cmdc_logged;
 } akgl;
 
 void akgl_set_uniform_screen_size(GLuint location);

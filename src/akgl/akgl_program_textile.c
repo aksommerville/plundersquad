@@ -107,6 +107,8 @@ int akgl_program_textile_draw(struct akgl_program *program,struct akgl_texture *
   glDisableVertexAttribArray(2);
   glDisableVertexAttribArray(3);
 
+  akgl.cmdc++;
+
   return 0;
 }
 

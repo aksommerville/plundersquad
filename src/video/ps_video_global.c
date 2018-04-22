@@ -148,6 +148,9 @@ void ps_video_quit() {
   #endif
 
   if (ps_video.vtxv) free(ps_video.vtxv);
+  if (ps_video.vtxv_triangle) free(ps_video.vtxv_triangle);
+  if (ps_video.vtxv_textile) free(ps_video.vtxv_textile);
+  if (ps_video.vtxv_maxtile) free(ps_video.vtxv_maxtile);
 
   memset(&ps_video,0,sizeof(struct ps_video));
 }
@@ -182,6 +185,7 @@ static int ps_video_draw_layers(int game_only) {
     struct ps_video_layer *layer=ps_video.layerv[i];
     if (!layer->draw) continue;
     if (layer->draw(layer)<0) return -1;
+    if (ps_video_flush_cached_drawing()<0) return -1;
     if (game_only) break; // Foolishly assume that the bottom layer is the game.
   }
 
@@ -201,6 +205,8 @@ int ps_video_update() {
     ps_log(VIDEO,ERROR,"Failed to render content layers.");
     return -1;
   }
+
+  akgl_log_command_count();
   
   if (akgl_framebuffer_use(0)<0) return -1;
   
@@ -497,6 +503,48 @@ void *ps_video_vtxv_add(int addc) {
   void *result=ps_video.vtxv+ps_video.vtxc*ps_video.vtxsize;
   ps_video.vtxc+=addc;
   return result;
+}
+
+int ps_video_vtxv_triangle_require(int addc) {
+  if (addc<1) return 0;
+  if (ps_video.vtxc_triangle>INT_MAX-addc) return -1;
+  int na=ps_video.vtxc_triangle+addc;
+  if (na<=ps_video.vtxa_triangle) return 0;
+  if (na<INT_MAX-32) na=(na+32)&~31;
+  if (na>INT_MAX/sizeof(struct akgl_vtx_raw)) return -1;
+  void *nv=realloc(ps_video.vtxv_triangle,sizeof(struct akgl_vtx_raw)*na);
+  if (!nv) return -1;
+  ps_video.vtxv_triangle=nv;
+  ps_video.vtxa_triangle=na;
+  return 0;
+}
+
+int ps_video_vtxv_textile_require(int addc) {
+  if (addc<1) return 0;
+  if (ps_video.vtxc_textile>INT_MAX-addc) return -1;
+  int na=ps_video.vtxc_textile+addc;
+  if (na<=ps_video.vtxa_textile) return 0;
+  if (na<INT_MAX-32) na=(na+32)&~31;
+  if (na>INT_MAX/sizeof(struct akgl_vtx_textile)) return -1;
+  void *nv=realloc(ps_video.vtxv_textile,sizeof(struct akgl_vtx_textile)*na);
+  if (!nv) return -1;
+  ps_video.vtxv_textile=nv;
+  ps_video.vtxa_textile=na;
+  return 0;
+}
+
+int ps_video_vtxv_maxtile_require(int addc) {
+  if (addc<1) return 0;
+  if (ps_video.vtxc_maxtile>INT_MAX-addc) return -1;
+  int na=ps_video.vtxc_maxtile+addc;
+  if (na<=ps_video.vtxa_maxtile) return 0;
+  if (na<INT_MAX-32) na=(na+32)&~31;
+  if (na>INT_MAX/sizeof(struct akgl_vtx_maxtile)) return -1;
+  void *nv=realloc(ps_video.vtxv_maxtile,sizeof(struct akgl_vtx_maxtile)*na);
+  if (!nv) return -1;
+  ps_video.vtxv_maxtile=nv;
+  ps_video.vtxa_maxtile=na;
+  return 0;
 }
 
 /* Fullscreen toggle.

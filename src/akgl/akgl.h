@@ -61,6 +61,8 @@ int akgl_scissor_none();
  */
 struct ps_sdraw_image *akgl_get_output_image();
 
+void akgl_log_command_count();
+
 /* Texture.
  *****************************************************************************/
 
@@ -141,6 +143,7 @@ struct akgl_program *akgl_program_raw_new();
 int akgl_program_raw_draw_triangle_strip(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc);
 int akgl_program_raw_draw_line_strip(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int width);
 int akgl_program_raw_draw_points(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int size);
+int akgl_program_raw_draw_triangles(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc);
 
 struct akgl_program *akgl_program_fbxfer_new();
 int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffer *framebuffer,int x,int y,int w,int h);

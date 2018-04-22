@@ -63,6 +63,15 @@ extern struct ps_video {
   int vtxc; // vertex count
   int vtxa; // *byte* count
   int vtxsize;
+
+  // Vertex buffers for command coalesce.
+  struct akgl_vtx_raw *vtxv_triangle;
+  int vtxc_triangle,vtxa_triangle;
+  struct akgl_vtx_textile *vtxv_textile;
+  int vtxc_textile,vtxa_textile;
+  struct akgl_vtx_maxtile *vtxv_maxtile;
+  int vtxc_maxtile,vtxa_maxtile;
+  uint8_t tsid_maxtile;
   
 } ps_video;
 
@@ -77,6 +86,10 @@ int ps_video_load_minfont(struct akgl_texture *texture);
  */
 int ps_video_vtxv_reset(int size);
 void *ps_video_vtxv_add(int addc);
+
+int ps_video_vtxv_triangle_require(int addc);
+int ps_video_vtxv_textile_require(int addc);
+int ps_video_vtxv_maxtile_require(int addc);
 
 int ps_video_redraw_game_only();
 

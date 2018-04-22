@@ -98,6 +98,8 @@ int akgl_program_fbxfer_draw(struct akgl_program *program,struct akgl_framebuffe
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
 
+  akgl.cmdc++;
+
   return 0;
 }
 

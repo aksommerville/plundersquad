@@ -22,6 +22,17 @@ int akgl_clear_error() {
   return err;
 }
 
+/* Log command count for assessing scene complexity (ie debugging only).
+ */
+
+void akgl_log_command_count() {
+  if (akgl.cmdc!=akgl.cmdc_logged) {
+    ps_log(VIDEO,DEBUG,"akgl command count: %d",akgl.cmdc);
+    akgl.cmdc_logged=akgl.cmdc;
+  }
+  akgl.cmdc=0;
+}
+
 /* Init.
  */
 

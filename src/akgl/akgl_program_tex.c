@@ -86,6 +86,8 @@ int akgl_program_tex_draw(struct akgl_program *program,struct akgl_texture *text
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
 
+  akgl.cmdc++;
+
   return 0;
 }
 

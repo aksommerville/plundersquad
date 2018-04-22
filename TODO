@@ -17,7 +17,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Combine text and sprite render passes in GUI.
 - Record top scores
 - Resource test to validate switch ID assignment
 

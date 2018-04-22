@@ -76,4 +76,9 @@ int ps_video_draw_maxtile(const struct akgl_vtx_maxtile *vtxv,int vtxc,uint8_t t
 int ps_video_draw_line_strip(const struct akgl_vtx_raw *vtxv,int vtxc);
 int ps_video_draw_texture(struct akgl_texture *texture,int x,int y,int w,int h);
 
+/* Any of the above functions may store into a private vertex cache.
+ * If the order of rendering matters, call this to flush commands out to AKGL.
+ */
+int ps_video_flush_cached_drawing();
+
 #endif

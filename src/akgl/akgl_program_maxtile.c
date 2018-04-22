@@ -227,6 +227,8 @@ int akgl_program_maxtile_draw(struct akgl_program *program,struct akgl_texture *
   glDisableVertexAttribArray(5);
   glDisableVertexAttribArray(6);
 
+  akgl.cmdc++;
+
   return 0;
 }
 

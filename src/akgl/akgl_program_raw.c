@@ -81,6 +81,8 @@ static int akgl_program_raw_draw_primitives(struct akgl_program *program,const s
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
 
+  akgl.cmdc++;
+
   return 0;
 }
 
@@ -94,6 +96,13 @@ int akgl_program_raw_draw_triangle_strip(struct akgl_program *program,const stru
   }
 
   return akgl_program_raw_draw_primitives(program,vtxv,vtxc,GL_TRIANGLE_STRIP);
+}
+
+int akgl_program_raw_draw_triangles(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc) {
+  if (akgl.strategy==AKGL_STRATEGY_SOFT) {
+    return 0;
+  }
+  return akgl_program_raw_draw_primitives(program,vtxv,vtxc,GL_TRIANGLES);
 }
 
 int akgl_program_raw_draw_line_strip(struct akgl_program *program,const struct akgl_vtx_raw *vtxv,int vtxc,int width) {

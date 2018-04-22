@@ -321,3 +321,19 @@ static int ps_heropacker_cb_disconnect(struct ps_input_device *device,void *user
   if (ps_heropacker_remove_player(widget,device)<0) return -1;
   return 0;
 }
+
+/* Count how many of my children are interacting with users.
+ */
+ 
+int ps_widget_heropacker_count_active_players(const struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_heropacker)) return 0;
+  int playerc=0;
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *heroselect=widget->childv[i];
+    if (!heroselect||(heroselect->type!=&ps_widget_type_heroselect)) continue;
+    if (ps_widget_heroselect_is_pending(heroselect)||ps_widget_heroselect_is_ready(heroselect)) {
+      playerc++;
+    }
+  }
+  return playerc;
+}

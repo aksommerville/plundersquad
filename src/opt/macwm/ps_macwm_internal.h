@@ -19,6 +19,12 @@
   #endif
 #endif
 
+/* If nonzero, we create 8 fake input devices each with a single button, driven by the keyboard.
+ * DO NOT ENABLE IN PRODUCTION BUILDS.
+ * This is for testing player count limits.
+ */
+#define PS_MACWM_CREATE_FAKE_INPUT_DEVICES 0
+
 /* Declaration of window class.
  */
 
@@ -55,6 +61,9 @@ extern struct ps_macwm {
   struct ps_input_device *device_keyboard;
   struct ps_input_device *device_mouse;
   int keys_down[PS_MACWM_KEYS_DOWN_LIMIT];
+  #if PS_MACWM_CREATE_FAKE_INPUT_DEVICES
+    struct ps_input_device *device_fake[8];
+  #endif
 } ps_macwm;
 
 /* Miscellaneous.

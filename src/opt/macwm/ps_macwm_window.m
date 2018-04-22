@@ -155,6 +155,19 @@
   int key=ps_macwm_translate_keysym(event.keyCode);
   if (!codepoint&&!key) return;
 
+  #if PS_MACWM_CREATE_FAKE_INPUT_DEVICES
+    switch (codepoint) {
+      case 'q': ps_input_event_button(ps_macwm.device_fake[0],458781,state); break;
+      case 'w': ps_input_event_button(ps_macwm.device_fake[1],458781,state); break;
+      case 'e': ps_input_event_button(ps_macwm.device_fake[2],458781,state); break;
+      case 'r': ps_input_event_button(ps_macwm.device_fake[3],458781,state); break;
+      case 't': ps_input_event_button(ps_macwm.device_fake[4],458781,state); break;
+      case 'y': ps_input_event_button(ps_macwm.device_fake[5],458781,state); break;
+      case 'u': ps_input_event_button(ps_macwm.device_fake[6],458781,state); break;
+      case 'i': ps_input_event_button(ps_macwm.device_fake[7],458781,state); break;
+    }
+  #endif
+
   ps_macwm_record_key_down(event.keyCode);
 
   if (ps_input_event_button(ps_macwm.device_keyboard,key,state)<0) {
@@ -170,6 +183,26 @@
   ps_macwm_release_key_down(event.keyCode);
   int key=ps_macwm_translate_keysym(event.keyCode);
   if (!key) return;
+
+  #if PS_MACWM_CREATE_FAKE_INPUT_DEVICES
+    int codepoint=0;
+    const char *src=event.characters.UTF8String;
+    if (src&&src[0]) {
+      if (ps_macwm_decode_utf8(&codepoint,src,-1)<1) codepoint=0;
+      else codepoint=ps_macwm_translate_codepoint(codepoint);
+    }
+    switch (codepoint) {
+      case 'q': ps_input_event_button(ps_macwm.device_fake[0],458781,0); break;
+      case 'w': ps_input_event_button(ps_macwm.device_fake[1],458781,0); break;
+      case 'e': ps_input_event_button(ps_macwm.device_fake[2],458781,0); break;
+      case 'r': ps_input_event_button(ps_macwm.device_fake[3],458781,0); break;
+      case 't': ps_input_event_button(ps_macwm.device_fake[4],458781,0); break;
+      case 'y': ps_input_event_button(ps_macwm.device_fake[5],458781,0); break;
+      case 'u': ps_input_event_button(ps_macwm.device_fake[6],458781,0); break;
+      case 'i': ps_input_event_button(ps_macwm.device_fake[7],458781,0); break;
+    }
+  #endif
+  
   if (ps_input_event_button(ps_macwm.device_keyboard,key,0)<0) {
     ps_macwm_abort("Failure in key event handler.");
   }

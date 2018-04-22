@@ -30,6 +30,8 @@
 
 #define PS_HEROSELECT_SPRDEF_ID 1
 
+#define PS_HEROSELECT_TOO_MANY_PLAYERS_WARNING_TTL 120
+
 int ps_heroselect_rebuild_children_for_phase(struct ps_widget *widget,int phase);
 
 /* Object definition.
@@ -43,6 +45,7 @@ struct ps_widget_heroselect {
   int64_t input_delay; // If nonzero, discard input events until after this time.
   int plrdefid;
   int palette;
+  int64_t too_many_players_warning; // Timestamp when warning was issued.
 
   struct ps_input_icfg *icfg;
 };
@@ -142,8 +145,22 @@ int ps_heroselect_rebuild_children_for_phase(struct ps_widget *widget,int phase)
     case PS_HEROSELECT_PHASE_WELCOME: {
         if (ps_heroselect_spawn_device_label(widget)<0) return -1;
         if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1;
-        if (ps_widget_label_set_text(child,"Click in!",-1)<0) return -1;
-        child->fgrgba=0xffffffff;
+
+        /* Drop the "too many players" warning if it's stale. */
+        if (WIDGET->too_many_players_warning) {
+          int64_t now=ps_time_now();
+          if (WIDGET->too_many_players_warning+PS_HEROSELECT_TOO_MANY_PLAYERS_WARNING_TTL<=now) {
+            WIDGET->too_many_players_warning=0;
+          }
+        }
+
+        if (WIDGET->too_many_players_warning) {
+          if (ps_widget_label_set_text(child,"Limit 8",-1)<0) return -1;
+          child->fgrgba=0xffa0c0ff;
+        } else {
+          if (ps_widget_label_set_text(child,"Click in!",-1)<0) return -1;
+          child->fgrgba=0xffffffff;
+        }
       } break;
 
     case PS_HEROSELECT_PHASE_QUERY: {
@@ -430,6 +447,16 @@ static int ps_heroselect_modify(struct ps_widget *widget,int dx,int dy) {
  */
 
 static int ps_heroselect_advance(struct ps_widget *widget) {
+
+  int activec=ps_widget_heropacker_count_active_players(widget->parent);
+  if ((WIDGET->phase==PS_HEROSELECT_PHASE_WELCOME)&&(activec>=PS_PLAYER_LIMIT)) {
+    WIDGET->too_many_players_warning=ps_time_now();
+    if (ps_heroselect_rebuild_children_for_phase(widget,PS_HEROSELECT_PHASE_WELCOME)<0) return -1;
+    if (ps_widget_pack(widget)<0) return -1;
+    WIDGET->input_delay=ps_time_now()+PS_HEROSELECT_INPUT_DELAY;
+    return 0;
+  }
+
   int nextphase;
   switch (WIDGET->phase) {
     case PS_HEROSELECT_PHASE_WELCOME: nextphase=PS_HEROSELECT_PHASE_QUERY; break;

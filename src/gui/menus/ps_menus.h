@@ -38,6 +38,8 @@ int ps_widget_heroselect_get_palette(const struct ps_widget *widget);
 int ps_widget_heroselect_is_pending(const struct ps_widget *widget); // => nonzero if user is choosing, not ready
 int ps_widget_heroselect_is_ready(const struct ps_widget *widget); // => nonzero if selection is complete
 
+int ps_widget_heropacker_count_active_players(const struct ps_widget *widget);
+
 /* Drop the current sprite and replace with a new one by instantiating a sprdef resource.
  */
 int ps_widget_sprite_load_sprdef(struct ps_widget *widget,int sprdefid);

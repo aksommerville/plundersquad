@@ -1,6 +1,7 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
+- Reassign input device after disconnect and reconnect.
 
 Raspi errors:
 
@@ -36,6 +37,7 @@ Linux:
 - src/opt/glx/ps_glx_global.c:298:      //TODO Test window icon for big-endian GLX. Do we have a PowerPC box somewhere?
 
 Raspi:
+- Does keyboard work on inputcfgpage?
 
 Optimization, cleanup, low priority:
 - src/input/ps_input_report_reader.c:365:  // TODO This comparison could be more efficient. Especially with bitfields; it seems wasteful to examine each bit individually.

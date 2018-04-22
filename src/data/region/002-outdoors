@@ -1,12 +1,12 @@
 tilesheet 2
 song 6
-monster 30
-monster 13
-monster 9
-monster 29
-monster 15
-monster 28
 monster 32
+monster 28
+monster 15
+monster 29
+monster 9
+monster 13
+monster 30
 shape VACANT 100 0 ALT16 
 shape SOLID 100 65 SKINNY ROUND
 shape SOLID 100 69 FAT ROUND
@@ -16,7 +16,8 @@ shape HOLE 100 132 SKINNY ROUND
 shape HOLE 100 136 FAT ROUND
 shape LATCH 100 75 FAT ROUND
 shape LATCH 100 110 SINGLE ROUND
+shape LATCH 50 192 FAT ROUND
 shape HEAL 100 205 3X3 
 shape HEAL 1 204 SINGLE 
 shape STATUSREPORT 0 9 FAT ROUND
-shape LATCH 50 192 FAT ROUND
+shape HOLE 0 216 FAT ROUND

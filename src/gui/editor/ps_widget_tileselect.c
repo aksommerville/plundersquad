@@ -93,6 +93,7 @@ static int ps_tileselect_tile_from_point(const struct ps_widget *widget,int x,in
 
 static int _ps_tileselect_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
   parentx+=widget->x;
   parenty+=widget->y;
 

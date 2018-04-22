@@ -99,6 +99,7 @@ static int ps_sfxgraph_draw_lines(struct ps_widget *widget,int parentx,int paren
 
 static int _ps_sfxgraph_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
   if (ps_sfxgraph_draw_lines(widget,parentx,parenty)<0) return -1;
   if (ps_widget_draw_children(widget,parentx,parenty)<0) return -1;
   return 0;

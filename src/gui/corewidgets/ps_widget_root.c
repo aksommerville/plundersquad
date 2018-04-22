@@ -78,6 +78,7 @@ static int _ps_root_draw(struct ps_widget *widget,int parentx,int parenty) {
   } else {
     int i=0; for (;i<widget->childc-1;i++) {
       if (ps_widget_draw(widget->childv[i],parentx,parenty)<0) return -1;
+      if (ps_video_flush_cached_drawing()<0) return -1;
     }
     if (ps_video_draw_rect(parentx,parenty,widget->w,widget->h,widget->fgrgba)<0) return -1;
     if (ps_widget_draw(widget->childv[widget->childc-1],parentx,parenty)<0) return -1;

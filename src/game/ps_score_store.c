@@ -168,3 +168,64 @@ int ps_score_store_add_record(
 
   return 0;
 }
+
+/* Count plrdefid.
+ */
+
+static int ps_score_store_search_plrdefid_usage(const int *dstv,int dstc,int plrdefid) {
+  int lo=0,hi=dstc;
+  while (lo<hi) {
+    int ck=(lo+hi)>>1;
+    int p=ck<<1;
+         if (plrdefid<dstv[p]) hi=ck;
+    else if (plrdefid>dstv[p]) lo=ck+1;
+    else return ck;
+  }
+  return -lo-1;
+}
+ 
+int ps_score_store_count_plrdefid_usages(int **dstpp,const struct ps_score_store *store) {
+  if (!dstpp||!store) return -1;
+  *dstpp=0;
+  if (store->recordc<1) return 0;
+  int dsta=8,dstc=0;
+  int *dstv=calloc(sizeof(int),dsta<<1);
+  if (!dstv) return -1;
+
+  const struct ps_score_record *record=store->recordv;
+  int i=store->recordc; for (;i-->0;record++) {
+    if (record->playerc>PS_PLAYER_LIMIT) {
+      ps_log(,ERROR,"High scores file is corrupt! Found playerc=%d.",record->playerc);
+      free(dstv);
+      return -1;
+    }
+    int j=record->playerc; while (j-->0) {
+      int plrdefid=record->plrdefidv[j];
+      int p=ps_score_store_search_plrdefid_usage(dstv,dstc,plrdefid);
+      if (p<0) {
+
+        if (dstc>=dsta) {
+          dsta+=8;
+          void *nv=realloc(dstv,sizeof(int)*dsta*2);
+          if (!nv) {
+            free(dstv);
+            return -1;
+          }
+          dstv=nv;
+        }
+
+        p=-p-1;
+        memmove(dstv+(p<<1)+2,dstv+(p<<1),sizeof(int)*((dstc-p)<<1));
+        dstc++;
+        dstv[p<<1]=plrdefid;
+        dstv[(p<<1)+1]=1;
+
+      } else {
+        dstv[(p<<1)+1]++;
+      }
+    }
+  }
+
+  *dstpp=dstv;
+  return dstc;
+}

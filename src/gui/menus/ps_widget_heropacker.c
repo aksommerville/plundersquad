@@ -10,6 +10,10 @@
 #include "input/ps_input_device.h"
 #include "input/ps_input_map.h"
 #include "input/ps_input_premap.h"
+#include "game/ps_game.h"
+#include "game/ps_score_store.h"
+#include "res/ps_resmgr.h"
+#include "res/ps_restype.h"
 
 #define PS_HEROPACKER_MSGBLINK_TIME_ON     40
 #define PS_HEROPACKER_MSGBLINK_TIME_TOTAL  60
@@ -28,6 +32,8 @@ struct ps_widget_heropacker {
   int msgblinkcounter;
   int input_watchid;
   int startup;
+  int *hs_usagev; // plrdefid usage from highscores
+  int hs_usagec;
 };
 
 #define WIDGET ((struct ps_widget_heropacker*)widget)
@@ -37,6 +43,7 @@ struct ps_widget_heropacker {
 
 static void _ps_heropacker_del(struct ps_widget *widget) {
   ps_input_unwatch_devices(WIDGET->input_watchid);
+  if (WIDGET->hs_usagev) free(WIDGET->hs_usagev);
 }
 
 /* Initialize.
@@ -264,6 +271,79 @@ static struct ps_widget *ps_heropacker_get_heroselect_for_device(const struct ps
   return 0;
 }
 
+/* Select plrdefid for new heroselect.
+ * Consult the resource store, highscores, and heroselects already instantiated.
+ * Never fails. Returns 1 if anything goes wrong.
+ */
+
+int ps_widget_heropacker_select_plrdefid(struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_heropacker)) return 1;
+
+  /* If the restype is not available or empty, there's nothing we can do.
+   */
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_PLRDEF);
+  if (!restype||(restype->resc<1)) return 1;
+
+  /* Try to acquire usage from highscores file, if we haven't done it yet. */
+  if (!WIDGET->hs_usagec) {
+    struct ps_game *game=ps_gui_get_game(ps_widget_get_gui(widget));
+    if (game) {
+      WIDGET->hs_usagec=ps_score_store_count_plrdefid_usages(&WIDGET->hs_usagev,game->score_store);
+    }
+  }
+
+  /* Compose a list for ratings, parallel to restype->resv. */
+  int *ratingv=calloc(sizeof(int),restype->resc);
+  if (!ratingv) return restype->resv[0].id; // There are things we could do here, but this won't happen.
+
+  /* Lose a point for each historical usage. */
+  int i; for (i=0;i<WIDGET->hs_usagec;i++) {
+    int p=ps_restype_res_search(restype,WIDGET->hs_usagev[i<<1]);
+    if (p<0) continue;
+    ratingv[p]-=WIDGET->hs_usagev[(i<<1)+1];
+  }
+
+  /* Lose points for each child currently displaying this one, more if committed. */
+  for (i=widget->childc;i-->0;) {
+    struct ps_widget *heroselect=widget->childv[i];
+    int plrdefid=ps_widget_heroselect_get_plrdefid(heroselect);
+    if (plrdefid<0) continue;
+    int p=ps_restype_res_search(restype,plrdefid);
+    if (p<0) continue;
+    if (ps_widget_heroselect_is_ready(heroselect)) {
+      ratingv[p]-=10;
+    } else {
+      ratingv[p]-=5;
+    }
+  }
+
+  /* Locate the highest rating, and count the entries at that rating. */
+  int bestrating=INT_MIN,bestratingc=0;
+  for (i=restype->resc;i-->0;) {
+    if (ratingv[i]>bestrating) {
+      bestrating=ratingv[i];
+      bestratingc=1;
+    } else if (ratingv[i]==bestrating) {
+      bestratingc++;
+    }
+  }
+
+  /* Select randomly among the top-rated candidates. */
+  int selectionp=rand()%bestratingc;
+  int plrdefid=1;
+  for (i=restype->resc;i-->0;) {
+    if (ratingv[i]==bestrating) {
+      if (!selectionp--) {
+        plrdefid=restype->resv[i].id;
+        break;
+      }
+    }
+  }
+
+  free(ratingv);
+  return plrdefid;
+}
+
 /* Add player.
  */
 
@@ -276,7 +356,7 @@ static struct ps_widget *ps_heropacker_add_player(struct ps_widget *widget,struc
   // Create the new widget.
   if (!(heroselect=ps_widget_spawn(widget,&ps_widget_type_heroselect))) return 0;
   if (ps_widget_heroselect_set_device(heroselect,device)<0) return 0;
-  if (ps_widget_heroselect_set_plrdefid(heroselect,1+(widget->childc%8))<0) return 0;
+  if (ps_widget_heroselect_set_plrdefid(heroselect,1)<0) return 0; // This is a dummy until the heroselect clicks in
   if (ps_widget_heroselect_set_palette(heroselect,widget->childc-1)<0) return 0;
 
   // If this is the initial setup, let it roll. Otherwise, animate all children into new positions.

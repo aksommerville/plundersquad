@@ -459,7 +459,11 @@ static int ps_heroselect_advance(struct ps_widget *widget) {
 
   int nextphase;
   switch (WIDGET->phase) {
-    case PS_HEROSELECT_PHASE_WELCOME: nextphase=PS_HEROSELECT_PHASE_QUERY; break;
+    case PS_HEROSELECT_PHASE_WELCOME: {
+        WIDGET->plrdefid=0;
+        if (ps_widget_heroselect_set_plrdefid(widget,ps_widget_heropacker_select_plrdefid(widget->parent))<0) return -1;
+        nextphase=PS_HEROSELECT_PHASE_QUERY;
+      } break;
     case PS_HEROSELECT_PHASE_QUERY: nextphase=PS_HEROSELECT_PHASE_READY; break;
     default: return 0;
   }

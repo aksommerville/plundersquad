@@ -63,6 +63,7 @@ struct akau_mixer_chan {
 
 struct akau_mixer {
   int refc;
+  int stereo;
   struct akau_mixer_chan *chanv;
   int chanc,chana;
   int chanid_next;

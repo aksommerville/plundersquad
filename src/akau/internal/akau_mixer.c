@@ -53,6 +53,7 @@ struct akau_mixer *akau_mixer_new() {
   if (!mixer) return 0;
 
   mixer->refc=1;
+  mixer->stereo=1;
   mixer->chanid_next=1;
   memset(mixer->trim_by_intent,0xff,sizeof(mixer->trim_by_intent));
 
@@ -81,6 +82,22 @@ int akau_mixer_ref(struct akau_mixer *mixer) {
   if (mixer->refc<1) return -1;
   if (mixer->refc==INT_MAX) return -1;
   mixer->refc++;
+  return 0;
+}
+
+/* Accessors.
+ */
+ 
+int akau_mixer_count_channels(const struct akau_mixer *mixer) {
+  if (!mixer) return 0;
+  int c=0,i=mixer->chanc;
+  while (i-->0) if (mixer->chanv[i].mode) c++;
+  return c;
+}
+
+int akau_mixer_set_stereo(struct akau_mixer *mixer,int stereo) {
+  if (!mixer) return -1;
+  mixer->stereo=stereo?1:0;
   return 0;
 }
 
@@ -227,7 +244,7 @@ static int akau_mixer_chan_verbatim_update(struct akau_mixer_chan *chan) {
 
 int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
   if (!dst||(dstc<2)||!mixer) return -1;
-  dstc&=~1;
+  if (mixer->stereo) dstc&=~1;
   while (dstc>0) {
     int l=0,r=0;
 
@@ -263,7 +280,9 @@ int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
       sample=(sample*chan->trim)>>8;
       if (!sample) continue;
 
-      if (!chan->pan) {
+      if (!mixer->stereo) {
+        l+=sample;
+      } else if (!chan->pan) {
         l+=sample;
         r+=sample;
       } else if (chan->pan==-128) {
@@ -290,15 +309,17 @@ int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
     } else *dst=l;
     dst++;
     dstc--;
-    if (r<-32768) {
-      *dst=-32768;
-      mixer->cliprc++;
-    } else if (r>32767) {
-      *dst=32767; 
-      mixer->cliprc++;
-    } else *dst=r;
-    dst++;
-    dstc--;
+    if (mixer->stereo) {
+      if (r<-32768) {
+        *dst=-32768;
+        mixer->cliprc++;
+      } else if (r>32767) {
+        *dst=32767; 
+        mixer->cliprc++;
+      } else *dst=r;
+      dst++;
+      dstc--;
+    }
     
   }
   return 0;

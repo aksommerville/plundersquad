@@ -30,6 +30,13 @@ int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer);
  */
 int akau_mixer_get_clip(int *l,int *r,struct akau_mixer *mixer);
 
+/* Mixers are stereo by default.
+ * Songprinter needs to turn this off for its private mixer.
+ */
+int akau_mixer_set_stereo(struct akau_mixer *mixer,int stereo);
+
+int akau_mixer_count_channels(const struct akau_mixer *mixer);
+
 /* Begin a musical note with the given instrument and parameters.
  * After (duration) frames, it will begin decaying to silence.
  * (instrument) presumably contains a wave sampled at 1 Hz.

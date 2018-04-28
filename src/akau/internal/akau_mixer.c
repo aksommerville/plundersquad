@@ -1,6 +1,8 @@
 #include "akau_mixer_internal.h"
 #include "../akau.h"
 #include "../akau_songprinter.h"
+#include "os/ps_log.h"
+#include "os/ps_clockassist.h"
 
 /* Clean up channel.
  */
@@ -250,11 +252,26 @@ static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
     return 0;
   }
   if (progress==AKAU_SONGPRINTER_PROGRESS_READY) {
+    ps_log(AUDIO,DEBUG,"%lld song print complete",ps_time_now());
     struct akau_ipcm *ipcm=akau_songprinter_get_ipcm(mixer->printer);
     if (!ipcm) return -1;
     if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
     mixer->printed_song_running=1;
+
+  // Experiment: If we're more than 50% complete and at least 1 second has elapsed, start playing it.
+  // This means we could potentially read IPCM samples not written yet (they would be zero).
+  // I think the odds of that are vanishingly unlikely. 
+  } else if (progress>=50) {
+    int64_t now=ps_time_now();
+    if (now>=mixer->print_start_time+1000000) {
+      ps_log(AUDIO,DEBUG,"Starting song playbback at %d%% printed.",progress);
+      struct akau_ipcm *ipcm=akau_songprinter_get_ipcm_even_if_incomplete(mixer->printer);
+      if (!ipcm) return -1;
+      if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
+      mixer->printed_song_running=1;
+    }
   }
+  
   return 0;
 }
 
@@ -712,6 +729,8 @@ static int akau_mixer_register_song_for_printing(struct akau_mixer *mixer,struct
   if (!song) return 0;
 
   /* Create a songprinter and begin printing. */
+  mixer->print_start_time=ps_time_now();
+  ps_log(AUDIO,DEBUG,"%lld begin printing song",mixer->print_start_time);
   if (!(mixer->printer=akau_songprinter_new(song))) return -1;
   if (akau_songprinter_begin(mixer->printer)<0) return -1;
 

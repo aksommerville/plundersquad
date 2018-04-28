@@ -112,6 +112,11 @@ struct akau_ipcm *akau_songprinter_get_ipcm(const struct akau_songprinter *print
   return printer->ipcm;
 }
 
+struct akau_ipcm *akau_songprinter_get_ipcm_even_if_incomplete(const struct akau_songprinter *printer) {
+  if (!printer) return 0;
+  return printer->ipcm;
+}
+
 /* Asynchronous printing (background thread main).
  * We don't make just one call to akau_mixer_update() like the synchronous version.
  * Because we need to insert cancellation points at reasonable intervals.

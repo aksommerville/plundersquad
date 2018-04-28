@@ -77,6 +77,7 @@ struct akau_mixer {
   int print_songs;
   struct akau_songprinter *printer;
   int printed_song_running;
+  int64_t print_start_time;
 };
 
 void akau_mixer_chan_cleanup(struct akau_mixer_chan *chan);

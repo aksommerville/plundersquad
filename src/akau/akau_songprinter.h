@@ -36,4 +36,7 @@ int akau_songprinter_finish(struct akau_songprinter *printer);
  */
 struct akau_ipcm *akau_songprinter_get_ipcm(const struct akau_songprinter *printer);
 
+// Return IPCM regardless of progress. Samples may be zero, unwritten yet.
+struct akau_ipcm *akau_songprinter_get_ipcm_even_if_incomplete(const struct akau_songprinter *printer);
+
 #endif

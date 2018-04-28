@@ -7,7 +7,7 @@
 
 extern const struct akau_driver akau_driver_akmacaudio;
 extern const struct akau_driver akau_driver_alsa;
-#define AUDIODRIVER akau_driver_alsa
+#define AUDIODRIVER akau_driver_akmacaudio
 
 static void ps_songprinter_test_log(int level,const char *msg,int msgc) {
   ps_log(TEST,INFO,"[%d] %.*s",level,msgc,msg);
@@ -25,7 +25,7 @@ static void log_duration(const char *label,int64_t us) {
 PS_TEST(test_songprinter_synchronous,ignore,songprinter) {
   int songid=2;
 
-  for (songid=2;songid<=7;songid++) {
+  for (songid=1;songid<=7;songid++) {
 
   akau_quit();
   PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log))

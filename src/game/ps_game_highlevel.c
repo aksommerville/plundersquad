@@ -23,6 +23,8 @@
 #include "scenario/ps_region.h"
 #include "res/ps_resmgr.h"
 #include "input/ps_input.h"
+#include "input/ps_input_device.h"
+#include "input/ps_input_map.h"
 #include "util/ps_geometry.h"
 #include "util/ps_text.h"
 #include "util/ps_enums.h"
@@ -835,5 +837,28 @@ int ps_game_save_to_score_store(struct ps_game *game) {
     return 0;
   }
   
+  return 0;
+}
+
+/* Connect or disconnect input devices.
+ */
+ 
+int ps_game_cb_device_connect(struct ps_input_device *device,void *userdata) {
+  struct ps_game *game=userdata;
+  if (game->finished) return 0;
+  if (game->paused) return 0;
+  if (game->playerc<1) return 0; // Not initialized
+  int playerid=0;
+  if (device&&device->map) playerid=device->map->plrid;
+  if (playerid) {
+    ps_log(GAME,DEBUG,"Connect device '%s', playerid %d.",device->name,playerid);
+  } else {
+    if (ps_input_assign_device_to_least_covered_player(device,game->playerc)<0) return -1;
+  }
+  return 0;
+}
+
+int ps_game_cb_device_disconnect(struct ps_input_device *device,void *userdata) {
+  struct ps_game *game=userdata;
   return 0;
 }

@@ -30,6 +30,45 @@ int ps_input_force_device_assignment(struct ps_input_device *device,int playerid
   return 0;
 }
 
+/* This is for device connection during play.
+ * If the game sees a device connection while running, assign it to the player with the fewest devices.
+ * In normal cases where player and device are one-to-one, a device can disconnect and reconnect and things are restored normally.
+ */
+ 
+int ps_input_assign_device_to_least_covered_player(struct ps_input_device *device,int playerc) {
+  if (!device) return -1;
+  if (!device->map) return -1;
+  if ((playerc<1)||(playerc>PS_PLAYER_LIMIT)) return -1;
+
+  int devc_by_playerid[1+PS_PLAYER_LIMIT]={0};
+  int providerp=0; for (;providerp<ps_input.providerc;providerp++) {
+    struct ps_input_provider *provider=ps_input.providerv[providerp];
+    int devicep=0; for (;devicep<provider->devc;devicep++) {
+      struct ps_input_device *pdevice=provider->devv[devicep];
+      if (!pdevice->map) continue;
+      if ((pdevice->map->plrid<1)||(pdevice->map->plrid>PS_PLAYER_LIMIT)) continue;
+      devc_by_playerid[pdevice->map->plrid]++;
+    }
+  }
+
+  int devc_min=INT_MAX;
+  int playerid=1;
+  int i=1; for (;i<playerc;i++) {
+    if (!devc_by_playerid[i]) {
+      playerid=i;
+      break;
+    }
+    if (devc_by_playerid[i]<devc_min) {
+      playerid=i;
+      devc_min=devc_by_playerid[i];
+    }
+  }
+  ps_log(INPUT,INFO,"Selected player id %d for new device '%s'.",playerid,device->name);
+  device->map->plrid=playerid;
+  
+  return 0;
+}
+
 /* Set all device assignments willy-nilly.
  * This is only needed if you are skipping the automatic input config.
  */

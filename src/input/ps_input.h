@@ -43,6 +43,7 @@ int ps_input_update();
 int ps_input_set_player_count(int playerc);
 int ps_input_force_device_assignment(struct ps_input_device *device,int playerid);
 int ps_input_set_noninteractive_device_assignment(); // Force device assignments willy-nilly, for test launches.
+int ps_input_assign_device_to_least_covered_player(struct ps_input_device *device,int playerc);
 
 int ps_input_request_termination();
 int ps_input_termination_requested();

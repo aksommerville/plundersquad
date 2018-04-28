@@ -35,6 +35,8 @@
 int ps_game_npgc_pop(struct ps_game *game);
 static int ps_game_cb_switch(int switchid,int value,void *userdata);
 int ps_game_assign_awards(struct ps_game *game);
+int ps_game_cb_device_connect(struct ps_input_device *device,void *userdata);
+int ps_game_cb_device_disconnect(struct ps_input_device *device,void *userdata);
 
 /* New game.
  */
@@ -66,6 +68,8 @@ static int ps_game_initialize(struct ps_game *game,struct ps_userconfig *usercon
     if (pathc<0) return -1;
     if (!(game->score_store=ps_score_store_new(path,pathc))) return -1;
   }
+
+  if ((game->input_watchid=ps_input_watch_devices(ps_game_cb_device_connect,ps_game_cb_device_disconnect,game))<0) return -1;
 
   return 0;
 }
@@ -104,6 +108,8 @@ void ps_game_del(struct ps_game *game) {
   for (i=PS_SPRGRP_COUNT;i-->0;) ps_sprgrp_cleanup(game->grpv+i);
   ps_stats_del(game->stats);
   if (game->npgcv) free(game->npgcv);
+
+  ps_input_unwatch_devices(game->input_watchid);
   
   free(game);
 }

@@ -82,6 +82,8 @@ struct ps_game {
 
   struct ps_game_npgc *npgcv;
   int npgcc,npgca;
+
+  int input_watchid;
   
 };
 

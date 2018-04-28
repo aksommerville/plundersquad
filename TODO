@@ -20,6 +20,8 @@ MacOS errors:
 Actionable:
 - Record top scores
 - Resource test to validate switch ID assignment
+- Can we speed up song printing? It's noticeably slow on the Pi.
+- Continue playing song until printer is about done?
 
 Windows:
 - Build with GL2 support

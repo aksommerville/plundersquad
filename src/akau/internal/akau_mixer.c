@@ -261,14 +261,11 @@ static int akau_mixer_chan_verbatim_update(struct akau_mixer_chan *chan) {
 static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
   int progress=akau_songprinter_get_progress(mixer->printer);
   if (progress<0) {
-    //ps_log(AKAU,ERROR,"Failed to print song!");
     akau_songprinter_del(mixer->printer);
     mixer->printer=0;
     return 0;
   }
   if (progress==AKAU_SONGPRINTER_PROGRESS_READY) {
-    //ps_log(AKAU,DEBUG,"Begin playback of printed song.");
-    if (akau_songprinter_finish(mixer->printer)<0) return -1;
     struct akau_ipcm *ipcm=akau_songprinter_get_ipcm(mixer->printer);
     if (!ipcm) return -1;
     if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
@@ -694,7 +691,6 @@ static int akau_mixer_restart_songprinter(struct akau_mixer *mixer) {
  */
 
 static int akau_mixer_register_song_for_printing(struct akau_mixer *mixer,struct akau_song *song,int restart,uint8_t intent) {
-  printf("akau_mixer_register_song_for_printing(%p,%p,%d) mixer->printer=%p\n",mixer,song,restart,mixer->printer);
 
   if (mixer->printer) {
   
@@ -707,7 +703,6 @@ static int akau_mixer_register_song_for_printing(struct akau_mixer *mixer,struct
     }
 
     /* Cancel existing printer. */
-    printf("Cancel existing printer.\n");
     if (akau_songprinter_cancel(mixer->printer)<0) return -1;
     akau_songprinter_del(mixer->printer);
     mixer->printer=0;
@@ -721,7 +716,6 @@ static int akau_mixer_register_song_for_printing(struct akau_mixer *mixer,struct
   if (!song) return 0;
 
   /* Create a songprinter and begin printing. */
-  printf("Create new songprinter.\n");
   if (!(mixer->printer=akau_songprinter_new(song))) return -1;
   if (akau_songprinter_begin(mixer->printer)<0) return -1;
 

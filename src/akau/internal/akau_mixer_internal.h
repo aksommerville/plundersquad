@@ -73,6 +73,9 @@ struct akau_mixer {
   int song_cmdp;
   uint8_t song_intent;
   uint8_t trim_by_intent[256];
+  int print_songs;
+  struct akau_songprinter *printer;
+  int printed_song_running;
 };
 
 void akau_mixer_chan_cleanup(struct akau_mixer_chan *chan);

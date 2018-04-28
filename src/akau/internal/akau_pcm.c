@@ -4,6 +4,8 @@
 #include <string.h>
 #include <math.h>
 
+#include <stdio.h>
+
 /* New.
  */
 
@@ -15,7 +17,9 @@ struct akau_ipcm *akau_ipcm_new(int samplec) {
   int datasize=samplec*sizeof(int16_t);
   if (headersize>INT_MAX-datasize) return 0;
 
+  printf("akau_ipcm_new, samplec=%d, headersize=%d, datasize=%d\n",samplec,headersize,datasize);
   struct akau_ipcm *ipcm=calloc(1,headersize+datasize);
+  printf("ipcm=%p\n",ipcm);
   if (!ipcm) return 0;
 
   ipcm->refc=1;

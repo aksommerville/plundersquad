@@ -19,6 +19,14 @@ struct akau_mixer *akau_mixer_new();
 void akau_mixer_del(struct akau_mixer *mixer);
 int akau_mixer_ref(struct akau_mixer *mixer);
 
+/* If set, we use akau_songprinter to asynchronously produce a flat IPCM of each song before playing it.
+ * This trades memory and a delay of song start for a huge performance boost during playback.
+ * The initial delay on song start is not trivial: 4.5 ms/s on my Mac, and 116 ms/s on my Pi.
+ * Do not change this while a song is playing.
+ */
+int akau_mixer_set_print_songs(struct akau_mixer *mixer,int print);
+int akau_mixer_get_print_songs(const struct akau_mixer *mixer);
+
 /* Update all running channels into the given buffer.
  * Any prior content in the buffer is obliterated.
  * (dst) contains samples arranged L,R,L,R,etc.
@@ -98,6 +106,7 @@ int akau_mixer_stop_channel(struct akau_mixer *mixer,int chanid);
  */
 int akau_mixer_stop_all(struct akau_mixer *mixer,int duration);
 int akau_mixer_stop_all_instruments(struct akau_mixer *mixer,int duration);
+int akau_mixer_stop_by_intent(struct akau_mixer *mixer,uint8_t intent,int duration);
 
 /* Set a song to play automatically by this mixer.
  * (song) may be null to end playback.

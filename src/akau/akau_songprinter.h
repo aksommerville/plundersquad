@@ -13,6 +13,8 @@ struct akau_songprinter *akau_songprinter_new(struct akau_song *song);
 void akau_songprinter_del(struct akau_songprinter *printer);
 int akau_songprinter_ref(struct akau_songprinter *printer);
 
+struct akau_song *akau_songprinter_get_song(const struct akau_songprinter *printer);
+
 int akau_songprinter_get_progress(const struct akau_songprinter *printer);
 #define AKAU_SONGPRINTER_PROGRESS_ERROR      -1 /* Invalid request or printing failed. */
 #define AKAU_SONGPRINTER_PROGRESS_INIT        0 /* Valid object, printing not started. */

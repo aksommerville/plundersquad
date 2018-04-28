@@ -20,6 +20,7 @@ struct akau_songprinter {
   pthread_t thread;
   pthread_mutex_t mutex;
   int progress;
+  int thread_in_flight;
 };
 
 /* Initialize.
@@ -32,6 +33,7 @@ static int akau_songprinter_init(struct akau_songprinter *printer,struct akau_so
   
   if (!(printer->mixer=akau_mixer_new())) return -1;
   if (akau_mixer_set_stereo(printer->mixer,0)<0) return -1;
+  if (akau_mixer_set_print_songs(printer->mixer,0)<0) return -1; // Very important!
 
   int beatc=akau_song_count_beats(song);
   if (beatc<1) return -1;
@@ -71,7 +73,7 @@ void akau_songprinter_del(struct akau_songprinter *printer) {
   if (!printer) return;
   if (printer->refc-->1) return;
 
-  if ((printer->progress>0)&&(printer->progress<100)) {
+  if (printer->thread_in_flight) {
     pthread_cancel(printer->thread);
     pthread_join(printer->thread,0);
   }
@@ -92,12 +94,22 @@ int akau_songprinter_ref(struct akau_songprinter *printer) {
   return 0;
 }
 
-/* Get progress.
+/* Accessors.
  */
+ 
+struct akau_song *akau_songprinter_get_song(const struct akau_songprinter *printer) {
+  if (!printer) return 0;
+  return printer->song;
+}
 
 int akau_songprinter_get_progress(const struct akau_songprinter *printer) {
   if (!printer) return AKAU_SONGPRINTER_PROGRESS_ERROR;
   return printer->progress;
+}
+
+struct akau_ipcm *akau_songprinter_get_ipcm(const struct akau_songprinter *printer) {
+  if (akau_songprinter_get_progress(printer)!=AKAU_SONGPRINTER_PROGRESS_READY) return 0;
+  return printer->ipcm;
 }
 
 /* Asynchronous printing (background thread main).
@@ -146,8 +158,10 @@ int akau_songprinter_begin(struct akau_songprinter *printer) {
   if (printer->progress!=AKAU_SONGPRINTER_PROGRESS_INIT) return -1;
   if (akau_mixer_play_song(printer->mixer,printer->song,1,0)<0) return -1;
   printer->progress=1;
+  printer->thread_in_flight=1;
   if (pthread_create(&printer->thread,0,akau_songprinter_bgthd,printer)) {
     printer->progress=0;
+    printer->thread_in_flight=0;
     return -1;
   }
   return 0;
@@ -162,6 +176,7 @@ int akau_songprinter_cancel(struct akau_songprinter *printer) {
     pthread_cancel(printer->thread);
     pthread_join(printer->thread,0);
     printer->progress=0;
+    printer->thread_in_flight=0;
   }
   return 0;
 }
@@ -173,15 +188,16 @@ int akau_songprinter_finish(struct akau_songprinter *printer) {
   if (!printer) return -1;
 
   /* Already complete? */
-  if (printer->progress>=100) return 0;
+  if (!printer->thread_in_flight&&(printer->progress>=100)) return 0;
 
   /* Failed out? */
   if (printer->progress<0) return -1;
 
   /* If asynchronous printing is in progress, join it.
    */
-  if (printer->progress) {
+  if (printer->thread_in_flight) {
     pthread_join(printer->thread,0);
+    printer->thread_in_flight=0;
     if (printer->progress!=AKAU_SONGPRINTER_PROGRESS_READY) return -1;
   }
   
@@ -195,12 +211,4 @@ int akau_songprinter_finish(struct akau_songprinter *printer) {
   if (akau_mixer_update(samplev,samplec,printer->mixer)<0) return -1;
   printer->progress=AKAU_SONGPRINTER_PROGRESS_READY;
   return 0;
-}
-
-/* Accessors.
- */
-
-struct akau_ipcm *akau_songprinter_get_ipcm(const struct akau_songprinter *printer) {
-  if (akau_songprinter_get_progress(printer)!=AKAU_SONGPRINTER_PROGRESS_READY) return 0;
-  return printer->ipcm;
 }

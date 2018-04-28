@@ -1,4 +1,6 @@
 #include "akau_mixer_internal.h"
+#include "../akau.h"
+#include "../akau_songprinter.h"
 
 /* Clean up channel.
  */
@@ -56,6 +58,7 @@ struct akau_mixer *akau_mixer_new() {
   mixer->stereo=1;
   mixer->chanid_next=1;
   memset(mixer->trim_by_intent,0xff,sizeof(mixer->trim_by_intent));
+  mixer->print_songs=1;
 
   return mixer;
 }
@@ -73,6 +76,8 @@ void akau_mixer_del(struct akau_mixer *mixer) {
     akau_song_unlock(mixer->song);
     akau_song_del(mixer->song);
   }
+
+  akau_songprinter_del(mixer->printer);
 
   free(mixer);
 }
@@ -99,6 +104,17 @@ int akau_mixer_set_stereo(struct akau_mixer *mixer,int stereo) {
   if (!mixer) return -1;
   mixer->stereo=stereo?1:0;
   return 0;
+}
+
+int akau_mixer_set_print_songs(struct akau_mixer *mixer,int print) {
+  if (!mixer) return -1;
+  mixer->print_songs=print?1:0;
+  return 0;
+}
+
+int akau_mixer_get_print_songs(const struct akau_mixer *mixer) {
+  if (!mixer) return 0;
+  return mixer->print_songs;
 }
 
 /* Update trim and pan sliders.
@@ -239,16 +255,46 @@ static int akau_mixer_chan_verbatim_update(struct akau_mixer_chan *chan) {
   return sample;
 }
 
+/* Check progress of songprinter, during main update.
+ */
+
+static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
+  int progress=akau_songprinter_get_progress(mixer->printer);
+  if (progress<0) {
+    //ps_log(AKAU,ERROR,"Failed to print song!");
+    akau_songprinter_del(mixer->printer);
+    mixer->printer=0;
+    return 0;
+  }
+  if (progress==AKAU_SONGPRINTER_PROGRESS_READY) {
+    //ps_log(AKAU,DEBUG,"Begin playback of printed song.");
+    if (akau_songprinter_finish(mixer->printer)<0) return -1;
+    struct akau_ipcm *ipcm=akau_songprinter_get_ipcm(mixer->printer);
+    if (!ipcm) return -1;
+    if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
+    mixer->printed_song_running=1;
+  }
+  return 0;
+}
+
 /* Update.
  */
 
 int akau_mixer_update(int16_t *dst,int dstc,struct akau_mixer *mixer) {
   if (!dst||(dstc<2)||!mixer) return -1;
   if (mixer->stereo) dstc&=~1;
+
+  /* If we are printing a song, check its progress.
+   * Only do this at the start of the update cycle, no need to poll it every frame.
+   */
+  if (mixer->printer&&!mixer->printed_song_running) {
+    if (akau_mixer_check_printer_progress(mixer)<0) return -1;
+  }
+  
   while (dstc>0) {
     int l=0,r=0;
 
-    /* Update song if present. */
+    /* Update unprinted song if present. */
     if (mixer->song) {
       if (mixer->song_delay>0) {
         mixer->song_delay--;
@@ -605,17 +651,93 @@ int akau_mixer_stop_all_instruments(struct akau_mixer *mixer,int duration) {
   return 0;
 }
 
-/* Set song.
- */
- 
-int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart,uint8_t intent) {
+int akau_mixer_stop_by_intent(struct akau_mixer *mixer,uint8_t intent,int duration) {
   if (!mixer) return -1;
+  if (duration>0) {
+    struct akau_mixer_chan *chan=mixer->chanv;
+    int i=mixer->chanc; for (;i-->0;chan++) {
+      if (chan->intent!=intent) continue;
+      chan->stop_at_silence=1;
+      chan->trima=chan->trim;
+      chan->trimz=0;
+      chan->trimp=0;
+      chan->trimc=duration;
+    }
+  } else {
+    struct akau_mixer_chan *chan=mixer->chanv;
+    int i=mixer->chanc; for (;i-->0;chan++) {
+      if (chan->mode!=AKAU_MIXER_CHAN_MODE_TUNED) continue;
+      akau_mixer_chan_cleanup(chan);
+    }
+  }
+  return 0;
+}
+
+/* Restart playback of IPCM channel from the songprinter.
+ */
+
+static int akau_mixer_restart_songprinter(struct akau_mixer *mixer) {
+  const struct akau_ipcm *ipcm=akau_songprinter_get_ipcm(mixer->printer);
+  if (!ipcm) return 0;
+  struct akau_mixer_chan *chan=mixer->chanv;
+  int i=mixer->chanc; for (;i-->0;chan++) {
+    if (chan->intent!=AKAU_INTENT_BGM) continue;
+    if (chan->mode!=AKAU_MIXER_CHAN_MODE_VERBATIM) continue;
+    if (chan->verbatim.ipcm!=ipcm) continue;
+    chan->verbatim.p=0;
+  }
+  return 0;
+}
+
+/* Begin new song with printing enabled.
+ * TODO: If we toggle fast between two songs, we might switch to one that's still fading out. Can we keep that IPCM instead of reprinting?
+ */
+
+static int akau_mixer_register_song_for_printing(struct akau_mixer *mixer,struct akau_song *song,int restart,uint8_t intent) {
+  printf("akau_mixer_register_song_for_printing(%p,%p,%d) mixer->printer=%p\n",mixer,song,restart,mixer->printer);
+
+  if (mixer->printer) {
+  
+    /* Already playing this song. Restart IPCM or do nothing. */
+    if (akau_songprinter_get_song(mixer->printer)==song) {
+      if (restart&&(akau_songprinter_get_progress(mixer->printer)==AKAU_SONGPRINTER_PROGRESS_READY)) {
+        if (akau_mixer_restart_songprinter(mixer)<0) return -1;
+      }
+      return 0;
+    }
+
+    /* Cancel existing printer. */
+    printf("Cancel existing printer.\n");
+    if (akau_songprinter_cancel(mixer->printer)<0) return -1;
+    akau_songprinter_del(mixer->printer);
+    mixer->printer=0;
+  }
+
+  /* Slowly fade out any current song. */
+  if (akau_mixer_stop_by_intent(mixer,intent,44100)<0) return -1;
+  mixer->printed_song_running=0;
+
+  /* Switching to silence? We're done. */
+  if (!song) return 0;
+
+  /* Create a songprinter and begin printing. */
+  printf("Create new songprinter.\n");
+  if (!(mixer->printer=akau_songprinter_new(song))) return -1;
+  if (akau_songprinter_begin(mixer->printer)<0) return -1;
+
+  return 0;
+}
+
+/* Begin new song, printing disabled.
+ */
+
+static int akau_mixer_replace_unprinted_song(struct akau_mixer *mixer,struct akau_song *song,int restart,uint8_t intent) {
 
   /* Abort quick if we won't be doing anything. */
   if ((song==mixer->song)&&!restart) return 0;
 
   /* Begin winding down all current tuned channels. */
-  if (akau_mixer_stop_all_instruments(mixer,250)<0) return -1;
+  if (akau_mixer_stop_by_intent(mixer,intent,250)<0) return -1;
 
   /* Only stop current song? */
   if (!song) {
@@ -659,6 +781,18 @@ int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int res
   mixer->song_intent=intent;
 
   return 0;
+}
+
+/* Set song.
+ */
+ 
+int akau_mixer_play_song(struct akau_mixer *mixer,struct akau_song *song,int restart,uint8_t intent) {
+  if (!mixer) return -1;
+  if (mixer->print_songs) {
+    return akau_mixer_register_song_for_printing(mixer,song,restart,intent);
+  } else {
+    return akau_mixer_replace_unprinted_song(mixer,song,restart,intent);
+  }
 }
 
 /* Play song from beat.

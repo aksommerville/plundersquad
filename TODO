@@ -1,6 +1,5 @@
 General errors:
 - Is music louder now that it's preprinting?
-- Hearts must be latchable
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
 - Reassign input device after disconnect and reconnect.

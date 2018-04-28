@@ -1,7 +1,7 @@
 type prize
 tileid 0x03df
 layer 80
-grpmask VISIBLE UPDATE PHYSICS PRIZE TELEPORT
+grpmask VISIBLE UPDATE PHYSICS LATCH PRIZE TELEPORT
 radius 6
 shape CIRCLE
 impassable SOLID LATCH

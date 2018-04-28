@@ -106,6 +106,8 @@ int ps_blueprint_is_solvable(
     if (difficulty) *difficulty=0;
     return 1;
   }
+
+  //ps_log(GAME,DEBUG,"%s playerc=%d, skills=0x%04x",__func__,playerc,skills);
   
   if (difficulty) *difficulty=0xff;
   int result=0;
@@ -114,6 +116,7 @@ int ps_blueprint_is_solvable(
     if (playerc<solution->plo) continue;
     if (playerc>solution->phi) continue;
     if ((skills&solution->skills)!=solution->skills) continue;
+    //ps_log(GAME,DEBUG,"  matched solution (%d..%d)+%04x =%d",solution->plo,solution->phi,solution->skills,solution->difficulty);
     if (difficulty) {
       result=1;
       if (solution->difficulty<*difficulty) *difficulty=solution->difficulty;

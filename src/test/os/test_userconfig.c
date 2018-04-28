@@ -309,17 +309,19 @@ PS_TEST(test_defect_userconfig_assigns_sound_to_soft_render,userconfig) {
   PS_ASSERT(userconfig)
   PS_ASSERT_CALL(ps_userconfig_declare_default_fields(userconfig))
 
-  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"resources",-1,"/path/to/resources",-1))
-  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"input",-1,"/path/to/input",-1))
+  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"resources",-1,"src/data",-1))
+  PS_ASSERT_CALL(ps_userconfig_set(userconfig,"input",-1,"etc/input.cfg",-1))
   PS_ASSERT_CALL(ps_userconfig_set(userconfig,"music",-1,"199",-1))
   PS_ASSERT_CALL(ps_userconfig_set(userconfig,"sound",-1,"198",-1))
+
+  PS_ASSERT_CALL(ps_userconfig_commit_paths(userconfig))
 
   const char *tmp;
   int tmpc;
   PS_ASSERT_CALL(tmpc=ps_userconfig_peek_field_as_string(&tmp,userconfig,ps_userconfig_search_field(userconfig,"resources",-1)))
-  PS_ASSERT_STRINGS(tmp,tmpc,"/path/to/resources",-1)
+  PS_ASSERT_STRINGS(tmp,tmpc,"src/data",-1)
   PS_ASSERT_CALL(tmpc=ps_userconfig_peek_field_as_string(&tmp,userconfig,ps_userconfig_search_field(userconfig,"input",-1)))
-  PS_ASSERT_STRINGS(tmp,tmpc,"/path/to/input",-1)
+  PS_ASSERT_STRINGS(tmp,tmpc,"etc/input.cfg",-1)
   PS_ASSERT_INTS(1,ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"fullscreen",-1)))
   PS_ASSERT_INTS(0,ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"soft-render",-1)))
   PS_ASSERT_INTS(199,ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"music",-1)))
@@ -337,13 +339,14 @@ PS_TEST(test_defect_userconfig_assigns_sound_to_soft_render,userconfig) {
 
   PS_ASSERT_STRINGS(buffer.v,buffer.c,
     "#resources=\n"
-    "resources=/path/to/resources\n"
+    "resources=src/data\n"
     "#input=\n"
-    "input=/path/to/input\n"
+    "input=etc/input.cfg\n"
     "fullscreen=1\n"
     "soft-render=false\n"
     "music=199\n"
     "sound=198\n"
+    "highscores=\n"
   ,-1)
 
   ps_buffer_cleanup(&buffer);

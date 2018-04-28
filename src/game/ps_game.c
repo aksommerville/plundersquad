@@ -468,12 +468,14 @@ int ps_game_spawn_sprites(struct ps_game *game) {
  */
 
 static int ps_game_monsters_present(const struct ps_game *game) {
-  int i=game->grpv[PS_SPRGRP_HEROHAZARD].sprc;
+  int i=game->grpv[PS_SPRGRP_UPDATE].sprc;
   while (i-->0) {
-    struct ps_sprite *spr=game->grpv[PS_SPRGRP_HEROHAZARD].sprv[i];
-    if (ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) continue; // Ignore DEATHROW.
-    if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)) continue; // Must also be FRAGILE.
+    struct ps_sprite *spr=game->grpv[PS_SPRGRP_UPDATE].sprv[i];
     if (spr->type==&ps_sprtype_chicken) continue; // Chickens are not actually killable (for the most part).
+    if (ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) continue; // Ignore DEATHROW.
+    if (spr->type==&ps_sprtype_seamonster) return 1; // Seamonsters are "monsters" even when underwater.
+    if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)) continue; // Must also be FRAGILE.
+    if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)) continue; // Must also be HEROHAZARD.
     return 1;
   }
   return 0;
@@ -1315,6 +1317,26 @@ static int ps_game_force_legal_hero_positions(struct ps_game *game) {
   return 0;
 }
 
+/* Given the current party, return the difficulty of the easiest solution of the given blueprint.
+ * Return 0 if this grid is unchallenged, or 99999 if nominally impossible or other error.
+ */
+
+static int ps_game_assess_blueprint_difficulty(const struct ps_game *game,int blueprintid) {
+  if (!game) return 99999;
+  const struct ps_blueprint *blueprint=ps_res_get(PS_RESTYPE_BLUEPRINT,blueprintid);
+  if (!blueprint) return 99999;
+
+  uint16_t skills=0;
+  int i=0; for (;i<game->playerc;i++) {
+    struct ps_player *player=game->playerv[i];
+    if (player->plrdef) skills|=player->plrdef->skills;
+  }
+
+  uint8_t bpdifficulty=0;
+  if (!ps_blueprint_is_solvable(&bpdifficulty,blueprint,game->playerc,skills)) return 99999;
+  return bpdifficulty;
+}
+
 /* Change screen.
  */
  
@@ -1404,7 +1426,7 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
   /* Log the change. */
   int blueprintid=ps_game_get_current_blueprint_id(game);
   ps_gamelog_blueprint_used(game->gamelog,blueprintid,game->playerc);
-  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d",game->gridx,game->gridy,blueprintid);
+  ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d, difficulty:%d",game->gridx,game->gridy,blueprintid,ps_game_assess_blueprint_difficulty(game,blueprintid));
   
   return 0;
 }

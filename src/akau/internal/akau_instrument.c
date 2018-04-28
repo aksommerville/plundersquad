@@ -56,6 +56,14 @@ struct akau_instrument *akau_instrument_new(
   }
   instrument->fpcm=fpcm;
 
+  if (
+    !(instrument->ipcm=akau_ipcm_from_fpcm(fpcm,32767))||
+    (akau_ipcm_lock(instrument->ipcm)<0)
+  ) {
+    akau_instrument_del(instrument);
+    return 0;
+  }
+
   return instrument;
 }
 
@@ -92,6 +100,8 @@ void akau_instrument_del(struct akau_instrument *instrument) {
 
   akau_fpcm_unlock(instrument->fpcm);
   akau_fpcm_del(instrument->fpcm);
+  akau_ipcm_unlock(instrument->ipcm);
+  akau_ipcm_del(instrument->ipcm);
 
   free(instrument);
 }
@@ -384,6 +394,17 @@ int akau_instrument_link(struct akau_instrument *instrument,struct akau_store *s
     return -1;
   }
   instrument->fpcm=fpcm;
+
+  if (instrument->ipcm) {
+    akau_ipcm_unlock(instrument->ipcm);
+    akau_ipcm_del(instrument->ipcm);
+  }
+  if (
+    !(instrument->ipcm=akau_ipcm_from_fpcm(fpcm,32767))||
+    (akau_ipcm_lock(instrument->ipcm)<0)
+  ) {
+    return -1;
+  }
 
   return 0;
 }

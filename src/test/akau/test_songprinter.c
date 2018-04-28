@@ -23,7 +23,9 @@ static void log_duration(const char *label,int64_t us) {
  */
 
 PS_TEST(test_songprinter_synchronous,ignore,songprinter) {
-  int songid=7;
+  int songid=2;
+
+  for (songid=2;songid<=7;songid++) {
 
   akau_quit();
   PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log))
@@ -55,6 +57,7 @@ PS_TEST(test_songprinter_synchronous,ignore,songprinter) {
   ps_log(TEST,INFO,"Beat count %d",akau_song_count_beats(song));
   ps_log(TEST,INFO,"Command count %d",akau_song_count_commands(song));
   ps_log(TEST,INFO,"Sample count %d",samplec);
+  ps_log(TEST,INFO,"Print rate: %.06f",(double)time_elapsed/(double)output_duration);
 
   struct akau_mixer *mainmixer=akau_get_mixer();
   PS_ASSERT(mainmixer)
@@ -66,6 +69,7 @@ PS_TEST(test_songprinter_synchronous,ignore,songprinter) {
 
   ps_resmgr_quit();
   akau_quit();
+  }
   return 0;
 }
 

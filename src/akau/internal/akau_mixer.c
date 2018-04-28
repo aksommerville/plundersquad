@@ -150,16 +150,20 @@ static int akau_mixer_chan_update_shared_sliders(struct akau_mixer_chan *chan) {
 /* Update tuned channel.
  */
 
+static inline uint8_t akau_mixer_tuned_calculate_amplitude(int p,int c,uint8_t a,uint8_t z) {
+  return a+((p*(z-a))/c);
+}
+
 static int akau_mixer_chan_tuned_update(struct akau_mixer_chan *chan) {
 
   /* Update PCM position. */
   chan->tuned.p+=chan->tuned.dp;
   int ip=(int)chan->tuned.p;
-  while (ip>=chan->tuned.instrument->fpcm->c) {
-    chan->tuned.p-=chan->tuned.instrument->fpcm->c;
+  while (ip>=chan->tuned.instrument->ipcm->c) {
+    chan->tuned.p-=chan->tuned.instrument->ipcm->c;
     ip=(int)chan->tuned.p;
   }
-  double normsample=chan->tuned.instrument->fpcm->v[ip];
+  int normsample=chan->tuned.instrument->ipcm->v[ip];
 
   /* Update rate slider. */
   if (chan->tuned.dpc) {
@@ -171,56 +175,36 @@ static int akau_mixer_chan_tuned_update(struct akau_mixer_chan *chan) {
     }
   }
 
-  /* Calculate amplification based on phase. */
-  switch (chan->tuned.phase) {
-
-    case 0: {
-        chan->tuned.phase=AKAU_MIXER_TUNED_PHASE_ATTACK;
-        chan->tuned.phasep=0;
-        chan->tuned.phasec=chan->tuned.instrument->attack_time;
-        goto _attack_;
-      }
-  
-    case AKAU_MIXER_TUNED_PHASE_ATTACK: _attack_: {
-        if (++(chan->tuned.phasep)>=chan->tuned.phasec) {
-          chan->tuned.phase=AKAU_MIXER_TUNED_PHASE_DRAWBACK;
-          chan->tuned.phasep=0;
-          chan->tuned.phasec=chan->tuned.instrument->drawback_time;
-          goto _drawback_;
-        }
-        normsample*=(chan->tuned.instrument->attack_trim*chan->tuned.phasep)/chan->tuned.phasec;
-      } break;
-      
-    case AKAU_MIXER_TUNED_PHASE_DRAWBACK: _drawback_: {
-        if (++(chan->tuned.phasep)>=chan->tuned.phasec) {
-          chan->tuned.phase=AKAU_MIXER_TUNED_PHASE_LOOP;
-          chan->tuned.phasep=0;
-          chan->tuned.phasec=chan->tuned.ttl-chan->tuned.instrument->drawback_time-chan->tuned.instrument->attack_time;
-          goto _loop_;
-        }
-        normsample*=chan->tuned.instrument->attack_trim+(chan->tuned.phasep*(chan->tuned.instrument->drawback_trim-chan->tuned.instrument->attack_trim))/chan->tuned.phasec;
-      } break;
-      
-    case AKAU_MIXER_TUNED_PHASE_LOOP: _loop_: {
-        if (++(chan->tuned.phasep)>=chan->tuned.phasec) {
-          chan->tuned.phase=AKAU_MIXER_TUNED_PHASE_DECAY;
-          chan->tuned.phasep=0;
-          chan->tuned.phasec=chan->tuned.instrument->decay_time;
-          goto _decay_;
-        }
-        normsample*=chan->tuned.instrument->drawback_trim;
-      } break;
-      
-    case AKAU_MIXER_TUNED_PHASE_DECAY: _decay_: {
-        if (++(chan->tuned.phasep)>=chan->tuned.phasec) {
-          akau_mixer_chan_cleanup(chan);
-          return 0;
-        }
-        normsample*=((chan->tuned.phasec-chan->tuned.phasep)*chan->tuned.instrument->drawback_trim)/chan->tuned.phasec;
-      } break;
+  /* Examine lifecycle and amplify accordingly. */
+  uint8_t amp;
+  chan->tuned.lcp++;
+  if (chan->tuned.lcp>=chan->tuned.lcp_end) {
+    akau_mixer_chan_cleanup(chan);
+    return 0;
+  } else if (chan->tuned.lcp>=chan->tuned.lcp_decay) { // fading out
+    int phasep=chan->tuned.lcp-chan->tuned.lcp_decay;
+    int phasec=chan->tuned.lcp_end-chan->tuned.lcp_decay;
+    uint8_t ampa=chan->tuned.amp_drawback;
+    uint8_t ampz=0;
+    amp=akau_mixer_tuned_calculate_amplitude(phasep,phasec,ampa,ampz);
+  } else if (chan->tuned.lcp>=chan->tuned.lcp_drawback) { // holding steady
+    amp=chan->tuned.amp_drawback;
+  } else if (chan->tuned.lcp>=chan->tuned.lcp_attack) { // pulling back
+    int phasep=chan->tuned.lcp-chan->tuned.lcp_attack;
+    int phasec=chan->tuned.lcp_drawback-chan->tuned.lcp_attack;
+    uint8_t ampa=chan->tuned.amp_attack;
+    uint8_t ampz=chan->tuned.amp_drawback;
+    amp=akau_mixer_tuned_calculate_amplitude(phasep,phasec,ampa,ampz);
+  } else { // ramping up
+    int phasep=chan->tuned.lcp;
+    int phasec=chan->tuned.lcp_attack;
+    uint8_t ampa=0;
+    uint8_t ampz=chan->tuned.amp_attack;
+    amp=akau_mixer_tuned_calculate_amplitude(phasep,phasec,ampa,ampz);
   }
-
-  return (int)(normsample*32767.0);
+  normsample=(normsample*amp)>>8;
+  
+  return normsample;
 }
 
 /* Update verbatim channel.
@@ -406,6 +390,13 @@ static struct akau_mixer_chan *akau_mixer_chan_new(struct akau_mixer *mixer) {
 /* Set up tuned channel.
  */
 
+static inline uint8_t akau_mixer_8bit_trim(double src) {
+  src*=255.0;
+  if (src<=0.0) return 0;
+  if (src>=255.0) return 255;
+  return (uint8_t)src;
+}
+
 int akau_mixer_play_note(
   struct akau_mixer *mixer,
   struct akau_instrument *instrument,
@@ -438,10 +429,19 @@ int akau_mixer_play_note(
   chan->tuned.dp=akau_rate_from_pitch(pitch);
   chan->tuned.dpc=0;
   chan->tuned.pitch=pitch;
-  chan->tuned.phase=AKAU_MIXER_TUNED_PHASE_ATTACK;
-  chan->tuned.phasep=0;
-  chan->tuned.phasec=instrument->attack_time;
-  chan->tuned.ttl=duration;
+
+  chan->tuned.lcp=0;
+  chan->tuned.lcp_attack=instrument->attack_time;
+  chan->tuned.lcp_drawback=instrument->attack_time+instrument->drawback_time;
+  chan->tuned.lcp_decay=duration;
+  chan->tuned.lcp_end=duration+instrument->decay_time;
+  if (chan->tuned.lcp_attack<1) chan->tuned.lcp_attack=1;
+  if (chan->tuned.lcp_drawback<=chan->tuned.lcp_attack) chan->tuned.lcp_drawback=chan->tuned.lcp_attack+1;
+  if (chan->tuned.lcp_decay<=chan->tuned.lcp_drawback) chan->tuned.lcp_decay=chan->tuned.lcp_drawback+1;
+  if (chan->tuned.lcp_end<=chan->tuned.lcp_decay) chan->tuned.lcp_end=chan->tuned.lcp_decay+1;
+  
+  chan->tuned.amp_attack=akau_mixer_8bit_trim(instrument->attack_trim);
+  chan->tuned.amp_drawback=akau_mixer_8bit_trim(instrument->drawback_trim);
 
   return chan->chanid;
 }
@@ -588,11 +588,7 @@ int akau_mixer_stop_channel(struct akau_mixer *mixer,int chanid) {
   switch (chan->mode) {
 
     case AKAU_MIXER_CHAN_MODE_TUNED: {
-        if (chan->tuned.phase!=AKAU_MIXER_TUNED_PHASE_DECAY) {
-          chan->tuned.phase=AKAU_MIXER_TUNED_PHASE_DECAY;
-          chan->tuned.phasep=0;
-          chan->tuned.phasec=chan->tuned.instrument->decay_time;
-        }
+        if (chan->tuned.lcp<chan->tuned.lcp_decay) chan->tuned.lcp=chan->tuned.lcp_decay;
       } break;
 
     case AKAU_MIXER_CHAN_MODE_VERBATIM: {

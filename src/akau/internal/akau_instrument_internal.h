@@ -18,6 +18,7 @@ struct akau_instrument {
   double attack_trim;
   double drawback_trim;
   int fpcmid;
+  struct akau_ipcm *ipcm;
 };
 
 #endif

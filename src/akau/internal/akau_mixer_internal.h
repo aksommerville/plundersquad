@@ -15,11 +15,6 @@
 #define AKAU_MIXER_CHAN_MODE_TUNED      1
 #define AKAU_MIXER_CHAN_MODE_VERBATIM   2
 
-#define AKAU_MIXER_TUNED_PHASE_ATTACK   1
-#define AKAU_MIXER_TUNED_PHASE_DRAWBACK 2
-#define AKAU_MIXER_TUNED_PHASE_LOOP     3
-#define AKAU_MIXER_TUNED_PHASE_DECAY    4
-
 struct akau_mixer_chan {
   int chanid;
   int mode;
@@ -45,10 +40,16 @@ struct akau_mixer_chan {
       int dpp,dpc;
 
       uint8_t pitch; // Advisory only.
-      int phase;
-      int phasep,phasec;
 
-      int ttl;
+      int lcp; // lifecycle position
+
+      // Envelope constants drawn from instrument when note starts:
+      int lcp_attack;
+      int lcp_drawback;
+      int lcp_decay;
+      int lcp_end;
+      uint8_t amp_attack;
+      uint8_t amp_drawback;
       
     } tuned;
 

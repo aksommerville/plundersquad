@@ -1,3 +1,77 @@
+===== Raspberry Pi =====
+Average roughly 116.381 ms per second output.
+Average us/sample: 2.639031
+
+TEST:INFO: Printed song ID 1... [src/test/akau/test_songprinter.c:50]
+TEST:INFO: Elapsed time 0.354940 s [src/test/akau/test_songprinter.c:51]
+TEST:INFO:      Elapsed: 00:00.354940 [src/test/akau/test_songprinter.c:19]
+TEST:INFO:       Output: 00:02.400000 [src/test/akau/test_songprinter.c:19]
+TEST:INFO: Tempo 200 bpm [src/test/akau/test_songprinter.c:54]
+TEST:INFO: Beat count 8 [src/test/akau/test_songprinter.c:55]
+TEST:INFO: Command count 38 [src/test/akau/test_songprinter.c:56]
+TEST:INFO: Sample count 105840 [src/test/akau/test_songprinter.c:57]
+us/sample: 3.353553
+
+TEST:INFO: Printed song ID 2... [src/test/akau/test_songprinter.c:50]
+TEST:INFO: Elapsed time 4.942786 s [src/test/akau/test_songprinter.c:51]
+TEST:INFO:      Elapsed: 00:04.942786 [src/test/akau/test_songprinter.c:19]
+TEST:INFO:       Output: 00:38.400000 [src/test/akau/test_songprinter.c:19]
+TEST:INFO: Tempo 500 bpm [src/test/akau/test_songprinter.c:54]
+TEST:INFO: Beat count 320 [src/test/akau/test_songprinter.c:55]
+TEST:INFO: Command count 778 [src/test/akau/test_songprinter.c:56]
+TEST:INFO: Sample count 1693440 [src/test/akau/test_songprinter.c:57]
+us/sample: 2.918784
+
+TEST:INFO: Printed song ID 3... [src/test/akau/test_songprinter.c:50]
+TEST:INFO: Elapsed time 5.054160 s [src/test/akau/test_songprinter.c:51]
+TEST:INFO:      Elapsed: 00:05.054160 [src/test/akau/test_songprinter.c:19]
+TEST:INFO:       Output: 00:57.600000 [src/test/akau/test_songprinter.c:19]
+TEST:INFO: Tempo 400 bpm [src/test/akau/test_songprinter.c:54]
+TEST:INFO: Beat count 384 [src/test/akau/test_songprinter.c:55]
+TEST:INFO: Command count 1058 [src/test/akau/test_songprinter.c:56]
+TEST:INFO: Sample count 2540160 [src/test/akau/test_songprinter.c:57]
+us/sample: 1.989701
+
+TEST:INFO: Printed song ID 4... [src/test/akau/test_songprinter.c:50]
+TEST:INFO: Elapsed time 6.605918 s [src/test/akau/test_songprinter.c:51]
+TEST:INFO:      Elapsed: 00:06.605918 [src/test/akau/test_songprinter.c:19]
+TEST:INFO:       Output: 01:16.800000 [src/test/akau/test_songprinter.c:19]
+TEST:INFO: Tempo 300 bpm [src/test/akau/test_songprinter.c:54]
+TEST:INFO: Beat count 384 [src/test/akau/test_songprinter.c:55]
+TEST:INFO: Command count 813 [src/test/akau/test_songprinter.c:56]
+TEST:INFO: Sample count 3386880 [src/test/akau/test_songprinter.c:57]
+us/sample: 1.950443
+
+TEST:INFO: Printed song ID 5... [src/test/akau/test_songprinter.c:50]
+TEST:INFO: Elapsed time 1.085314 s [src/test/akau/test_songprinter.c:51]
+TEST:INFO:      Elapsed: 00:01.085314 [src/test/akau/test_songprinter.c:19]
+TEST:INFO:       Output: 00:12.800000 [src/test/akau/test_songprinter.c:19]
+TEST:INFO: Tempo 600 bpm [src/test/akau/test_songprinter.c:54]
+TEST:INFO: Beat count 128 [src/test/akau/test_songprinter.c:55]
+TEST:INFO: Command count 223 [src/test/akau/test_songprinter.c:56]
+TEST:INFO: Sample count 564480 [src/test/akau/test_songprinter.c:57]
+us/sample: 1.922679
+
+TEST:INFO: Printed song ID 6... [src/test/akau/test_songprinter.c:50]
+TEST:INFO: Elapsed time 8.345460 s [src/test/akau/test_songprinter.c:51]
+TEST:INFO:      Elapsed: 00:08.345460 [src/test/akau/test_songprinter.c:19]
+TEST:INFO:       Output: 01:01.440000 [src/test/akau/test_songprinter.c:19]
+TEST:INFO: Tempo 500 bpm [src/test/akau/test_songprinter.c:54]
+TEST:INFO: Beat count 512 [src/test/akau/test_songprinter.c:55]
+TEST:INFO: Command count 1597 [src/test/akau/test_songprinter.c:56]
+TEST:INFO: Sample count 2709504 [src/test/akau/test_songprinter.c:57]
+us/sample: 3.080069
+
+TEST:INFO: Printed song ID 7... [src/test/akau/test_songprinter.c:50]
+TEST:INFO: Elapsed time 8.827527 s [src/test/akau/test_songprinter.c:51]
+TEST:INFO:      Elapsed: 00:08.827527 [src/test/akau/test_songprinter.c:19]
+TEST:INFO:       Output: 01:01.440000 [src/test/akau/test_songprinter.c:19]
+TEST:INFO: Tempo 250 bpm [src/test/akau/test_songprinter.c:54]
+TEST:INFO: Beat count 256 [src/test/akau/test_songprinter.c:55]
+TEST:INFO: Command count 712 [src/test/akau/test_songprinter.c:56]
+TEST:INFO: Sample count 2709504 [src/test/akau/test_songprinter.c:57]
+us/sample: 3.257986
+
 ===== Mac =====
 Average roughly 4.5 ms per second output.
 

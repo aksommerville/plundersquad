@@ -6,6 +6,8 @@
 #include "os/ps_clockassist.h"
 
 extern const struct akau_driver akau_driver_akmacaudio;
+extern const struct akau_driver akau_driver_alsa;
+#define AUDIODRIVER akau_driver_alsa
 
 static void ps_songprinter_test_log(int level,const char *msg,int msgc) {
   ps_log(TEST,INFO,"[%d] %.*s",level,msgc,msg);
@@ -24,7 +26,7 @@ PS_TEST(test_songprinter_synchronous,ignore,songprinter) {
   int songid=7;
 
   akau_quit();
-  PS_ASSERT_CALL(akau_init(&akau_driver_akmacaudio,ps_songprinter_test_log))
+  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log))
 
   ps_resmgr_quit();
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
@@ -74,7 +76,7 @@ PS_TEST(test_songprinter_asynchronous,ignore,songprinter) {
   int songid=7;
 
   akau_quit();
-  PS_ASSERT_CALL(akau_init(&akau_driver_akmacaudio,ps_songprinter_test_log))
+  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log))
 
   ps_resmgr_quit();
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))

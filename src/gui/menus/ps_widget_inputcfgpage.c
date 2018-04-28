@@ -179,8 +179,6 @@ static int _ps_inputcfgpage_update(struct ps_widget *widget) {
  * Interface is a little goofy because hey, we are the input configurator.
  */
 
-//TODO There must be some way to manage inputcfgpage without keyboard or mouse.
-
 static int _ps_inputcfgpage_key(struct ps_widget *widget,int keycode,int codepoint,int value) {
   //ps_log(GUI,TRACE,"%s %d[U+%x]=%d",__func__,keycode,codepoint,value);
   if (value==1) switch (keycode) {

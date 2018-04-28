@@ -239,3 +239,49 @@ int ps_evdev_default_usage_for_event(int type,int code) {
   }
   return 0;
 }
+
+/* Translate keycode and code point.
+ */
+ 
+int ps_evdev_translate_key_code(int *keycode,int *codepoint,int type,int code) {
+  if (type!=EV_KEY) return 0;
+  int usage=ps_evdev_default_usage_for_KEY(code);
+  if ((usage&0xffff0000)!=0x00070000) return 0;
+  if (keycode) *keycode=usage;
+  if (codepoint) {
+    if ((usage>=0x00070004)&&(usage<=0x0007001d)) {
+      *codepoint='a'+usage-0x00070004;
+    } else if ((usage>=0x0007001e)&&(usage<=0x00070026)) {
+      *codepoint='1'+usage-0x0007001e;
+    } else if ((usage>=0x00070059)&&(usage<=0x00070061)) {
+      *codepoint='1'+usage-0x00070059;
+    } else switch (usage) {
+      case 0x00070029: *codepoint=0x1b; break;
+      case 0x00070027: *codepoint='0'; break;
+      case 0x0007002d: *codepoint='-'; break;
+      case 0x0007002e: *codepoint='='; break;
+      case 0x0007002a: *codepoint=0x08; break;
+      case 0x0007002b: *codepoint=0x09; break;
+      case 0x0007002f: *codepoint='['; break;
+      case 0x00070030: *codepoint=']'; break;
+      case 0x00070028: *codepoint=0x0a; break;
+      case 0x00070033: *codepoint=';'; break;
+      case 0x00070034: *codepoint='\''; break;
+      case 0x00070035: *codepoint='`'; break;
+      case 0x00070031: *codepoint='\\'; break;
+      case 0x00070036: *codepoint=','; break;
+      case 0x00070037: *codepoint='.'; break;
+      case 0x00070038: *codepoint='/'; break;
+      case 0x00070055: *codepoint='*'; break;
+      case 0x0007002c: *codepoint=' '; break;
+      case 0x00070056: *codepoint='-'; break;
+      case 0x00070057: *codepoint='+'; break;
+      case 0x00070062: *codepoint='0'; break;
+      case 0x00070063: *codepoint='.'; break;
+      case 0x00070058: *codepoint=0x0a; break;
+      case 0x00070054: *codepoint='/'; break;
+      case 0x0007004c: *codepoint=0x7f; break;
+    }
+  }
+  return 1;
+}

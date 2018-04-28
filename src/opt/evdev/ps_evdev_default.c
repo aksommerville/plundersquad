@@ -146,6 +146,16 @@ static int ps_evdev_default_cb_event(int devid,int type,int code,int value) {
    */
   if ((type==EV_KEY)&&(value==2)) return 0;
 
+  /* Look for generic keyboard events.
+   * In general, only the editor needs this. But so does inputcfgpage, and possibly other odd things.
+   */
+  int keycode=0,codepoint=0;
+  if (ps_evdev_translate_key_code(&keycode,&codepoint,type,code)>0) {
+    if (ps_input_event_key(keycode,codepoint,value)<0) return -1;
+  }
+
+  /* Normal event mapping to player devices.
+   */
   struct ps_input_device *device=ps_input_provider_get_device_by_devid(ps_input_provider_evdev,devid);
   if (device) {
     if (ps_input_event_button(device,(type<<16)|code,value)<0) return -1;

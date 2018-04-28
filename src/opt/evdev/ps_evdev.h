@@ -66,5 +66,6 @@ int ps_evdev_report_capabilities(int devid,int (*cb)(int devid,int type,int code
 /* Return our best guess at a USB-HID usage code for this event, or zero.
  */
 int ps_evdev_default_usage_for_event(int type,int code);
+int ps_evdev_translate_key_code(int *keycode,int *codepoint,int type,int code);
 
 #endif

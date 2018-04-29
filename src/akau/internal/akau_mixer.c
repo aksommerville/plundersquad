@@ -263,21 +263,22 @@ static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
     mixer->printed_song_running=1;
     if (akau_songprinter_finish(mixer->printer)<0) return -1;
 
-  // Experiment: If we're more than 50% complete and at least 4 seconds have elapsed, start playing it.
-  // This means we could potentially read IPCM samples not written yet (they would be zero).
-  // I think the odds of that are vanishingly unlikely.
-  #if 1 // TODO run this harder on the Pi, I think it might cause a memory leak or thread starvation or something. It doesn't come up on the Mac.
-  } else if (progress>=50) {
+  /* We don't actually need the songprinter to finish before we start using its output.
+   * If it takes longer than one second, wait for it to reach 15% completion, then start playing.
+   * Those thresholds are more or less arbitrary.
+   * Experimentally, songprinter runs much faster than real-time, even on the slowest hardware.
+   * If these assumptions fail, the worst that could happen is that the music cuts out ungracefully.
+   */
+  } else if (progress>=15) {
     int64_t now=ps_time_now();
     int64_t elapsed=now-mixer->print_start_time;
-    if (elapsed>=4000000) {
+    if (elapsed>=1000000) {
       ps_log(AUDIO,DEBUG,"Starting song playbback at %d%% printed, elapsed %d.%06d.",progress,(int)(elapsed/1000000),(int)(elapsed%1000000));
       struct akau_ipcm *ipcm=akau_songprinter_get_ipcm_even_if_incomplete(mixer->printer);
       if (!ipcm) return -1;
       if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
       mixer->printed_song_running=1;
     }
-  #endif
   }
   
   return 0;

@@ -129,14 +129,12 @@ static int ps_teleporter_create_peers(struct ps_sprite *spr,struct ps_game *game
  */
 
 static struct ps_sprite *ps_teleporter_find_partner(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,DEBUG,"%s %p...",__func__,spr);
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_BARRIER;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *partner=grp->sprv[i];
     if (partner->type!=&ps_sprtype_teleporter) continue;
     if (spr==partner) continue;
     struct ps_sprite_teleporter *PARTNER=(struct ps_sprite_teleporter*)partner;
-    ps_log(GAME,DEBUG,"  %p role=%d telelinkid=%d active=%d hold=%d",partner,PARTNER->role,PARTNER->telelinkid,PARTNER->active,PARTNER->hold);
     if (PARTNER->role!=PS_TELEPORTER_ROLE_BASE) continue;
     if (PARTNER->telelinkid!=SPR->telelinkid) continue;
 

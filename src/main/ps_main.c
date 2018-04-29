@@ -65,14 +65,14 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
   //001-swordsman 002-archer    003-gadgeteer 004-nurse     005-wizard    006-vampire   007-martyr    008-immortal  009-bomber
-  if (ps_game_configure_player(ps_game,1,9,1,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,1,2,1,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,2,1,0,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,3,8,1,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,4,2,2,0)<0) return -1;
 
   if (0) { // Generate a scenario just like normal launches.
-    if (ps_game_set_difficulty(ps_game,3)<0) return -1;
-    if (ps_game_set_length(ps_game,2)<0) return -1;
+    if (ps_game_set_difficulty(ps_game,8)<0) return -1;
+    if (ps_game_set_length(ps_game,1)<0) return -1;
     if (ps_game_generate(ps_game)<0) return -1;
 
   } else { // Generate a test scenario -- good for blueprint test drives.
@@ -84,7 +84,7 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
   }
 
   if (ps_game_restart(ps_game)<0) return -1;
-  
+
   return 1;
 }
 

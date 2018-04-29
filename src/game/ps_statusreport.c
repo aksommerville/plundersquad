@@ -7,6 +7,7 @@
 #include "scenario/ps_blueprint.h"
 #include "video/ps_video.h"
 #include "akgl/akgl.h"
+#include <math.h>
 
 #define PS_STATUSREPORT_COLC_MIN   4
 #define PS_STATUSREPORT_COLC_MAX   4
@@ -18,18 +19,20 @@
 #define PS_STATUSREPORT_MARGIN_BOTTOM 8
 #define PS_STATUSREPORT_TREASURELIST_HEIGHT 6
 
-#define PS_STATUSREPORT_UNVISITED_COLOR  0x808080c0
-#define PS_STATUSREPORT_EDGE_COLOR       0x000000ff
+#define PS_STATUSREPORT_UNVISITED_COLOR  0x604040c0
+#define PS_STATUSREPORT_EDGE_COLOR       0x301800ff
 #define PS_STATUSREPORT_TREASURE_COLOR   0xff0000ff
 #define PS_STATUSREPORT_COLLECTED_COLOR  0xa04040ff
 #define PS_STATUSREPORT_LISTSEP_COLOR    0x000000ff
+#define PS_STATUSREPORT_CIRCLE_COLOR     0xffc020ff
+#define PS_STATUSREPORT_CROSSOUT_COLOR   0x000000ff
 
 /* On the easiest settings, we draw the "full map", with screen edges and treasure locations marked.
  * Intermediate settings get the "partial map" with no treasure locations.
  * Hardest settings get no map, just a list of treasures.
  */
 #define PS_STATUSREPORT_MAX_DIFFICULTY_FOR_FULL_MAP    3
-#define PS_STATUSREPORT_MAX_DIFFICULTY_FOR_PARTIAL_MAP 6
+#define PS_STATUSREPORT_MAX_DIFFICULTY_FOR_PARTIAL_MAP 7
 
 /* Object lifecycle.
  */
@@ -74,6 +77,96 @@ static void ps_statusreport_set_pixels(uint8_t *pixels,int stride,int x,int y,in
       dst[2]=b;
       dst[3]=a;
     }
+  }
+}
+
+/* Draw a circle in the containing rect.
+ */
+
+static void ps_statusreport_draw_circle(uint8_t *pixels,int stride,int x,int y,int w,int h,uint32_t rgba) {
+  /* Square it off. */
+  if (w>h) {
+    x+=(w-h)>>1;
+    w=h;
+  } else if (w<h) {
+    y+=(h-w)>>1;
+    h=w;
+  }
+  /* Given enough space, drop a pixel from each side. */
+  if (w>=5) {
+    x++; y++;
+    w-=2; h-=2;
+  }
+  /* There are plenty of great algorithms for rendering circles, but I'm taking a crude approach.
+   * Since these are going to be very small anyway, just calculate distance at each pixel.
+   */
+  double radius=w/2.0;
+  double midx=x+radius,midy=y+radius;
+  int imidx=midx,imidy=midy;
+  int maxradius=(int)(radius+1.0);
+  double outer_radius=radius*1.41421;
+  int py; for (py=-maxradius;py<=maxradius;py++) {
+    double fy=py+0.5;
+    double afy=(fy<0.0)?-fy:fy;
+    int px; for (px=-maxradius;px<=maxradius;px++) {
+      double fx=px+0.5;
+      double afx=(fx<0.0)?-fx:fx;
+      double manhattan=afy+afx;
+      if (manhattan>=outer_radius) continue;
+      if (manhattan<=radius) {
+        int p=(imidy+py)*stride+((imidx+px)<<2);
+        pixels[p++]=rgba>>24;
+        pixels[p++]=rgba>>16;
+        pixels[p++]=rgba>>8;
+        pixels[p++]=rgba;
+      } else {
+        double distance=sqrt(fx*fx+fy*fy);
+        if (distance<radius) {
+          int p=(imidy+py)*stride+((imidx+px)<<2);
+          pixels[p++]=rgba>>24;
+          pixels[p++]=rgba>>16;
+          pixels[p++]=rgba>>8;
+          pixels[p++]=rgba;
+        } else if (distance<radius+1.0) {
+          int p=(imidy+py)*stride+((imidx+px)<<2);
+          pixels[p++]=rgba>>24;
+          pixels[p++]=rgba>>16;
+          pixels[p++]=rgba>>8;
+          pixels[p++]=(rgba&0xff)>>1;
+        }
+      }
+    }
+  }
+}
+
+/* Draw a square X in the containing rect.
+ */
+
+static void ps_statusreport_draw_crossout(uint8_t *pixels,int stride,int x,int y,int w,int h,uint32_t rgba) {
+  if (w>h) {
+    x+=(w-h)>>1;
+    w=h;
+  } else if (w<h) {
+    y+=(h-w)>>1;
+    h=w;
+  }
+  if (w>=5) {
+    x++; y++;
+    w-=2; h-=2;
+  }
+  pixels+=y*stride+(x<<2);
+  int left=0,right=w<<2;
+  uint8_t r=rgba>>24,g=rgba>>16,b=rgba>>8,a=rgba;
+  while (h-->0) {
+    pixels[left++]=r;
+    pixels[left++]=g;
+    pixels[left++]=b;
+    pixels[left++]=a;
+    pixels[--right]=a;
+    pixels[--right]=b;
+    pixels[--right]=g;
+    pixels[--right]=r;
+    pixels+=stride;
   }
 }
 
@@ -269,10 +362,11 @@ static int ps_statusreport_compose_image_treasure_only(void *pixels,int w,int h,
       if (treasurep>=game->treasurec) break;
       int colw=layout->colw;
       if (col<layout->colwx) colw++;
-      uint32_t color=(game->treasurev[treasurep]?PS_STATUSREPORT_COLLECTED_COLOR:PS_STATUSREPORT_TREASURE_COLOR);
-      ps_statusreport_set_pixels(pixels,stride,x,y,colw,rowh,color);
-      if (col) ps_statusreport_set_pixels(pixels,stride,x,y,1,rowh,PS_STATUSREPORT_LISTSEP_COLOR);
-      if (row) ps_statusreport_set_pixels(pixels,stride,x,y,colw,1,PS_STATUSREPORT_LISTSEP_COLOR);
+      int collected=game->treasurev[treasurep];
+      ps_statusreport_draw_circle(pixels,stride,x,y,colw,rowh,PS_STATUSREPORT_CIRCLE_COLOR);
+      if (collected) {
+        ps_statusreport_draw_crossout(pixels,stride,x,y,colw,rowh,PS_STATUSREPORT_CROSSOUT_COLOR);
+      }
       x+=colw;
     }
     y+=rowh;

@@ -223,6 +223,7 @@ static int ps_gorilla_update_IDLE(struct ps_sprite *spr,struct ps_game *game) {
     struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
     int i=grp->sprc; while (i-->0) {
       struct ps_sprite *victim=grp->sprv[i];
+      if (victim->type==&ps_sprtype_flames) continue; // Don't punch the magic flame; the futility of this protest bespeaks your pathetic desperation.
       double dy=victim->y-spr->y;
       if (dy>victim->radius) continue;
       if (dy<-victim->radius) continue;

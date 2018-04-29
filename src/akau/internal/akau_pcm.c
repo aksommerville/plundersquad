@@ -50,7 +50,7 @@ struct akau_fpcm *akau_fpcm_new(int samplec) {
   
 void akau_ipcm_del(struct akau_ipcm *ipcm) {
   if (!ipcm) return;
-  if (ipcm->refc-->0) return;
+  if (ipcm->refc-->1) return;
   free(ipcm);
 }
 

@@ -657,7 +657,7 @@ static int list_treasure_blueprints() {
  
 PS_TEST(examineres,ignore) {
   ps_resmgr_quit();
-  if (akau_init(&akau_driver_akmacaudio,0)<0) return -1;
+  //if (akau_init(&akau_driver_akmacaudio,0)<0) return -1;
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
   
   //PS_ASSERT_CALL(list_hero_blueprints())

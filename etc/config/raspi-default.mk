@@ -13,4 +13,4 @@ OPT_ENABLE:=bcm alsa evdev genioc
 PS_GLSL_VERSION:=100
 
 # Capture logs to a regular file because the default Pi console doesn't afford much scrollback.
-CMD_MAIN:=$(EXEMAIN) 2>&1 | tee ps.log
+CMD_MAIN:=$(EXE_MAIN) 2>&1 | tee ps.log

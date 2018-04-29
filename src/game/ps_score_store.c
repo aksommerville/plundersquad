@@ -115,6 +115,32 @@ static int ps_score_store_append_to_file(struct ps_score_store *store,const stru
   return 0;
 }
 
+/* Sort plrdefidv. This is very important, so we can easily identify identical parties in the future.
+ */
+
+static void ps_score_record_sort_plrdefidv(struct ps_score_record *record) {
+  int lo=0,hi=record->playerc-1,d=1;
+  while (lo<hi) {
+    int first,last,i,done=1;
+    if (d==1) { first=lo; last=hi; }
+    else { first=hi; last=lo; }
+    for (i=first;i!=last;i+=d) {
+      int cmp=0;
+      if (record->plrdefidv[i]<record->plrdefidv[i+d]) cmp=-1;
+      else if (record->plrdefidv[i]>record->plrdefidv[i+d]) cmp=1;
+      if (cmp==d) {
+        uint8_t tmp=record->plrdefidv[i];
+        record->plrdefidv[i]=record->plrdefidv[i+d];
+        record->plrdefidv[i+d]=tmp;
+        done=0;
+      }
+    }
+    if (done) return;
+    if (d==1) { d=-1; hi--; }
+    else { d=1; lo++; }
+  }
+}
+
 /* Compose new record from game.
  */
 
@@ -136,6 +162,7 @@ static int ps_score_record_from_game(struct ps_score_record *record,const struct
     int plrdefid=ps_res_get_id_by_obj(PS_RESTYPE_PLRDEF,player->plrdef);
     if ((plrdefid>0)&&(plrdefid<256)) record->plrdefidv[i]=plrdefid;
   }
+  ps_score_record_sort_plrdefidv(record);
   
   if (game->stats) {
     record->playtime=game->stats->playtime;
@@ -166,6 +193,31 @@ int ps_score_store_add_record(
   if (ps_score_store_append_to_file(store,store->recordv+store->recordc,1)<0) return -1;
   store->recordc++;
 
+  return 0;
+}
+
+/* Add false record.
+ */
+ 
+int ps_score_store_add_false_record(struct ps_score_store *store,int playtime,int length,int difficulty,int plrdefid,...) {
+  if (!store) return -1;
+  if (ps_score_store_require(store)<0) return -1;
+  
+  struct ps_score_record *record=store->recordv+store->recordc++;
+  record->time=ps_time_now();
+  record->length=length;
+  record->difficulty=difficulty;
+  record->playtime=playtime;
+  
+  va_list vargs;
+  va_start(vargs,plrdefid);
+  while (plrdefid>=0) {
+    if (record->playerc>=PS_PLAYER_LIMIT) return -1;
+    record->plrdefidv[record->playerc++]=plrdefid;
+    plrdefid=va_arg(vargs,int);
+  }
+
+  if (ps_score_store_append_to_file(store,record,1)<0) return -1;
   return 0;
 }
 
@@ -228,4 +280,126 @@ int ps_score_store_count_plrdefid_usages(int **dstpp,const struct ps_score_store
 
   *dstpp=dstv;
   return dstc;
+}
+
+/* Record comparison helpers.
+ */
+
+static int ps_score_record_parties_match(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (a->playerc!=b->playerc) return -1;
+  int i=a->playerc; while (i-->0) {
+    if (a->plrdefidv[i]!=b->plrdefidv[i]) return 0;
+  }
+  return 1;
+}
+
+/* Record comparators.
+ */
+
+typedef int (*ps_score_record_comparator)(const struct ps_score_record *a,const struct ps_score_record *b);
+
+static int ps_score_record_comparator_ALL(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (a->playtime<b->playtime) return -1;
+  if (a->playtime>b->playtime) return 1;
+  return 0;
+}
+
+static int ps_score_record_comparator_PLAYERC(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (a->playerc!=b->playerc) return -2;
+  if (a->playtime<b->playtime) return -1;
+  if (a->playtime>b->playtime) return 1;
+  return 0;
+}
+
+static int ps_score_record_comparator_PLAYERC_LENGTH(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (a->playerc!=b->playerc) return -2;
+  if (a->length!=b->length) return -2;
+  if (a->playtime<b->playtime) return -1;
+  if (a->playtime>b->playtime) return 1;
+  return 0;
+}
+
+static int ps_score_record_comparator_PARTY(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (!ps_score_record_parties_match(a,b)) return -2;
+  if (a->playtime<b->playtime) return -1;
+  if (a->playtime>b->playtime) return 1;
+  return 0;
+}
+
+static int ps_score_record_comparator_PARTY_LENGTH(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (!ps_score_record_parties_match(a,b)) return -2;
+  if (a->length!=b->length) return -2;
+  if (a->playtime<b->playtime) return -1;
+  if (a->playtime>b->playtime) return 1;
+  return 0;
+}
+
+static int ps_score_record_comparator_PLAYERC_LENGTH_DIFFICULTY(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (a->playerc!=b->playerc) return -2;
+  if (a->length!=b->length) return -2;
+  if (a->difficulty!=b->difficulty) return -2;
+  if (a->playtime<b->playtime) return -1;
+  if (a->playtime>b->playtime) return 1;
+  return 0;
+}
+
+static int ps_score_record_comparator_PARTY_LENGTH_DIFFICULTY(const struct ps_score_record *a,const struct ps_score_record *b) {
+  if (!ps_score_record_parties_match(a,b)) return -2;
+  if (a->length!=b->length) return -2;
+  if (a->difficulty!=b->difficulty) return -2;
+  if (a->playtime<b->playtime) return -1;
+  if (a->playtime>b->playtime) return 1;
+  return 0;
+}
+
+static ps_score_record_comparator ps_score_record_comparatorv[PS_SCORE_CRITERION_COUNT]={
+  ps_score_record_comparator_ALL,
+  ps_score_record_comparator_PLAYERC,
+  ps_score_record_comparator_PLAYERC_LENGTH,
+  ps_score_record_comparator_PARTY,
+  ps_score_record_comparator_PARTY_LENGTH,
+  ps_score_record_comparator_PLAYERC_LENGTH_DIFFICULTY,
+  ps_score_record_comparator_PARTY_LENGTH_DIFFICULTY,
+};
+
+/* Compare to history.
+ */
+ 
+int ps_score_store_rate_most_recent(struct ps_score_comparison *comparison,const struct ps_score_store *store) {
+  if (!comparison||!store) return -1;
+  if (store->recordc<1) return -1;
+  memset(comparison,0,sizeof(struct ps_score_comparison));
+
+  /* Gather the raw data. */
+  const struct ps_score_record *a=store->recordv+store->recordc-1;
+  const struct ps_score_record *b=store->recordv;
+  int i=store->recordc-1; for (;i-->0;b++) {
+    int criterion=0; for (;criterion<PS_SCORE_CRITERION_COUNT;criterion++) {
+      ps_score_record_comparator cmp=ps_score_record_comparatorv[criterion];
+      switch (cmp(a,b)) {
+        case -1: comparison->rankv[criterion].count_worse++; break;
+        case 0: comparison->rankv[criterion].count_same++; break;
+        case 1: comparison->rankv[criterion].count_better++; break;
+        // Any other result means it didn't match.
+      }
+    }
+  }
+
+  /* Criterion IDs are in order; take the highest one with a result. */
+  int criterion=PS_SCORE_CRITERION_COUNT; while (criterion-->0) {
+    int recordc=comparison->rankv[criterion].count_better+comparison->rankv[criterion].count_same+comparison->rankv[criterion].count_worse;
+    if (recordc<1) continue;
+    comparison->relevant.criterion=criterion;
+    comparison->relevant.rank=1+comparison->rankv[criterion].count_better;
+    comparison->relevant.count=1+recordc; // Add one because the reference record is part of this group too.
+    comparison->relevant.tiec=comparison->rankv[criterion].count_same;
+    return 0;
+  }
+
+  /* First time playing? Fill in default results. */
+  comparison->relevant.criterion=PS_SCORE_CRITERION_ALL;
+  comparison->relevant.rank=1;
+  comparison->relevant.count=1;
+  comparison->relevant.tiec=0;
+  return 0;
 }

@@ -15,6 +15,7 @@
 #include "gui/corewidgets/ps_corewidgets.h"
 #include "game/ps_game.h"
 #include "game/ps_stats.h"
+#include "game/ps_score_store.h"
 #include "scenario/ps_scenario.h"
 #include "res/ps_restype.h"
 #include "util/ps_buffer.h"
@@ -183,6 +184,44 @@ const struct ps_widget_type ps_widget_type_report={
 
 static int ps_report_compose_text(struct ps_buffer *buffer,const struct ps_game *game) {
 
+  /* Start with assessment against historical games. */
+  struct ps_score_comparison comparison={0};
+  if (ps_score_store_rate_most_recent(&comparison,game->score_store)>=0) {
+    struct ps_score_rating *rating=&comparison.relevant;
+    if (rating->count>=2) { // Don't say anything for the first recorded score.
+      switch (rating->criterion) {
+        case PS_SCORE_CRITERION_ALL: {
+            if (ps_buffer_appendf(buffer,"Rank among all plays:\n")<0) return -1;
+          } break;
+        case PS_SCORE_CRITERION_PLAYERC: {
+            if (ps_buffer_appendf(buffer,"With %d player%s:\n",game->playerc,(game->playerc==1)?"":"s")<0) return -1; 
+          } break;
+        case PS_SCORE_CRITERION_PLAYERC_LENGTH: {
+            if (ps_buffer_appendf(buffer,"At length %d with %d player%s:\n",game->length,game->playerc,(game->playerc==1)?"":"s")<0) return -1; 
+          } break;
+        case PS_SCORE_CRITERION_PARTY: {
+            if (ps_buffer_appendf(buffer,"With this exact party:\n")<0) return -1;
+          } break;
+        case PS_SCORE_CRITERION_PARTY_LENGTH: {
+            if (ps_buffer_appendf(buffer,"Length %d with this party:\n",game->length)<0) return -1;
+          } break;
+        case PS_SCORE_CRITERION_PLAYERC_LENGTH_DIFFICULTY: {
+            if (ps_buffer_appendf(buffer,"For %d player%s at this config:\n",game->playerc,(game->playerc==1)?"":"s")<0) return -1;
+          } break;
+        case PS_SCORE_CRITERION_PARTY_LENGTH_DIFFICULTY: {
+            if (ps_buffer_appendf(buffer,"In this exact configuration:\n")<0) return -1;
+          } break;
+        default: if (ps_buffer_appendf(buffer,"\n")<0) return -1; break;
+      }
+      if (ps_buffer_appendf(buffer,"#%d of %d",rating->rank,rating->count)<0) return -1;
+      if (rating->tiec) {
+        if (ps_buffer_appendf(buffer," (tied)")<0) return -1;
+      }
+      if (ps_buffer_append(buffer,"\n",1)<0) return -1;
+    }
+  }
+
+  /* Next report the playing time. */
   int playtime_f=game->stats->playtime%60;
   int playtime_ms=(playtime_f*1000)/60;
   int playtime_s=game->stats->playtime/60;
@@ -196,6 +235,7 @@ static int ps_report_compose_text(struct ps_buffer *buffer,const struct ps_game 
     if (ps_buffer_appendf(buffer,"Active time: %d:%02d.%03d\n",playtime_m,playtime_s,playtime_ms)<0) return -1;
   }
 
+  /* Then some input parameters. */
   if (ps_buffer_appendf(buffer," Difficulty: %d\n",game->difficulty)<0) return -1;
   if (ps_buffer_appendf(buffer,"     Length: %d\n",game->length)<0) return -1;
 

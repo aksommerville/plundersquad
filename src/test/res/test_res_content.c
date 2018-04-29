@@ -285,6 +285,132 @@ static int count_blueprints_by_player_count_and_difficulty() {
   return 0;
 }
 
+/* Look at switches in each blueprint, confirm that they make sense.
+ */
+
+static int validate_switch_assignments() {
+  #define SWITCHID_LIMIT 255 /* Artificial limit for this test only; they can actually go up to INT_MAX. */
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_BLUEPRINT);
+  PS_ASSERT(restype)
+  int i=0; for (;i<restype->resc;i++) {
+    const struct ps_blueprint *blueprint=restype->resv[i].obj;
+    int blueprintid=restype->resv[i].id;
+    
+    int switches_defined[1+SWITCHID_LIMIT]={0};
+    int switches_referred[1+SWITCHID_LIMIT]={0};
+    int switchid_max=-1;
+
+    const struct ps_blueprint_poi *poi=blueprint->poiv;
+    int poii=blueprint->poic;
+    for (;poii-->0;poi++) switch (poi->type) {
+    
+      case PS_BLUEPRINT_POI_SPRITE: {
+          // We could generically search for sprites accepting assignment to 'switchid', but that doesn't tell us 'defined' or 'referred'.
+          // Instead, I'm just searching for sprtypes known to interact with switches.
+          // grep -n 'switchid' src/game/sprites/*.c
+          const struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,poi->argv[0]);
+          PS_ASSERT(sprdef,"blueprint:%d: SPRITE POI for absent resource sprdef:%d",blueprintid,poi->argv[0])
+
+          #define READSWITCHOPT(argp) { \
+            int switchid=poi->argv[1+argp]; \
+            if (!switchid) continue; \
+            else if ((switchid<0)||(switchid>SWITCHID_LIMIT)) { \
+              PS_ASSERT(0,"blueprint:%d: SPRITE POI '%s' refers to switch %d. Expected 0..%d",blueprintid,sprdef->type->name,switchid,SWITCHID_LIMIT); \
+            } \
+            switches_referred[switchid]++; \
+            if (switchid>switchid_max) switchid_max=switchid; \
+          }
+          #define WRITESWITCH(argp) { \
+            int switchid=poi->argv[1+argp]; \
+            if (!switchid) { \
+              PS_ASSERT(0,"blueprint:%d: SPRITE POI '%s' writes to switch 0",blueprintid,sprdef->type->name) \
+            } else if ((switchid<0)||(switchid>SWITCHID_LIMIT)) { \
+              PS_ASSERT(0,"blueprint:%d: SPRITE POI '%s' refers to switch %d. Expected 0..%d",blueprintid,sprdef->type->name,switchid,SWITCHID_LIMIT); \
+            } \
+            switches_defined[switchid]++; \
+            if (switchid>switchid_max) switchid_max=switchid; \
+          }
+          
+          if (sprdef->type==&ps_sprtype_boxingglove) {
+            READSWITCHOPT(1)
+          } else if (sprdef->type==&ps_sprtype_killozap) {
+            READSWITCHOPT(0)
+          } else if (sprdef->type==&ps_sprtype_motionsensor) {
+            WRITESWITCH(0)
+          } else if (sprdef->type==&ps_sprtype_switch) {
+            WRITESWITCH(0)
+          } else if (sprdef->type==&ps_sprtype_swordswitch) {
+            WRITESWITCH(0)
+          } else if (sprdef->type==&ps_sprtype_teleporter) {
+            READSWITCHOPT(1)
+          }
+          #undef READSWITCHOPT
+          #undef WRITESWITCH
+        } break;
+        
+      case PS_BLUEPRINT_POI_BARRIER: {
+          if ((poi->argv[0]<1)||(poi->argv[0]>SWITCHID_LIMIT)) {
+            PS_ASSERT(0,"blueprint:%d: BARRIER POI refers to switch %d. Expected 1..%d",blueprintid,poi->argv[0],SWITCHID_LIMIT)
+          }
+          switches_referred[poi->argv[0]]++;
+          if (poi->argv[0]>switchid_max) switchid_max=poi->argv[0];
+        } break;
+        
+      case PS_BLUEPRINT_POI_PERMASWITCH: {
+          if ((poi->argv[0]<0)||(poi->argv[0]>SWITCHID_LIMIT)) { // 0 is valid and normal for PERMASWITCH
+            PS_ASSERT(0,"blueprint:%d: PERMASWITCH POI refers to switch %d. Expected 1..%d",blueprintid,poi->argv[0],SWITCHID_LIMIT)
+          }
+          switches_referred[poi->argv[0]]++;
+          if (poi->argv[0]>switchid_max) switchid_max=poi->argv[0];
+        } break;
+    }
+
+    if (switchid_max<0) continue;
+
+    /* If we have a reference to switch zero, we require that at least one valid definition be available. 
+     * For the time being, this is only possible via PERMASWITCH.
+     */
+    PS_ASSERT_NOT(switches_defined[0],"test is broken -- nothing writes to switch zero")
+    if (switches_referred[0]) {
+      int ok=0;
+      int j; for (j=1;j<=switchid_max;j++) if (switches_defined[j]) {
+        ok=1;
+        break;
+      }
+      PS_ASSERT(ok,"blueprint:%d: Something is reading switch zero, but no switches are defined",blueprintid)
+    }
+
+    /* Expect a reader and writer for every defined switch.
+     */
+    int j; for (j=1;j<=switchid_max;j++) {
+      if (switches_defined[j]&&switches_referred[j]) {
+        // ok
+      } else if (switches_defined[j]) {
+        if (!switches_referred[0]) { // If we have a catch-all reference, anything goes.
+          PS_ASSERT(0,"blueprint:%d: Switch %d is defined but not referenced",blueprintid,j)
+        }
+      } else if (switches_referred[j]) {
+        PS_ASSERT(0,"blueprint:%d: Switch %d is referenced but not defined",blueprintid,j)
+      } else {
+        // Sparse switchid assignment, not a problem.
+      }
+    }
+    
+  }
+  #undef SWITCHID_LIMIT
+  return 0;
+}
+
+/* Confirm that a sprdef resource exists and is the given sprtype.
+ */
+
+static int sprdef_is_type(int sprdefid,const struct ps_sprtype *type) {
+  const struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,sprdefid);
+  PS_ASSERT(sprdef,"sprdef:%d",sprdefid)
+  PS_ASSERT(sprdef->type==type,"sprdef:%d: Found '%s', expected '%s'",sprdefid,sprdef->type->name,type->name)
+  return 0;
+}
+
 /* Live resources test.
  */
 
@@ -302,6 +428,7 @@ PS_TEST(test_res_content,res,functional,ignore) {
   if (count_blueprint_solutions_by_player_count()<0) return -1;
   if (count_blueprint_solutions_by_skill()<0) return -1;
   if (count_blueprints_by_player_count_and_difficulty()<0) return -1;
+  if (validate_switch_assignments()<0) return -1;
 
   /* plrdef */
   PS_ASSERT(plrdef_for_skill(PS_SKILL_SWORD))
@@ -319,7 +446,6 @@ PS_TEST(test_res_content,res,functional,ignore) {
   /* soundeffect */
 
   /* sprdef */
-  //TODO There are specific sprdef IDs called out in code that we should validate here.
   PS_ASSERT(sprdef_for_type(&ps_sprtype_arrow))
   PS_ASSERT(sprdef_for_type(&ps_sprtype_bloodhound))
   PS_ASSERT(sprdef_for_type(&ps_sprtype_blueberry))
@@ -354,6 +480,24 @@ PS_TEST(test_res_content,res,functional,ignore) {
   PS_ASSERT(sprdef_for_type(&ps_sprtype_treasurechest))
   PS_ASSERT(sprdef_for_type(&ps_sprtype_turtle))
   PS_ASSERT(sprdef_for_type(&ps_sprtype_yak))
+
+  /* sprdef resources called out in code.
+   * grep -Enr 'define.*SPRDEF_?ID.*[0-9]' src
+   * There may be others used directly (without a preprocessor define). Whatever.
+   */
+  PS_ASSERT_CALL(sprdef_is_type( 1,&ps_sprtype_hero))
+  PS_ASSERT_CALL(sprdef_is_type( 4,&ps_sprtype_hookshot))
+  PS_ASSERT_CALL(sprdef_is_type( 5,&ps_sprtype_arrow))
+  PS_ASSERT_CALL(sprdef_is_type( 6,&ps_sprtype_healmissile))
+  PS_ASSERT_CALL(sprdef_is_type( 7,&ps_sprtype_explosion))
+  PS_ASSERT_CALL(sprdef_is_type(11,&ps_sprtype_missile))
+  PS_ASSERT_CALL(sprdef_is_type(17,&ps_sprtype_prize))
+  PS_ASSERT_CALL(sprdef_is_type(21,&ps_sprtype_bloodhound))
+  PS_ASSERT_CALL(sprdef_is_type(23,&ps_sprtype_dragon))
+  PS_ASSERT_CALL(sprdef_is_type(24,&ps_sprtype_toast))
+  PS_ASSERT_CALL(sprdef_is_type(25,&ps_sprtype_bomb))
+  PS_ASSERT_CALL(sprdef_is_type(32,&ps_sprtype_chicken))
+  PS_ASSERT_CALL(sprdef_is_type(35,&ps_sprtype_missile))
 
   /* tilesheet */
   PS_ASSERT(resource_exists(PS_RESTYPE_TILESHEET,1),"UI chrome")

@@ -67,10 +67,9 @@ static int ps_awards_draw_text(struct ps_widget *widget,int offx,int offy) {
     if (i&1) { // align to right
       x=widget->w-PS_AWARDS_TILE_SIZE;
       x-=player->descc*(PS_AWARDS_TEXT_HEIGHT>>1);
-      x+=PS_AWARDS_TEXT_HEIGHT>>2;
     } else { // align to left
       x=PS_AWARDS_TILE_SIZE;
-      x+=PS_AWARDS_TEXT_HEIGHT>>2;
+      x+=PS_AWARDS_TEXT_HEIGHT>>1;
     }
     x+=offx;
     if (ps_video_text_add(PS_AWARDS_TEXT_HEIGHT,PS_AWARDS_TEXT_COLOR,x,y,player->desc,player->descc)<0) return -1;

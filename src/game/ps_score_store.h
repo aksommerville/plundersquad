@@ -53,12 +53,14 @@ struct ps_score_rating {
   int rank; // 1..count
   int count; // >=1
   int tiec; // If >0, others match this rank precisely.
+  int best; // Best score on record, good to know if we're not #1.
 };
 
 struct ps_score_criterion {
   int count_better;
   int count_same;
   int count_worse;
+  int best;
 };
 
 struct ps_score_comparison {

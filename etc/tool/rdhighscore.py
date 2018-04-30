@@ -38,7 +38,10 @@ while True:
   difficulty=ord(record[17])
   length=ord(record[18])
 
-  sys.stdout.write("%4d: %r playtime=%d difficulty=%d length=%d\n"%(recordix,plrdefidv,playtime,difficulty,length))
+  #sys.stdout.write("%4d: %r playtime=%d difficulty=%d length=%d\n"%(recordix,plrdefidv,playtime,difficulty,length))
+  plrdefid_list=','.join(map(str,plrdefidv))
+  sys.stdout.write("  PS_ASSERT_CALL(ps_score_store_add_false_record(store,%5d,%d,%d,%s,-1))\n"%(playtime,length,difficulty,plrdefid_list))
+
   for plrdefid in plrdefidv:
     if not (plrdefid in count_by_plrdefid):
       count_by_plrdefid[plrdefid]=1
@@ -46,5 +49,5 @@ while True:
       count_by_plrdefid[plrdefid]+=1
   recordix+=1
 
-for plrdefid,count in count_by_plrdefid.iteritems():
-  sys.stdout.write("plrdefid:%d: %d\n"%(plrdefid,count))
+#for plrdefid,count in count_by_plrdefid.iteritems():
+#  sys.stdout.write("plrdefid:%d: %d\n"%(plrdefid,count))

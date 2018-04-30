@@ -46,6 +46,7 @@ static int _ps_report_init(struct ps_widget *widget) {
   if (ps_widget_label_set_text(child,"GAME OVER",9)<0) return -1;
   if (ps_widget_label_set_size(child,24)<0) return -1;
   child->fgrgba=0x804020ff;
+  child->fgrgba=0xffffffff;
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_textblock))) return -1;
   child->fgrgba=0x202040ff;
@@ -186,6 +187,7 @@ static int ps_report_compose_text(struct ps_buffer *buffer,const struct ps_game 
 
   /* Start with assessment against historical games. */
   struct ps_score_comparison comparison={0};
+  int besttime=0;
   if (ps_score_store_rate_most_recent(&comparison,game->score_store)>=0) {
     struct ps_score_rating *rating=&comparison.relevant;
     if (rating->count>=2) { // Don't say anything for the first recorded score.
@@ -218,6 +220,7 @@ static int ps_report_compose_text(struct ps_buffer *buffer,const struct ps_game 
         if (ps_buffer_appendf(buffer," (tied)")<0) return -1;
       }
       if (ps_buffer_append(buffer,"\n",1)<0) return -1;
+      if (rating->rank!=1) besttime=rating->best;
     }
   }
 
@@ -233,6 +236,22 @@ static int ps_report_compose_text(struct ps_buffer *buffer,const struct ps_game 
     if (ps_buffer_appendf(buffer,"Active time: %d:%02d:%02d.%03d\n",playtime_h,playtime_m,playtime_s,playtime_ms)<0) return -1;
   } else {
     if (ps_buffer_appendf(buffer,"Active time: %d:%02d.%03d\n",playtime_m,playtime_s,playtime_ms)<0) return -1;
+  }
+
+  /* If score store reported the record, dump it too. */
+  if (besttime) {
+    playtime_f=besttime%60;
+    playtime_ms=(playtime_f*1000)/60;
+    playtime_s=besttime/60;
+    playtime_m=playtime_s/60;
+    playtime_s%=60;
+    playtime_h=playtime_m/60;
+    playtime_m%=60;
+    if (playtime_h) {
+      if (ps_buffer_appendf(buffer,"     Record: %d:%02d:%02d.%03d\n",playtime_h,playtime_m,playtime_s,playtime_ms)<0) return -1;
+    } else {
+      if (ps_buffer_appendf(buffer,"     Record: %d:%02d.%03d\n",playtime_m,playtime_s,playtime_ms)<0) return -1;
+    }
   }
 
   /* Then some input parameters. */

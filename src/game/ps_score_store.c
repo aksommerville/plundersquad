@@ -204,6 +204,7 @@ int ps_score_store_add_false_record(struct ps_score_store *store,int playtime,in
   if (ps_score_store_require(store)<0) return -1;
   
   struct ps_score_record *record=store->recordv+store->recordc++;
+  memset(record,0,sizeof(struct ps_score_record));
   record->time=ps_time_now();
   record->length=length;
   record->difficulty=difficulty;
@@ -286,7 +287,7 @@ int ps_score_store_count_plrdefid_usages(int **dstpp,const struct ps_score_store
  */
 
 static int ps_score_record_parties_match(const struct ps_score_record *a,const struct ps_score_record *b) {
-  if (a->playerc!=b->playerc) return -1;
+  if (a->playerc!=b->playerc) return 0;
   int i=a->playerc; while (i-->0) {
     if (a->plrdefidv[i]!=b->plrdefidv[i]) return 0;
   }
@@ -368,19 +369,28 @@ static ps_score_record_comparator ps_score_record_comparatorv[PS_SCORE_CRITERION
 int ps_score_store_rate_most_recent(struct ps_score_comparison *comparison,const struct ps_score_store *store) {
   if (!comparison||!store) return -1;
   if (store->recordc<1) return -1;
+
+  /* Start with the recent playtime as 'best' for all criteria, and otherwise blank. */
   memset(comparison,0,sizeof(struct ps_score_comparison));
+  const struct ps_score_record *a=store->recordv+store->recordc-1;
+  int i;
+  for (i=0;i<PS_SCORE_CRITERION_COUNT;i++) {
+    comparison->rankv[i].best=a->playtime;
+  }
 
   /* Gather the raw data. */
-  const struct ps_score_record *a=store->recordv+store->recordc-1;
   const struct ps_score_record *b=store->recordv;
-  int i=store->recordc-1; for (;i-->0;b++) {
+  for (i=store->recordc-1;i-->0;b++) {
     int criterion=0; for (;criterion<PS_SCORE_CRITERION_COUNT;criterion++) {
       ps_score_record_comparator cmp=ps_score_record_comparatorv[criterion];
       switch (cmp(a,b)) {
         case -1: comparison->rankv[criterion].count_worse++; break;
         case 0: comparison->rankv[criterion].count_same++; break;
         case 1: comparison->rankv[criterion].count_better++; break;
-        // Any other result means it didn't match.
+        default: continue; // Any other result means it didn't match.
+      }
+      if (b->playtime<comparison->rankv[criterion].best) {
+        comparison->rankv[criterion].best=b->playtime;
       }
     }
   }
@@ -393,6 +403,7 @@ int ps_score_store_rate_most_recent(struct ps_score_comparison *comparison,const
     comparison->relevant.rank=1+comparison->rankv[criterion].count_better;
     comparison->relevant.count=1+recordc; // Add one because the reference record is part of this group too.
     comparison->relevant.tiec=comparison->rankv[criterion].count_same;
+    comparison->relevant.best=comparison->rankv[criterion].best;
     return 0;
   }
 
@@ -401,5 +412,6 @@ int ps_score_store_rate_most_recent(struct ps_score_comparison *comparison,const
   comparison->relevant.rank=1;
   comparison->relevant.count=1;
   comparison->relevant.tiec=0;
+  comparison->relevant.best=a->playtime;
   return 0;
 }

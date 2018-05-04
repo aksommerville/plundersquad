@@ -39,7 +39,6 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
   /* Ghosts have a decidedly different profile from the living. */
   } else if (SPR->state&PS_HERO_STATE_GHOST) {
     grpmask|=
-      ((game->difficulty>=PS_GHOST_HAZARD_DIFFICULTY)?(1<<PS_SPRGRP_HEROHAZARD):0)|
       (1<<PS_SPRGRP_PHYSICS)|
     0;
     spr->impassable=
@@ -50,6 +49,12 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
     if (SPR->state&PS_HERO_STATE_FERRY) {
       if (ps_sprite_release_from_master(spr,game)<0) return -1;
       SPR->state&=~PS_HERO_STATE_FERRY;
+    }
+    if (game->difficulty>=PS_GHOST_HAZARD_DIFFICULTY) {
+      grpmask|=(1<<PS_SPRGRP_HEROHAZARD);
+      SPR->lethal=1;
+    } else {
+      SPR->lethal=0;
     }
 
   /* Onscreen and alive. */

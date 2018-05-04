@@ -52,12 +52,12 @@ static struct ps_perfmon *ps_perfmon=0;
 static int ps_setup_test_game(struct ps_userconfig *userconfig) {
   int i;
 
-  if (1) { // Normal interactive setup.
+  if (0) { // Normal interactive setup.
     return 0;
   }
 
   /* Configure players. */
-  if (ps_game_set_player_count(ps_game,1)<0) return -1;
+  if (ps_game_set_player_count(ps_game,2)<0) return -1;
   for (i=1;i<=PS_PLAYER_LIMIT;i++) {
     ps_game_configure_player(ps_game,i,i,i,0);
   }
@@ -65,8 +65,8 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
   //001-swordsman 002-archer    003-gadgeteer 004-nurse     005-wizard    006-vampire   007-martyr    008-immortal  009-bomber
-  if (ps_game_configure_player(ps_game,1,5,1,0)<0) return -1;
-  //if (ps_game_configure_player(ps_game,2,1,0,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,1,2,1,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,2,2,0,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,3,8,1,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,4,2,2,0)<0) return -1;
 
@@ -76,6 +76,8 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
     if (ps_game_generate(ps_game)<0) return -1;
 
   } else { // Generate a test scenario -- good for blueprint test drives.
+    if (ps_game_set_difficulty(ps_game,2)<0) return -1;
+    if (ps_game_set_length(ps_game,    2)<0) return -1;
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:

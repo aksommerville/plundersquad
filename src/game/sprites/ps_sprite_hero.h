@@ -55,6 +55,7 @@ struct ps_sprite_hero {
    * It's fine to read state directly but modify it ony with the provided accessors.
    */
   uint32_t state;
+  int lethal; // Only relevant in PS_HERO_STATE_GHOST. Am I in PS_SPRGRP_HEROHAZARD?
   
 };
 

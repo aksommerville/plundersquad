@@ -365,7 +365,7 @@ static int ps_hero_draw_ghost(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_s
   vtxv->x=spr->x;
   vtxv->y=spr->y;
   vtxv->size=PS_TILESIZE;
-  vtxv->tileid=0x5f;
+  vtxv->tileid=SPR->lethal?0xce:0xcd;
   vtxv->ta=0;
   
   uint32_t rgba=0x808080ff;

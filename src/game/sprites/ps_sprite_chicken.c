@@ -23,6 +23,8 @@
 #define PS_CHICKEN_WALK_FRAME_TIME 8
 #define PS_CHICKEN_WALK_FRAME_COUNT 4
 
+#define PS_CHICKEN_POPULATION_LIMIT 12
+
 /* Private sprite object.
  */
 
@@ -222,10 +224,33 @@ static int ps_chicken_lay_egg(struct ps_sprite *spr,struct ps_game *game) {
   egg->opacity=0xff;
   egg->impassable=spr->impassable;
 
-  egg->x=spr->x+PS_TILESIZE*-SPR->facedx;
-  egg->y=spr->y;
+  // Wee randomization to ensure we don't get two eggs in precisely the same location.
+  // If that happens in a horizontal corridor, physics gives us some unpleasant twitch.
+  double randomx=(rand()%100)/100.0;
+  double randomy=(rand()%100)/100.0;
+
+  egg->x=spr->x+PS_TILESIZE*-SPR->facedx+randomx;
+  egg->y=spr->y+randomy;
   
   return 0;
+}
+
+/* Test whether to lay an egg, minding the global population limit.
+ */
+
+static int ps_chicken_tally_population(const struct ps_game *game) {
+  const struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_SOLID; // Probably the smallest group chickens are always in.
+  int c=0,i=grp->sprc;
+  while (i-->0) {
+    const struct ps_sprite *spr=grp->sprv[i];
+    if (spr->type==&ps_sprtype_chicken) c++;
+    else if (spr->type==&ps_sprtype_egg) c++; // We disregard grandma's advice and count these too.
+  }
+  return c;
+}
+
+static int ps_chicken_ok_to_lay_egg(const struct ps_sprite *spr,const struct ps_game *game) {
+  return (ps_chicken_tally_population(game)<PS_CHICKEN_POPULATION_LIMIT);
 }
 
 /* Hurt.
@@ -254,7 +279,9 @@ static int _ps_chicken_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps
   SPR->phase=PS_CHICKEN_PHASE_SQUAWK;
   SPR->phasetime=PS_CHICKEN_SQUAWK_TIME;
 
-  if (ps_chicken_lay_egg(spr,game)<0) return -1;
+  if (ps_chicken_ok_to_lay_egg(spr,game)) {
+    if (ps_chicken_lay_egg(spr,game)<0) return -1;
+  }
   
   return 0;
 }

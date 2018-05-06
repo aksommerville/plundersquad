@@ -1,6 +1,9 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "scenario/ps_scenario.h"
+#include "scenario/ps_screen.h"
+#include "scenario/ps_blueprint.h"
 #include "util/ps_geometry.h"
 #include "akgl/akgl.h"
 
@@ -17,6 +20,7 @@ struct ps_sprite_conveyor {
   int animframe;
   int direction;
   int enable;
+  int initial;
 };
 
 #define SPR ((struct ps_sprite_conveyor*)spr)
@@ -33,6 +37,7 @@ static void _ps_conveyor_del(struct ps_sprite *spr) {
 static int _ps_conveyor_init(struct ps_sprite *spr) {
   SPR->direction=PS_DIRECTION_SOUTH;
   SPR->enable=1;
+  SPR->initial=1;
   return 0;
 }
 
@@ -83,10 +88,40 @@ static int ps_conveyor_convey(struct ps_sprite *spr,struct ps_game *game) {
   return 0;
 }
 
+/* First update: Check screen orientation and adjust as needed.
+ */
+
+static int ps_conveyor_fix_orientation(struct ps_sprite *spr,struct ps_game *game) {
+  if (!game) return 0;
+  if (!game->scenario) return 0;
+  const struct ps_screen *screen=game->scenario->screenv+game->gridy*game->scenario->w+game->gridx;
+
+  if (screen->xform&PS_BLUEPRINT_XFORM_HORZ) {
+    switch (SPR->direction) {
+      case PS_DIRECTION_WEST: SPR->direction=PS_DIRECTION_EAST; break;
+      case PS_DIRECTION_EAST: SPR->direction=PS_DIRECTION_WEST; break;
+    }
+  }
+
+  if (screen->xform&PS_BLUEPRINT_XFORM_VERT) {
+    switch (SPR->direction) {
+      case PS_DIRECTION_NORTH: SPR->direction=PS_DIRECTION_SOUTH; break;
+      case PS_DIRECTION_SOUTH: SPR->direction=PS_DIRECTION_NORTH; break;
+    }
+  }
+
+  return 0;
+}
+
 /* Update.
  */
 
 static int _ps_conveyor_update(struct ps_sprite *spr,struct ps_game *game) {
+
+  if (SPR->initial) {
+    SPR->initial=0;
+    if (ps_conveyor_fix_orientation(spr,game)<0) return -1;
+  }
 
   if (SPR->enable) {
     if (++(SPR->animtime)>=PS_CONVEYOR_FRAME_DELAY) {

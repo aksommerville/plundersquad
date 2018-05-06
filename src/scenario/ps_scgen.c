@@ -1218,7 +1218,6 @@ int ps_scgen_generate(struct ps_scgen *scgen) {
 }
 
 /* (test) Select a blueprint for each screen from (blueprints_require).
- * We leave screen xforms untouched.
  * We do not necessarily produce a valid world map. This is for testing.
  */
 
@@ -1254,6 +1253,7 @@ static int ps_scgen_select_test_blueprints(struct ps_scgen *scgen) {
       if (ps_screen_set_blueprint(screen,scgen->blueprints_require->v[bpp])<0) return -1;
       if (++bpp>=scgen->blueprints_require->c) bpp=0;
     }
+    screen->xform=ps_scgen_randint(scgen,4);
     if (ps_screen_build_inner_grid(screen)<0) return -1;
   }
 

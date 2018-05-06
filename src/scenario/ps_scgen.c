@@ -712,6 +712,9 @@ static int ps_scgen_blueprint_filter_other(const struct ps_blueprint *blueprint)
 }
 
 /* Assign blueprint and xform in each screen.
+ * TODO See test_scgen_blueprint_reuse. Select blueprints more intelligently to distribute selection across the available inputs.
+ *  - Make separate temporary lists for 'challenge' and 'other'.
+ *  - Remove from these lists as we go.
  */
 
 static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {

@@ -325,7 +325,7 @@ static int ps_edittrdef_populate_image_list(struct ps_widget *widget,struct ps_w
     if (!ps_widget_scrolllist_add_label(scrolllist,name,namec)) return -1;
 
     if (res->id==WIDGET->trdef->full_imageid) {
-      if (ps_widget_scrolllist_set_selection(scrolllist,i)<0) return -1;
+      if (ps_widget_scrolllist_set_selection_without_callback(scrolllist,i)<0) return -1;
     }
     
   }

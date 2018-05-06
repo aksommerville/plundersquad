@@ -17,6 +17,7 @@ Windows errors:
 MacOS errors:
 
 Actionable:
+- ps_scgen.c:720: static int ps_scgen_select_blueprints(struct ps_scgen *scgen). Avoid blueprint reuse.
 
 Windows:
 - Build with GL2 support
@@ -42,9 +43,9 @@ Optimization, cleanup, low priority:
 - sdraw: optimize blits
 - Clean up logging
 - Review ps_widget_inputcfgpage for cases with (a) no devices or (b) only joysticks
-- src/gui/editor/ps_widget_sfxchan.c:300:  //TODO coordinate graph value limits with button in channel widget
 - src/opt/msaudio/ps_msaudio.c:117:  int buffer_size=8192; // bytes (TODO optimal size?)
 - Review stubs in akgl_soft_shaders.c
+- Can we avoid using the same blueprint twice within a scenario?
 
 Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
@@ -70,3 +71,5 @@ Rejected:
   No. Too complicated.
 - src/scenario/ps_scgen.c:844: * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
   No harm, not worth the trouble.
+- src/gui/editor/ps_widget_sfxchan.c:300:  //TODO coordinate graph value limits with button in channel widget
+  It's working, whatever.

@@ -422,3 +422,77 @@ PS_TEST(test_scgen_functional,scgen,functional,ignore) {
   ps_resmgr_quit();
   return 0;
 }
+
+/* Generate a scenario and analyze reuse of blueprints.
+ */
+
+static int count_blueprints_in_screen_list(const struct ps_screen *screenv,int screenc,const struct ps_blueprint *blueprint) {
+  int c=0;
+  for (;screenc-->0;screenv++) {
+    if (screenv->blueprint==blueprint) c++;
+  }
+  return c;
+}
+
+static int already_visited(const int *v,int c,int q) {
+  for (;c-->0;v++) if (*v==q) return 1;
+  return 0;
+}
+
+static int assert_reasonable_blueprint_use(const struct ps_scenario *scenario) {
+  PS_ASSERT(scenario)
+  int reportedv[20];
+  int reportedc=0;
+  int failc=0;
+  int screenc=scenario->w*scenario->h;
+  const struct ps_screen *screen=scenario->screenv;
+  int i=screenc; for (;i-->0;screen++) {
+  
+    if (screen->features&PS_SCREEN_FEATURE_TREASURE) {
+      // Ignore TREASURE screens; there are only a few of them and reuse is fine.
+      continue;
+    }
+
+    int blueprintid=ps_res_get_id_by_obj(PS_RESTYPE_BLUEPRINT,screen->blueprint);
+    if (already_visited(reportedv,reportedc,blueprintid)) continue;
+    int dupc=count_blueprints_in_screen_list(screen+1,i,screen->blueprint);
+    if (dupc) {
+      failc++;
+      if (reportedc<sizeof(reportedv)/sizeof(int)) reportedv[reportedc++]=blueprintid;
+      ps_log(TEST,ERROR,"blueprint:%d: %d uses",blueprintid,dupc+1);
+    }
+
+  }
+  PS_ASSERT_NOT(failc,"%d non-treasure blueprint%s were reused.",failc,(failc==1)?"":"s")
+  return 0;
+}
+
+PS_TEST(test_scgen_blueprint_reuse,scgen,functional,ignore) {
+  ps_log_level_by_domain[PS_LOG_DOMAIN_RES]=PS_LOG_LEVEL_WARN;
+  ps_resmgr_quit();
+  PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
+
+  struct ps_scgen *scgen=ps_scgen_new();
+  PS_ASSERT(scgen)
+
+  /* With my current data set (5 May 2018), this configuration has 50 legal blueprints.
+   * length==4 yields 30 screens.
+   * So duplication, aside from TREASURE screens, should never happen.
+   */
+  scgen->playerc=1;
+  scgen->skills=PS_SKILL_COMBAT|PS_SKILL_SWORD|PS_SKILL_HOOKSHOT;
+  scgen->difficulty=9;
+  scgen->length=4;
+
+  int seed=time(0);
+  PS_LOG("Random seed %d",seed);
+  srand(seed);
+
+  PS_ASSERT_CALL(ps_scgen_generate(scgen))
+
+  if (assert_reasonable_blueprint_use(scgen->scenario)<0) return -1;
+
+  ps_scgen_del(scgen);
+  ps_resmgr_quit();
+  return 0;
+}

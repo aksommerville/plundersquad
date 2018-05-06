@@ -17,6 +17,7 @@ void ps_blueprint_list_del(struct ps_blueprint_list *list);
 int ps_blueprint_list_clear(struct ps_blueprint_list *list);
 int ps_blueprint_list_add(struct ps_blueprint_list *list,struct ps_blueprint *blueprint);
 int ps_blueprint_list_remove(struct ps_blueprint_list *list,struct ps_blueprint *blueprint);
+int ps_blueprint_list_remove_at(struct ps_blueprint_list *list,int p);
 
 /* Examine the global resource manager.
  * Add all valid blueprints to this list, considering player count and skills.
@@ -29,5 +30,6 @@ int ps_blueprint_list_match_resources(
 
 int ps_blueprint_list_count_by_filter(const struct ps_blueprint_list *list,int (*filter)(const struct ps_blueprint *blueprint));
 struct ps_blueprint *ps_blueprint_list_get_by_filter(const struct ps_blueprint_list *list,int (*filter)(const struct ps_blueprint *blueprint),int p);
+int ps_blueprint_list_apply_filter(struct ps_blueprint_list *dst,const struct ps_blueprint_list *src,int (*filter)(const struct ps_blueprint *blueprint));
 
 #endif

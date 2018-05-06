@@ -17,7 +17,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- ps_scgen.c:720: static int ps_scgen_select_blueprints(struct ps_scgen *scgen). Avoid blueprint reuse.
 
 Windows:
 - Build with GL2 support

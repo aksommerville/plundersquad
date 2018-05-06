@@ -75,6 +75,16 @@ int ps_blueprint_list_remove(struct ps_blueprint_list *list,struct ps_blueprint 
   return 0;
 }
 
+int ps_blueprint_list_remove_at(struct ps_blueprint_list *list,int p) {
+  if (!list) return -1;
+  if ((p<0)||(p>=list->c)) return -1;
+  struct ps_blueprint *blueprint=list->v[p];
+  list->c--;
+  memmove(list->v+p,list->v+p+1,sizeof(void*)*(list->c-p));
+  ps_blueprint_del(blueprint);
+  return 0;
+}
+
 /* Extra hook to ignore blueprints.
  * This function should normally just return zero.
  * Patch in here to generate an otherwise-normal scenario with specific blueprints.
@@ -147,6 +157,17 @@ struct ps_blueprint *ps_blueprint_list_get_by_filter(const struct ps_blueprint_l
     struct ps_blueprint *blueprint=list->v[i];
     if (filter(blueprint)) {
       if (!p--) return blueprint;
+    }
+  }
+  return 0;
+}
+
+int ps_blueprint_list_apply_filter(struct ps_blueprint_list *dst,const struct ps_blueprint_list *src,int (*filter)(const struct ps_blueprint *blueprint)) {
+  if (!dst||!src||!filter) return -1;
+  int i=0; for (;i<src->c;i++) {
+    struct ps_blueprint *blueprint=src->v[i];
+    if (filter(blueprint)) {
+      if (ps_blueprint_list_add(dst,blueprint)<0) return -1;
     }
   }
   return 0;

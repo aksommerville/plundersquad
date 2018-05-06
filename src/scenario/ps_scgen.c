@@ -706,15 +706,11 @@ static int ps_scgen_blueprint_filter_challenge(const struct ps_blueprint *bluepr
 static int ps_scgen_blueprint_filter_other(const struct ps_blueprint *blueprint) {
   if (ps_blueprint_count_poi_of_type(blueprint,PS_BLUEPRINT_POI_HERO)>0) return 0;
   if (ps_blueprint_count_poi_of_type(blueprint,PS_BLUEPRINT_POI_TREASURE)>0) return 0;
-  // I think it's OK to include challenge blueprints in this set.
-  //if (blueprint->solutionc>0) return 0;
+  if (blueprint->solutionc>0) return 0;
   return 1;
 }
 
 /* Assign blueprint and xform in each screen.
- * TODO See test_scgen_blueprint_reuse. Select blueprints more intelligently to distribute selection across the available inputs.
- *  - Make separate temporary lists for 'challenge' and 'other'.
- *  - Remove from these lists as we go.
  */
 
 static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {
@@ -733,12 +729,27 @@ static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {
   /* Classify all blueprints and count those of each class. */
   int bpc_home=ps_blueprint_list_count_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_home);
   int bpc_treasure=ps_blueprint_list_count_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_treasure);
-  int bpc_challenge=ps_blueprint_list_count_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_challenge);
-  int bpc_other=ps_blueprint_list_count_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_other);
   if (bpc_home<1) return ps_scgen_fail(scgen,"No acceptable home blueprints found.");
   if (bpc_treasure<1) return ps_scgen_fail(scgen,"No acceptable treasure blueprints found.");
+  
+  /* Make two blueprint lists, for challenges and "others". */
+  struct ps_blueprint_list *challenges=ps_blueprint_list_new();
+  if (!challenges) return -1;
+  struct ps_blueprint_list *others=ps_blueprint_list_new();
+  if (!others) {
+    ps_blueprint_list_del(challenges);
+    return -1;
+  }
+  if (
+    (ps_blueprint_list_apply_filter(challenges,scgen->blueprints,ps_scgen_blueprint_filter_challenge)<0)||
+    (ps_blueprint_list_apply_filter(others,scgen->blueprints,ps_scgen_blueprint_filter_other)<0)
+  ) {
+    ps_blueprint_list_del(challenges);
+    ps_blueprint_list_del(others);
+    return -1;
+  }
 
-  ps_log(GENERATOR,DEBUG,"Classified blueprints: home=%d, treasure=%d, challenge=%d, other=%d",bpc_home,bpc_treasure,bpc_challenge,bpc_other);
+  ps_log(GENERATOR,DEBUG,"Classified blueprints: home=%d, treasure=%d, challenge=%d, other=%d",bpc_home,bpc_treasure,challenges->c,others->c);
 
   /* Grab randomly from the available blueprints for each screen. */
   struct ps_screen *screen=scenario->screenv;
@@ -755,32 +766,39 @@ static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {
       blueprint=ps_blueprint_list_get_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_treasure,p);
 
     } else if (screen->features&PS_SCREEN_FEATURE_CHALLENGE) {
-      if (bpc_challenge>0) {
-        int p=ps_scgen_randint(scgen,bpc_challenge);
-        blueprint=ps_blueprint_list_get_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_challenge,p);
-      } else if (bpc_other>0) {
-        int p=ps_scgen_randint(scgen,bpc_other);
-        blueprint=ps_blueprint_list_get_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_other,p);
+      if (challenges->c>0) {
+        int p=ps_scgen_randint(scgen,challenges->c);
+        blueprint=challenges->v[p];
+        ps_blueprint_list_remove_at(challenges,p);
+      } else if (others->c>0) {
+        int p=ps_scgen_randint(scgen,others->c);
+        blueprint=others->v[p];
+        ps_blueprint_list_remove_at(others,p);
       } else {
         int p=ps_scgen_randint(scgen,scgen->blueprints->c);
         blueprint=scgen->blueprints->v[p];
       }
 
     } else {
-      if (bpc_other>0) {
-        int p=ps_scgen_randint(scgen,bpc_other);
-        blueprint=ps_blueprint_list_get_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_other,p);
-      } else if (bpc_challenge>0) {
-        int p=ps_scgen_randint(scgen,bpc_challenge);
-        blueprint=ps_blueprint_list_get_by_filter(scgen->blueprints,ps_scgen_blueprint_filter_challenge,p);
+      if (others->c>0) {
+        int p=ps_scgen_randint(scgen,others->c);
+        blueprint=others->v[p];
+        ps_blueprint_list_remove_at(others,p);
+      } else if (challenges->c>0) {
+        int p=ps_scgen_randint(scgen,challenges->c);
+        blueprint=challenges->v[p];
+        ps_blueprint_list_remove_at(challenges,p);
       } else {
         int p=ps_scgen_randint(scgen,scgen->blueprints->c);
         blueprint=scgen->blueprints->v[p];
       }
 
     }
-    if (!blueprint) return -1;
-    if (ps_screen_set_blueprint(screen,blueprint)<0) return -1;
+    if (!blueprint||(ps_screen_set_blueprint(screen,blueprint)<0)) {
+      ps_blueprint_list_del(challenges);
+      ps_blueprint_list_del(others);
+      return -1;
+    }
 
     /* If the blueprint has a challenge, set xform based on direction_home. */
     if (blueprint->solutionc>0) {
@@ -816,9 +834,15 @@ static int ps_scgen_select_blueprints(struct ps_scgen *scgen) {
     }
 
     /* Generate the initial grid for screen. */
-    if (ps_screen_build_inner_grid(screen)<0) return -1;
+    if (ps_screen_build_inner_grid(screen)<0) {
+      ps_blueprint_list_del(challenges);
+      ps_blueprint_list_del(others);
+      return -1;
+    }
   }
-  
+
+  ps_blueprint_list_del(challenges);
+  ps_blueprint_list_del(others);
   return 0;
 }
 

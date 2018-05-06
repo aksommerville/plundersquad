@@ -242,6 +242,23 @@ static int ps_physics_get_effective_cell_shape(uint8_t shape,double dx,double dy
   return PS_SPRITE_SHAPE_SQUARE;
 }
 
+/* Look at any collisions we've already recorded, return nonzero if this sprite touches a hero.
+ */
+
+static int ps_physics_sprite_currently_collides_with_hero(const struct ps_physics *physics,const struct ps_sprite *spr) {
+  const struct ps_coll *coll=physics->collv;
+  int i=physics->collc; for (;i-->0;coll++) {
+    if (!coll->a) continue;
+    if (!coll->b) continue;
+    if (coll->a==spr) {
+      if (coll->b->type==&ps_sprtype_hero) return 1;
+    } else if (coll->b==spr) {
+      if (coll->a->type==&ps_sprtype_hero) return 1;
+    }
+  }
+  return 0;
+}
+
 /* Check sprite collisions against the grid.
  * For now, we treat each cell like an independent sprite.
  * If we add velocity, this might be more complicated.

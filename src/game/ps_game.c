@@ -783,6 +783,55 @@ static int ps_game_check_physics_for_damage(struct ps_game *game) {
   return 0;
 }
 
+/* Look for sprites that can't step on HEROONLY cells colliding with heroes.
+ * When that happens, add the pumpkin to a special group and remove its HEROONLY flag.
+ * Periodically check that group and restore HEROONLY if they are not colliding anymore, and not on a HEROONLY cell.
+ * This is how we allow pumpkins to be pushed over a HEROONLY cell, when they would normally treat it as SOLID.
+ */
+
+static int ps_game_register_pumpkin_for_no_heroonly(struct ps_game *game,struct ps_sprite *spr) {
+  if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_HEROONLYHACK,spr)<0) return -1;
+  spr->impassable&=~(1<<PS_BLUEPRINT_CELL_HEROONLY);
+  return 0;
+}
+
+static int ps_game_unregister_pumpkin_for_no_heroonly(struct ps_game *game,struct ps_sprite *spr) {
+  if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_HEROONLYHACK,spr)<0) return -1;
+  spr->impassable|=(1<<PS_BLUEPRINT_CELL_HEROONLY);
+  return 0;
+}
+
+static int ps_game_check_physics_for_heroonly_hack(struct ps_game *game) {
+
+  /* Add to the special condition? */
+  int addc=0;
+  const struct ps_physics_event *event=game->physics->eventv;
+  int i=game->physics->eventc; for (;i-->0;event++) {
+    if (!event->a||!event->b) continue;
+    if ((event->a->type==&ps_sprtype_hero)&&(event->b->impassable&(1<<PS_BLUEPRINT_CELL_HEROONLY))) {
+      if (ps_game_register_pumpkin_for_no_heroonly(game,event->b)<0) return -1;
+      addc++;
+    } else if ((event->a->impassable&(1<<PS_BLUEPRINT_CELL_HEROONLY))&&(event->b->type==&ps_sprtype_hero)) {
+      if (ps_game_register_pumpkin_for_no_heroonly(game,event->a)<0) return -1;
+      addc++;
+    }
+  }
+
+  /* Remove from the special condition? If anything was added this frame, don't remove anything. */
+  if (!addc) {
+    struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HEROONLYHACK;
+    for (i=grp->sprc;i-->0;) {
+      struct ps_sprite *spr=grp->sprv[i];
+      int radius=spr->radius+4.0; // Make sure we're well clear of any HEROONLY first.
+      if (!ps_grid_test_rect_physics(game->grid,spr->x-radius,spr->y-radius,radius<<1,radius<<1,1<<PS_BLUEPRINT_CELL_HEROONLY)) {
+        if (ps_game_unregister_pumpkin_for_no_heroonly(game,spr)<0) return -1;
+      }
+    }
+  }
+  
+  return 0;
+}
+
 /* Check completion.
  */
 
@@ -875,6 +924,7 @@ int ps_game_update(struct ps_game *game) {
   /* Update physics, then consider any hazardous collisions. */
   if (ps_physics_update(game->physics)<0) return -1;
   if (ps_game_check_physics_for_damage(game)<0) return -1;
+  if (ps_game_check_physics_for_heroonly_hack(game)<0) return -1;
 
   /* Look for collisions between HAZARD and FRAGILE sprites.
    * Some damage methods, eg sword, are managed by individual sprite types.

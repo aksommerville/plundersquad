@@ -1,6 +1,17 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
+- Pushing monsters onto HEROONLY. eg blueprint 061-penguin-corridor. Does HEROONLY need a rethinking?
+    - We could make HEROONLY advisory only.
+      Prevent spawn and summoner from putting monsters there.
+      Then each monster type should check it explicitly.
+      It would have to be removed from the 'impassable' masks, and a special case made for it in every mobile sprite type.
+      But lots of sprites don't even look at the grid physics, so they would either not respect it or would need heavy rework.
+    - We could make a special case in physics and ignore it.
+      I think that's mostly the same problem as solution 1.
+    - Can we remove HEROONLY from a sprite's impassable mask when it's being pushed?
+      Then restore it later?
+      That's the basic idea we did with hookshots.
 
 Raspi errors:
 
@@ -17,6 +28,7 @@ Windows errors:
 MacOS errors:
 
 Actionable:
+- Conveyor belts
 
 Windows:
 - Build with GL2 support

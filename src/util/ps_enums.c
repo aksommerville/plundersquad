@@ -221,6 +221,9 @@ int ps_sprgrp_eval(const char *src,int srcc) {
     case 10: {
         if (!ps_memcasecmp(src,"HEROHAZARD",10)) return PS_SPRGRP_HEROHAZARD;
       } break;
+    case 12: {
+        if (!ps_memcasecmp(src,"HEROONLYHACK",12)) return PS_SPRGRP_HEROONLYHACK;
+      } break;
   }
   return -1;
 }
@@ -243,6 +246,7 @@ const char *ps_sprgrp_repr(int grpindex) {
     _(PRIZE)
     _(BARRIER)
     _(TELEPORT)
+    _(HEROONLYHACK)
     #undef _
   }
   return 0;

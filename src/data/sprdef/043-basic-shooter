@@ -1,0 +1,4 @@
+type shooter
+tileid 0x04e9
+switchid 0
+missileid 11

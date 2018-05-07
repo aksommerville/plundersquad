@@ -195,6 +195,7 @@ extern const struct ps_sprtype ps_sprtype_lwizard;
 extern const struct ps_sprtype ps_sprtype_elefence;
 extern const struct ps_sprtype ps_sprtype_elefence;
 extern const struct ps_sprtype ps_sprtype_conveyor;
+extern const struct ps_sprtype ps_sprtype_shooter;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
@@ -236,6 +237,8 @@ int ps_sprite_hookshot_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,
 #define PS_SPRDEF_FLD_framec       9 /* not used generically */
 #define PS_SPRDEF_FLD_frametime   10 /* not used generically */
 #define PS_SPRDEF_FLD_switchid    11
+#define PS_SPRDEF_FLD_missileid   12 /* not used generically */
+#define PS_SPRDEF_FLD_enable      13 /* not used generically */
 
 struct ps_sprdef_fld {
   int k,v;

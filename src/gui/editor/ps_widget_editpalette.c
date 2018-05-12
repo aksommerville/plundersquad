@@ -119,6 +119,7 @@ static struct ps_widget *ps_editpalette_get_cancelbutton(const struct ps_widget 
 
 static int _ps_editpalette_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
 
   /* Vertex tile IDs are set by our parent and don't change.
    * Everything else, we update here.

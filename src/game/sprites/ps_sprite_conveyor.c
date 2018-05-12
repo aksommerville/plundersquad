@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_screen.h"
 #include "scenario/ps_blueprint.h"
@@ -63,6 +64,16 @@ static const char *_ps_conveyor_get_configure_argument_name(int argp) {
   return 0;
 }
 
+/* Special cases of non-conveyable sprites.
+ */
+
+static int ps_conveyor_special_nonconveyable(const struct ps_sprite *spr,const struct ps_game *game) {
+  if (spr->type==&ps_sprtype_hero) {
+    return ps_hero_stateq_feet_on_ground(spr)?0:1;
+  }
+  return 0;
+}
+
 /* Move pumpkins standing on me.
  */
 
@@ -74,10 +85,14 @@ static int ps_conveyor_convey(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_PHYSICS;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *pumpkin=grp->sprv[i];
+
+    if (ps_conveyor_special_nonconveyable(pumpkin,game)) continue;
+    
     if (pumpkin->x<left) continue;
     if (pumpkin->x>right) continue;
     if (pumpkin->y<top) continue;
     if (pumpkin->y>bottom) continue;
+
     switch (SPR->direction) {
       case PS_DIRECTION_NORTH: if ((pumpkin->y-=PS_CONVEYOR_SPEED)<top) pumpkin->y-=0.5; break;
       case PS_DIRECTION_SOUTH: if ((pumpkin->y+=PS_CONVEYOR_SPEED)>bottom) pumpkin->y+=0.5; break;

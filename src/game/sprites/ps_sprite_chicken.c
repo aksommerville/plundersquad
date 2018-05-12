@@ -259,6 +259,7 @@ static int ps_chicken_ok_to_lay_egg(const struct ps_sprite *spr,const struct ps_
 static int ps_chicken_assailant_should_cause_egg(struct ps_sprite *assailant) {
   if (!assailant) return 1;
   if (assailant->type==&ps_sprtype_boxingglove) return 0;
+  if (assailant->type==&ps_sprtype_killozap) return 0;
   return 1;
 }
 
@@ -270,7 +271,9 @@ static int _ps_chicken_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps
 
   if (!ps_chicken_assailant_should_cause_egg(assailant)) {
     if (ps_game_decorate_monster_death(game,spr->x,spr->y)<0) return -1;
+    if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
     if (ps_sprite_kill_later(spr,game)<0) return -1;
+    if (ps_game_report_kill(game,assailant,spr)<0) return -1;
     return 0;
   }
 

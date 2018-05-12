@@ -449,3 +449,11 @@ int ps_hero_stateq_can_walk(const struct ps_sprite *spr) {
   // FERRY is not listed because the turtle will pull us back, and a little push looks cool.
   return 1;
 }
+
+int ps_hero_stateq_feet_on_ground(const struct ps_sprite *spr) {
+  if (!spr||(spr->type!=&ps_sprtype_hero)) return 0;
+  if (SPR->state&PS_HERO_STATE_GHOST) return 0;
+  if (SPR->state&PS_HERO_STATE_FLY) return 0;
+  if (SPR->state&PS_HERO_STATE_OFFSCREEN) return 0;
+  return 1;
+}

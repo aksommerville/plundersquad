@@ -96,6 +96,7 @@ int ps_hero_remove_state(struct ps_sprite *spr,uint32_t outgoing,struct ps_game 
  */
 int ps_hero_stateq_can_change_direction(const struct ps_sprite *spr);
 int ps_hero_stateq_can_walk(const struct ps_sprite *spr);
+int ps_hero_stateq_feet_on_ground(const struct ps_sprite *spr);
 
 // Hurt hero even if he is invincible.
 int ps_hero_force_kill(struct ps_sprite *spr,struct ps_game *game);

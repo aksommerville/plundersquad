@@ -119,6 +119,7 @@ int ps_input_report_reader_add_padding(struct ps_input_report_reader *reader,int
 
 int ps_input_report_reader_pad_to_multiple(struct ps_input_report_reader *reader,int multiple) {
   if (!reader) return -1;
+  if (reader->ready) return -1;
   if (multiple<1) return -1;
   if (multiple>1024) return -1; // Sanity check; we don't expect more than 32.
   int mod=reader->insp%multiple;

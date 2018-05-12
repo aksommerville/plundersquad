@@ -22,6 +22,7 @@ struct ps_sprite_conveyor {
   int direction;
   int enable;
   int initial;
+  int switch_off; // If nonzero, reverse the switch -- I am ON when it is OFF
 };
 
 #define SPR ((struct ps_sprite_conveyor*)spr)
@@ -48,7 +49,13 @@ static int _ps_conveyor_init(struct ps_sprite *spr) {
 static int _ps_conveyor_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   if (argc>=1) {
     spr->switchid=argv[0];
-    SPR->enable=0;
+    if (spr->switchid<0) {
+      SPR->enable=1;
+      spr->switchid=-spr->switchid;
+      SPR->switch_off=1;
+    } else {
+      SPR->enable=0;
+    }
     if (argc>=2) {
       SPR->direction=argv[1];
     }
@@ -188,7 +195,7 @@ static int _ps_conveyor_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sp
  */
 
 static int _ps_conveyor_set_switch(struct ps_game *game,struct ps_sprite *spr,int value) {
-  SPR->enable=value;
+  SPR->enable=value^SPR->switch_off;
   return 0;
 }
 

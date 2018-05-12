@@ -159,7 +159,7 @@ static int ps_boxingglove_detect_victim(struct ps_sprite *spr,struct ps_game *ga
       } break;
   }
 
-  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_TELEPORT; // Perhaps not the most appropriate group?
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_FRAGILE;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *victim=grp->sprv[i];
     if (victim->type==&ps_sprtype_prize) continue; // This gets ridiculous

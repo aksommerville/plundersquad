@@ -6,6 +6,19 @@
  */
 #define PS_INPUT_REPORT_SANITY_LIMIT 65536
 
+/* Accessor types.
+ */
+#define PS_INPUT_REPORT_ACCESSOR_GENERIC     0 /* Unoptimized access. */
+#define PS_INPUT_REPORT_ACCESSOR_U8          1
+#define PS_INPUT_REPORT_ACCESSOR_S8          2
+#define PS_INPUT_REPORT_ACCESSOR_U16LE       3
+#define PS_INPUT_REPORT_ACCESSOR_U16BE       4
+#define PS_INPUT_REPORT_ACCESSOR_S16LE       5
+#define PS_INPUT_REPORT_ACCESSOR_S16BE       6
+#define PS_INPUT_REPORT_ACCESSOR_S32LE       7
+#define PS_INPUT_REPORT_ACCESSOR_S32BE       8
+#define PS_INPUT_REPORT_ACCESSOR_BITS        9 /* Single byte containing up to eight one-bit fields. */
+
 /* Object definition.
  */
 
@@ -14,6 +27,23 @@ struct ps_input_report_field {
   int sign;
   int aligned; // Hint that this field can be read as bytes.
   int fldid;
+};
+
+struct ps_input_report_accessor {
+  int type;
+  int fldix; // For single-field types only.
+  union {
+    struct ps_input_report_field generic; // PS_INPUT_REPORT_ACCESSOR_GENERIC
+    struct { // PS_INPUT_REPORT_ACCESSOR_[US]{16,32}{BE,LE}
+      int p; // Position in bytes (not bits, like ps_input_report_field).
+      int fldid;
+    } aligned;
+    struct { // PS_INPUT_REPORT_ACCESSOR_BITS
+      int p; // Byte position.
+      int fldidv[8]; // [0]=0x01, ..., [7]=0x80
+      int fldixv[8];
+    } bits;
+  };
 };
 
 struct ps_input_report_reader {
@@ -26,6 +56,8 @@ struct ps_input_report_reader {
   uint8_t *report; // Most recent report, only present when 'ready'.
   int reportc;
   uint8_t *buf; // Same size as (report), for transient comparison.
+  struct ps_input_report_accessor *accessorv;
+  int accessorc,accessora;
 };
 
 /* Object lifecycle.
@@ -49,6 +81,7 @@ void ps_input_report_reader_del(struct ps_input_report_reader *reader) {
   if (reader->fieldv) free(reader->fieldv);
   if (reader->report) free(reader->report);
   if (reader->buf) free(reader->buf);
+  if (reader->accessorv) free(reader->accessorv);
 
   free(reader);
 }
@@ -166,6 +199,125 @@ int ps_input_report_reader_add_field_at(
   return fldix;
 }
 
+/* Add accessor.
+ */
+
+static struct ps_input_report_accessor *ps_input_report_reader_add_accessor(struct ps_input_report_reader *reader,int type) {
+
+  if (reader->accessorc>=reader->accessora) {
+    int na=reader->accessora+8;
+    if (na>INT_MAX/sizeof(struct ps_input_report_accessor)) return 0;
+    void *nv=realloc(reader->accessorv,sizeof(struct ps_input_report_accessor)*na);
+    if (!nv) return 0;
+    reader->accessorv=nv;
+    reader->accessora=na;
+  }
+
+  struct ps_input_report_accessor *accessor=reader->accessorv+reader->accessorc++;
+  memset(accessor,0,sizeof(struct ps_input_report_accessor));
+  accessor->type=type;
+  accessor->fldix=-1;
+
+  return accessor;
+}
+
+/* Get existing BITS accessor, or create one.
+ */
+
+static struct ps_input_report_accessor *ps_input_report_reader_get_accessor_bit(struct ps_input_report_reader *reader,int p) {
+  struct ps_input_report_accessor *accessor=reader->accessorv;
+  int i=reader->accessorc;
+  for (;i-->0;accessor++) {
+    if (accessor->type!=PS_INPUT_REPORT_ACCESSOR_BITS) continue;
+    if (accessor->bits.p!=p) continue;
+    return accessor;
+  }
+  if (!(accessor=ps_input_report_reader_add_accessor(reader,PS_INPUT_REPORT_ACCESSOR_BITS))) return 0;
+  accessor->bits.p=p;
+  return accessor;
+}
+
+/* Add a GENERIC accessor.
+ */
+
+static struct ps_input_report_accessor *ps_input_report_reader_add_accessor_generic(
+  struct ps_input_report_reader *reader,const struct ps_input_report_field *field
+) {
+  struct ps_input_report_accessor *accessor=ps_input_report_reader_add_accessor(reader,PS_INPUT_REPORT_ACCESSOR_GENERIC);
+  if (!accessor) return 0;
+  memcpy(&accessor->generic,field,sizeof(struct ps_input_report_field));
+  return accessor;
+}
+
+/* Rebuild accessors from fields.
+ */
+
+static int ps_input_report_reader_rebuild_accessors(struct ps_input_report_reader *reader) {
+  reader->accessorc=0;
+  const struct ps_input_report_field *field=reader->fieldv;
+  int fldix=0;
+  for (;fldix<reader->fieldc;fldix++,field++) {
+
+    /* Is it a single word at 8, 16, or 32 bits? */
+    if (field->aligned) switch (field->c) {
+      case 8: {
+          int type=(field->sign?PS_INPUT_REPORT_ACCESSOR_S8:PS_INPUT_REPORT_ACCESSOR_U8);
+          struct ps_input_report_accessor *accessor=ps_input_report_reader_add_accessor(reader,type);
+          if (!accessor) return -1;
+          accessor->fldix=fldix;
+          accessor->aligned.p=field->p>>3;
+          accessor->aligned.fldid=field->fldid;
+        } continue;
+      case 16: {
+          int type;
+          if (reader->order=='>') {
+            type=(field->sign?PS_INPUT_REPORT_ACCESSOR_S16BE:PS_INPUT_REPORT_ACCESSOR_U16BE);
+          } else {
+            type=(field->sign?PS_INPUT_REPORT_ACCESSOR_S16LE:PS_INPUT_REPORT_ACCESSOR_U16LE);
+          }
+          struct ps_input_report_accessor *accessor=ps_input_report_reader_add_accessor(reader,type);
+          if (!accessor) return -1;
+          accessor->fldix=fldix;
+          accessor->aligned.p=field->p>>3;
+          accessor->aligned.fldid=field->fldid;
+        } continue;
+      case 32: {
+          // We emit values as signed 32-bit, so we just ignore the sign declaration here.
+          int type;
+          if (reader->order=='>') {
+            type=PS_INPUT_REPORT_ACCESSOR_S32BE;
+          } else {
+            type=PS_INPUT_REPORT_ACCESSOR_S32LE;
+          }
+          struct ps_input_report_accessor *accessor=ps_input_report_reader_add_accessor(reader,type);
+          if (!accessor) return -1;
+          accessor->fldix=fldix;
+          accessor->aligned.p=field->p>>3;
+          accessor->aligned.fldid=field->fldid;
+        } continue;
+    }
+
+    /* Is it a single bit? */
+    if (field->c==1) {
+      int p=field->p>>3;
+      int bitp=(field->p&7);
+      if (reader->order=='>') bitp=7-bitp;
+      struct ps_input_report_accessor *accessor=ps_input_report_reader_get_accessor_bit(reader,p);
+      if (!accessor) return -1;
+      accessor->bits.fldidv[bitp]=field->fldid;
+      accessor->bits.fldixv[bitp]=fldix;
+      continue;
+    }
+
+    /* Something unusual. Read it generically. */
+    struct ps_input_report_accessor *accessor=ps_input_report_reader_add_accessor_generic(reader,field);
+    if (!accessor) return -1;
+    accessor->fldix=fldix;
+    
+  }
+  return 0;
+}
+
 /* Finish setup.
  */
  
@@ -180,7 +332,17 @@ int ps_input_report_reader_finish_setup(struct ps_input_report_reader *reader) {
   }
   if (!(reader->buf=calloc(1,reader->reportc))) {
     free(reader->report);
+    reader->report=0;
     reader->reportc=0;
+    return -1;
+  }
+
+  if (ps_input_report_reader_rebuild_accessors(reader)<0) {
+    free(reader->report);
+    reader->report=0;
+    reader->reportc=0;
+    free(reader->buf);
+    reader->buf=0;
     return -1;
   }
 
@@ -335,6 +497,108 @@ int ps_input_report_reader_value_by_fldix(const struct ps_input_report_reader *r
   return ps_input_report_reader_read(reader->report,reader->fieldv+fldix,reader->order);
 }
 
+/* Process single report item by accessor.
+ */
+
+static int ps_input_report_accessor_update(
+  struct ps_input_report_reader *reader,
+  const struct ps_input_report_accessor *accessor,
+  const uint8_t *report,
+  const uint8_t *previous,
+  int (*cb)(struct ps_input_report_reader *reader,int fldix,int fldid,int value,int prevvalue,void *userdata),
+  void *userdata
+) {
+  switch (accessor->type) {
+  
+    case PS_INPUT_REPORT_ACCESSOR_GENERIC: {
+        int nv=ps_input_report_reader_read(report,&accessor->generic,reader->order);
+        int pv=ps_input_report_reader_read(previous,&accessor->generic,reader->order);
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->generic.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_U8: {
+        int nv=report[accessor->aligned.p];
+        int pv=previous[accessor->aligned.p];
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_S8: {
+        int nv=report[accessor->aligned.p];
+        int pv=previous[accessor->aligned.p];
+        if (nv&0x80) nv|=~0x7f;
+        if (pv&0x80) pv|=~0x7f;
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_S16LE: {
+        int nv=(report[accessor->aligned.p])|(report[accessor->aligned.p+1]<<8);
+        int pv=(previous[accessor->aligned.p])|(previous[accessor->aligned.p+1]<<8);
+        if (nv&0x8000) nv|=~0x7fff;
+        if (pv&0x8000) pv|=~0x7fff;
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_S16BE: {
+        int nv=(report[accessor->aligned.p]<<8)|(report[accessor->aligned.p+1]);
+        int pv=(previous[accessor->aligned.p]<<8)|(previous[accessor->aligned.p+1]);
+        if (nv&0x8000) nv|=~0x7fff;
+        if (pv&0x8000) pv|=~0x7fff;
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_U16LE: {
+        int nv=(report[accessor->aligned.p])|(report[accessor->aligned.p+1]<<8);
+        int pv=(previous[accessor->aligned.p])|(previous[accessor->aligned.p+1]<<8);
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_U16BE: {
+        int nv=(report[accessor->aligned.p]<<8)|(report[accessor->aligned.p+1]);
+        int pv=(previous[accessor->aligned.p]<<8)|(previous[accessor->aligned.p+1]);
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_S32LE: {
+        int nv=(report[accessor->aligned.p])|(report[accessor->aligned.p+1]<<8)|(report[accessor->aligned.p+2]<<16)|(report[accessor->aligned.p+3]<<24);
+        int pv=(previous[accessor->aligned.p])|(previous[accessor->aligned.p+1]<<8)|(previous[accessor->aligned.p+2]<<16)|(previous[accessor->aligned.p+3]<<24);
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_S32BE: {
+        int nv=(report[accessor->aligned.p]<<24)|(report[accessor->aligned.p+1]<<16)|(report[accessor->aligned.p+2]<<8)|(report[accessor->aligned.p+3]);
+        int pv=(previous[accessor->aligned.p]<<24)|(previous[accessor->aligned.p+1]<<16)|(previous[accessor->aligned.p+2]<<8)|(previous[accessor->aligned.p+3]);
+        if (nv==pv) return 0;
+        return cb(reader,accessor->fldix,accessor->aligned.fldid,nv,pv,userdata);
+      }
+
+    case PS_INPUT_REPORT_ACCESSOR_BITS: {
+        uint8_t newbits=report[accessor->bits.p];
+        uint8_t oldbits=previous[accessor->bits.p];
+        if (newbits==oldbits) return 0;
+        uint8_t mask=0x01;
+        int i=0; for (;i<8;i++,mask<<=1) {
+          if (!accessor->bits.fldidv[i]) continue;
+          int nv=(mask&newbits)?1:0;
+          int pv=(mask&oldbits)?1:0;
+          if (nv==pv) continue;
+          int err=cb(reader,accessor->bits.fldixv[i],accessor->bits.fldidv[i],nv,pv,userdata);
+          if (err) return err;
+        }
+      } return 0;
+      
+  }
+  ps_log(INPUT,ERROR,"Invalid input report accessor type %d",accessor->type);
+  return -1;
+}
+
 /* Process report.
  */
 
@@ -362,16 +626,12 @@ int ps_input_report_reader_set_report(
   }
 
   // If a callback was provided, look for changes.
-  // TODO This comparison could be more efficient. Especially with bitfields; it seems wasteful to examine each bit individually.
   if (cb) {
     if (memcmp(reader->report,reader->buf,reader->reportc)) {
-      const struct ps_input_report_field *field=reader->fieldv;
-      int fldix=0;
-      for (;fldix<reader->fieldc;fldix++,field++) {
-        int nv=ps_input_report_reader_read(reader->report,field,reader->order);
-        int pv=ps_input_report_reader_read(reader->buf,field,reader->order);
-        if (nv==pv) continue;
-        int err=cb(reader,fldix,field->fldid,nv,pv,userdata);
+      const struct ps_input_report_accessor *accessor=reader->accessorv;
+      int i=reader->accessorc;
+      for (;i-->0;accessor++) {
+        int err=ps_input_report_accessor_update(reader,accessor,reader->report,reader->buf,cb,userdata);
         if (err) return err;
       }
     }

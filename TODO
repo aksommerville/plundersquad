@@ -36,7 +36,6 @@ Linux:
 Raspi:
 
 Optimization, cleanup, low priority:
-- src/input/ps_input_report_reader.c:365:  // TODO This comparison could be more efficient. Especially with bitfields; it seems wasteful to examine each bit individually.
 - Store background image to texture
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits

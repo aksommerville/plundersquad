@@ -1,6 +1,8 @@
 #include "ps.h"
 #include "ps_sprite_hero.h"
 #include "game/ps_game.h"
+#include "game/ps_player.h"
+#include "game/ps_plrdef.h"
 #include "game/ps_sound_effects.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
@@ -19,9 +21,37 @@
 struct ps_sprite_healmissile {
   struct ps_sprite hdr;
   double dx,dy;
+  int finished;
 };
 
 #define SPR ((struct ps_sprite_healmissile*)spr)
+
+/* Determine if this victim should be hurt instead of healed (see comments below).
+ */
+
+static int ps_healmissile_should_hurt_victim(const struct ps_game *game,const struct ps_sprite *spr,const struct ps_sprite *victim) {
+  if (!victim) return 0;
+  if (victim->type!=&ps_sprtype_hero) return 0;
+  struct ps_sprite_hero *VICTIM=(struct ps_sprite_hero*)victim;
+  if (!VICTIM->hp) return 0;
+  if (!VICTIM->player) return 0;
+  if (!VICTIM->player->plrdef) return 0;
+  if (VICTIM->player->plrdef->skills&PS_SKILL_IMMORTAL) return 1;
+  return 0;
+}
+
+/* Kill the immortal -- we copied code from ps_sprite_hero::hurt because we have to skill the IMMORTAL skill check.
+ */
+
+static int ps_healmissile_kill_hero(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *hero) {
+  struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)hero;
+  PS_SFX_HERO_DEAD
+  HERO->hp=0;
+  if (ps_game_create_fireworks(game,hero->x,hero->y)<0) return -1;
+  if (ps_game_report_kill(game,spr,hero)<0) return -1;
+  if (ps_hero_add_state(hero,PS_HERO_STATE_GHOST,game)<0) return -1;
+  return 0;
+}
 
 /* Check if we can heal something.
  */
@@ -38,8 +68,19 @@ static int ps_healmissile_heal_mortals(struct ps_sprite *spr,struct ps_game *gam
     if (victim->x-victim->radius>=right) continue;
     if (victim->y+victim->radius<=top) continue;
     if (victim->y-victim->radius>=bottom) continue;
-    if (ps_hero_add_state(victim,PS_HERO_STATE_HEAL,game)<0) return -1;
+
+    /* If the hero is "immortal" and alive, hearts kill it.
+     * This is necessary because we build solutions around the assumption that 
+     * "nurse plus anyone" means the non-nurse party can be killed and healed again.
+     */
+    if (ps_healmissile_should_hurt_victim(game,spr,victim)) {
+      if (ps_healmissile_kill_hero(game,spr,victim)<0) return -1;
+    } else {
+      if (ps_hero_add_state(victim,PS_HERO_STATE_HEAL,game)<0) return -1;
+    }
+
     if (ps_sprite_kill_later(spr,game)<0) return -1;
+    SPR->finished=1;
     return 1;
   }
   return 0;
@@ -76,7 +117,9 @@ static int _ps_healmissile_update(struct ps_sprite *spr,struct ps_game *game) {
   int err;
   spr->x+=SPR->dx;
   spr->y+=SPR->dy;
-  if (err=ps_healmissile_heal_mortals(spr,game)) return err;
+  if (!SPR->finished) {
+    if (err=ps_healmissile_heal_mortals(spr,game)) return err;
+  }
   if (ps_healmissile_check_collisions(spr,game)<0) return -1;
   return 0;
 }

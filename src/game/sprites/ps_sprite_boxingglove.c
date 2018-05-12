@@ -140,22 +140,23 @@ static int ps_boxingglove_setup(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_boxingglove_detect_victim(struct ps_sprite *spr,struct ps_game *game) {
 
   struct ps_fbox bounds=ps_fbox(spr->x-6.0,spr->x+6.0,spr->y-6.0,spr->y+6.0);
+  double extra=PS_TILESIZE*2.0; // Trigger on movement a little beyond my actual range.
   switch (SPR->direction) {
     case PS_DIRECTION_SOUTH: {
         bounds.n=SPR->home;
-        bounds.s=SPR->limit;
+        bounds.s=SPR->limit+extra;
       } break;
     case PS_DIRECTION_NORTH: {
-        bounds.n=SPR->limit;
+        bounds.n=SPR->limit-extra;
         bounds.s=SPR->home;
       } break;
     case PS_DIRECTION_WEST: {
-        bounds.w=SPR->limit;
+        bounds.w=SPR->limit-extra;
         bounds.e=SPR->home;
       } break;
     case PS_DIRECTION_EAST: {
         bounds.w=SPR->home;
-        bounds.e=SPR->limit;
+        bounds.e=SPR->limit+extra;
       } break;
   }
 

@@ -38,7 +38,7 @@ static void _ps_setuppage_del(struct ps_widget *widget) {
 static int _ps_setuppage_init(struct ps_widget *widget) {
   struct ps_widget *child,*menu,*menupacker;
 
-  widget->bgrgba=0x406020ff;
+  widget->bgrgba=0x4080c0ff;
 
   if (!(menu=ps_widget_spawn(widget,&ps_widget_type_menu))) return -1;
   if (!(menupacker=ps_widget_menu_get_packer(menu))) return -1;

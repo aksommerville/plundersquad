@@ -67,7 +67,7 @@ static void _ps_inputcfg_del(struct ps_widget *widget) {
 static int _ps_inputcfg_init(struct ps_widget *widget) {
   struct ps_widget *child;
 
-  widget->bgrgba=0xffffffc0;
+  widget->bgrgba=0xeeeeeeff;
   WIDGET->watchid=-1;
 
   if (!(child=ps_widget_label_spawn(widget,"",0))) return -1;

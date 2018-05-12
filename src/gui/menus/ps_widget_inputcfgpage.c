@@ -132,11 +132,13 @@ static int ps_inputcfgpage_ensure_no_toast(struct ps_widget *widget) {
 
 static int ps_inputcfgpage_create_toast(struct ps_widget *widget) {
   struct ps_widget *toastmsg=ps_inputcfgpage_get_toastmsg(widget);
+  if (!toastmsg) return -1;
+  toastmsg->fgrgba=0xffff00ff;
   int seconds=(PS_INPUTCFGPAGE_IDLE_TIME_ABORT-WIDGET->idletime)/60;
   char msg[256];
   int msgc=snprintf(msg,sizeof(msg),"Will cancel due to inactivity in %d seconds.",seconds);
   if (ps_widget_label_set_text(toastmsg,msg,msgc)<0) return -1;
-  toastmsg->bgrgba=0xffc0c0ff;
+  toastmsg->bgrgba=0x000000ff;
   if (ps_widget_pack(widget)<0) return -1;
   return 0;
 }

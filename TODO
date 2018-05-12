@@ -40,10 +40,8 @@ Optimization, cleanup, low priority:
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits
 - Clean up logging
-- Review ps_widget_inputcfgpage for cases with (a) no devices or (b) only joysticks
 - src/opt/msaudio/ps_msaudio.c:117:  int buffer_size=8192; // bytes (TODO optimal size?)
 - Review stubs in akgl_soft_shaders.c
-- Can we avoid using the same blueprint twice within a scenario?
 
 Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
@@ -51,6 +49,7 @@ Ongoing, loosely-defined items:
 - Revisit scenario encoding, make it work, add UI to support it
 - Review award assignment with realistic data
 - Should we pause or something when window loses focus?
+- Goal: 200 blueprints
 
 Optional:
 - Final boss?

@@ -306,6 +306,8 @@ static int ps_hero_add_HEAL(struct ps_sprite *spr,struct ps_game *game) {
   }
   SPR->hp=PS_HERO_DEFAULT_HP;
 
+  PS_SFX_HERO_HEAL
+
   SPR->healtime=PS_HERO_HEAL_TIME;
   
   return 2;

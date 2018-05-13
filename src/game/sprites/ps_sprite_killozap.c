@@ -27,6 +27,7 @@ struct ps_sprite_killozap {
   int enable; // Nonzero if blasting (default). Controller only.
   int animframe;
   int animcounter;
+  int switch_off;
 };
 
 #define SPR ((struct ps_sprite_killozap*)spr)
@@ -51,6 +52,11 @@ static int _ps_killozap_init(struct ps_sprite *spr) {
 static int _ps_killozap_configure(struct ps_sprite *spr,struct ps_game *game,const int *argv,int argc,const struct ps_sprdef *sprdef) {
   if (argc>=1) {
     spr->switchid=argv[0];
+    if (spr->switchid<0) {
+      SPR->switch_off=1;
+      spr->switchid=-spr->switchid;
+      SPR->enable=0;
+    }
   }
   return 0;
 }
@@ -242,7 +248,7 @@ static int _ps_killozap_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sp
  */
 
 static int _ps_killozap_set_switch(struct ps_game *game,struct ps_sprite *spr,int value) {
-  SPR->enable=value?0:1;
+  SPR->enable=(value?0:1)^SPR->switch_off;
   return 0;
 }
 

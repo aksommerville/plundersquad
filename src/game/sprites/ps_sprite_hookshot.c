@@ -90,6 +90,7 @@ static int ps_hookshot_check_pumpkin_final_position(struct ps_sprite *spr,struct
       if (cell->physics==PS_BLUEPRINT_CELL_HOLE) {
         if (pumpkin->type!=&ps_sprtype_hero) { // Hero sprites manage this on their own.
           if (ps_game_create_splash(game,pumpkin->x,pumpkin->y)<0) return -1;
+          if (ps_game_decorate_monster_death(game,pumpkin->x,pumpkin->y)<0) return -1;
           ps_sprite_kill_later(pumpkin,game);
         }
       }

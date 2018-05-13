@@ -1217,6 +1217,22 @@ int ps_scgen_generate(struct ps_scgen *scgen) {
   return 0;
 }
 
+/* (test) If this screen is adjacent to a HOME screen, ensure that its challenge faces away from HOME.
+ */
+
+static int ps_scgen_test_force_orientation(struct ps_screen *screen,const struct ps_scenario *scenario) {
+  if ((screen->x>0)&&(screen[-1].features&PS_SCREEN_FEATURE_HOME)) {
+    screen->xform&=~PS_AXIS_HORZ;
+  } else if ((screen->x<scenario->w-1)&&(screen[1].features&PS_SCREEN_FEATURE_HOME)) {
+    screen->xform|=PS_AXIS_HORZ;
+  } else if ((screen->y>0)&&(screen[-scenario->w].features&PS_SCREEN_FEATURE_HOME)) {
+    screen->xform&=~PS_AXIS_VERT;
+  } else if ((screen->y<scenario->h-1)&&(screen[scenario->w].features&PS_SCREEN_FEATURE_HOME)) {
+    screen->xform|=PS_AXIS_VERT;
+  }
+  return 0;
+}
+
 /* (test) Select a blueprint for each screen from (blueprints_require).
  * We do not necessarily produce a valid world map. This is for testing.
  */
@@ -1254,6 +1270,7 @@ static int ps_scgen_select_test_blueprints(struct ps_scgen *scgen) {
       if (++bpp>=scgen->blueprints_require->c) bpp=0;
     }
     screen->xform=ps_scgen_randint(scgen,4);
+    if (ps_scgen_test_force_orientation(screen,scgen->scenario)<0) return -1;
     if (ps_screen_build_inner_grid(screen)<0) return -1;
   }
 

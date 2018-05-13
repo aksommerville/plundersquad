@@ -53,7 +53,7 @@ static int _ps_conveyor_configure(struct ps_sprite *spr,struct ps_game *game,con
       SPR->enable=1;
       spr->switchid=-spr->switchid;
       SPR->switch_off=1;
-    } else {
+    } else if (spr->switchid>0) {
       SPR->enable=0;
     }
     if (argc>=2) {

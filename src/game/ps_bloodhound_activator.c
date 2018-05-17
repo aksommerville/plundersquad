@@ -90,6 +90,9 @@ int ps_bloodhound_activator_update(struct ps_bloodhound_activator *activator,str
   if (!activator||!game) return -1;
   if (game->playerc<1) return 0;
 
+  /* No treasure -- This is possible in test scenarios, even when TREASURE POI are present. */
+  if (game->treasurec<1) return 0;
+
   /* Difficulty limit. */
   if (game->difficulty>PS_BLOODHOUND_MAX_DIFFICULTY) return 0;
 

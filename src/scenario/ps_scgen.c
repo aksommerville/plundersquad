@@ -9,6 +9,7 @@
 #include "res/ps_resmgr.h"
 #include "res/ps_restype.h"
 #include "os/ps_clockassist.h"
+#include <math.h>
 
 int ps_scgen_generate_grids(struct ps_scgen *scgen);
 
@@ -1373,6 +1374,126 @@ int ps_scgen_test_generate(struct ps_scgen *scgen) {
 
   /* Select blueprint and transform for each screen. */
   if (ps_scgen_select_test_blueprints(scgen)<0) return -1;
+
+  /* Populate grid margins. */
+  if (ps_scgen_populate_grid_margins(scgen)<0) return -1;
+
+  /* Divide screens into thematic regions. */
+  if (scgen->regionid>=0) {
+    if (ps_scgen_assign_region_to_all_screens(scgen,scgen->regionid)<0) return -1;
+  } else {
+    if (ps_scgen_select_random_regions(scgen)<0) return -1;
+  }
+
+  /* Skin grids with graphics. */
+  if (ps_scgen_generate_grids(scgen)<0) return -1;
+
+  int64_t elapsed=ps_time_now()-starttime;
+  ps_log(GENERATOR,INFO,"Generated scenario in %d.%06d s.",(int)(elapsed/1000000),(int)(elapsed%1000000));
+
+  return 0;
+}
+
+/* Calculate world size when using all blueprints.
+ */
+
+static int ps_scgen_better_factors(int preva,int prevb,int newa,int newb) {
+  if (preva<1) return 1;
+  if (prevb<1) return 1;
+  if (newa<1) return 0;
+  if (newb<1) return 0;
+  int prevd=(preva<prevb)?(prevb-preva):(preva-prevb);
+  int newd=(newa<newb)?(newb-newa):(newa-newb);
+  if (prevd<newd) return 0;
+  return 1;
+}
+
+static int ps_scgen_factor_screenc(int screenc) {
+  int a=0,b=0;
+  int i=(screenc>>1)+1; while (i-->1) {
+    if (screenc%i) continue;
+    int j=screenc/i;
+    if (ps_scgen_better_factors(a,b,i,j)) {
+      a=i;
+      b=j;
+    }
+  }
+  return (a<b)?a:b;
+}
+
+static int ps_scgen_calculate_world_size_all_blueprints(int *w,int *h,const struct ps_scgen *scgen) {
+
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_BLUEPRINT);
+  if (!restype) return -1;
+  if (restype->resc<1) return -1;
+  int screenc=restype->resc;
+
+  /* If we can find a reasonable factor pair that multiply to this size precisely, go with it. */
+  if ((*w=ps_scgen_factor_screenc(screenc))>1) {
+    *h=screenc/(*w);
+  } else {
+    *w=(int)sqrt((double)screenc);
+    if (*w<1) return -1;
+    *h=(screenc+*w-1)/(*w);
+  }
+
+  /* That was a little fuzzy, so let's validate. */
+  if (*w<1) return -1;
+  if (*h<1) return -1;
+  if (*w*(*h)<screenc) return -1;
+  
+  return 0;
+}
+
+/* Assign blueprints sequentially, for testing.
+ */
+
+static int ps_scgen_select_test_blueprints_all(struct ps_scgen *scgen) {
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_BLUEPRINT);
+  if (!restype) return -1;
+  if (restype->resc<1) return -1;
+  struct ps_screen *screen=scgen->scenario->screenv;
+  int screenc=scgen->scenario->w*scgen->scenario->h;
+  int i=0; for (;i<screenc;i++,screen++) {
+    if (ps_screen_set_blueprint(screen,restype->resv[i%restype->resc].obj)<0) return -1;
+    if (!scgen->homex&&ps_blueprint_count_poi_of_type(screen->blueprint,PS_BLUEPRINT_POI_HERO)) {
+      scgen->homex=scgen->scenario->homex=screen->x;
+      scgen->homey=scgen->scenario->homey=screen->y;
+    }
+    screen->xform=rand()&3;
+    if (ps_screen_build_inner_grid(screen)<0) return -1;
+  }
+  return 0;
+}
+
+/* Generate scenario using every blueprint.
+ */
+
+int ps_scgen_test_generate_all_blueprints(struct ps_scgen *scgen) {
+  int64_t starttime=ps_time_now();
+  if (!scgen) return -1;
+
+  /* Ensure our inputs are valid. */
+  if (ps_scgen_validate(scgen)<0) return -1;
+
+  /* Create a new blank scenario. */
+  if (scgen->scenario) {
+    ps_scenario_del(scgen->scenario);
+    scgen->scenario=0;
+  }
+  if (!(scgen->scenario=ps_scenario_new())) return -1;
+
+  /* Create a blank world map. */
+  int w,h;
+  if (ps_scgen_calculate_world_size_all_blueprints(&w,&h,scgen)<0) return -1;
+  if (ps_scenario_reallocate_screens(scgen->scenario,w,h)<0) return -1;
+  ps_log(GENERATOR,DEBUG,"Generating %dx%d-screen scenario with all blueprints.",w,h);
+
+  /* Make doors between all screens. */
+  if (ps_scgen_make_wide_open_doors(scgen)<0) return -1;
+
+  /* Select blueprint and transform for each screen. */
+  if (ps_scgen_select_test_blueprints_all(scgen)<0) return -1;
 
   /* Populate grid margins. */
   if (ps_scgen_populate_grid_margins(scgen)<0) return -1;

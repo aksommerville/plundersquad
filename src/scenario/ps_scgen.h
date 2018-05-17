@@ -62,6 +62,7 @@ int ps_scgen_generate(struct ps_scgen *scgen);
 int ps_scgen_test_require_blueprint(struct ps_scgen *scgen,int blueprintid);
 int ps_scgen_test_require_region(struct ps_scgen *scgen,int regionid);
 int ps_scgen_test_generate(struct ps_scgen *scgen);
+int ps_scgen_test_generate_all_blueprints(struct ps_scgen *scgen);
 
 /* Set error message and return -1.
  */

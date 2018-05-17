@@ -113,6 +113,11 @@ int ps_game_generate(struct ps_game *game);
 int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...);
 #define ps_game_generate_test(game,regionid,...) _ps_game_generate_test(game,regionid,##__VA_ARGS__,-1)
 
+/* Another test option.
+ * Generate a scenario that uses every blueprint, for exhaustive testing.
+ */
+int ps_game_generate_all_blueprints_test(struct ps_game *game);
+
 /* Broad controls of game state during play.
  *****************************************************************************/
 

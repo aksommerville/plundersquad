@@ -1,6 +1,7 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
+- blueprint:18: Monster can step on switch
 
 Raspi errors:
 
@@ -50,6 +51,8 @@ Ongoing, loosely-defined items:
 - Review award assignment with realistic data
 - Should we pause or something when window loses focus?
 - Goal: 200 blueprints
+- Finish sound effects
+- Finish music
 
 Optional:
 - Final boss?
@@ -60,6 +63,7 @@ Blocked:
 - Documentation
 - Promo
 - Final packaging
+- Normalize sound effects and music
 
 Rejected:
 - Scissor for sdraw blits. Only needed by editor.

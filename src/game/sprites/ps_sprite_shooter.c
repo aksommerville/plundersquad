@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hookshot.h" /* ps_sprite_missile_new() */
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_screen.h"
@@ -130,6 +131,8 @@ static int ps_shooter_fire(struct ps_sprite *spr,struct ps_game *game) {
     ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d as shooter missile.",SPR->missile_sprdefid);
     return -1;
   }
+
+  PS_SFX_SHOOTER
 
   SPR->recoil=PS_SHOOTER_RECOIL_TIME;
   

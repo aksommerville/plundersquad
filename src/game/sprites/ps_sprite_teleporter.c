@@ -14,6 +14,8 @@
 #define PS_TELEPORTER_ROLE_BELL    2
 #define PS_TELEPORTER_ROLE_ZAPPER  3
 
+struct ps_sprite *ps_teleffect_new(struct ps_game *game,double srcx,double srcy,double dstx,double dsty);
+
 /* Private sprite object.
  */
 
@@ -145,6 +147,14 @@ static struct ps_sprite *ps_teleporter_find_partner(struct ps_sprite *spr,struct
   return 0;
 }
 
+/* Create special visual effect while teleporting something.
+ */
+
+static int ps_teleporter_create_visual_effect(struct ps_game *game,double srcx,double srcy,double dstx,double dsty) {
+  struct ps_sprite *teleffect=ps_teleffect_new(game,srcx,srcy,dstx,dsty);
+  return 0;
+}
+
 /* Teleport something.
  */
 
@@ -159,6 +169,7 @@ static int ps_teleporter_teleport(struct ps_sprite *spr,struct ps_game *game,str
   pumpkin->x=dst->x;
   pumpkin->y=dst->y;
   DST->hold=1;
+  if (ps_teleporter_create_visual_effect(game,spr->x,spr->y,dst->x,dst->y)<0) return -1;
   return 0;
 }
 

@@ -37,6 +37,7 @@
 #define PS_SFX_MONSTER_DEAD akau_play_sound(15,0x80,0);
 #define PS_SFX_MONSTER_HURT akau_play_sound(14,0x80,0);
 #define PS_SFX_DRAGONBUG_EXHALE akau_play_sound(26,0x80,0);
+#define PS_SFX_SHOOTER akau_play_sound(26,0x80,0);
 #define PS_SFX_RABBIT_FIRE akau_play_sound(30,0x80,0);
 #define PS_SFX_RABBIT_TONGUE akau_play_sound(31,0x80,0);
 #define PS_SFX_RABBIT_SPIT akau_play_sound(27,0x80,0);

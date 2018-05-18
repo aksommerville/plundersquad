@@ -1,0 +1,4 @@
+type teleffect
+tileid 0x040a
+layer 150
+grpmask VISIBLE UPDATE

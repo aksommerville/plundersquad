@@ -196,6 +196,7 @@ extern const struct ps_sprtype ps_sprtype_elefence;
 extern const struct ps_sprtype ps_sprtype_elefence;
 extern const struct ps_sprtype ps_sprtype_conveyor;
 extern const struct ps_sprtype ps_sprtype_shooter;
+extern const struct ps_sprtype ps_sprtype_teleffect;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

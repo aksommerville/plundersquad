@@ -498,6 +498,7 @@ PS_TEST(test_res_content,res,functional,ignore) {
   PS_ASSERT_CALL(sprdef_is_type(25,&ps_sprtype_bomb))
   PS_ASSERT_CALL(sprdef_is_type(32,&ps_sprtype_chicken))
   PS_ASSERT_CALL(sprdef_is_type(35,&ps_sprtype_missile))
+  PS_ASSERT_CALL(sprdef_is_type(44,&ps_sprtype_teleffect))
 
   /* tilesheet */
   PS_ASSERT(resource_exists(PS_RESTYPE_TILESHEET,1),"UI chrome")

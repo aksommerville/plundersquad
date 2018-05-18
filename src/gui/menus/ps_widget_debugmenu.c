@@ -142,7 +142,7 @@ static int ps_debugmenu_toggle_switches(struct ps_widget *widget) {
   struct ps_switchboard *switchboard=game->switchboard;
 
   int swc=ps_switchboard_count_switches(switchboard);
-  ps_log(GAME,INFO,"Toggling %d switch%s.",swc,(swc==1)?"":"s");
+  ps_log(GAME,INFO,"Toggling %d switch%s.",swc,(swc==1)?"":"es");
   int i=0; for (;i<swc;i++) {
     int swid;
     int value=ps_switchboard_get_switch_by_index(&swid,switchboard,i);

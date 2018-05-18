@@ -1299,8 +1299,32 @@ static int ps_scgen_select_random_regions(struct ps_scgen *scgen) {
   int i=scgen->scenario->w*scgen->scenario->h;
   struct ps_screen *screen=scgen->scenario->screenv;
   for (;i-->0;screen++) {
-    int selection=ps_scgen_randint(scgen,restype->resc);
-    screen->region=restype->resv[selection].obj;
+
+    /* We don't want the music to change too often, because it's annoying.
+     * Select randomly about 1/3 of the time, and otherwise copy my west or north neighbor.
+     */
+    if (screen->y>0) {
+      if (screen->x>0) {
+        switch (rand()%3) {
+          case 0: screen->region=screen[-scgen->scenario->w].region; break;
+          case 1: screen->region=screen[-1].region; break;
+          case 2: screen->region=restype->resv[ps_scgen_randint(scgen,restype->resc)].obj; break;
+        }
+      } else {
+        switch (rand()&1) {
+          case 0: screen->region=screen[-scgen->scenario->w].region; break;
+          case 1: screen->region=restype->resv[ps_scgen_randint(scgen,restype->resc)].obj; break;
+        }
+      }
+    } else if (screen->x>0) {
+      switch (rand()&1) {
+        case 0: screen->region=screen[-1].region; break;
+        case 1: screen->region=restype->resv[ps_scgen_randint(scgen,restype->resc)].obj; break;
+      }
+    } else {
+      screen->region=restype->resv[ps_scgen_randint(scgen,restype->resc)].obj;
+    }
+    
   }
   return 0;
 }

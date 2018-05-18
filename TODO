@@ -2,6 +2,9 @@ General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
 - blueprint:18: Monster can step on switch
+- Archer can shoot through walls. Prevent arrow appearing if it will immediately end.
+- blueprint:17: Don't use basketball as cork
+- blueprint:70: Declared unsolvable for single archer, but I solve it by shooting monster and walking through killozap
 
 Raspi errors:
 
@@ -18,6 +21,14 @@ Windows errors:
 MacOS errors:
 
 Actionable:
+- Visually distinguish stompboxes from treadle plates
+- Validate the multipass challenges, can 2 solve any of them?
+- Continue blueprint review around 45
+- Gorilla: throw bananas more frequently?
+- Visual feedback on teleport
+- blueprint:56 (elefence): difficulty should be less than 2 for single archer
+- blueprint:82: Consider nurse solutions
+- blueprint:90: Teleporter sound effects are irritating
 
 Windows:
 - Build with GL2 support

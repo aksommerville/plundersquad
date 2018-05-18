@@ -2,9 +2,9 @@ General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
 - blueprint:18: Monster can step on switch
-- Archer can shoot through walls. Prevent arrow appearing if it will immediately end.
 - blueprint:17: Don't use basketball as cork
 - blueprint:70: Declared unsolvable for single archer, but I solve it by shooting monster and walking through killozap
+- Editor: new sound effect does nothing
 
 Raspi errors:
 

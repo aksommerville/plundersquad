@@ -75,13 +75,13 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
     if (ps_game_set_length(ps_game,1)<0) return -1;
     if (ps_game_generate(ps_game)<0) return -1;
 
-  } else if (0) { // Generate a test scenario -- good for blueprint test drives.
+  } else if (1) { // Generate a test scenario -- good for blueprint test drives.
     if (ps_game_set_difficulty(ps_game,2)<0) return -1;
     if (ps_game_set_length(ps_game,    2)<0) return -1;
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      2,99,100
+      1
     )<0) return -1;
     
   } else { // Generate scenario with every blueprint.

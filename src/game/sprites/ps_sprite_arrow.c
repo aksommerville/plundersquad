@@ -62,24 +62,30 @@ static int ps_arrow_kill_mortals(struct ps_sprite *spr,struct ps_game *game) {
 /* Abort if we hit something solid.
  */
 
-static int ps_arrow_check_collisions(struct ps_sprite *spr,struct ps_game *game) {
-
-  if ((spr->x<0.0)||(spr->y<0.0)) return ps_sprite_kill_later(spr,game);
-  int col=spr->x/PS_TILESIZE;
-  int row=spr->y/PS_TILESIZE;
-  if ((col>=PS_GRID_COLC)||(row>=PS_GRID_ROWC)) return ps_sprite_kill_later(spr,game);
+static int ps_arrow_position_valid(const struct ps_game *game,double x,double y) {
+  if (x<0.0) return 0;
+  if (y<0.0) return 0;
+  int col=x/PS_TILESIZE;
+  int row=y/PS_TILESIZE;
+  if (col>=PS_GRID_COLC) return 0;
+  if (row>=PS_GRID_ROWC) return 0;
 
   if (game->grid) {
     uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
     switch (physics) {
       case PS_BLUEPRINT_CELL_LATCH:
       case PS_BLUEPRINT_CELL_SOLID:
-        return ps_sprite_kill_later(spr,game);
+        return 0;
     }
   }
 
-  // Arrows can pass through SOLID sprites; that's by design.
+  return 1;
+}
 
+static int ps_arrow_check_collisions(struct ps_sprite *spr,struct ps_game *game) {
+  if (!ps_arrow_position_valid(game,spr->x,spr->y)) {
+    return ps_sprite_kill_later(spr,game);
+  }
   return 0;
 }
 
@@ -143,12 +149,24 @@ struct ps_sprite *ps_sprite_arrow_new(struct ps_sprite *user,struct ps_game *gam
   if (user->type!=&ps_sprtype_hero) return 0;
   struct ps_sprite_hero *hero=(struct ps_sprite_hero*)user;
 
+  /* If it's invalid due to blockage, return (user) as a special indicator. */
+  double x=user->x,y=user->y;
+  switch (hero->facedir) {
+    case PS_DIRECTION_NORTH: y-=PS_TILESIZE; break;
+    case PS_DIRECTION_SOUTH: y+=PS_TILESIZE; break;
+    case PS_DIRECTION_WEST: x-=PS_TILESIZE; break;
+    case PS_DIRECTION_EAST: x+=PS_TILESIZE; break;
+    default: return user;
+  }
+  if (!ps_arrow_position_valid(game,x,y)) return user;
+
+  /* OK, create the arrow. */
   struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_ARROW_SPRDEF_ID);
   if (!sprdef) {
     ps_log(GAME,ERROR,"sprdef:%d not found, expected for ARROW",PS_ARROW_SPRDEF_ID);
     return 0;
   }
-  struct ps_sprite *spr=ps_sprdef_instantiate(game,sprdef,0,0,user->x,user->y);
+  struct ps_sprite *spr=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
   if (!spr) {
     ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d",PS_ARROW_SPRDEF_ID);
     return 0;
@@ -186,8 +204,6 @@ struct ps_sprite *ps_sprite_arrow_new(struct ps_sprite *user,struct ps_game *gam
       } break;
     default: return 0;
   }
-  spr->x+=SPR->dx*PS_TILESIZE;
-  spr->y+=SPR->dy*PS_TILESIZE;
   SPR->dx*=PS_ARROW_SPEED;
   SPR->dy*=PS_ARROW_SPEED;
 

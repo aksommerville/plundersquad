@@ -136,7 +136,11 @@ static int ps_hero_sword_continue(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_arrow(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprite *arrow=ps_sprite_arrow_new(spr,game);
   if (!arrow) return -1;
-  PS_SFX_ARROW
+  if (arrow==spr) {
+    PS_SFX_ARROW_REJECTED
+  } else {
+    PS_SFX_ARROW
+  }
   return 0;
 }
 

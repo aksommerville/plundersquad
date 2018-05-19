@@ -401,7 +401,7 @@ PS_TEST(test_scgen_functional,scgen,functional,ignore) {
 
   /* Set random seed. */
   int seed=time(0);
-  //seed=1514852782;
+  seed=1526682486;
   PS_LOG("Random seed %d",seed);
   srand(seed);
 

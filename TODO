@@ -2,7 +2,6 @@ General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
 - Editor: new sound effect does nothing
-- !!!!! blueprint:90: challenge order backward? It definitely selected the wrong direction. !!!!!
 
 Raspi errors:
 
@@ -19,10 +18,10 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Visually distinguish stompboxes from treadle plates
 - Validate the multipass challenges, can 2 solve any of them?
 - Gorilla: throw bananas more frequently?
 - Have swordsman push blocks in addition to prizes. (confirm that's ok)
+- blueprint:38: Gadgeteer can pull others. Can we inhibit that somehow?
 
 Windows:
 - Build with GL2 support

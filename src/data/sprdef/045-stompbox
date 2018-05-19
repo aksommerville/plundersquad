@@ -1,0 +1,4 @@
+type switch
+tileid 0x04bc
+layer 10
+grpmask VISIBLE UPDATE BARRIER

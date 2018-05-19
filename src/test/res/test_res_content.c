@@ -553,6 +553,33 @@ static int list_hero_blueprints() {
   return 0;
 }
 
+/* List all blueprints containing a treadle plate or stompbox.
+ * (stompbox was added as a new sprite after 100 blueprints already existed).
+ */
+
+static int locate_footswitches() {
+  const struct ps_restype *restype=PS_RESTYPE(BLUEPRINT);
+  int i=restype->resc;
+  const struct ps_res *res=restype->resv;
+  for (;i-->0;res++) {
+    const struct ps_blueprint *blueprint=res->obj;
+    const struct ps_blueprint_poi *poi=blueprint->poiv;
+    int poii=blueprint->poic; for (;poii-->0;poi++) {
+      if (poi->type!=PS_BLUEPRINT_POI_SPRITE) continue;
+      if (poi->argv[0]==8) {
+        if (poi->argv[2]) {
+          ps_log(RES,INFO,"blueprint:%d: Old stompbox **************",res->id);
+        } else {
+          ps_log(RES,INFO,"blueprint:%d: Treadle plate",res->id);
+        }
+      } else if (poi->argv[0]==45) {
+        ps_log(RES,INFO,"blueprint:%d: New stompbox",res->id);
+      }
+    }
+  }
+  return 0;
+}
+
 /* Analyze resources (transient helper, not a real test).
  */
  
@@ -560,7 +587,8 @@ PS_TEST(examineres,ignore) {
   ps_resmgr_quit();
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
   
-  PS_ASSERT_CALL(list_hero_blueprints())
+  //PS_ASSERT_CALL(list_hero_blueprints())
+  PS_ASSERT_CALL(locate_footswitches())
   
   ps_resmgr_quit();
   return 0;

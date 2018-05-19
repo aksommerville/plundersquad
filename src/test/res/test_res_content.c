@@ -580,6 +580,28 @@ static int locate_footswitches() {
   return 0;
 }
 
+/* List all blueprints containing a given sprdef id.
+ * Note that we don't check summoners or anything else indirect, and regional random monsters are a completely different thing.
+ */
+
+static int locate_sprites(int sprdefid) {
+  const struct ps_restype *restype=PS_RESTYPE(BLUEPRINT);
+  int i=restype->resc;
+  const struct ps_res *res=restype->resv;
+  ps_log(RES,INFO,"Searching for sprdef:%d in blueprints...",sprdefid);
+  for (;i-->0;res++) {
+    const struct ps_blueprint *blueprint=res->obj;
+    const struct ps_blueprint_poi *poi=blueprint->poiv;
+    int poii=blueprint->poic; for (;poii-->0;poi++) {
+      if (poi->type!=PS_BLUEPRINT_POI_SPRITE) continue;
+      if (poi->argv[0]!=sprdefid) continue;
+      ps_log(RES,INFO,"  blueprint:%d",res->id);
+      break;
+    }
+  }
+  return 0;
+}
+
 /* Analyze resources (transient helper, not a real test).
  */
  
@@ -588,7 +610,8 @@ PS_TEST(examineres,ignore) {
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
   
   //PS_ASSERT_CALL(list_hero_blueprints())
-  PS_ASSERT_CALL(locate_footswitches())
+  //PS_ASSERT_CALL(locate_footswitches())
+  PS_ASSERT_CALL(locate_sprites(34)) // find gorillas
   
   ps_resmgr_quit();
   return 0;

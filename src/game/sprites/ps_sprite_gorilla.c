@@ -25,12 +25,12 @@
 #define PS_GORILLA_PHASE_SPIT      3
 #define PS_GORILLA_PHASE_PUNCH     4
 
-#define PS_GORILLA_IDLE_TIME_MIN    120
-#define PS_GORILLA_IDLE_TIME_MAX    240
+#define PS_GORILLA_IDLE_TIME_MIN     30
+#define PS_GORILLA_IDLE_TIME_MAX     50
 #define PS_GORILLA_WALK_TIME_MIN     30
-#define PS_GORILLA_WALK_TIME_MAX    180
-#define PS_GORILLA_HOWL_TIME_MIN    120
-#define PS_GORILLA_HOWL_TIME_MAX    200
+#define PS_GORILLA_WALK_TIME_MAX    130
+#define PS_GORILLA_HOWL_TIME_MIN     90
+#define PS_GORILLA_HOWL_TIME_MAX    140
 #define PS_GORILLA_SPIT_TIME         90
 #define PS_GORILLA_PUNCH_TIME        60
 
@@ -88,7 +88,7 @@ static int _ps_gorilla_init(struct ps_sprite *spr) {
   SPR->state_left=PS_GORILLA_BODY_STATE_IDLE;
   SPR->state_right=PS_GORILLA_BODY_STATE_IDLE;
   SPR->state_head=PS_GORILLA_HEAD_STATE_IDLE;
-  SPR->hp=3;
+  SPR->hp=5;
 
   return 0;
 }
@@ -114,6 +114,7 @@ static int ps_gorilla_begin_IDLE(struct ps_sprite *spr,struct ps_game *game) {
   SPR->state_head=PS_GORILLA_HEAD_STATE_IDLE;
   SPR->state_left=PS_GORILLA_BODY_STATE_IDLE;
   SPR->state_right=PS_GORILLA_BODY_STATE_IDLE;
+  //ps_log(GAME,DEBUG,"gorilla IDLE %d",SPR->phasetime);
   return 0;
 }
 
@@ -128,6 +129,7 @@ static int ps_gorilla_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->state_head=PS_GORILLA_HEAD_STATE_IDLE;
   SPR->state_left=PS_GORILLA_BODY_STATE_WALK;
   SPR->state_right=PS_GORILLA_BODY_STATE_IDLE;
+  //ps_log(GAME,DEBUG,"gorilla WALK %d",SPR->phasetime);
 
   double t=(rand()%6282)/1000.0;
   SPR->walkdx=cos(t)*PS_GORILLA_WALK_SPEED;
@@ -160,6 +162,7 @@ static int ps_gorilla_begin_HOWL(struct ps_sprite *spr,struct ps_game *game) {
   SPR->state_head=PS_GORILLA_HEAD_STATE_HOWL;
   SPR->state_left=PS_GORILLA_BODY_STATE_FIST;
   SPR->state_right=PS_GORILLA_BODY_STATE_IDLE;
+  //ps_log(GAME,DEBUG,"gorilla HOWL %d",SPR->phasetime);
   return 0;
 }
 
@@ -174,6 +177,7 @@ static int ps_gorilla_begin_SPIT(struct ps_sprite *spr,struct ps_game *game) {
   SPR->state_head=PS_GORILLA_HEAD_STATE_IDLE;
   SPR->state_left=PS_GORILLA_BODY_STATE_FIST;
   SPR->state_right=PS_GORILLA_BODY_STATE_FIST;
+  //ps_log(GAME,DEBUG,"gorilla SPIT %d",SPR->phasetime);
   return 0;
 }
 
@@ -352,7 +356,7 @@ static int ps_gorilla_select_phase(struct ps_sprite *spr,struct ps_game *game) {
   switch (SPR->phase) {
     case PS_GORILLA_PHASE_IDLE: {
         int choice=rand()%10;
-        if (choice<6) {
+        if (choice<4) {
           if (ps_gorilla_begin_WALK(spr,game)<0) return -1;
         } else if (choice<8) {
           if (ps_gorilla_begin_SPIT(spr,game)<0) return -1;

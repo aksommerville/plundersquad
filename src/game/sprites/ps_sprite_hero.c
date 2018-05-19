@@ -24,6 +24,8 @@ int ps_hero_fly_end(struct ps_sprite *spr,struct ps_game *game);
 #define PS_HERO_WALK_FRAME_DURATION 10
 #define PS_HERO_WALK_TOTAL_DURATION (PS_HERO_WALK_FRAME_DURATION*4)
 #define PS_HERO_FLY_FRAME_TIME 10
+#define PS_HERO_WALK_SPEED_NORMAL 1.0
+#define PS_HERO_WALK_SPEED_NITRO  2.0
 
 #define PS_HERO_IMPASSABLE_DEFAULT ( \
   (1<<PS_BLUEPRINT_CELL_SOLID)| \
@@ -245,8 +247,13 @@ static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
   }
 
   if (ps_hero_add_state(spr,PS_HERO_STATE_WALK,game)<0) return -1;
-  spr->x+=SPR->indx;
-  spr->y+=SPR->indy;
+  if (SPR->state&PS_HERO_STATE_NITRO) {
+    spr->x+=SPR->indx*PS_HERO_WALK_SPEED_NITRO;
+    spr->y+=SPR->indy*PS_HERO_WALK_SPEED_NITRO;
+  } else {
+    spr->x+=SPR->indx*PS_HERO_WALK_SPEED_NORMAL;
+    spr->y+=SPR->indy*PS_HERO_WALK_SPEED_NORMAL;
+  }
 
   
   return 0;

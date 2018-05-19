@@ -374,6 +374,17 @@ static int ps_hero_remove_HOOKSHOT(struct ps_sprite *spr,struct ps_game *game) {
   return 2;
 }
 
+/* NITRO
+ */
+
+static int ps_hero_add_NITRO(struct ps_sprite *spr,struct ps_game *game) {
+  return 2;
+}
+
+static int ps_hero_remove_NITRO(struct ps_sprite *spr,struct ps_game *game) {
+  return 2;
+}
+
 /* Add state, public.
  */
  
@@ -394,6 +405,7 @@ int ps_hero_add_state(struct ps_sprite *spr,uint32_t incoming,struct ps_game *ga
     case PS_HERO_STATE_HIGHLIGHT: err=ps_hero_add_HIGHLIGHT(spr,game); break;
     case PS_HERO_STATE_STOPINPUT: err=ps_hero_add_STOPINPUT(spr,game); break;
     case PS_HERO_STATE_HOOKSHOT: err=ps_hero_add_HOOKSHOT(spr,game); break;
+    case PS_HERO_STATE_NITRO: err=ps_hero_add_NITRO(spr,game); break;
   }
   if (err<0) return -1;
   if (err>=2) {
@@ -424,6 +436,7 @@ int ps_hero_remove_state(struct ps_sprite *spr,uint32_t outgoing,struct ps_game 
     case PS_HERO_STATE_HIGHLIGHT: err=ps_hero_remove_HIGHLIGHT(spr,game); break;
     case PS_HERO_STATE_STOPINPUT: err=ps_hero_remove_STOPINPUT(spr,game); break;
     case PS_HERO_STATE_HOOKSHOT: err=ps_hero_remove_HOOKSHOT(spr,game); break;
+    case PS_HERO_STATE_NITRO: err=ps_hero_remove_NITRO(spr,game); break;
   }
   if (err<0) return -1;
   if (err>=2) {

@@ -7,7 +7,7 @@
 #include "util/ps_geometry.h"
 
 #define PS_INERT_DEFAULT_SPEED 3.0
-#define PS_INERT_STOP_SPEED 2.0 /* Actual movement less than this, we stop. */
+#define PS_INERT_STOP_SPEED 1.0 /* Actual movement less than this, we stop. */
 
 /* Private sprite object.
  */

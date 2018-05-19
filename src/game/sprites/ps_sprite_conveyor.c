@@ -11,6 +11,7 @@
 #define PS_CONVEYOR_FRAME_DELAY   3
 #define PS_CONVEYOR_FRAME_COUNT   4
 #define PS_CONVEYOR_SPEED         0.67
+#define PS_CONVEYOR_EDGE_PUSH     0.2 /* a little extra kick when pumpkin leaves my range, to ensure the next one picks it up. */
 
 /* Private sprite object.
  */
@@ -86,9 +87,9 @@ static int ps_conveyor_special_nonconveyable(const struct ps_sprite *spr,const s
 
 static int ps_conveyor_convey(struct ps_sprite *spr,struct ps_game *game) {
   double left=spr->x-spr->radius;
-  double right=spr->x+spr->radius-0.2;
+  double right=spr->x+spr->radius-0.05;
   double top=spr->y-spr->radius;
-  double bottom=spr->y+spr->radius-0.2;
+  double bottom=spr->y+spr->radius-0.05;
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_PHYSICS;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *pumpkin=grp->sprv[i];
@@ -101,10 +102,10 @@ static int ps_conveyor_convey(struct ps_sprite *spr,struct ps_game *game) {
     if (pumpkin->y>bottom) continue;
 
     switch (SPR->direction) {
-      case PS_DIRECTION_NORTH: if ((pumpkin->y-=PS_CONVEYOR_SPEED)<top) pumpkin->y-=0.5; break;
-      case PS_DIRECTION_SOUTH: if ((pumpkin->y+=PS_CONVEYOR_SPEED)>bottom) pumpkin->y+=0.5; break;
-      case PS_DIRECTION_WEST: if ((pumpkin->x-=PS_CONVEYOR_SPEED)<left) pumpkin->x-=0.5; break;
-      case PS_DIRECTION_EAST: if ((pumpkin->x+=PS_CONVEYOR_SPEED)>right) pumpkin->x+=0.5; break;
+      case PS_DIRECTION_NORTH: if ((pumpkin->y-=PS_CONVEYOR_SPEED)<top) pumpkin->y-=PS_CONVEYOR_EDGE_PUSH; break;
+      case PS_DIRECTION_SOUTH: if ((pumpkin->y+=PS_CONVEYOR_SPEED)>bottom) pumpkin->y+=PS_CONVEYOR_EDGE_PUSH; break;
+      case PS_DIRECTION_WEST: if ((pumpkin->x-=PS_CONVEYOR_SPEED)<left) pumpkin->x-=PS_CONVEYOR_EDGE_PUSH; break;
+      case PS_DIRECTION_EAST: if ((pumpkin->x+=PS_CONVEYOR_SPEED)>right) pumpkin->x+=PS_CONVEYOR_EDGE_PUSH; break;
     }
   }
   return 0;

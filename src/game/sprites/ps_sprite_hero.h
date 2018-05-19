@@ -20,6 +20,7 @@
 #define PS_HERO_STATE_HIGHLIGHT       0x00000200 /* Displaying other transient highlight. (probably just for debug) */
 #define PS_HERO_STATE_STOPINPUT       0x00000400 /* Ignore all input until the source goes zero. */
 #define PS_HERO_STATE_HOOKSHOT        0x00000800 /* Using hookshot. */
+#define PS_HERO_STATE_NITRO           0x00001000 /* Speed boost. */
 
 #define PS_HERO_HURT_TIME 60
 #define PS_HERO_HEAL_TIME 85
@@ -111,5 +112,6 @@ int ps_hero_force_kill(struct ps_sprite *spr,struct ps_game *game);
 #define PS_HERO_ACTION_BOMB         6
 #define PS_HERO_ACTION_FLY          7
 #define PS_HERO_ACTION_MARTYR       8
+#define PS_HERO_ACTION_NITRO        9
 
 #endif

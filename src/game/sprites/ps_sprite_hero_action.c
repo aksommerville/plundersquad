@@ -303,6 +303,21 @@ static int ps_hero_bomb(struct ps_sprite *spr,struct ps_game *game) {
   return 0;
 }
 
+/* Nitro.
+ */
+
+static int ps_hero_nitro_begin(struct ps_sprite *spr,struct ps_game *game) {
+  ps_log(GAME,DEBUG,"%s",__func__);
+  if (ps_hero_add_state(spr,PS_HERO_STATE_NITRO,game)<0) return -1;
+  return 0;
+}
+
+static int ps_hero_nitro_end(struct ps_sprite *spr,struct ps_game *game) {
+  ps_log(GAME,DEBUG,"%s",__func__);
+  if (ps_hero_remove_state(spr,PS_HERO_STATE_NITRO,game)<0) return -1;
+  return 0;
+}
+
 /* Dispatchers.
  */
 
@@ -327,6 +342,7 @@ static int ps_hero_action_begin_1(struct ps_sprite *spr,struct ps_game *game,int
     case PS_HERO_ACTION_BOMB: return ps_hero_bomb(spr,game);
     case PS_HERO_ACTION_FLY: return ps_hero_fly_begin(spr,game);
     case PS_HERO_ACTION_MARTYR: return ps_hero_martyr(spr,game);
+    case PS_HERO_ACTION_NITRO: return ps_hero_nitro_begin(spr,game);
   }
   return 0;
 }
@@ -337,6 +353,7 @@ static int ps_hero_action_end_1(struct ps_sprite *spr,struct ps_game *game,int a
     case PS_HERO_ACTION_HOOKSHOT: return ps_hero_hookshot_end(spr,game);
     case PS_HERO_ACTION_FLAME: return ps_hero_flame_end(spr,game);
     case PS_HERO_ACTION_FLY: return ps_hero_fly_end(spr,game);
+    case PS_HERO_ACTION_NITRO: return ps_hero_nitro_end(spr,game);
   }
   return 0;
 }
@@ -401,6 +418,7 @@ int ps_hero_auxaction_continue(struct ps_sprite *spr,struct ps_game *game) {
   PS_SKILL_BOMB| \
   PS_SKILL_FLY| \
   PS_SKILL_MARTYR| \
+  PS_SKILL_IMMORTAL| \
 0)
  
 int ps_hero_get_principal_action(const struct ps_sprite *spr) {
@@ -415,6 +433,7 @@ int ps_hero_get_principal_action(const struct ps_sprite *spr) {
     case PS_SKILL_BOMB: return PS_HERO_ACTION_BOMB;
     case PS_SKILL_FLY: return PS_HERO_ACTION_FLY;
     case PS_SKILL_MARTYR: return PS_HERO_ACTION_MARTYR;
+    case PS_SKILL_IMMORTAL: return PS_HERO_ACTION_NITRO;
   }
   return PS_HERO_ACTION_NONE;
 }
@@ -431,6 +450,7 @@ int ps_hero_get_auxiliary_action(const struct ps_sprite *spr) {
     case PS_SKILL_BOMB: return PS_HERO_ACTION_BOMB;
     case PS_SKILL_FLY: return PS_HERO_ACTION_FLY;
     case PS_SKILL_MARTYR: return PS_HERO_ACTION_MARTYR;
+    case PS_SKILL_IMMORTAL: return PS_HERO_ACTION_NITRO;
   }
   return PS_HERO_ACTION_NONE;
 }

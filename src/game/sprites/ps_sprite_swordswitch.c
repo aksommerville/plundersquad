@@ -11,7 +11,6 @@
 
 struct ps_sprite_swordswitch {
   struct ps_sprite hdr;
-  int delay;
   int active;
 };
 
@@ -31,14 +30,6 @@ static const char *_ps_swordswitch_get_configure_argument_name(int argp) {
   switch (argp) {
     case 0: return "switchid";
   }
-  return 0;
-}
-
-/* Update.
- */
-
-static int _ps_swordswitch_update(struct ps_sprite *spr,struct ps_game *game) {
-  if (SPR->delay>0) SPR->delay--;
   return 0;
 }
 
@@ -68,7 +59,6 @@ const struct ps_sprtype ps_sprtype_swordswitch={
 
   .configure=_ps_swordswitch_configure,
   .get_configure_argument_name=_ps_swordswitch_get_configure_argument_name,
-  .update=_ps_swordswitch_update,
   .set_switch=_ps_swordswitch_set_switch,
 
 };
@@ -76,10 +66,8 @@ const struct ps_sprtype ps_sprtype_swordswitch={
 /* Check timer and activate if warranted.
  */
  
-int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero,int force) {
+int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero) {
   if (!spr||(spr->type!=&ps_sprtype_swordswitch)) return -1;
-  if (!force&&SPR->delay) return 0; // This is called every update. Don't strobe it.
-  SPR->delay=PS_SWORDSWITCH_DELAY_TIME;
 
   if (SPR->active^=1) {
     PS_SFX_SWORDSWITCH_UNLOCK

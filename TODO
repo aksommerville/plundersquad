@@ -18,8 +18,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Have swordsman push blocks in addition to prizes. (confirm that's ok)
-- blueprint:38: Gadgeteer can pull others. Can we inhibit that somehow?
 
 Windows:
 - Build with GL2 support

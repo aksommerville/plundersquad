@@ -1,8 +1,11 @@
 #include "ps.h"
 #include "ps_sprite.h"
 #include "ps_sound_effects.h"
+#include "sprites/ps_sprite_hero.h"
 #include "akgl/akgl.h"
 #include "ps_game.h"
+#include "ps_player.h"
+#include "ps_stats.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_grid.h"
 
@@ -273,4 +276,47 @@ int ps_sprite_actuate(struct ps_sprite *spr,struct ps_game *game,int value) {
   if (value<0) value=!ps_game_get_switch(game,switchid);
   if (ps_game_set_switch(game,switchid,value)<0) return -1;
   return 1;
+}
+
+/* SWORDAWARE
+ */
+ 
+int ps_sprite_react_to_sword(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero,int state) {
+  if (!spr||!game) return -1;
+
+  /* prize */
+  if (spr->type==&ps_sprtype_prize) {
+    if (state==1) {
+      if (hero&&(hero->type==&ps_sprtype_hero)) {
+        int dir=((struct ps_sprite_hero*)hero)->facedir;
+        if (ps_prize_fling(spr,dir)<0) return -1;
+      }
+    }
+
+  /* swordswitch */
+  } else if (spr->type==&ps_sprtype_swordswitch) {
+    if (state==1) {
+      if (ps_swordswitch_activate(spr,game,hero)<0) return -1;
+      if (hero&&(hero->type==&ps_sprtype_hero)) {
+        struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)hero;
+        if (HERO->player&&(HERO->player->playerid>=1)&&(HERO->player->playerid<=PS_PLAYER_LIMIT)) {
+          struct ps_stats_player *pstats=game->stats->playerv+HERO->player->playerid-1;
+          pstats->switchc++;
+        }
+      }
+    }
+
+  /* inert */
+  } else if (spr->type==&ps_sprtype_inert) {
+    if (state==1) {
+      if (hero&&(hero->type==&ps_sprtype_hero)) {
+        int dir=((struct ps_sprite_hero*)hero)->facedir;
+        if (ps_sprite_inert_fling(spr,game,dir)<0) return -1;
+      }
+    }
+    
+  } else {
+    ps_log(GAME,WARNING,"ps_sprite_react_to_sword on sprite of type '%s', no registered behavior.",spr->type->name);
+  }
+  return 0;
 }

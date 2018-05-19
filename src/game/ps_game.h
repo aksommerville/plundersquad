@@ -41,7 +41,8 @@ struct ps_score_store;
 #define PS_SPRGRP_BARRIER         13 /* Can interact with switches. */
 #define PS_SPRGRP_TELEPORT        14 /* Can travel through teleporter. */
 #define PS_SPRGRP_HEROONLYHACK    15 /* For game's internal use, please ignore. */
-#define PS_SPRGRP_COUNT           16
+#define PS_SPRGRP_SWORDAWARE      16 /* Reacts to sword swipe (and only sword). */
+#define PS_SPRGRP_COUNT           17
 
 /* Non-persistent grid change (internal use; don't worry about it)
  */

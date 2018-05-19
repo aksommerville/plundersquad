@@ -1,6 +1,6 @@
 type swordswitch
 tileid 0x0406
 layer 70
-grpmask VISIBLE UPDATE BARRIER
+grpmask VISIBLE UPDATE BARRIER SWORDAWARE
 radius 6
 shape CIRCLE

@@ -65,7 +65,7 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
 
   /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
   //001-swordsman 002-archer    003-gadgeteer 004-nurse     005-wizard    006-vampire   007-martyr    008-immortal  009-bomber
-  if (ps_game_configure_player(ps_game,1,2,3,0)<0) return -1;
+  if (ps_game_configure_player(ps_game,1,1,3,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,2,2,0,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,3,2,1,0)<0) return -1;
   //if (ps_game_configure_player(ps_game,4,2,2,0)<0) return -1;
@@ -81,7 +81,7 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      2,44,60,91,92
+      2,52,79,82,95
     )<0) return -1;
     
   } else { // Generate scenario with every blueprint.

@@ -224,6 +224,7 @@ int ps_sprgrp_eval(const char *src,int srcc) {
       } break;
     case 10: {
         if (!ps_memcasecmp(src,"HEROHAZARD",10)) return PS_SPRGRP_HEROHAZARD;
+        if (!ps_memcasecmp(src,"SWORDAWARE",10)) return PS_SPRGRP_SWORDAWARE;
       } break;
     case 12: {
         if (!ps_memcasecmp(src,"HEROONLYHACK",12)) return PS_SPRGRP_HEROONLYHACK;
@@ -251,6 +252,7 @@ const char *ps_sprgrp_repr(int grpindex) {
     _(BARRIER)
     _(TELEPORT)
     _(HEROONLYHACK)
+    _(SWORDAWARE)
     #undef _
   }
   return 0;

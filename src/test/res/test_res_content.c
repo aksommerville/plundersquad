@@ -611,7 +611,10 @@ PS_TEST(examineres,ignore) {
   
   //PS_ASSERT_CALL(list_hero_blueprints())
   //PS_ASSERT_CALL(locate_footswitches())
-  PS_ASSERT_CALL(locate_sprites(34)) // find gorillas
+  PS_ASSERT_CALL(locate_sprites(0))//block
+  PS_ASSERT_CALL(locate_sprites(3))//basketball
+  PS_ASSERT_CALL(locate_sprites(18))//swordswitch
+  PS_ASSERT_CALL(locate_sprites(19))//dictionary
   
   ps_resmgr_quit();
   return 0;

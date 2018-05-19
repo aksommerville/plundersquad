@@ -197,13 +197,14 @@ extern const struct ps_sprtype ps_sprtype_elefence;
 extern const struct ps_sprtype ps_sprtype_conveyor;
 extern const struct ps_sprtype ps_sprtype_shooter;
 extern const struct ps_sprtype ps_sprtype_teleffect;
+extern const struct ps_sprtype ps_sprtype_inert;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
  */
 
 int ps_prize_fling(struct ps_sprite *spr,int dir);
-int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero,int force);
+int ps_swordswitch_activate(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero);
 struct ps_sprite *ps_sprite_fireworks_new(struct ps_game *game,int x,int y,int p,int c);
 int ps_sprite_dragon_add_player(struct ps_sprite *spr,int playerid,struct ps_game *game);
 int ps_sprite_bomb_throw(struct ps_sprite *spr,int direction,int magnitude);
@@ -211,6 +212,8 @@ int ps_sprite_flames_throw(struct ps_sprite *spr,int direction);
 struct ps_sprite *ps_sprite_flames_find_for_hero(const struct ps_game *game,const struct ps_sprite *hero); // Does not return moving flames.
 struct ps_sprite *ps_sprite_heroindicator_get_hero(const struct ps_sprite *spr);
 int ps_sprite_heroindicator_set_hero(struct ps_sprite *spr,struct ps_sprite *hero);
+int ps_sprite_react_to_sword(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero,int state); // Dispatcher for SWORDAWARE group. (state) in (0,1,2)
+int ps_sprite_inert_fling(struct ps_sprite *spr,struct ps_game *game,int dir);
 
 /* Toggle a switch.
  * Works for 'switch' and 'swordswitch', and we'll add other types as needed.

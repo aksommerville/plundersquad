@@ -194,20 +194,20 @@ int ps_fbox_collide_fbox(struct ps_overlap *overlap,struct ps_fbox a,struct ps_f
     double penn=b.s-a.n;
     double pens=a.s-b.n;
     if ((penw<=pene)&&(penw<=penn)&&(penw<=pens)) {
-      overlap->axis.dx=-penw;
+      overlap->axis.dx=-1.0;
       overlap->axis.dy=0.0;
       overlap->penetration=penw;
     } else if ((pene<=penn)&&(pene<=pens)) {
-      overlap->axis.dx=pene;
+      overlap->axis.dx=1.0;
       overlap->axis.dy=0.0;
       overlap->penetration=pene;
     } else if (penn<=pens) {
       overlap->axis.dx=0.0;
-      overlap->axis.dy=-penn;
+      overlap->axis.dy=-1.0;
       overlap->penetration=penn;
     } else {
       overlap->axis.dx=0.0;
-      overlap->axis.dy=pens;
+      overlap->axis.dy=1.0;
       overlap->penetration=pens;
     }
   }

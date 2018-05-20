@@ -18,6 +18,12 @@ Windows errors:
 MacOS errors:
 
 Actionable:
+- monster: hero mimic
+- gadget: push a piston and a door opens, then piston creeps back closed
+- gadget: group lock with up to four pistons, push from each side simultaneously
+- monster: edge runner
+- gadget: reactive shooter
+- gadget: pushable flamethrower
 
 Windows:
 - Build with GL2 support
@@ -53,6 +59,8 @@ Ongoing, loosely-defined items:
 - Goal: 200 blueprints
 - Finish sound effects
 - Finish music
+- Goal: 100 sprdefs
+- More background graphics
 
 Optional:
 - Final boss?

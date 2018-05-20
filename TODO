@@ -18,10 +18,8 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- monster: hero mimic
 - gadget: push a piston and a door opens, then piston creeps back closed
 - gadget: group lock with up to four pistons, push from each side simultaneously
-- monster: edge runner
 - gadget: reactive shooter
 - gadget: pushable flamethrower
 

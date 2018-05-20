@@ -56,6 +56,7 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==7)&&!memcmp(name,"shooter",7)) return &ps_sprtype_shooter;
   if ((namec==9)&&!memcmp(name,"teleffect",9)) return &ps_sprtype_teleffect;
   if ((namec==5)&&!memcmp(name,"inert",5)) return &ps_sprtype_inert;
+  if ((namec==11)&&!memcmp(name,"edgecrawler",11)) return &ps_sprtype_edgecrawler;
 //INSERT SPRTYPE NAME TEST HERE
 
   return 0;
@@ -112,5 +113,6 @@ const struct ps_sprtype *ps_all_sprtypes[]={
   &ps_sprtype_shooter,
   &ps_sprtype_teleffect,
   &ps_sprtype_inert,
+  &ps_sprtype_edgecrawler,
 //INSERT SPRTYPE REFERENCE HERE
 0};

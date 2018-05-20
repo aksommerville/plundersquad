@@ -307,13 +307,11 @@ static int ps_hero_bomb(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_hero_nitro_begin(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,DEBUG,"%s",__func__);
   if (ps_hero_add_state(spr,PS_HERO_STATE_NITRO,game)<0) return -1;
   return 0;
 }
 
 static int ps_hero_nitro_end(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(GAME,DEBUG,"%s",__func__);
   if (ps_hero_remove_state(spr,PS_HERO_STATE_NITRO,game)<0) return -1;
   return 0;
 }

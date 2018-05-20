@@ -199,6 +199,7 @@ extern const struct ps_sprtype ps_sprtype_teleffect;
 extern const struct ps_sprtype ps_sprtype_inert;
 extern const struct ps_sprtype ps_sprtype_edgecrawler;
 extern const struct ps_sprtype ps_sprtype_mimic;
+extern const struct ps_sprtype ps_sprtype_piston;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

@@ -1,7 +1,6 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
-- Editor: new sound effect does nothing
 
 Raspi errors:
 
@@ -18,7 +17,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- gadget: push a piston and a door opens, then piston creeps back closed
 - gadget: group lock with up to four pistons, push from each side simultaneously
 - gadget: reactive shooter
 - gadget: pushable flamethrower
@@ -80,3 +78,5 @@ Rejected:
   No harm, not worth the trouble.
 - src/gui/editor/ps_widget_sfxchan.c:300:  //TODO coordinate graph value limits with button in channel widget
   It's working, whatever.
+- Editor: new sound effect does nothing.
+  Whatever, easy to work around by copying existing resource.

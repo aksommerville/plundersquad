@@ -81,7 +81,7 @@ static int ps_setup_test_game(struct ps_userconfig *userconfig) {
     if (ps_game_generate_test(ps_game,
       -1, // regionid, negative means random
       // blueprintid. At least one must have adequate HERO POI:
-      2,117,118,119
+      2,120,121,122,123
     )<0) return -1;
     
   } else { // Generate scenario with every blueprint.

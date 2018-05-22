@@ -470,5 +470,6 @@ int ps_hero_stateq_feet_on_ground(const struct ps_sprite *spr) {
   if (SPR->state&PS_HERO_STATE_GHOST) return 0;
   if (SPR->state&PS_HERO_STATE_FLY) return 0;
   if (SPR->state&PS_HERO_STATE_OFFSCREEN) return 0;
+  if (SPR->state&PS_HERO_STATE_PUMPKIN) return 0;
   return 1;
 }

@@ -1,0 +1,4 @@
+type landmine
+tileid 0x0465
+layer 10
+grpmask VISIBLE UPDATE

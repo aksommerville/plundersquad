@@ -1,0 +1,3 @@
+type multipiston
+tileid 0x04e7
+grpmask VISIBLE UPDATE PHYSICS SOLID BARRIER

@@ -171,6 +171,7 @@ static inline struct ps_circle ps_sprite_circle(const struct ps_sprite *spr) {
  */
  
 static int ps_physics_check_sprites(struct ps_physics *physics,struct ps_sprite *a,struct ps_sprite *b) {
+  if ((a->type==b->type)&&a->type->ignore_collisions_on_same_type) return 0;
   struct ps_overlap overlap;
   switch (a->shape) {
     case PS_SPRITE_SHAPE_SQUARE: switch (b->shape) {

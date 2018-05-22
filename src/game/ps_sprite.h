@@ -129,6 +129,7 @@ struct ps_sprtype {
   double radius;
   int shape;
   int layer;
+  int ignore_collisions_on_same_type;
 
   int (*init)(struct ps_sprite *spr);
   void (*del)(struct ps_sprite *spr);
@@ -200,6 +201,7 @@ extern const struct ps_sprtype ps_sprtype_inert;
 extern const struct ps_sprtype ps_sprtype_edgecrawler;
 extern const struct ps_sprtype ps_sprtype_mimic;
 extern const struct ps_sprtype ps_sprtype_piston;
+extern const struct ps_sprtype ps_sprtype_multipiston;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

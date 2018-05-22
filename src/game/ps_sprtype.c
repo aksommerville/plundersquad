@@ -58,6 +58,7 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==11)&&!memcmp(name,"edgecrawler",11)) return &ps_sprtype_edgecrawler;
   if ((namec==5)&&!memcmp(name,"mimic",5)) return &ps_sprtype_mimic;
   if ((namec==6)&&!memcmp(name,"piston",6)) return &ps_sprtype_piston;
+  if ((namec==11)&&!memcmp(name,"multipiston",11)) return &ps_sprtype_multipiston;
 //INSERT SPRTYPE NAME TEST HERE
 
   return 0;
@@ -116,5 +117,6 @@ const struct ps_sprtype *ps_all_sprtypes[]={
   &ps_sprtype_edgecrawler,
   &ps_sprtype_mimic,
   &ps_sprtype_piston,
+  &ps_sprtype_multipiston,
 //INSERT SPRTYPE REFERENCE HERE
 0};

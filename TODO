@@ -1,6 +1,7 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
+- blueprint:103: need monsters
 
 Raspi errors:
 
@@ -20,6 +21,7 @@ Actionable:
 - gadget: group lock with up to four pistons, push from each side simultaneously
 - gadget: reactive shooter
 - gadget: pushable flamethrower
+- falling penguin sound effects
 
 Windows:
 - Build with GL2 support

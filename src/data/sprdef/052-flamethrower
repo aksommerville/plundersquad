@@ -1,0 +1,5 @@
+type flamethrower
+tileid 0x0430
+layer 100
+grpmask VISIBLE UPDATE PHYSICS LATCH SOLID BARRIER
+impassable SOLID HOLE LATCH

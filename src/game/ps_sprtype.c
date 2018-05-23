@@ -61,6 +61,7 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==11)&&!memcmp(name,"multipiston",11)) return &ps_sprtype_multipiston;
   if ((namec==8)&&!memcmp(name,"landmine",8)) return &ps_sprtype_landmine;
   if ((namec==8)&&!memcmp(name,"sawblade",8)) return &ps_sprtype_sawblade;
+  if ((namec==12)&&!memcmp(name,"flamethrower",12)) return &ps_sprtype_flamethrower;
 //INSERT SPRTYPE NAME TEST HERE
 
   return 0;
@@ -122,5 +123,6 @@ const struct ps_sprtype *ps_all_sprtypes[]={
   &ps_sprtype_multipiston,
   &ps_sprtype_landmine,
   &ps_sprtype_sawblade,
+  &ps_sprtype_flamethrower,
 //INSERT SPRTYPE REFERENCE HERE
 0};

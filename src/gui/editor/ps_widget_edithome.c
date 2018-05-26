@@ -171,8 +171,8 @@ static int ps_edithome_list_resources(struct ps_widget *widget,int tid) {
   const struct ps_restype *restype=ps_resmgr_get_type_by_id(tid);
   if (!restype) return -1;
   char path[1024];
-  const struct ps_res *res=restype->resv;
-  int resp=0; for (;resp<restype->resc;resp++,res++) {
+  int resp=restype->resc; while (resp-->0) {
+    const struct ps_res *res=restype->resv+resp;
     int pathc=ps_res_get_path_for_resource(path,sizeof(path),tid,res->id,1);
     if ((pathc<0)||(pathc>sizeof(path))) pathc=0;
     struct ps_widget *label=ps_edithome_spawn_resource_label(widget,reslist,res->id,path,pathc);

@@ -282,15 +282,17 @@ static int ps_hero_bomb(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Quick check to ensure we're not throwing it into a wall or hole.
    */
-  const struct ps_grid_cell *cell=ps_grid_get_cell(game->grid,x/PS_TILESIZE,y/PS_TILESIZE);
-  if (cell) switch (cell->physics) {
-    case PS_BLUEPRINT_CELL_SOLID:
-    case PS_BLUEPRINT_CELL_LATCH: {
-        PS_SFX_BOMB_REJECT
-      } return 0;
-    case PS_BLUEPRINT_CELL_HOLE: {
-        if (ps_game_create_splash(game,x,y)<0) return -1;
-      } return 0;
+  if ((x>=0)&&(y>=0)&&(x<PS_SCREENW)&&(y<PS_SCREENH)) {
+    const struct ps_grid_cell *cell=ps_grid_get_cell(game->grid,x/PS_TILESIZE,y/PS_TILESIZE);
+    if (cell) switch (cell->physics) {
+      case PS_BLUEPRINT_CELL_SOLID:
+      case PS_BLUEPRINT_CELL_LATCH: {
+          PS_SFX_BOMB_REJECT
+        } return 0;
+      case PS_BLUEPRINT_CELL_HOLE: {
+          if (ps_game_create_splash(game,x,y)<0) return -1;
+        } return 0;
+    }
   }
 
   PS_SFX_BOMB_THROW

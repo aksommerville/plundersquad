@@ -205,6 +205,7 @@ extern const struct ps_sprtype ps_sprtype_multipiston;
 extern const struct ps_sprtype ps_sprtype_landmine;
 extern const struct ps_sprtype ps_sprtype_sawblade;
 extern const struct ps_sprtype ps_sprtype_flamethrower;
+extern const struct ps_sprtype ps_sprtype_tortoise;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.

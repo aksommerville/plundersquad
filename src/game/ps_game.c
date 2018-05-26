@@ -286,6 +286,7 @@ static int ps_game_monsters_present(const struct ps_game *game) {
     if (spr->type==&ps_sprtype_chicken) continue; // Chickens are not actually killable (for the most part).
     if (ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_DEATHROW,spr)) continue; // Ignore DEATHROW.
     if (spr->type==&ps_sprtype_seamonster) return 1; // Seamonsters are "monsters" even when underwater.
+    if (spr->type==&ps_sprtype_tortoise) return 1; // Tortoise base is not fragile, but is definitely a monster.
     if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)) continue; // Must also be FRAGILE.
     if (!ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)) continue; // Must also be HEROHAZARD.
     return 1;

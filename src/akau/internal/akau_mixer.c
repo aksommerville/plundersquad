@@ -4,6 +4,8 @@
 #include "os/ps_log.h"
 #include "os/ps_clockassist.h"
 
+int akau_get_master_rate();
+
 /* Clean up channel.
  */
  
@@ -465,6 +467,33 @@ int akau_mixer_play_note(
   return chan->chanid;
 }
 
+/* Test whether a sound effect was "recently started".
+ * This is a hack to suppress identical sound effects, eg when a bomb goes off and hurts a half dozen monsters simultaneously.
+ */
+
+static int akau_mixer_ipcm_recently_started(const struct akau_mixer *mixer,const struct akau_ipcm *ipcm) {
+  int rate=0,plimit;
+  const struct akau_mixer_chan *chan=mixer->chanv;
+  int i=mixer->chanc; for (;i-->0;chan++) {
+    if (chan->mode!=AKAU_MIXER_CHAN_MODE_VERBATIM) continue;
+    if (chan->verbatim.ipcm!=ipcm) continue;
+
+    /* This IPCM is playing.
+     * Now the tricky part -- is it playing recently enough to produce undesirable artifacts?
+     * I think about 1/30 s is right.
+     * Certainly that's long enough to catch sound effects initiated on the same video frame.
+     * And short enough that humans wouldn't perceive the interval.
+     */
+    if (!rate) {
+      rate=akau_get_master_rate();
+      plimit=rate/30;
+    }
+    if (chan->verbatim.p<plimit) return 1;
+    
+  }
+  return 0;
+}
+
 /* Set up verbatim channel.
  */
 
@@ -477,6 +506,12 @@ int akau_mixer_play_ipcm(
   uint8_t intent
 ) {
   if (!ipcm) return -1;
+
+  if (akau_mixer_ipcm_recently_started(mixer,ipcm)) {
+    ps_log(AUDIO,DEBUG,"Suppressing ipcm %p, already playing.",ipcm);
+    return 0;
+  }
+  
   struct akau_mixer_chan *chan=akau_mixer_chan_new(mixer);
   if (!chan) return -1;
 

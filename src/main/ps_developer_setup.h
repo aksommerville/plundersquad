@@ -13,7 +13,7 @@
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL
  */
-#define PS_TEST_GENERATOR_MODE ALL
+#define PS_TEST_GENERATOR_MODE SELECTED
 
 /* Parameters for NORMAL and SELECTED modes.
  */
@@ -24,7 +24,7 @@
  * Must name at least one blueprint with a HERO POI.
  * Region may be <0 to select randomly.
  */
-#define PS_TEST_BLUEPRINTS 2,140
+#define PS_TEST_BLUEPRINTS 2,139
 #define PS_TEST_REGION     -1
 
 /* Parameters for ALL mode.

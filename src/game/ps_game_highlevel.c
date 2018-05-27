@@ -570,7 +570,7 @@ static void ps_dump_award_weights(double *weights) {
 static int ps_game_assign_award_solo(struct ps_game *game) {
   const struct ps_stats_player *pstats=game->stats->playerv;
   struct ps_player *player=game->playerv[0];
-  double weightv[PS_AWARD_COUNT];
+  double weightv[PS_AWARD_COUNT]={0};
 
   /* Score each award by some reasonable standard, in 0..1.
    * Some may theoretically exceed 1.0, so we clamp them.

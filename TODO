@@ -1,7 +1,9 @@
 General errors:
 - Song position highlight broken.
+- lwizard in 1-player game.
 
 Raspi errors:
+- In a long session (2194 s) observed a few temporary freezes, likely due to music. Late in the session, music stopped altogether but sound effects continued.
 
 Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!

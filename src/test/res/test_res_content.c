@@ -581,7 +581,8 @@ static int locate_footswitches() {
 }
 
 /* List all blueprints containing a given sprdef id.
- * Note that we don't check summoners or anything else indirect, and regional random monsters are a completely different thing.
+ * We check SPRITE and SUMMONER POI.
+ * Regional random monsters are something else.
  */
 
 static int locate_sprites(int sprdefid) {
@@ -593,10 +594,15 @@ static int locate_sprites(int sprdefid) {
     const struct ps_blueprint *blueprint=res->obj;
     const struct ps_blueprint_poi *poi=blueprint->poiv;
     int poii=blueprint->poic; for (;poii-->0;poi++) {
-      if (poi->type!=PS_BLUEPRINT_POI_SPRITE) continue;
-      if (poi->argv[0]!=sprdefid) continue;
-      ps_log(RES,INFO,"  blueprint:%d",res->id);
-      break;
+      if (poi->type==PS_BLUEPRINT_POI_SPRITE) {
+        if (poi->argv[0]!=sprdefid) continue;
+        ps_log(RES,INFO,"  blueprint:%d",res->id);
+        break;
+      } else if (poi->type==PS_BLUEPRINT_POI_SUMMONER) {
+        if (poi->argv[0]!=sprdefid) continue;
+        ps_log(RES,INFO,"  blueprint:%d",res->id);
+        break;
+      }
     }
   }
   return 0;
@@ -611,10 +617,7 @@ PS_TEST(examineres,ignore) {
   
   //PS_ASSERT_CALL(list_hero_blueprints())
   //PS_ASSERT_CALL(locate_footswitches())
-  PS_ASSERT_CALL(locate_sprites(0))//block
-  PS_ASSERT_CALL(locate_sprites(3))//basketball
-  PS_ASSERT_CALL(locate_sprites(18))//swordswitch
-  PS_ASSERT_CALL(locate_sprites(19))//dictionary
+  PS_ASSERT_CALL(locate_sprites(36))//penguin
   
   ps_resmgr_quit();
   return 0;

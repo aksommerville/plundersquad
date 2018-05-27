@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_sound_effects.h"
 #include "akgl/akgl.h"
 #include <math.h>
 
@@ -88,12 +89,14 @@ static const char *_ps_penguin_get_configure_argument_name(int argp) {
  */
 
 static int ps_penguin_begin_FALL(struct ps_sprite *spr,struct ps_game *game) {
+  PS_SFX_PENGUIN_FALL
   SPR->phase=PS_PENGUIN_PHASE_FALL;
   SPR->phasetime=spr->y/PS_PENGUIN_FALL_SPEED;
   return 0;
 }
 
 static int ps_penguin_begin_DAZED(struct ps_sprite *spr,struct ps_game *game) {
+  PS_SFX_PENGUIN_LAND
   SPR->phase=PS_PENGUIN_PHASE_DAZED;
   SPR->phasetime=PS_PENGUIN_DAZED_TIME;
   if (ps_game_set_group_mask_for_sprite(game,spr,PS_PENGUIN_NORMAL_GROUPS)<0) return -1;

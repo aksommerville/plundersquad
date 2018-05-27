@@ -1,4 +1,4 @@
-head 0x00
+head 0x4c
 body 0xc6
 skill SWORD
 skill COMBAT

@@ -544,7 +544,8 @@ static int _ps_hero_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_sprite
   vtx_body->tileid=SPR->player->plrdef->tileid_body;
 
   /* Select variant for head. */
-  if (SPR->state&PS_HERO_STATE_HURT) vtx_head->tileid+=0x20;
+  if (SPR->state&PS_HERO_STATE_SWORD) vtx_head->tileid+=0x30;
+  else if (SPR->state&PS_HERO_STATE_HURT) vtx_head->tileid+=0x20;
   else if (SPR->blinktime<=PS_HERO_BLINKTIME_SHUT) vtx_head->tileid+=0x10;
 
   /* Select variant for body. */

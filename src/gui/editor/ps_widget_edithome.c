@@ -215,6 +215,7 @@ static int ps_edithome_open_ps_resource(struct ps_widget *widget,int tid,int ind
   const struct ps_restype *restype=ps_resmgr_get_type_by_id(tid);
   if (!restype) return -1;
   if (index>=restype->resc) return -1;
+  index=restype->resc-index-1;
   const struct ps_res *res=restype->resv+index;
 
   struct ps_widget *root=ps_widget_get_root(widget);

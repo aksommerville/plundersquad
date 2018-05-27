@@ -174,36 +174,49 @@ struct ps_sprite *ps_sprite_healmissile_new(struct ps_sprite *user,struct ps_gam
   if (user->type!=&ps_sprtype_hero) return 0;
   struct ps_sprite_hero *hero=(struct ps_sprite_hero*)user;
 
+  /* First, determine our direction and initial position.
+   */
+  double dx=0.0,dy=0.0;
+  switch (hero->facedir) {
+    case PS_DIRECTION_NORTH: dy=-1.0; break;
+    case PS_DIRECTION_SOUTH: dy=1.0; break;
+    case PS_DIRECTION_WEST: dx=-1.0; break;
+    case PS_DIRECTION_EAST: dx=1.0; break;
+    default: return 0;
+  }
+  double x=user->x+dx*PS_TILESIZE;
+  double y=user->y+dy*PS_TILESIZE;
+
+  /* If the initial position is blocked, we must fail with "legitimate rejection".
+   */
+  if (game&&game->grid) {
+    if ((x>=0.0)&&(y>=0.0)) {
+      int col=x/PS_TILESIZE;
+      int row=y/PS_TILESIZE;
+      if ((col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
+        uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
+        switch (physics) {
+          case PS_BLUEPRINT_CELL_SOLID:
+          case PS_BLUEPRINT_CELL_LATCH:
+            return user;
+        }
+      }
+    }
+  }
+
   struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_HEALMISSILE_SPRDEF_ID);
   if (!sprdef) {
     ps_log(GAME,ERROR,"sprdef:%d not found, expected for HEALMISSILE",PS_HEALMISSILE_SPRDEF_ID);
     return 0;
   }
-  struct ps_sprite *spr=ps_sprdef_instantiate(game,sprdef,0,0,user->x,user->y);
+  struct ps_sprite *spr=ps_sprdef_instantiate(game,sprdef,0,0,x,y);
   if (!spr) {
     ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d",PS_HEALMISSILE_SPRDEF_ID);
     return 0;
   }
 
-  switch (hero->facedir) {
-    case PS_DIRECTION_NORTH: {
-        SPR->dy=-1.0;
-      } break;
-    case PS_DIRECTION_SOUTH: {
-        SPR->dy=1.0;
-      } break;
-    case PS_DIRECTION_WEST: {
-        SPR->dx=-1.0;
-      } break;
-    case PS_DIRECTION_EAST: {
-        SPR->dx=1.0;
-      } break;
-    default: return 0;
-  }
-  spr->x+=SPR->dx*PS_TILESIZE;
-  spr->y+=SPR->dy*PS_TILESIZE;
-  SPR->dx*=PS_HEALMISSILE_SPEED;
-  SPR->dy*=PS_HEALMISSILE_SPEED;
+  SPR->dx=dx*PS_HEALMISSILE_SPEED;
+  SPR->dy=dy*PS_HEALMISSILE_SPEED;
 
   return spr;
 }

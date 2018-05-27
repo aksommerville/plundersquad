@@ -191,6 +191,10 @@ static int ps_hero_flame_continue(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hero_action_heal(struct ps_sprite *spr,struct ps_game *game) {
   struct ps_sprite *missile=ps_sprite_healmissile_new(spr,game);
   if (!missile) return -1;
+  if (missile==spr) {
+    PS_SFX_ARROW_REJECTED
+    return 0;
+  }
   PS_SFX_HEALMISSILE
   return 0;
 }

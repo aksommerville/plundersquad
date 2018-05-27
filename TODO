@@ -1,6 +1,7 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
+- Heartmissile shoots through walls
 
 Raspi errors:
 
@@ -19,6 +20,7 @@ MacOS errors:
 Actionable:
 - falling penguin sound effects
 - Recommend difficulty based on history
+- New head for bomber or swordsman
 
 Windows:
 - Build with GL2 support

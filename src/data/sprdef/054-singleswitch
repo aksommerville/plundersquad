@@ -1,0 +1,4 @@
+type singleswitch
+tileid 0x0440
+layer 10
+grpmask VISIBLE UPDATE

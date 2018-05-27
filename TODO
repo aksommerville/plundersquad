@@ -1,6 +1,4 @@
 General errors:
-- Bomber multiexplode on heal point
-...I can't reproduce this except by tapping button repeatedly
 
 Raspi errors:
 
@@ -42,13 +40,12 @@ Optimization, cleanup, low priority:
 - Clean up logging
 - src/opt/msaudio/ps_msaudio.c:117:  int buffer_size=8192; // bytes (TODO optimal size?)
 - Review stubs in akgl_soft_shaders.c
+- Remove scenario encoding (it's already disabled)
 
 Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
 - src/video/ps_image_decode.c:242:  /* TODO Image filter: Either improve it or take it out.
-- Revisit scenario encoding, make it work, add UI to support it
 - Review award assignment with realistic data
-- Should we pause or something when window loses focus?
 - Goal: 200 blueprints
 - Finish sound effects
 - Finish music
@@ -56,7 +53,6 @@ Ongoing, loosely-defined items:
 - More background graphics
 
 Optional:
-- Final boss?
 - src/input/ps_input_report_reader.h:3: * TODO We don't support collection fields, like for HID keyboards. Should we? Our focus is joysticks.
 
 Blocked:
@@ -65,15 +61,23 @@ Blocked:
 - Promo
 - Final packaging
 - Normalize sound effects and music
+- Steam licensing
+- Other app stores?
 
 Rejected:
 - Scissor for sdraw blits. Only needed by editor.
   sdraw is already a performance problem. Don't make it any worse, just for the editor's sake.
 - Input swap: Should we enable this for production use?
   No. Too complicated.
-- src/scenario/ps_scgen.c:844: * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
+- src/scenario/ps_scgen.c:844:ps_scgen_count_unassigned_regions: * TODO Our use of (visited) is not perfect, it will give bad counts if there is a loop.
   No harm, not worth the trouble.
 - src/gui/editor/ps_widget_sfxchan.c:300:  //TODO coordinate graph value limits with button in channel widget
   It's working, whatever.
 - Editor: new sound effect does nothing.
   Whatever, easy to work around by copying existing resource.
+- Bomber multiexplode on heal point
+  I can't reproduce this except by tapping button repeatedly
+- Revisit scenario encoding, make it work, add UI to support it
+  No longer interested in encoded scenario, not worth it.
+- Should we pause or something when window loses focus?
+  No. That's not our responsibility.

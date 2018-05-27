@@ -31,6 +31,9 @@
 
 #define PS_PRIZE_SPRDEF_ID 17
 #define PS_SPLASH_SPRDEF_ID 24
+#define PS_TREASURE_SPRDEF_ID 12
+#define PS_CHESTKEEPER_SPRDEF_ID 55
+#define PS_MINIMUM_DIFFICULTY_FOR_CHESTKEEPER 5
 
 int ps_game_npgc_pop(struct ps_game *game);
 static int ps_game_cb_switch(int switchid,int value,void *userdata);
@@ -195,6 +198,28 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
   return 0;
 }
 
+/* Decide whether to use a regular treasure chest or a chestkeeper.
+ */
+
+static int ps_game_should_use_chestkeeper(const struct ps_game *game,int treasureid) {
+  if ((treasureid<0)||(treasureid>=game->treasurec)) return 0;
+  if (game->treasurev[treasureid]) return 0;
+  if (game->difficulty<PS_MINIMUM_DIFFICULTY_FOR_CHESTKEEPER) return 0;
+
+  int have_combat=0;
+  int i=game->playerc; while (i-->0) {
+    struct ps_player *player=game->playerv[i];
+    if (player->plrdef->skills&PS_SKILL_COMBAT) {
+      have_combat=1;
+      break;
+    }
+  }
+  if (!have_combat) return 0;
+  
+  if (ps_game_count_collected_treasures(game)==game->treasurec-1) return 1;
+  return 0;
+}
+
 /* Spawn one sprite from a HERO, SPRITE, or TREASURE POI.
  */
 
@@ -205,7 +230,11 @@ static struct ps_sprite *ps_game_spawn_sprite(struct ps_game *game,const struct 
   switch (poi->type) {
     case PS_BLUEPRINT_POI_HERO: sprdefid=1; argv=poi->argv+1; argc=2; break;
     case PS_BLUEPRINT_POI_SPRITE: sprdefid=poi->argv[0]; argv=poi->argv+1; argc=2; break;
-    case PS_BLUEPRINT_POI_TREASURE: sprdefid=12; argv=poi->argv; argc=3; break;
+    case PS_BLUEPRINT_POI_TREASURE: if (ps_game_should_use_chestkeeper(game,poi->argv[0])) {
+        sprdefid=PS_CHESTKEEPER_SPRDEF_ID; argv=poi->argv; argc=3;
+      } else {
+        sprdefid=PS_TREASURE_SPRDEF_ID; argv=poi->argv; argc=3; 
+      } break;
     default: return 0;
   }
   
@@ -218,7 +247,7 @@ static struct ps_sprite *ps_game_spawn_sprite(struct ps_game *game,const struct 
   int y=poi->y*PS_TILESIZE+(PS_TILESIZE>>1);
   struct ps_sprite *sprite=ps_sprdef_instantiate(game,sprdef,argv,argc,x,y);
   if (!sprite) {
-    ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d",poi->argv[0]);
+    ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d",sprdefid);
     return 0;
   }
   return sprite;

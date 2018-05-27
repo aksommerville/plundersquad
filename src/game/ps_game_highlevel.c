@@ -30,6 +30,7 @@
 #include "util/ps_enums.h"
 
 #define PS_BLOODHOUND_SPRDEF_ID 21
+#define PS_TREASURE_SPRDEF_ID 12
 
 void ps_game_force_hero_to_legal_position(struct ps_game *game,struct ps_sprite *hero);
 int ps_game_spawn_sprites(struct ps_game *game);
@@ -860,5 +861,40 @@ int ps_game_cb_device_connect(struct ps_input_device *device,void *userdata) {
 
 int ps_game_cb_device_disconnect(struct ps_input_device *device,void *userdata) {
   struct ps_game *game=userdata;
+  return 0;
+}
+
+/* Create treasure chest for realsies.
+ */
+ 
+int ps_game_recreate_treasure_chest(struct ps_game *game,int x,int y) {
+  if (!game||!game->grid) return 0;
+
+  const int *argv=0;
+  int argc=0;
+  int treasureid=-1;
+  const struct ps_blueprint_poi *poi=game->grid->poiv;
+  int i=game->grid->poic; for (;i-->0;poi++) {
+    if (poi->type!=PS_BLUEPRINT_POI_TREASURE) continue;
+    treasureid=poi->argv[0];
+    argv=poi->argv;
+    argc=3;
+    break;
+  }
+  if (treasureid<0) return 0; // no treasure POI
+  if (treasureid>=game->treasurec) return 0;
+  if (game->treasurev[treasureid]) return 0;
+  
+  struct ps_sprdef *sprdef=ps_res_get(PS_RESTYPE_SPRDEF,PS_TREASURE_SPRDEF_ID);
+  if (!sprdef) {
+    ps_log(GAME,ERROR,"sprdef:%d not found",PS_TREASURE_SPRDEF_ID);
+    return -1;
+  }
+  struct ps_sprite *sprite=ps_sprdef_instantiate(game,sprdef,argv,argc,x,y);
+  if (!sprite) {
+    ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d",PS_TREASURE_SPRDEF_ID);
+    return -1;
+  }
+  
   return 0;
 }

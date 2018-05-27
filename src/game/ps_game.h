@@ -244,6 +244,11 @@ int ps_game_highlight_enabled_players(struct ps_game *game);
  */
 int ps_game_find_random_cell_with_physics(int *col,int *row,const struct ps_game *game,uint16_t mask);
 
+/* Support for ps_sprite_chestkeeper.
+ * When he dies, he calls this to create the real treasure chest.
+ */
+int ps_game_recreate_treasure_chest(struct ps_game *game,int x,int y);
+
 int ps_game_save_to_score_store(struct ps_game *game);
 
 /* ===== Serial Format =====

@@ -1418,6 +1418,65 @@ int ps_scgen_test_generate(struct ps_scgen *scgen) {
   return 0;
 }
 
+/* Generate blueprint list with low and high ID bounds.
+ */
+
+static struct ps_blueprint_list *ps_scgen_generate_bounded_blueprint_list(const struct ps_scgen *scgen,int blueprintidlo,int blueprintidhi) {
+
+  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_BLUEPRINT);
+  if (!restype) return 0;
+  if (restype->resc<1) return 0;
+  
+  struct ps_blueprint_list *blueprints=ps_blueprint_list_new();
+  if (!blueprints) return 0;
+
+  int plo=ps_restype_res_search(restype,blueprintidlo);
+  if (plo<0) {
+    ps_log(GENERATOR,ERROR,"blueprint:%d not found",blueprintidlo);
+    ps_blueprint_list_del(blueprints);
+    return 0;
+  }
+
+  int phi;
+  if (blueprintidhi<blueprintidlo) {
+    phi=restype->resc-1;
+  } else {
+    phi=ps_restype_res_search(restype,blueprintidhi);
+    if (phi<0) phi=-phi-2; // -2 because it is inclusive.
+  }
+  if (plo>phi) {
+    ps_log(GENERATOR,DEBUG,"invalid blueprint id range %d..%d",blueprintidlo,blueprintidhi);
+    ps_blueprint_list_del(blueprints);
+    return 0;
+  }
+
+  int resp; for (resp=plo;resp<=phi;resp++) {
+    if (ps_blueprint_list_add(blueprints,restype->resv[resp].obj)<0) {
+      ps_blueprint_list_del(blueprints);
+      return 0;
+    }
+  }
+
+  /* One last thing: If we don't have a HERO POI, add another blueprint arbitrarily. */
+  int i=0; for (;i<blueprints->c;i++) {
+    if (ps_blueprint_count_poi_of_type(blueprints->v[i],PS_BLUEPRINT_POI_HERO)>0) return blueprints;
+  }
+  for (i=0;i<restype->resc;i++) {
+    struct ps_blueprint *blueprint=restype->resv[i].obj;
+    if (ps_blueprint_count_poi_of_type(blueprint,PS_BLUEPRINT_POI_HERO)>0) {
+      if (ps_blueprint_list_add(blueprints,blueprint)<0) {
+        ps_blueprint_list_del(blueprints);
+        return 0;
+      }
+      return blueprints;
+    }
+  }
+
+  ps_log(GENERATOR,ERROR,"Unable to locate HERO POI.");
+  ps_blueprint_list_del(blueprints);
+  return 0;
+}
+
 /* Calculate world size when using all blueprints.
  */
 
@@ -1434,9 +1493,12 @@ static int ps_scgen_better_factors(int preva,int prevb,int newa,int newb) {
 
 static int ps_scgen_factor_screenc(int screenc) {
   int a=0,b=0;
-  int i=(screenc>>1)+1; while (i-->1) {
+  int i=(screenc>>1)+1;
+  if (i>PS_WORLD_W_LIMIT) i=PS_WORLD_W_LIMIT; // Assume that PS_WORLD_W_LIMIT and PS_WORLD_H_LIMIT are the same, which they are.
+  while (i-->1) {
     if (screenc%i) continue;
     int j=screenc/i;
+    if (j>PS_WORLD_W_LIMIT) break; // 'break' not 'continue'. They won't get any lower from here on.
     if (ps_scgen_better_factors(a,b,i,j)) {
       a=i;
       b=j;
@@ -1445,12 +1507,9 @@ static int ps_scgen_factor_screenc(int screenc) {
   return (a<b)?a:b;
 }
 
-static int ps_scgen_calculate_world_size_all_blueprints(int *w,int *h,const struct ps_scgen *scgen) {
-
-  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_BLUEPRINT);
-  if (!restype) return -1;
-  if (restype->resc<1) return -1;
-  int screenc=restype->resc;
+static int ps_scgen_calculate_world_size_all_blueprints(int *w,int *h,const struct ps_scgen *scgen,const struct ps_blueprint_list *blueprints) {
+  if (!blueprints||(blueprints->c<1)) return -1;
+  int screenc=blueprints->c;
 
   /* If we can find a reasonable factor pair that multiply to this size precisely, go with it. */
   if ((*w=ps_scgen_factor_screenc(screenc))>1) {
@@ -1472,14 +1531,12 @@ static int ps_scgen_calculate_world_size_all_blueprints(int *w,int *h,const stru
 /* Assign blueprints sequentially, for testing.
  */
 
-static int ps_scgen_select_test_blueprints_all(struct ps_scgen *scgen) {
-  const struct ps_restype *restype=ps_resmgr_get_type_by_id(PS_RESTYPE_BLUEPRINT);
-  if (!restype) return -1;
-  if (restype->resc<1) return -1;
+static int ps_scgen_select_test_blueprints_all(struct ps_scgen *scgen,const struct ps_blueprint_list *blueprints) {
+  if (!blueprints||(blueprints->c<1)) return -1;
   struct ps_screen *screen=scgen->scenario->screenv;
   int screenc=scgen->scenario->w*scgen->scenario->h;
   int i=0; for (;i<screenc;i++,screen++) {
-    if (ps_screen_set_blueprint(screen,restype->resv[i%restype->resc].obj)<0) return -1;
+    if (ps_screen_set_blueprint(screen,blueprints->v[i%blueprints->c])<0) return -1;
     if (!scgen->homex&&ps_blueprint_count_poi_of_type(screen->blueprint,PS_BLUEPRINT_POI_HERO)) {
       scgen->homex=scgen->scenario->homex=screen->x;
       scgen->homey=scgen->scenario->homey=screen->y;
@@ -1493,12 +1550,7 @@ static int ps_scgen_select_test_blueprints_all(struct ps_scgen *scgen) {
 /* Generate scenario using every blueprint.
  */
 
-int ps_scgen_test_generate_all_blueprints(struct ps_scgen *scgen) {
-  int64_t starttime=ps_time_now();
-  if (!scgen) return -1;
-
-  /* Ensure our inputs are valid. */
-  if (ps_scgen_validate(scgen)<0) return -1;
+static int ps_scgen_generate_all_blueprints_listed(struct ps_scgen *scgen,const struct ps_blueprint_list *blueprints) {
 
   /* Create a new blank scenario. */
   if (scgen->scenario) {
@@ -1509,7 +1561,7 @@ int ps_scgen_test_generate_all_blueprints(struct ps_scgen *scgen) {
 
   /* Create a blank world map. */
   int w,h;
-  if (ps_scgen_calculate_world_size_all_blueprints(&w,&h,scgen)<0) return -1;
+  if (ps_scgen_calculate_world_size_all_blueprints(&w,&h,scgen,blueprints)<0) return -1;
   if (ps_scenario_reallocate_screens(scgen->scenario,w,h)<0) return -1;
   ps_log(GENERATOR,DEBUG,"Generating %dx%d-screen scenario with all blueprints.",w,h);
 
@@ -1517,7 +1569,7 @@ int ps_scgen_test_generate_all_blueprints(struct ps_scgen *scgen) {
   if (ps_scgen_make_wide_open_doors(scgen)<0) return -1;
 
   /* Select blueprint and transform for each screen. */
-  if (ps_scgen_select_test_blueprints_all(scgen)<0) return -1;
+  if (ps_scgen_select_test_blueprints_all(scgen,blueprints)<0) return -1;
 
   /* Populate grid margins. */
   if (ps_scgen_populate_grid_margins(scgen)<0) return -1;
@@ -1531,6 +1583,25 @@ int ps_scgen_test_generate_all_blueprints(struct ps_scgen *scgen) {
 
   /* Skin grids with graphics. */
   if (ps_scgen_generate_grids(scgen)<0) return -1;
+
+  return 0;
+}
+
+int ps_scgen_test_generate_all_blueprints(struct ps_scgen *scgen,int blueprintidlo,int blueprintidhi) {
+  int64_t starttime=ps_time_now();
+  if (!scgen) return -1;
+
+  /* Ensure our inputs are valid. */
+  if (ps_scgen_validate(scgen)<0) return -1;
+
+  /* Gather requested blueprints. */
+  struct ps_blueprint_list *blueprints=ps_scgen_generate_bounded_blueprint_list(scgen,blueprintidlo,blueprintidhi);
+  if (!blueprints) return -1;
+  ps_log(GENERATOR,DEBUG,"Generating scenario with %d blueprints from requested range (%d..%d)...",blueprints->c,blueprintidlo,blueprintidhi);
+
+  int err=ps_scgen_generate_all_blueprints_listed(scgen,blueprints);
+  ps_blueprint_list_del(blueprints);
+  if (err<0) return err;
 
   int64_t elapsed=ps_time_now()-starttime;
   ps_log(GENERATOR,INFO,"Generated scenario in %d.%06d s.",(int)(elapsed/1000000),(int)(elapsed%1000000));

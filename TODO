@@ -1,6 +1,7 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
+- blueprint:139: Gap appeared at river's corner, which would have allowed a vampire through
 
 Raspi errors:
 

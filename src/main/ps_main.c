@@ -14,6 +14,7 @@
 #include "gui/corewidgets/ps_corewidgets.h"
 #include "akau/akau.h"
 #include <time.h>
+#include "ps_developer_setup.h"
 
 #if PS_USE_macioc
   #include "opt/macioc/ps_macioc.h"
@@ -43,59 +44,6 @@
 static struct ps_game *ps_game=0;
 static struct ps_gui *ps_gui=0;
 static struct ps_perfmon *ps_perfmon=0;
-
-/* Setup for quick testing during development.
- * This is called whenever no saved game was requested.
- * Return 0 to fall back to interactive setup -- production builds should always do that.
- */
-
-static int ps_setup_test_game(struct ps_userconfig *userconfig) {
-  int i;
-
-  if (0) { // Normal interactive setup.
-    return 0;
-  }
-
-  /* Configure players. */
-  if (ps_game_set_player_count(ps_game,8)<0) return -1;
-  for (i=1;i<=PS_PLAYER_LIMIT;i++) {
-    ps_game_configure_player(ps_game,i,i,i,0);
-  }
-  if (ps_input_set_noninteractive_device_assignment()<0) return -1;
-
-  /* Optionally override plrdef selection. (plrid,plrdefid,palette,device) */
-  //001-swordsman 002-archer    003-gadgeteer 004-nurse     005-wizard    006-vampire   007-martyr    008-immortal  009-bomber
-  if (ps_game_configure_player(ps_game,1,1,3,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,2,2,0,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,3,3,0,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,4,4,0,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,5,5,0,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,6,6,0,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,7,8,0,0)<0) return -1;
-  if (ps_game_configure_player(ps_game,8,9,0,0)<0) return -1;
-
-  if (1) { // Generate a scenario just like normal launches.
-    if (ps_game_set_difficulty(ps_game,8)<0) return -1;
-    if (ps_game_set_length(ps_game,2)<0) return -1;
-    if (ps_game_generate(ps_game)<0) return -1;
-
-  } else if (1) { // Generate a test scenario -- good for blueprint test drives.
-    if (ps_game_set_difficulty(ps_game,2)<0) return -1;
-    if (ps_game_set_length(ps_game,    2)<0) return -1;
-    if (ps_game_generate_test(ps_game,
-      -1, // regionid, negative means random
-      // blueprintid. At least one must have adequate HERO POI:
-      2,142
-    )<0) return -1;
-    
-  } else { // Generate scenario with every blueprint.
-    if (ps_game_generate_all_blueprints_test(ps_game)<0) return -1;
-  }
-
-  if (ps_game_restart(ps_game)<0) return -1;
-
-  return 1;
-}
 
 /* Restore game from file.
  */
@@ -248,7 +196,7 @@ static int ps_main_init(struct ps_userconfig *userconfig) {
   //if (cmdline->saved_game_path) { //TODO saved game
   //  if (ps_setup_restore_game(cmdline->saved_game_path)<0) return -1;
   //} else {
-    int err=ps_setup_test_game(userconfig);
+    int err=ps_setup_test_game(ps_game,userconfig);
     if (err<0) return -1;
     if (!err) {
       if (ps_gui_load_page_assemble(ps_gui)<0) return -1;

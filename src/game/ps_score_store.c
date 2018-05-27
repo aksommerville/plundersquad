@@ -222,6 +222,62 @@ int ps_score_store_add_false_record(struct ps_score_store *store,int playtime,in
   return 0;
 }
 
+/* Recommend difficulty.
+ */
+ 
+int ps_score_store_recommend_difficulty(const struct ps_score_store *store,const struct ps_game *game) {
+  if (!store||!game) return -1;
+  int i;
+
+  /* Compose an easily-comparable list of current player IDs. */
+  struct ps_score_record reference={0};
+  reference.playerc=game->playerc;
+  for (i=0;i<game->playerc;i++) {
+    reference.plrdefidv[i]=ps_res_get_id_by_obj(PS_RESTYPE_PLRDEF,game->playerv[i]->plrdef);
+  }
+  ps_score_record_sort_plrdefidv(&reference);
+
+  /* Count stored records matching this player set. */
+  int total=0;
+  int wins_by_difficulty[PS_DIFFICULTY_MAX-PS_DIFFICULTY_MIN+1]={0};
+  const struct ps_score_record *record=store->recordv;
+  for (i=store->recordc;i-->0;record++) {
+    if (record->playerc!=reference.playerc) continue;
+    if (memcmp(record->plrdefidv,reference.plrdefidv,reference.playerc)) continue;
+    if ((record->difficulty<PS_DIFFICULTY_MIN)||(record->difficulty>PS_DIFFICULTY_MAX)) continue;
+    wins_by_difficulty[record->difficulty-PS_DIFFICULTY_MIN]++;
+    total++;
+  }
+
+  /* Debug. */
+  /*
+  ps_log(GAME,DEBUG,"Wins by parties identical to this, by difficulty:");
+  for (i=PS_DIFFICULTY_MIN;i<=PS_DIFFICULTY_MAX;i++) {
+    ps_log(GAME,DEBUG,"  %2d: %3d",i,wins_by_difficulty[i-PS_DIFFICULTY_MIN]);
+  }
+  */
+
+  /* Choose a recommendation. */
+  int recommendation;
+  if (total) {
+    int highest=0;
+    for (i=PS_DIFFICULTY_MAX-PS_DIFFICULTY_MIN+1;i-->0;) {
+      if (wins_by_difficulty[i]) {
+        highest=i;
+        break;
+      }
+    }
+    highest+=PS_DIFFICULTY_MIN;
+    recommendation=highest+1;
+    if (recommendation>PS_DIFFICULTY_MAX) recommendation=PS_DIFFICULTY_MAX;
+  } else {
+    recommendation=PS_DIFFICULTY_MIN;
+  }
+  //ps_log(GAME,DEBUG,"...recommendation: %d",recommendation);
+  
+  return recommendation;
+}
+
 /* Count plrdefid.
  */
 

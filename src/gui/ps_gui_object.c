@@ -283,6 +283,7 @@ int ps_gui_load_page_setup(struct ps_gui *gui) {
   struct ps_widget *page=ps_widget_spawn(gui->root,&ps_widget_type_setuppage);
   if (!page) return -1;
   if (ps_widget_pack(gui->root)<0) return -1;
+  if (ps_widget_setuppage_acquire_initial_settings(page)<0) return -1;
   return 0;
 }
 

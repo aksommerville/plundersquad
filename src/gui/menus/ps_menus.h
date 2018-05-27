@@ -56,6 +56,14 @@ int ps_widget_sprite_set_action_walk_down(struct ps_widget *widget);
 int ps_widget_sprite_modify_plrdefid(struct ps_widget *widget,int d);
 int ps_widget_sprite_modify_palette(struct ps_widget *widget,int d);
 
+/* Setuppage.
+ *****************************************************************************/
+
+/* After installation but before display, check the attached game for difficulty and length.
+ * These may be acquired by consultation with the highscores file.
+ */
+int ps_widget_setuppage_acquire_initial_settings(struct ps_widget *widget);
+
 /* Pausepage.
  *****************************************************************************/
 

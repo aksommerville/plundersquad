@@ -1,6 +1,7 @@
 General errors:
 - Bomber multiexplode on heal point
 ...I can't reproduce this except by tapping button repeatedly
+- Generically suppress sound effects if already playing, within a couple video frames (eg exploding chickens)
 
 Raspi errors:
 
@@ -17,7 +18,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Recommend difficulty based on history
 
 Windows:
 - Build with GL2 support

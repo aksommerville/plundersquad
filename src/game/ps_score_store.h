@@ -30,6 +30,12 @@ int ps_score_store_count_plrdefid_usages(int **dstpp,const struct ps_score_store
  */
 int ps_score_store_add_false_record(struct ps_score_store *store,int playtime,int length,int difficulty,int plrdefid,...);
 
+/* Given the party in (game), what difficulty level do we suggest?
+ * Generally, this should be one greater than the highest difficulty beaten by an identical party.
+ * But there may be other black magic in the logic; leave that to us.
+ */
+int ps_score_store_recommend_difficulty(const struct ps_score_store *store,const struct ps_game *game);
+
 /* Game rating.
  * Ask for a rating immediately after adding a record.
  * The most recent record is our comparison reference.

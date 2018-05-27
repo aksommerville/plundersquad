@@ -13,6 +13,7 @@
 #include "ps_menus.h"
 #include "gui/ps_gui.h"
 #include "game/ps_game.h"
+#include "game/ps_score_store.h"
 #include "input/ps_input.h"
 
 static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
@@ -191,5 +192,33 @@ static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 4: return ps_setuppage_input_config(widget);
     case 5: return ps_input_request_termination();
   }
+  return 0;
+}
+
+/* Acquire initial settings.
+ */
+ 
+int ps_widget_setuppage_acquire_initial_settings(struct ps_widget *widget) {
+  if (!widget||(widget->type!=&ps_widget_type_setuppage)) return -1;
+  struct ps_gui *gui=ps_widget_get_gui(widget);
+  struct ps_game *game=ps_gui_get_game(gui);
+  if (!game) return 0; // No game, just go with what we have.
+
+  /* Ask score store for difficulty recommendation and commit it to UI if valid.
+   */
+  int difficulty=ps_score_store_recommend_difficulty(game->score_store,game);
+  ps_log(GUI,DEBUG,"Recommended difficulty: %d",difficulty);
+  if ((difficulty>=PS_DIFFICULTY_MIN)&&(difficulty<=PS_DIFFICULTY_MAX)) {
+    struct ps_widget *menu=ps_setuppage_get_menu(widget);
+    struct ps_widget *menupacker=ps_widget_menu_get_packer(menu);
+    if (menupacker&&(menupacker->childc>=0)) {
+      struct ps_widget *slider=menupacker->childv[1];
+      if (ps_widget_slider_set_value(slider,difficulty)<0) return -1;
+    }
+  }
+
+  /* We could do the same for length, but I think that is better left to the user.
+   */
+  
   return 0;
 }

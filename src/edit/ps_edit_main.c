@@ -84,6 +84,7 @@ static int ps_edit_init(struct ps_userconfig *userconfig) {
   #elif PS_USE_msaudio
     if (akau_init(&akau_driver_msaudio,ps_log_akau)<0) return -1;
   #endif
+  if (akau_mixer_set_print_songs(akau_get_mixer(),0)<0) return -1;
   
   if (ps_resmgr_init("src/data",1)<0) return -1;
   

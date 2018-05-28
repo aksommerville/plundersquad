@@ -6,6 +6,8 @@
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
 #include "game/ps_sound_effects.h"
+#include "game/ps_player.h"
+#include "game/ps_plrdef.h"
 #include "akgl/akgl.h"
 #include <math.h>
 
@@ -44,6 +46,8 @@ struct ps_chestkeeper_arm {
   double dt;
   double length;
   double dlength;
+  int deadly;
+  uint32_t rgb; // Only relevant if (!deadly)
 };
 
 struct ps_sprite_chestkeeper {
@@ -86,6 +90,7 @@ static int _ps_chestkeeper_init(struct ps_sprite *spr) {
   SPR->arml.dt=PS_CHESTKEEPER_ARM_ANGLE_SPEED*0.8;
   SPR->arml.length=PS_CHESTKEEPER_ARM_LENGTH_LO;
   SPR->arml.dlength=PS_CHESTKEEPER_ARM_LENGTH_SPEED;
+  SPR->arml.rgb=0xff0000;
 
   SPR->armr.shoulderx=6.0;
   SPR->armr.shouldery=-4.0;
@@ -93,6 +98,7 @@ static int _ps_chestkeeper_init(struct ps_sprite *spr) {
   SPR->armr.dt=-PS_CHESTKEEPER_ARM_ANGLE_SPEED;
   SPR->armr.length=PS_CHESTKEEPER_ARM_LENGTH_LO;
   SPR->armr.dlength=PS_CHESTKEEPER_ARM_LENGTH_SPEED*0.8;
+  SPR->armr.rgb=0x0000ff;
   
   SPR->dazzlet=0;
   SPR->dazzletd=PS_TREASURECHEST_DAZZLE_RATE;
@@ -140,13 +146,39 @@ static int ps_chestkeeper_should_blow_cover(struct ps_sprite *spr,struct ps_game
   return 0;
 }
 
+/* Be a good sport: Only use the chainsaw hands if the party contains one of (ARCHER,WIZARD,BOMBER).
+ * ps_game already confirms that at least one COMBAT hero is present before creating us.
+ * But if the only combatant is a swordsman, it is nearly impossible to kill the chestkeeper.
+ */
+
+static int ps_chestkeeper_has_worthy_opponents(const struct ps_sprite *spr,const struct ps_game *game) {
+  uint32_t skillmask=(PS_SKILL_ARROW|PS_SKILL_FLAME|PS_SKILL_BOMB);
+  int i=game->playerc; while (i-->0) {
+    const struct ps_player *player=game->playerv[i];
+    if (player&&player->plrdef) {
+      if (player->plrdef->skills&skillmask) return 1;
+    }
+  }
+  return 0;
+}
+
 /* Blow cover.
  */
 
 static int ps_chestkeeper_blow_cover(struct ps_sprite *spr,struct ps_game *game) {
+
   SPR->incognito=0;
   SPR->blowcover_transition=PS_CHESTKEEPER_BLOWCOVER_TIME;
   PS_SFX_CHESTKEEPER_BLOW_COVER
+
+  if (ps_chestkeeper_has_worthy_opponents(spr,game)) {
+    SPR->arml.deadly=1;
+    SPR->armr.deadly=1;
+  } else {
+    SPR->arml.deadly=0;
+    SPR->arml.deadly=0;
+  }
+  
   return 0;
 }
 
@@ -234,16 +266,22 @@ static int ps_chestkeeper_arm_kill_pigeons(struct ps_sprite *spr,struct ps_chest
  */
 
 static int ps_chestkeeper_arm_update(struct ps_sprite *spr,struct ps_chestkeeper_arm *arm,struct ps_game *game) {
+
   arm->t+=arm->dt;
   if (arm->t>=M_PI*2.0) arm->t-=M_PI*2.0;
   else if (arm->t<0.0) arm->t+=M_PI*2.0;
+
   arm->length+=arm->dlength;
   if (arm->length<PS_CHESTKEEPER_ARM_LENGTH_LO) {
     if (arm->dlength<0.0) arm->dlength=-arm->dlength;
   } else if (arm->length>PS_CHESTKEEPER_ARM_LENGTH_HI) {
     if (arm->dlength>0.0) arm->dlength=-arm->dlength;
   }
-  if (ps_chestkeeper_arm_kill_pigeons(spr,arm,game)<0) return -1;
+
+  if (arm->deadly) {
+    if (ps_chestkeeper_arm_kill_pigeons(spr,arm,game)<0) return -1;
+  }
+
   return 0;
 }
 
@@ -348,54 +386,78 @@ static int ps_chestkeeper_draw_incognito(struct akgl_vtx_maxtile *vtxv,int vtxa,
 /* Draw one arm.
  */
 
-static void ps_chestkeeper_draw_arm(struct akgl_vtx_maxtile *vtxv,const struct ps_sprite *spr,const struct ps_chestkeeper_arm *arm) {
+static int ps_chestkeeper_draw_arm(
+  struct akgl_vtx_maxtile *vtxv,int vtxa,
+  const struct ps_sprite *spr,const struct ps_chestkeeper_arm *arm,
+  const struct akgl_vtx_maxtile *ref
+) {
+
+  int vtxc=PS_CHESTKEEPER_ARM_LINKC;
+  if (arm->deadly) {
+    vtxc+=2; // box and blade
+  } else {
+    vtxc+=1; // pompom only
+  }
+  if (vtxc>vtxa) return vtxc;
   struct akgl_vtx_maxtile *linkv=vtxv;
-  struct akgl_vtx_maxtile *blade=vtxv+PS_CHESTKEEPER_ARM_LINKC;
-  struct akgl_vtx_maxtile *box=blade+1;
+  struct akgl_vtx_maxtile *blade,*box; // (blade) is optional; (box) always present.
+  if (arm->deadly) {
+    blade=vtxv+PS_CHESTKEEPER_ARM_LINKC;
+    box=blade+1;
+  } else {
+    blade=0;
+    box=vtxv+PS_CHESTKEEPER_ARM_LINKC;
+  }
 
   double normx=-sin(arm->t);
   double normy=cos(arm->t);
   int t=(arm->t*128.0)/M_PI+128;
 
-  double bladex=spr->x+arm->shoulderx+normx*arm->length;
-  double bladey=spr->y+arm->shouldery+normy*arm->length;
-  blade->x=bladex;
-  blade->y=bladey;
-  blade->size=PS_TILESIZE;
-  blade->tileid=spr->tileid+2;
-  blade->a=0xff;
-  blade->ta=0;
-  blade->pr=blade->pg=blade->pb=0x80;
-  blade->t=t;
-  blade->xform=AKGL_XFORM_NONE;
+  memcpy(box,ref,sizeof(struct akgl_vtx_maxtile));
+  if (blade) memcpy(blade,ref,sizeof(struct akgl_vtx_maxtile));
+
+  if (blade) {
+    double bladex=spr->x+arm->shoulderx+normx*arm->length;
+    double bladey=spr->y+arm->shouldery+normy*arm->length;
+    blade->x=bladex;
+    blade->y=bladey;
+    blade->tileid=spr->tileid+2;
+    blade->t=t;
+    blade->xform=AKGL_XFORM_NONE;
+    const double blade_box_distance=13.0;
+    box->x=bladex+blade_box_distance*-normx;
+    box->y=bladey+blade_box_distance*-normy;
+  } else {
+    box->x=spr->x+arm->shoulderx+normx*arm->length;
+    box->y=spr->y+arm->shouldery+normy*arm->length;
+  }
   
-  const double blade_box_distance=13.0;
-  box->x=bladex+blade_box_distance*-normx;
-  box->y=bladey+blade_box_distance*-normy;
-  box->size=PS_TILESIZE;
-  box->tileid=spr->tileid+1;
-  box->a=0xff;
-  box->ta=0;
-  box->pr=blade->pg=blade->pb=0x80;
   box->t=t;
   box->xform=AKGL_XFORM_NONE;
+  if (arm->deadly) {
+    box->tileid=spr->tileid+1;
+  } else {
+    box->tileid=spr->tileid-14;
+    box->pr=arm->rgb>>16;
+    box->pg=arm->rgb>>8;
+    box->pb=arm->rgb;
+  }
 
   int i;
   int xbase=spr->x+arm->shoulderx;
   int ybase=spr->y+arm->shouldery;
   for (i=0;i<PS_CHESTKEEPER_ARM_LINKC;i++) {
+    memcpy(linkv+i,ref,sizeof(struct akgl_vtx_maxtile));
     linkv[i].x=xbase+((box->x-xbase)*i)/PS_CHESTKEEPER_ARM_LINKC;
     linkv[i].y=ybase+((box->y-ybase)*i)/PS_CHESTKEEPER_ARM_LINKC;
-    linkv[i].size=PS_TILESIZE;
     linkv[i].tileid=0x22;
     linkv[i].pr=0x80;
     linkv[i].pg=0xa0;
     linkv[i].pb=0xc0;
-    linkv[i].a=0xff;
-    linkv[i].ta=0;
-    linkv[i].t=0; // no rotation; links are circular
     linkv[i].xform=AKGL_XFORM_NONE;
   }
+
+  return vtxc;
 }
 
 /* Draw.
@@ -409,14 +471,10 @@ static int _ps_chestkeeper_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps
   }
 
   int vtxc=3; // 1 body + 2 head
-  vtxc+=2+PS_CHESTKEEPER_ARM_LINKC; // left arm
-  vtxc+=2+PS_CHESTKEEPER_ARM_LINKC; // right arm
   if (vtxc>vtxa) return vtxc;
   struct akgl_vtx_maxtile *vtx_body=vtxv+0;
   struct akgl_vtx_maxtile *vtx_jaw=vtxv+1;
   struct akgl_vtx_maxtile *vtx_cranium=vtxv+2;
-  struct akgl_vtx_maxtile *vtxv_arml=vtxv+3;
-  struct akgl_vtx_maxtile *vtxv_armr=vtxv+5+PS_CHESTKEEPER_ARM_LINKC;
 
   vtx_body->x=spr->x;
   vtx_body->y=spr->y;
@@ -468,14 +526,18 @@ static int _ps_chestkeeper_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps
   if (!SPR->blowcover_transition) {
     switch (SPR->animframe) {
       case 0: break;
-      case 1: vtx_body->tileid-=14; break;
+      case 1: vtx_body->tileid-=13; break;
       case 2: break;
-      case 3: vtx_body->tileid-=14; vtx_body->xform=AKGL_XFORM_FLOP; break;
+      case 3: vtx_body->tileid-=13; vtx_body->xform=AKGL_XFORM_FLOP; break;
     }
   }
 
-  ps_chestkeeper_draw_arm(vtxv_arml,spr,&SPR->arml);
-  ps_chestkeeper_draw_arm(vtxv_armr,spr,&SPR->armr);
+  /* Add arms. */
+  int err;
+  if ((err=ps_chestkeeper_draw_arm(vtxv+vtxc,vtxa-vtxc,spr,&SPR->arml,vtx_body))<0) return -1;
+  vtxc+=err;
+  if ((err=ps_chestkeeper_draw_arm(vtxv+vtxc,vtxa-vtxc,spr,&SPR->armr,vtx_body))<0) return -1;
+  vtxc+=err;
   
   return vtxc;
 }

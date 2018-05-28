@@ -635,6 +635,23 @@ static int check_ipcm_levels() {
   return 0;
 }
 
+/* List all blueprints with TREASURE POI.
+ */
+
+static int list_treasure_blueprints() {
+  const struct ps_restype *restype=PS_RESTYPE(BLUEPRINT);
+  PS_ASSERT(restype)
+  int i=restype->resc;
+  const struct ps_res *res=restype->resv;
+  ps_log(TEST,INFO,"All blueprints with treasure:");
+  for (;i-->0;res++) {
+    if (ps_blueprint_count_poi_of_type(res->obj,PS_BLUEPRINT_POI_TREASURE)) {
+      ps_log(TEST,INFO,"  blueprint:%3d",res->id);
+    }
+  }
+  return 0;
+}
+
 /* Analyze resources (transient helper, not a real test).
  */
  
@@ -646,7 +663,8 @@ PS_TEST(examineres,ignore) {
   //PS_ASSERT_CALL(list_hero_blueprints())
   //PS_ASSERT_CALL(locate_footswitches())
   //PS_ASSERT_CALL(locate_sprites(40))//lwizard
-  PS_ASSERT_CALL(check_ipcm_levels())
+  //PS_ASSERT_CALL(check_ipcm_levels())
+  PS_ASSERT_CALL(list_treasure_blueprints())
   
   ps_resmgr_quit();
   return 0;

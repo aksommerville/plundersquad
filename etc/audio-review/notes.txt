@@ -1,0 +1,16 @@
+===== Observations in sndchk =====
+
+007-explode: too quiet
+015-monster-dead: too quiet
+016-hero-heal: too loud
+024-treasure: too quiet, and too short. needs more drama
+027,028,029(rabbit): too loud
+044-chicken-squawk: too loud
+049-bomb-throw: too quiet
+050-splash: too quiet
+054-piston-alert: too squeaky. it should be more "awoooga" and less "cleaning the bathtub"
+058-penguin-land: too quiet
+
+Music in general is too loud. Can we set a default level like 100 or so?
+...editor is not using the global levels
+...fixed that, it's better now (127,255).

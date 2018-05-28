@@ -85,6 +85,10 @@ static int ps_edit_init(struct ps_userconfig *userconfig) {
     if (akau_init(&akau_driver_msaudio,ps_log_akau)<0) return -1;
   #endif
   if (akau_mixer_set_print_songs(akau_get_mixer(),0)<0) return -1;
+  int bgm_level=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"music",5));
+  int sfx_level=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"sound",5));
+  if (akau_set_trim_for_intent(AKAU_INTENT_BGM,bgm_level)<0) return -1;
+  if (akau_set_trim_for_intent(AKAU_INTENT_SFX,sfx_level)<0) return -1;
   
   if (ps_resmgr_init("src/data",1)<0) return -1;
   

@@ -125,7 +125,7 @@ int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig) {
   PATH("highscores","")
   BOOLEAN("fullscreen",1)
   BOOLEAN("soft-render",0)
-  INTEGER("music",255,0,255)
+  INTEGER("music",127,0,255)
   INTEGER("sound",255,0,255)
 
   #undef BOOLEAN

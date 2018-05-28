@@ -29,6 +29,7 @@ extern const struct ps_widget_type ps_widget_type_editsprdef;
 extern const struct ps_widget_type ps_widget_type_editplrdef;
 extern const struct ps_widget_type ps_widget_type_editregion;
 extern const struct ps_widget_type ps_widget_type_edittrdef;
+extern const struct ps_widget_type ps_widget_type_sndchk;
 
 extern const struct ps_widget_type ps_widget_type_sfxchan;
 extern const struct ps_widget_type ps_widget_type_sfxgraph;
@@ -50,6 +51,7 @@ extern const struct ps_widget_type ps_widget_type_editpalette; // Modal dialogue
 extern const struct ps_widget_type ps_widget_type_rgbslider;
 extern const struct ps_widget_type ps_widget_type_regionshape;
 extern const struct ps_widget_type ps_widget_type_songdlg; // Song edit dialogue (dup,del,mod)
+extern const struct ps_widget_type ps_widget_type_levelgraph; // sndchk
 
 /* Edithome.
  *****************************************************************************/
@@ -306,5 +308,11 @@ int ps_widget_regionshape_set_cb_delete(struct ps_widget *widget,struct ps_callb
  *****************************************************************************/
 
 int ps_widget_edittrdef_set_resource(struct ps_widget *widget,int id,struct ps_res_trdef *trdef,const char *name);
+
+/* Sndchk.
+ *****************************************************************************/
+
+// Unchecked, please be careful.
+int ps_widget_levelgraph_add_sample(struct ps_widget *widget,int16_t sample);
 
 #endif

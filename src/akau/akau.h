@@ -107,4 +107,13 @@ int akau_unwatch_sync_tokens(int syncwatcherid);
  */
 int akau_queue_sync_token(uint16_t token);
 
+/* Register a callback to fire inside the main callback between mixer and delivery.
+ * We do not provide any cleanup for (userdata).
+ * There can be only one observer, if there's competition for this that's your problem.
+ */
+int akau_set_observer(
+  void (*cb)(const int16_t *v,int c,void *userdata),
+  void *userdata
+);
+
 #endif

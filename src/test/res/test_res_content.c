@@ -619,6 +619,7 @@ static int locate_sprites(int sprdefid) {
 static int check_ipcm_levels() {
   const struct ps_restype *restype=PS_RESTYPE(IPCM);
   PS_ASSERT(restype)
+  int samplec_total=0;
   const struct ps_res *res=restype->resv;
   int i=restype->resc;
   for (;i-->0;res++) {
@@ -628,7 +629,9 @@ static int check_ipcm_levels() {
     int16_t peak=akau_ipcm_calculate_peak(ipcm);
     int samplec=akau_ipcm_get_sample_count(ipcm);
     ps_log(TEST,INFO,"%3d: %6d %6d %7d",res->id,rms,peak,samplec);
+    samplec_total+=samplec;
   }
+  ps_log(TEST,INFO,"Total memory usage from IPCM samples: %d b",samplec_total<<1);
   return 0;
 }
 

@@ -29,6 +29,9 @@ extern struct akau {
 
   int (*cb_clip)(int l,int r);
   int cliplc,cliprc;
+
+  void (*cb_observer)(const int16_t *v,int c,void *userdata);
+  void *userdata_observer;
   
 } akau;
 

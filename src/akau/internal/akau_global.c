@@ -18,6 +18,9 @@ static void akau_cb(int16_t *dst,int dstc) {
   akau_mixer_get_clip(&l,&r,akau.mixer);
   if (akau.cliplc>INT_MAX-l) akau.cliplc=INT_MAX; else akau.cliplc+=l;
   if (akau.cliprc>INT_MAX-r) akau.cliprc=INT_MAX; else akau.cliprc+=r;
+  if (akau.cb_observer) {
+    akau.cb_observer(dst,dstc,akau.userdata_observer);
+  }
 }
 
 /* Init.
@@ -378,5 +381,19 @@ int akau_queue_sync_token(uint16_t token) {
 
   akau.tokenv[akau.tokenc++]=token;
 
+  return 0;
+}
+
+/* Set observer.
+ */
+ 
+int akau_set_observer(
+  void (*cb)(const int16_t *v,int c,void *userdata),
+  void *userdata
+) {
+  if (akau_lock()<0) return -1;
+  akau.cb_observer=cb;
+  akau.userdata_observer=userdata;
+  if (akau_unlock()<0) return -1;
   return 0;
 }

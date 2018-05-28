@@ -4,6 +4,10 @@
 #include "scenario/ps_blueprint.h"
 #include "game/ps_sprite.h"
 #include "game/ps_plrdef.h"
+#include "akau/akau_pcm.h"
+#include "akau/akau.h"
+
+extern const struct akau_driver akau_driver_akmacaudio;
 
 /* General resource assertions.
  */
@@ -608,16 +612,38 @@ static int locate_sprites(int sprdefid) {
   return 0;
 }
 
+/* Examine each ipcm resource.
+ * Print the peak and RMS level for each.
+ */
+
+static int check_ipcm_levels() {
+  const struct ps_restype *restype=PS_RESTYPE(IPCM);
+  PS_ASSERT(restype)
+  const struct ps_res *res=restype->resv;
+  int i=restype->resc;
+  for (;i-->0;res++) {
+    struct akau_ipcm *ipcm=res->obj;
+    PS_ASSERT(ipcm)
+    int16_t rms=akau_ipcm_calculate_rms(ipcm);
+    int16_t peak=akau_ipcm_calculate_peak(ipcm);
+    int samplec=akau_ipcm_get_sample_count(ipcm);
+    ps_log(TEST,INFO,"%3d: %6d %6d %7d",res->id,rms,peak,samplec);
+  }
+  return 0;
+}
+
 /* Analyze resources (transient helper, not a real test).
  */
  
 PS_TEST(examineres,ignore) {
   ps_resmgr_quit();
+  if (akau_init(&akau_driver_akmacaudio,0)<0) return -1;
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
   
   //PS_ASSERT_CALL(list_hero_blueprints())
   //PS_ASSERT_CALL(locate_footswitches())
-  PS_ASSERT_CALL(locate_sprites(36))//penguin
+  //PS_ASSERT_CALL(locate_sprites(40))//lwizard
+  PS_ASSERT_CALL(check_ipcm_levels())
   
   ps_resmgr_quit();
   return 0;

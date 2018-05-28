@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <pthread.h>
 #include "os/ps_log.h"
 
@@ -28,12 +29,16 @@ struct akau_songprinter {
 
 static int akau_songprinter_init(struct akau_songprinter *printer,struct akau_song *song) {
 
+  ps_log(AUDIO,DEBUG,"%s %p song=%p...",__func__,printer,song);
+
   if (akau_song_ref(song)<0) return -1;
   printer->song=song;
   
   if (!(printer->mixer=akau_mixer_new())) return -1;
   if (akau_mixer_set_stereo(printer->mixer,0)<0) return -1;
   if (akau_mixer_set_print_songs(printer->mixer,0)<0) return -1; // Very important!
+
+  ps_log(AUDIO,DEBUG,"%s allocated inner mixer, measuring song...",__func__);
 
   int beatc=akau_song_count_beats(song);
   if (beatc<1) return -1;
@@ -45,9 +50,14 @@ static int akau_songprinter_init(struct akau_songprinter *printer,struct akau_so
   int samples_per_beat=(rate*60)/tempo;
   if (samples_per_beat<1) return -1;
   int samplec=beatc*samples_per_beat;
-  if (!(printer->ipcm=akau_ipcm_new(samplec))) return -1;
+  if (!(printer->ipcm=akau_ipcm_new(samplec))) {
+    ps_log(AUDIO,ERROR,"Failed to allocate %d-sample IPCM buffer for song.",samplec);
+    return -1;
+  }
 
   if (pthread_mutex_init(&printer->mutex,0)) return -1;
+
+  ps_log(AUDIO,DEBUG,"%s ok",__func__);
 
   return 0;
 }
@@ -73,9 +83,13 @@ void akau_songprinter_del(struct akau_songprinter *printer) {
   if (!printer) return;
   if (printer->refc-->1) return;
 
+  ps_log(AUDIO,DEBUG,"%s %p",__func__,printer);
+
   if (printer->thread_in_flight) {
+    ps_log(AUDIO,DEBUG,"Kill in-flight printer thread.");
     pthread_cancel(printer->thread);
     pthread_join(printer->thread,0);
+    ps_log(AUDIO,DEBUG,"...killed");
   }
 
   akau_song_del(printer->song);
@@ -133,8 +147,12 @@ static void *akau_songprinter_bgthd(void *arg) {
     return 0;
   }
 
+  ps_log(AUDIO,DEBUG,"Begin asynchronous song print...");
+
   int samplep=0;
   while (samplep<samplec) {
+
+    usleep(15000); // XXX TEMP Force asynchronous print to take a long time.
   
     pthread_testcancel();
 
@@ -145,12 +163,14 @@ static void *akau_songprinter_bgthd(void *arg) {
     int subsamplec=10000;
     if (samplep>samplec-subsamplec) subsamplec=samplec-samplep;
     if (akau_mixer_update(samplev+samplep,subsamplec,printer->mixer)<0) {
+      ps_log(AUDIO,ERROR,"Error from akau_mixer_update() during asynchronous song print.");
       printer->progress=AKAU_SONGPRINTER_PROGRESS_ERROR;
       return 0;
     }
     samplep+=subsamplec;
     
   }
+  ps_log(AUDIO,DEBUG,"...asynchronous song print complete");
   printer->progress=AKAU_SONGPRINTER_PROGRESS_READY;
   return 0;
 }
@@ -164,6 +184,7 @@ int akau_songprinter_begin(struct akau_songprinter *printer) {
   if (akau_mixer_play_song(printer->mixer,printer->song,1,0)<0) return -1;
   printer->progress=1;
   printer->thread_in_flight=1;
+  ps_log(AUDIO,DEBUG,"Spawning thread for asynchronous song print.");
   if (pthread_create(&printer->thread,0,akau_songprinter_bgthd,printer)) {
     printer->progress=0;
     printer->thread_in_flight=0;
@@ -204,6 +225,7 @@ int akau_songprinter_finish(struct akau_songprinter *printer) {
     pthread_join(printer->thread,0);
     printer->thread_in_flight=0;
     if (printer->progress!=AKAU_SONGPRINTER_PROGRESS_READY) return -1;
+    return 0;
   }
   
   /* Print song synchronously.

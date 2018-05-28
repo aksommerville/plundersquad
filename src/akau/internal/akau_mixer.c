@@ -261,10 +261,12 @@ static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
     if (!ipcm) return -1;
     if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
     mixer->printed_song_running=1;
+    if (akau_songprinter_finish(mixer->printer)<0) return -1;
 
   // Experiment: If we're more than 50% complete and at least 4 seconds have elapsed, start playing it.
   // This means we could potentially read IPCM samples not written yet (they would be zero).
-  // I think the odds of that are vanishingly unlikely. 
+  // I think the odds of that are vanishingly unlikely.
+  #if 1 // TODO run this harder on the Pi, I think it might cause a memory leak or thread starvation or something. It doesn't come up on the Mac.
   } else if (progress>=50) {
     int64_t now=ps_time_now();
     if (now>=mixer->print_start_time+4000000) {
@@ -274,6 +276,7 @@ static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
       if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
       mixer->printed_song_running=1;
     }
+  #endif
   }
   
   return 0;
@@ -753,6 +756,7 @@ static int akau_mixer_register_song_for_printing(struct akau_mixer *mixer,struct
     }
 
     /* Cancel existing printer. */
+    ps_log(AUDIO,DEBUG,"Cancel songprinter.");
     if (akau_songprinter_cancel(mixer->printer)<0) return -1;
     akau_songprinter_del(mixer->printer);
     mixer->printer=0;

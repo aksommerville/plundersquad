@@ -264,10 +264,16 @@ static int ps_hero_walk(struct ps_sprite *spr,struct ps_game *game) {
 
 static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
 
-  if ((spr->x<0.0)||(spr->y<0.0)||(spr->x>PS_SCREENW)||(spr->y>PS_SCREENH)) {
-    return ps_hero_add_state(spr,PS_HERO_STATE_OFFSCREEN,game);
+  /* If the hero is offscreen *and holding the appropriate direction button*, enter OFFSCREEN state. */
+  if ((spr->x<0.0)||(spr->y<0.0)||(spr->x>=PS_SCREENW)||(spr->y>=PS_SCREENH)) {
+    if ((spr->x<0.0)&&(SPR->input&PS_PLRBTN_LEFT)) return ps_hero_add_state(spr,PS_HERO_STATE_OFFSCREEN,game);
+    if ((spr->x>0.0)&&(SPR->input&PS_PLRBTN_RIGHT)) return ps_hero_add_state(spr,PS_HERO_STATE_OFFSCREEN,game);
+    if ((spr->y<0.0)&&(SPR->input&PS_PLRBTN_UP)) return ps_hero_add_state(spr,PS_HERO_STATE_OFFSCREEN,game);
+    if ((spr->y>0.0)&&(SPR->input&PS_PLRBTN_DOWN)) return ps_hero_add_state(spr,PS_HERO_STATE_OFFSCREEN,game);
+    return 0;
   }
 
+  /* Proceed with grid check. */
   if (!game->grid) return 0;
   if (spr->x<0.0) return 0;
   if (spr->y<0.0) return 0;

@@ -1,5 +1,4 @@
 General errors:
-- Suppress healing when over water. Sometimes they just die immediately, and sometimes they go completely haywire.
 
 Raspi errors:
 - In a long session (2194 s) observed a few temporary freezes, likely due to music. Late in the session, music stopped altogether but sound effects continued.

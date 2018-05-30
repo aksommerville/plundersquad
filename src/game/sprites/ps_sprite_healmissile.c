@@ -40,7 +40,7 @@ static int ps_healmissile_should_hurt_victim(const struct ps_game *game,const st
   return 0;
 }
 
-/* Kill the immortal -- we copied code from ps_sprite_hero::hurt because we have to skill the IMMORTAL skill check.
+/* Kill the immortal -- we copied code from ps_sprite_hero::hurt because we have to skip the IMMORTAL skill check.
  */
 
 static int ps_healmissile_kill_hero(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *hero) {
@@ -50,6 +50,31 @@ static int ps_healmissile_kill_hero(struct ps_game *game,struct ps_sprite *spr,s
   if (ps_game_create_fireworks(game,hero->x,hero->y)<0) return -1;
   if (ps_game_report_kill(game,spr,hero)<0) return -1;
   if (ps_hero_add_state(hero,PS_HERO_STATE_GHOST,game)<0) return -1;
+  return 0;
+}
+
+/* Determine if we should skip this heal candidate due to his being in a hazardous position.
+ */
+
+static int ps_healmissile_should_skip_victim(const struct ps_game *game,const struct ps_sprite *spr,const struct ps_sprite *victim) {
+  if (!victim) return 0;
+  if (!game) return 0;
+
+  /* Only examine the principal standing-on cell. If there's overlap, physics can fix it.
+   */
+  if ((spr->x>=0.0)&&(spr->y>=0.0)) {
+    int col=spr->x/PS_TILESIZE;
+    int row=spr->y/PS_TILESIZE;
+    if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
+      uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
+      if (physics==PS_BLUEPRINT_CELL_HOLE) {
+        return 1;
+      }
+    }
+  }
+
+  //TODO should we check hazardous sprites for the healmissile ignore test?
+  
   return 0;
 }
 
@@ -68,6 +93,14 @@ static int ps_healmissile_heal_mortals(struct ps_sprite *spr,struct ps_game *gam
     if (victim->x-victim->radius>=right) continue;
     if (victim->y+victim->radius<=top) continue;
     if (victim->y-victim->radius>=bottom) continue;
+
+    /* If we can determine that a hero will die immediately upon resurrection,
+     * don't heal it, and let myself pass right through.
+     * This doesn't matter much for hazardous sprites, but if grid HOLE is involved it can get ugly.
+     */
+    if (ps_healmissile_should_skip_victim(game,spr,victim)) {
+      continue;
+    }
 
     /* If the hero is "immortal" and alive, hearts kill it.
      * This is necessary because we build solutions around the assumption that 

@@ -21,6 +21,12 @@
 #define PS_HOOKSHOT_DELIVER_SPEED 5.0
 #define PS_HOOKSHOT_PULL_SPEED    2.0
 
+/* Expect myself and the pumpkin to be within this distance on each axis at the start of the update.
+ * If so, we force the pumpkin to my position and hope it just works out.
+ * If not, we drop the pumpkin, play the "bonk" sound, and return to player empty.
+ */
+#define PS_HOOKSHOT_DELIVERY_TOLERANCE 0.5
+
 #define PS_HOOKSHOT_CHAIN_SIZE 10 /* Count of links in the chain, not counting the head. */
 
 #define PS_HOOKSHOT_SPRDEF_ID 4
@@ -36,6 +42,7 @@ struct ps_sprite_hookshot {
   int phase;
   uint16_t restore_user_impassable;
   uint16_t restore_pumpkin_impassable;
+  int initial_delivery; // Set when we enter DELIVER phase, to ignore the first pumpkin tolerance test.
 };
 
 #define SPR ((struct ps_sprite_hookshot*)spr)
@@ -130,6 +137,7 @@ static int ps_hookshot_begin_pull(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *pumpkin) {
   PS_SFX_HOOKSHOT_GRAB
   SPR->phase=PS_HOOKSHOT_PHASE_DELIVER;
+  SPR->initial_delivery=1;
   if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
   if (ps_sprgrp_add_sprite(SPR->pumpkin,pumpkin)<0) return -1;
   if (pumpkin->type==&ps_sprtype_hero) {
@@ -274,10 +282,26 @@ static int _ps_hookshot_update(struct ps_sprite *spr,struct ps_game *game) {
     case PS_HOOKSHOT_PHASE_DELIVER: {
         if (SPR->pumpkin->sprc!=1) return ps_hookshot_begin_empty(spr);
         struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
-        spr->x-=SPR->dx*PS_HOOKSHOT_DELIVER_SPEED;
-        spr->y-=SPR->dy*PS_HOOKSHOT_DELIVER_SPEED;
-        pumpkin->x=spr->x;
-        pumpkin->y=spr->y;
+        double dx=pumpkin->x-spr->x; // Normally zero.
+        double dy=pumpkin->y-spr->y;
+        if (SPR->initial_delivery) dx=dy=0.0;
+        if (
+          (dx<-PS_HOOKSHOT_DELIVERY_TOLERANCE)||
+          (dx>PS_HOOKSHOT_DELIVERY_TOLERANCE)||
+          (dy<-PS_HOOKSHOT_DELIVERY_TOLERANCE)||
+          (dy>PS_HOOKSHOT_DELIVERY_TOLERANCE)
+        ) { // Delivery panic!
+          spr->x=pumpkin->x;
+          spr->y=pumpkin->y;
+          if (ps_sprgrp_clear(SPR->pumpkin)<0) return -1;
+          if (ps_hookshot_begin_empty(spr)<0) return -1;
+        } else { // Normal delivery.
+          spr->x-=SPR->dx*PS_HOOKSHOT_DELIVER_SPEED;
+          spr->y-=SPR->dy*PS_HOOKSHOT_DELIVER_SPEED;
+          pumpkin->x=spr->x;
+          pumpkin->y=spr->y;
+        }
+        SPR->initial_delivery=0;
         if (ps_hookshot_check_return(spr,game)<0) return -1;
       } break;
 

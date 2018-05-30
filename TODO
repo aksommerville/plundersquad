@@ -1,5 +1,4 @@
 General errors:
-- Hookshot can carry large pumpkins through narrow holes (eg gorilla). Should detect this and drop pumpkin.
 - Suppress healing when over water. Sometimes they just die immediately, and sometimes they go completely haywire.
 
 Raspi errors:

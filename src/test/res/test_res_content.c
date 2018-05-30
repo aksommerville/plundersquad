@@ -4,6 +4,7 @@
 #include "scenario/ps_blueprint.h"
 #include "game/ps_sprite.h"
 #include "game/ps_plrdef.h"
+#include "util/ps_enums.h"
 #include "akau/akau_pcm.h"
 #include "akau/akau.h"
 
@@ -652,6 +653,114 @@ static int list_treasure_blueprints() {
   return 0;
 }
 
+/* List the possible party combinations for which there is no specific solution.
+ */
+
+static void log_party_composition(uint16_t skills) {
+  char buf[256];
+  int bufc=ps_enum_repr_multiple(buf,sizeof(buf),skills,1,(void*)ps_skill_repr);
+  if ((bufc<0)||(bufc>=sizeof(buf))) bufc=0;
+  ps_log(RES,WARN,"No solution for skills 0x%04x: %.*s",skills,bufc,buf);
+}
+
+static int increment_party_skill_indices(int *skillix,int playerc,int interestingc) {
+  // Return nonzero if we incremented to a valid arrangement, or zero when the set is exhausted.
+  // Length of (skillix) is (playerc).
+  // (skillix[n]) must be >= (n).
+  // (skillix[n]) must be < interestingc-(playerc-n-1).
+  int p=playerc-1;
+  for (;p>=0;p--) {
+    if (skillix[p]<interestingc-playerc+p) { // Can increment.
+      skillix[p]++; // Increment this.
+      int j=p+1; for (;j<playerc;j++) skillix[j]=skillix[p]+j-p; // Trailing slots get incremental (lowest) values.
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int list_party_compositions_with_no_challenges_for_playerc(
+  const uint8_t *challenges_present,
+  const uint16_t *interestingv,int interestingc,
+  int playerc
+) {
+  if (interestingc<1) return 0;
+  if (playerc>interestingc) return 0;
+  PS_ASSERT_INTS_OP(playerc,>=,1)
+  PS_ASSERT_INTS_OP(playerc,<=,8)
+  int skillix[8]={0,1,2,3,4,5,6,7};
+  int presentc=0,absentc=0;
+  while (1) {
+
+    // Make a mask of skillix and compare it to the solutions set. Log if not found.
+    uint16_t skills=0;
+    int i=0; for (;i<playerc;i++) skills|=interestingv[skillix[i]];
+    if (challenges_present[skills>>3]&(1<<(skills&7))) {
+      // There is a blueprint with a solution matching these skills exactly.
+      presentc++;
+    } else {
+      log_party_composition(skills);
+      absentc++;
+    }
+
+    // Increment skillix, ensuring that we do not try the same party twice.
+    if (!increment_party_skill_indices(skillix,playerc,interestingc)) {
+      break;
+    }
+    
+  }
+  ps_log(RES,INFO,"For party size %d, %d of %d possible parties have a solution.",playerc,presentc,presentc+absentc);
+  return 0;
+}
+
+static int count_bits(uint16_t src) {
+  uint16_t mask=0x8000;
+  int bitc=0;
+  for (;mask;mask>>=1) if (src&mask) bitc++;
+  return bitc;
+}
+
+static int list_party_compositions_with_no_challenges() {
+
+  uint8_t challenges_present[0x10000>>3]={0};
+
+  const struct ps_restype *restype=PS_RESTYPE(BLUEPRINT);
+  PS_ASSERT(restype)
+  int i=restype->resc;
+  const struct ps_res *res=restype->resv;
+  for (;i-->0;res++) {
+    const struct ps_blueprint *blueprint=res->obj;
+    const struct ps_blueprint_solution *solution=blueprint->solutionv;
+    int ii=blueprint->solutionc;
+    for (;ii-->0;solution++) {
+      if (solution->plo>count_bits(solution->skills)) continue; // Ignore any solution that calls for "another person of any skill"
+      challenges_present[solution->skills>>3]|=(1<<(solution->skills&7));
+    }
+  }
+
+  const uint16_t interestingv[]={
+    PS_SKILL_SWORD,
+    PS_SKILL_ARROW,
+    PS_SKILL_HOOKSHOT,
+    PS_SKILL_FLAME,
+    PS_SKILL_HEAL,
+    PS_SKILL_IMMORTAL,
+    PS_SKILL_BOMB,
+    PS_SKILL_FLY,
+  }; // Everything except MARTYR and COMBAT
+  const int interestingc=sizeof(interestingv)/sizeof(uint16_t);
+  const int playerc_lo=1;
+  const int playerc_hi=8;
+
+  int playerc=playerc_lo; for (;playerc<=playerc_hi;playerc++) {
+    PS_ASSERT_CALL(list_party_compositions_with_no_challenges_for_playerc(
+      challenges_present,interestingv,interestingc,playerc
+    ))
+  }
+  
+  return 0;
+}
+
 /* Analyze resources (transient helper, not a real test).
  */
  
@@ -664,7 +773,8 @@ PS_TEST(examineres,ignore) {
   //PS_ASSERT_CALL(locate_footswitches())
   //PS_ASSERT_CALL(locate_sprites(40))//lwizard
   //PS_ASSERT_CALL(check_ipcm_levels())
-  PS_ASSERT_CALL(list_treasure_blueprints())
+  //PS_ASSERT_CALL(list_treasure_blueprints())
+  PS_ASSERT_CALL(list_party_compositions_with_no_challenges())
   
   ps_resmgr_quit();
   return 0;

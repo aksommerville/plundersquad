@@ -1,4 +1,6 @@
 General errors:
+- Hookshot can carry large pumpkins through narrow holes (eg gorilla). Should detect this and drop pumpkin.
+- Suppress healing when over water. Sometimes they just die immediately, and sometimes they go completely haywire.
 
 Raspi errors:
 - In a long session (2194 s) observed a few temporary freezes, likely due to music. Late in the session, music stopped altogether but sound effects continued.
@@ -16,6 +18,8 @@ Windows errors:
 MacOS errors:
 
 Actionable:
+- Tomato: basic block that bursts when you hit it. Could build puzzles like "hit the one thing but not the other"
+- Make at least one challenge for each player count (see etc/solutions-analysis.txt and test-examineres).
 
 Windows:
 - Build with GL2 support

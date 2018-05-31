@@ -1,4 +1,5 @@
 type edgecrawler
 tileid 0x0483
-grpmask VISIBLE UPDATE HEROHAZARD FRAGILE
+grpmask VISIBLE UPDATE HEROHAZARD
+radius 5
 impassable SOLID LATCH

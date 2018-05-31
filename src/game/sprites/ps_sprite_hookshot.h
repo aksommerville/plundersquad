@@ -23,5 +23,6 @@ struct ps_sprite *ps_sprite_arrow_new(struct ps_sprite *user,struct ps_game *gam
 struct ps_sprite *ps_sprite_healmissile_new(struct ps_sprite *user,struct ps_game *game);
 
 struct ps_sprite *ps_sprite_missile_new(int sprdefid,struct ps_sprite *user,double dstx,double dsty,struct ps_game *game);
+int ps_sprite_missile_set_stop_at_walls(struct ps_sprite *spr,int stop);
 
 #endif

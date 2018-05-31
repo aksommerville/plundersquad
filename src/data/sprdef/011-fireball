@@ -4,3 +4,4 @@ layer 150
 grpmask VISIBLE UPDATE HEROHAZARD TELEPORT
 radius 4
 shape CIRCLE
+impassable SOLID LATCH

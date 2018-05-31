@@ -1,7 +1,6 @@
 General errors:
 
 Raspi errors:
-- In a long session (2194 s) observed a few temporary freezes, likely due to music. Late in the session, music stopped altogether but sound effects continued.
 
 Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
@@ -16,7 +15,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Tomato: basic block that bursts when you hit it. Could build puzzles like "hit the one thing but not the other"
 - Make at least one challenge for each player count (see etc/solutions-analysis.txt and test-examineres).
 
 Windows:

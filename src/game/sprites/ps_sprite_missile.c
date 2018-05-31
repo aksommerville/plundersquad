@@ -1,5 +1,8 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
+#include "game/ps_game.h"
+#include "scenario/ps_grid.h"
+#include "scenario/ps_blueprint.h"
 #include "res/ps_resmgr.h"
 #include <math.h>
 
@@ -16,6 +19,7 @@ struct ps_sprite_missile {
   double dx,dy;
   int animtime;
   int animframe;
+  int stop_at_walls;
 };
 
 #define SPR ((struct ps_sprite_missile*)spr)
@@ -61,6 +65,26 @@ static int _ps_missile_configure(struct ps_sprite *spr,struct ps_game *game,cons
   return 0;
 }
 
+/* Are we touching a wall?
+ */
+
+static int ps_missile_touches_wall(const struct ps_sprite *spr,const struct ps_game *game) {
+  if (!game) return 0;
+  
+  if (game->grid) {
+    if ((spr->x>=0.0)&&(spr->y>=0.0)) {
+      int col=spr->x/PS_TILESIZE;
+      int row=spr->y/PS_TILESIZE;
+      if ((col<PS_GRID_COLC)&&(row<=PS_GRID_ROWC)) {
+        uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
+        if (spr->impassable&(1<<physics)) return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
 /* Update.
  */
 
@@ -76,6 +100,10 @@ static int _ps_missile_update(struct ps_sprite *spr,struct ps_game *game) {
   if (++(SPR->animtime)>=PS_MISSILE_FRAME_TIME) {
     SPR->animtime=0;
     if (SPR->animframe^=1) spr->tileid++; else spr->tileid--;
+  }
+
+  if (SPR->stop_at_walls&&ps_missile_touches_wall(spr,game)) {
+    return ps_sprite_kill_later(spr,game);
   }
   
   return 0;
@@ -123,4 +151,13 @@ struct ps_sprite *ps_sprite_missile_new(int sprdefid,struct ps_sprite *user,doub
   }
   
   return spr;
+}
+
+/* Accessors.
+ */
+ 
+int ps_sprite_missile_set_stop_at_walls(struct ps_sprite *spr,int stop) {
+  if (!spr||(spr->type!=&ps_sprtype_missile)) return -1;
+  SPR->stop_at_walls=stop;
+  return 0;
 }

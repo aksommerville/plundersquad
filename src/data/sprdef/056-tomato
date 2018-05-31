@@ -1,0 +1,4 @@
+type dummy
+tileid 0x0433
+grpmask VISIBLE PHYSICS FRAGILE LATCH SOLID TELEPORT
+impassable SOLID HOLE LATCH

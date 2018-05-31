@@ -119,10 +119,10 @@ static int ps_shooter_fire(struct ps_sprite *spr,struct ps_game *game) {
   double dstx=spr->x;
   double dsty=spr->y;
   switch (SPR->direction) {
-    case PS_DIRECTION_NORTH: dsty-=PS_TILESIZE; break;
-    case PS_DIRECTION_SOUTH: dsty+=PS_TILESIZE; break;
-    case PS_DIRECTION_WEST: dstx-=PS_TILESIZE; break;
-    case PS_DIRECTION_EAST: dstx+=PS_TILESIZE; break;
+    case PS_DIRECTION_NORTH: dsty-=PS_TILESIZE*2; break;
+    case PS_DIRECTION_SOUTH: dsty+=PS_TILESIZE*2; break;
+    case PS_DIRECTION_WEST: dstx-=PS_TILESIZE*2; break;
+    case PS_DIRECTION_EAST: dstx+=PS_TILESIZE*2; break;
     default: return -1;
   }
 
@@ -131,6 +131,9 @@ static int ps_shooter_fire(struct ps_sprite *spr,struct ps_game *game) {
     ps_log(GAME,ERROR,"Failed to instantiate sprdef:%d as shooter missile.",SPR->missile_sprdefid);
     return -1;
   }
+  if (ps_sprite_missile_set_stop_at_walls(missile,1)<0) return -1;
+  missile->x=(spr->x+dstx)/2.0;
+  missile->y=(spr->y+dsty)/2.0;
 
   PS_SFX_SHOOTER
 

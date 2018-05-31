@@ -262,18 +262,18 @@ Nothing at all for 4..7.
 
 RES:INFO: For party size 1, 8 of 8 possible parties have a solution. [src/test/res/test_res_content.c:712]
 
-RES:WARN: No solution for skills 0x0081: SWORD FLY [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x000a: ARROW FLAME [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0022: ARROW IMMORTAL [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0042: ARROW BOMB [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x0081: SWORD FLY [src/test/res/test_res_content.c:663] ------------------------- 147
+RES:WARN: No solution for skills 0x000a: ARROW FLAME [src/test/res/test_res_content.c:663] ----------------------- 148
+RES:WARN: No solution for skills 0x0022: ARROW IMMORTAL [src/test/res/test_res_content.c:663] -------------------- 150
+RES:WARN: No solution for skills 0x0042: ARROW BOMB [src/test/res/test_res_content.c:663] ------------------------ 149
 RES:WARN: No solution for skills 0x0082: ARROW FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0044: HOOKSHOT BOMB [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0084: HOOKSHOT FLY [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0028: FLAME IMMORTAL [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0048: FLAME BOMB [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x0028: FLAME IMMORTAL [src/test/res/test_res_content.c:663] -------------------- 150
+RES:WARN: No solution for skills 0x0048: FLAME BOMB [src/test/res/test_res_content.c:663] ------------------------ 149
 RES:WARN: No solution for skills 0x0088: FLAME FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0030: HEAL IMMORTAL [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0090: HEAL FLY [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x0090: HEAL FLY [src/test/res/test_res_content.c:663] -------------------------- 151
 
 RES:INFO: For party size 2, 16 of 28 possible parties have a solution. [src/test/res/test_res_content.c:712]
 

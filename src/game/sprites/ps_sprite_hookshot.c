@@ -25,7 +25,7 @@
  * If so, we force the pumpkin to my position and hope it just works out.
  * If not, we drop the pumpkin, play the "bonk" sound, and return to player empty.
  */
-#define PS_HOOKSHOT_DELIVERY_TOLERANCE 0.5
+#define PS_HOOKSHOT_DELIVERY_TOLERANCE 4.5
 
 #define PS_HOOKSHOT_CHAIN_SIZE 10 /* Count of links in the chain, not counting the head. */
 
@@ -149,12 +149,8 @@ static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,
   return 0;
 }
 
-static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
-  if (SPR->user&&(SPR->user->sprc==1)) {
-    ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_HOOKSHOT,game);
-    ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_PUMPKIN,game);
-  }
-  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
+static int ps_hookshot_drop_pumpkin(struct ps_sprite *spr,struct ps_game *game) {
+  if (SPR->pumpkin&&(SPR->pumpkin->sprc>=1)) {
     struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
     if (pumpkin->type==&ps_sprtype_hero) {
       if (ps_hero_remove_state(pumpkin,PS_HERO_STATE_PUMPKIN,game)<0) return -1;
@@ -162,9 +158,18 @@ static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
       pumpkin->impassable=SPR->restore_pumpkin_impassable;
     }
     if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
-    ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin);
+    ps_sprgrp_clear(SPR->pumpkin);
     if (ps_hookshot_check_pumpkin_final_position(spr,game,pumpkin)<0) return -1;
   }
+  return 0;
+}
+
+static int ps_hookshot_abort(struct ps_sprite *spr,struct ps_game *game) {
+  if (SPR->user&&(SPR->user->sprc==1)) {
+    ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_HOOKSHOT,game);
+    ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_PUMPKIN,game);
+  }
+  if (ps_hookshot_drop_pumpkin(spr,game)<0) return -1;
   return ps_sprite_kill_later(spr,game);
 }
 
@@ -172,17 +177,7 @@ static int ps_hookshot_finish(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->user&&(SPR->user->sprc==1)) {
     ps_hero_remove_state(SPR->user->sprv[0],PS_HERO_STATE_HOOKSHOT,game);
   }
-  if (SPR->pumpkin&&(SPR->pumpkin->sprc==1)) {
-    struct ps_sprite *pumpkin=SPR->pumpkin->sprv[0];
-    if (pumpkin->type==&ps_sprtype_hero) {
-      if (ps_hero_remove_state(pumpkin,PS_HERO_STATE_PUMPKIN,game)<0) return -1;
-    } else {
-      pumpkin->impassable=SPR->restore_pumpkin_impassable;
-    }
-    if (ps_sprite_set_master(pumpkin,spr,game)<0) return -1;
-    ps_sprgrp_remove_sprite(SPR->pumpkin,pumpkin);
-    if (ps_hookshot_check_pumpkin_final_position(spr,game,pumpkin)<0) return -1;
-  }
+  if (ps_hookshot_drop_pumpkin(spr,game)<0) return -1;
   return ps_sprite_kill_later(spr,game);
 }
 
@@ -222,7 +217,7 @@ static int ps_hookshot_check_return(struct ps_sprite *spr,struct ps_game *game) 
     return ps_hookshot_abort(spr,game);
   }
 
-  /* If we are within PS_TILSIZE of the user, finish. */
+  /* If we are within PS_TILESIZE of the user, finish. */
   if (!SPR->user||(SPR->user->sprc!=1)) return ps_hookshot_abort(spr,game);
   struct ps_sprite *user=SPR->user->sprv[0];
   double dx=spr->x-user->x;
@@ -293,7 +288,7 @@ static int _ps_hookshot_update(struct ps_sprite *spr,struct ps_game *game) {
         ) { // Delivery panic!
           spr->x=pumpkin->x;
           spr->y=pumpkin->y;
-          if (ps_sprgrp_clear(SPR->pumpkin)<0) return -1;
+          if (ps_hookshot_drop_pumpkin(spr,game)<0) return -1;
           if (ps_hookshot_begin_empty(spr)<0) return -1;
         } else { // Normal delivery.
           spr->x-=SPR->dx*PS_HOOKSHOT_DELIVER_SPEED;

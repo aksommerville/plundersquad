@@ -152,8 +152,6 @@ static void *akau_songprinter_bgthd(void *arg) {
   int samplep=0;
   while (samplep<samplec) {
 
-    usleep(15000); // XXX TEMP Force asynchronous print to take a long time.
-  
     pthread_testcancel();
 
     int progress=(samplep*100)/samplec;

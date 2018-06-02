@@ -16,7 +16,6 @@ MacOS errors:
 
 Actionable:
 - Make at least one challenge for each player count (see etc/solutions-analysis.txt and test-examineres).
-- After fixing the IPCM memory leak, seems like songprinter is taking longer on the Mac. Is that so, or my imagination?
 
 Windows:
 - Build with GL2 support

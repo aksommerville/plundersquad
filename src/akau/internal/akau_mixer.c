@@ -269,8 +269,9 @@ static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
   #if 1 // TODO run this harder on the Pi, I think it might cause a memory leak or thread starvation or something. It doesn't come up on the Mac.
   } else if (progress>=50) {
     int64_t now=ps_time_now();
-    if (now>=mixer->print_start_time+4000000) {
-      ps_log(AUDIO,DEBUG,"Starting song playbback at %d%% printed.",progress);
+    int64_t elapsed=now-mixer->print_start_time;
+    if (elapsed>=4000000) {
+      ps_log(AUDIO,DEBUG,"Starting song playbback at %d%% printed, elapsed %d.%06d.",progress,(int)(elapsed/1000000),(int)(elapsed%1000000));
       struct akau_ipcm *ipcm=akau_songprinter_get_ipcm_even_if_incomplete(mixer->printer);
       if (!ipcm) return -1;
       if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;

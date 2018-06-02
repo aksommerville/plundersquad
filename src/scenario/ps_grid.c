@@ -55,6 +55,9 @@ int ps_grid_set_physics(struct ps_grid *grid,int x,int y,int w,int h,uint8_t phy
 }
 
 /* Change barrier states.
+ * "open" means value==1.
+ * "closed" means value==0.
+ * It's a little wonky because we now have BARRIER and REVBARRIER.
  */
  
 int ps_grid_open_barrier(struct ps_grid *grid,int barrierid) {
@@ -62,14 +65,24 @@ int ps_grid_open_barrier(struct ps_grid *grid,int barrierid) {
   //ps_log(GAME,TRACE,"%s %d",__func__,barrierid);
   struct ps_blueprint_poi *poi=grid->poiv;
   int i=grid->poic; for (;i-->0;poi++) {
-    if (poi->type!=PS_BLUEPRINT_POI_BARRIER) continue;
-    if (poi->argv[0]!=barrierid) continue;
-    int cellp=poi->y*PS_GRID_COLC+poi->x;
-    if (!grid->cellv[cellp].tileid) continue; // Already open.
-    poi->argv[1]=grid->cellv[cellp].tileid;
-    poi->argv[2]=grid->cellv[cellp].physics;
-    grid->cellv[cellp].tileid=0;
-    grid->cellv[cellp].physics=0;
+    switch (poi->type) {
+      case PS_BLUEPRINT_POI_BARRIER: {
+          if (poi->argv[0]!=barrierid) continue;
+          int cellp=poi->y*PS_GRID_COLC+poi->x;
+          if (!grid->cellv[cellp].tileid) continue; // Already open.
+          poi->argv[1]=grid->cellv[cellp].tileid;
+          poi->argv[2]=grid->cellv[cellp].physics;
+          grid->cellv[cellp].tileid=0;
+          grid->cellv[cellp].physics=0;
+        } break;
+      case PS_BLUEPRINT_POI_REVBARRIER: {
+          if (poi->argv[0]!=barrierid) continue;
+          int cellp=poi->y*PS_GRID_COLC+poi->x;
+          if (grid->cellv[cellp].tileid) continue; // Already open.
+          grid->cellv[cellp].tileid=poi->argv[1];
+          grid->cellv[cellp].physics=poi->argv[2];
+        } break;
+    }
   }
   return 0;
 }
@@ -79,18 +92,31 @@ int ps_grid_close_barrier(struct ps_grid *grid,int barrierid) {
   //ps_log(GAME,TRACE,"%s %d",__func__,barrierid);
   struct ps_blueprint_poi *poi=grid->poiv;
   int i=grid->poic; for (;i-->0;poi++) {
-    if (poi->type!=PS_BLUEPRINT_POI_BARRIER) continue;
-    if (poi->argv[0]!=barrierid) continue;
-    int cellp=poi->y*PS_GRID_COLC+poi->x;
-    if (grid->cellv[cellp].tileid) continue; // Already closed.
-    grid->cellv[cellp].tileid=poi->argv[1];
-    grid->cellv[cellp].physics=poi->argv[2];
+    switch (poi->type) {
+      case PS_BLUEPRINT_POI_BARRIER: {
+          if (poi->argv[0]!=barrierid) continue;
+          int cellp=poi->y*PS_GRID_COLC+poi->x;
+          if (grid->cellv[cellp].tileid) continue; // Already open.
+          grid->cellv[cellp].tileid=poi->argv[1];
+          grid->cellv[cellp].physics=poi->argv[2];
+        } break;
+      case PS_BLUEPRINT_POI_REVBARRIER: {
+          if (poi->argv[0]!=barrierid) continue;
+          int cellp=poi->y*PS_GRID_COLC+poi->x;
+          if (!grid->cellv[cellp].tileid) continue; // Already open.
+          poi->argv[1]=grid->cellv[cellp].tileid;
+          poi->argv[2]=grid->cellv[cellp].physics;
+          grid->cellv[cellp].tileid=0;
+          grid->cellv[cellp].physics=0;
+        } break;
+    }
   }
   return 0;
 }
 
 int ps_grid_close_all_barriers(struct ps_grid *grid) {
   if (!grid) return -1;
+  //ps_log(GAME,TRACE,"%s",__func__);
   struct ps_blueprint_poi *poi=grid->poiv;
   int i=grid->poic; for (;i-->0;poi++) {
     if (poi->type==PS_BLUEPRINT_POI_BARRIER) {
@@ -100,6 +126,14 @@ int ps_grid_close_all_barriers(struct ps_grid *grid) {
       } else {
         grid->cellv[cellp].tileid=poi->argv[1];
         grid->cellv[cellp].physics=poi->argv[2];
+      }
+    } else if (poi->type==PS_BLUEPRINT_POI_REVBARRIER) {
+      int cellp=poi->y*PS_GRID_COLC+poi->x;
+      if (grid->cellv[cellp].tileid) {
+        poi->argv[1]=grid->cellv[cellp].tileid;
+        poi->argv[2]=grid->cellv[cellp].physics;
+        grid->cellv[cellp].tileid=0;
+        grid->cellv[cellp].physics=0;
       }
     }
   }

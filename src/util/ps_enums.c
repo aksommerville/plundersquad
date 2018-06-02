@@ -448,6 +448,7 @@ int ps_poi_type_eval(const char *src,int srcc) {
   _(STATUSREPORT)
   _(SUMMONER)
   _(PERMASWITCH)
+  _(REVBARRIER)
   #undef _
   return -1;
 }
@@ -464,6 +465,7 @@ const char *ps_poi_type_repr(int type) {
     _(STATUSREPORT)
     _(SUMMONER)
     _(PERMASWITCH)
+    _(REVBARRIER)
     #undef _
   }
   return 0;

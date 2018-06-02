@@ -350,7 +350,7 @@ static int ps_editpoi_validate_barrier(const struct ps_widget *widget) {
   // Invalid coordinates should not reach the model, but let's be sure.
   if ((WIDGET->poi.x>=PS_BLUEPRINT_COLC)||(WIDGET->poi.y>=PS_BLUEPRINT_ROWC)) return 0;
 
-  // The underlying cell will typically be SOLID.
+  // The underlying cell will typically be SOLID or LATCH.
   // I'll only call it suspect if it's VACANT, which makes no sense at all.
   uint8_t cell=WIDGET->blueprint->cellv[WIDGET->poi.y*PS_BLUEPRINT_COLC+WIDGET->poi.x];
   if (cell==PS_BLUEPRINT_CELL_VACANT) return 0;
@@ -543,6 +543,17 @@ static int ps_editpoi_refresh_ui(struct ps_widget *widget,int populate_fields) {
           }
         } else {
           if (ps_widget_label_set_text(messagelabel,"",0)<0) return -1;
+        }
+      } break;
+    case PS_BLUEPRINT_POI_REVBARRIER: {
+        if (ps_widget_label_set_text(typedesclabel,"REVBARRIER",10)<0) return -1;
+        if (ps_widget_label_set_text(arg0label,"ID",2)<0) return -1;
+        if (ps_widget_label_set_text(arg1label,"unused",6)<0) return -1;
+        if (ps_widget_label_set_text(arg2label,"unused",6)<0) return -1;
+        if (ps_editpoi_validate_barrier(widget)) {
+          if (ps_widget_label_set_text(messagelabel,"Looks OK.",-1)<0) return -1;
+        } else {
+          if (ps_widget_label_set_text(messagelabel,"Possible barrier fault.",-1)<0) return -1;
         }
       } break;
     default: {

@@ -353,9 +353,10 @@ static int validate_switch_assignments() {
           #undef WRITESWITCH
         } break;
         
-      case PS_BLUEPRINT_POI_BARRIER: {
+      case PS_BLUEPRINT_POI_BARRIER: 
+      case PS_BLUEPRINT_POI_REVBARRIER: {
           if ((poi->argv[0]<1)||(poi->argv[0]>SWITCHID_LIMIT)) {
-            PS_ASSERT(0,"blueprint:%d: BARRIER POI refers to switch %d. Expected 1..%d",blueprintid,poi->argv[0],SWITCHID_LIMIT)
+            PS_ASSERT(0,"blueprint:%d: %s POI refers to switch %d. Expected 1..%d",blueprintid,ps_poi_type_repr(poi->type),poi->argv[0],SWITCHID_LIMIT)
           }
           switches_referred[poi->argv[0]]++;
           if (poi->argv[0]>switchid_max) switchid_max=poi->argv[0];

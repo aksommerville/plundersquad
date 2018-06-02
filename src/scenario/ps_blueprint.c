@@ -358,7 +358,7 @@ static int ps_blueprint_decode_poi_type(int *dst,const char *src,int srcc,int li
 
   *dst=ps_poi_type_eval(sub,subc);
   if (*dst<0) {
-    ps_log(RES,ERROR,"%d: '%.*s' is not a POI type. (NOOP,HERO,SPRITE,BARRIER,TREASURE,DEATHGATE)",lineno,subc,sub);
+    ps_log(RES,ERROR,"%d: '%.*s' is not a POI type. (NOOP,HERO,SPRITE,BARRIER,TREASURE,DEATHGATE,REVBARRIER)",lineno,subc,sub);
     return -1;
   }
 

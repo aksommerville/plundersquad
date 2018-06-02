@@ -43,6 +43,7 @@
 #define PS_BLUEPRINT_POI_STATUSREPORT  0x06 /* Marker for home-screen status report. */
 #define PS_BLUEPRINT_POI_SUMMONER      0x07 /* Summon sprites from this edge, or this seed-fill region. [0]=sprdefid [1]=valume(1..100) */
 #define PS_BLUEPRINT_POI_PERMASWITCH   0x08 /* [0]=switchid. Location irrelevant. If the given switch is actuated, register a deed (persist it). 0 means all switches */
+#define PS_BLUEPRINT_POI_REVBARRIER    0x09 /* [0]=switchid. Same as BARRIER, but switch 0=open and 1=closed */
 
 #define PS_BLUEPRINT_XFORM_NONE        0x00
 #define PS_BLUEPRINT_XFORM_HORZ        0x01

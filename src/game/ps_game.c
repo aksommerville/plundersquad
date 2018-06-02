@@ -353,11 +353,24 @@ static int ps_game_remove_all_monsters(struct ps_game *game) {
 }
 
 static int ps_game_open_all_switches(struct ps_game *game) {
+
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *spr=grp->sprv[i];
     if (ps_sprite_actuate(spr,game,1)<0) return -1;
   }
+
+  if (game->grid) {
+    const struct ps_blueprint_poi *poi=game->grid->poiv;
+    int i=game->grid->poic; for (;i-->0;poi++) {
+      if (poi->type==PS_BLUEPRINT_POI_BARRIER) {
+        if (ps_switchboard_set_switch(game->switchboard,poi->argv[0],1)<0) return -1;
+      } else if (poi->type==PS_BLUEPRINT_POI_REVBARRIER) {
+        if (ps_switchboard_set_switch(game->switchboard,poi->argv[0],1)<0) return -1;
+      }
+    }
+  }
+  
   return 0;
 }
 
@@ -409,6 +422,8 @@ int ps_game_register_switches(struct ps_game *game) {
     const struct ps_blueprint_poi *poi=game->grid->poiv;
     int i=game->grid->poic; for (;i-->0;poi++) {
       if (poi->type==PS_BLUEPRINT_POI_BARRIER) {
+        if (ps_switchboard_set_switch(game->switchboard,poi->argv[0],0)<0) return -1;
+      } else if (poi->type==PS_BLUEPRINT_POI_REVBARRIER) {
         if (ps_switchboard_set_switch(game->switchboard,poi->argv[0],0)<0) return -1;
       }
     }

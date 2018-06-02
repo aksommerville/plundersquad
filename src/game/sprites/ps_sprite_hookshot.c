@@ -144,7 +144,7 @@ static int ps_hookshot_begin_deliver(struct ps_sprite *spr,struct ps_game *game,
     if (ps_hero_add_state(pumpkin,PS_HERO_STATE_PUMPKIN,game)<0) return -1;
   } else {
     SPR->restore_pumpkin_impassable=pumpkin->impassable;
-    pumpkin->impassable&=~(1<<PS_BLUEPRINT_CELL_HOLE);
+    pumpkin->impassable&=~((1<<PS_BLUEPRINT_CELL_HOLE)|(1<<PS_BLUEPRINT_CELL_HEROONLY));
   }
   return 0;
 }

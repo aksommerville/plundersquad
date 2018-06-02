@@ -26,6 +26,7 @@ struct ps_sprite_bug {
   int phase;
   int phasetime;
   double dstx,dsty;
+  uint8_t visitv[PS_GRID_COLC*PS_GRID_ROWC];
 };
 
 #define SPR ((struct ps_sprite_bug*)spr)
@@ -111,10 +112,41 @@ static int ps_bug_select_walk_direction(struct ps_sprite *spr,struct ps_game *ga
     }
   }
 
+  /* Consider (visitv) and eliminate all but the lowest value of valid options.
+   * Select randomly only if there is a tie.
+   * In the case of a tie, we should eliminate the non-tied options, but we don't because it's complicated.
+   */
+  if (optionc>1) {
+    int lowest_direction=optionv[0];
+    int lowest_count=255;
+    int tie=1;
+    int i; for (i=0;i<optionc;i++) {
+      struct ps_vector vector=ps_vector_from_direction(optionv[i]);
+      int dstx=col+vector.dx;
+      int dsty=row+vector.dy;
+      if ((dstx>=0)&&(dsty>=0)&&(dstx<PS_GRID_COLC)&&(dsty<PS_GRID_ROWC)) {
+        int visitc=SPR->visitv[dsty*PS_GRID_COLC+dstx];
+        if (visitc<lowest_count) {
+          lowest_count=visitc;
+          lowest_direction=i;
+          tie=0;
+        } else if (visitc==lowest_count) {
+          tie=1;
+        }
+      }
+    }
+    if (!tie) {
+      optionv[0]=lowest_direction;
+      optionc=1;
+    }
+  }
+
   /* We have options; pick one. */
   SPR->dstx=col*PS_TILESIZE+(PS_TILESIZE>>1);
   SPR->dsty=row*PS_TILESIZE+(PS_TILESIZE>>1);
-  int direction=optionv[rand()%optionc];
+  int direction;
+  if (optionc>1) direction=optionv[rand()%optionc];
+  else direction=optionv[0];
   switch (direction) {
     case PS_DIRECTION_WEST:  SPR->dstx-=PS_TILESIZE; break;
     case PS_DIRECTION_EAST:  SPR->dstx+=PS_TILESIZE; break;

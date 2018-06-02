@@ -129,17 +129,19 @@ static int ps_teleporter_create_peers(struct ps_sprite *spr,struct ps_game *game
  */
 
 static struct ps_sprite *ps_teleporter_find_partner(struct ps_sprite *spr,struct ps_game *game) {
+  ps_log(GAME,DEBUG,"%s %p...",__func__,spr);
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_BARRIER;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *partner=grp->sprv[i];
     if (partner->type!=&ps_sprtype_teleporter) continue;
     if (spr==partner) continue;
     struct ps_sprite_teleporter *PARTNER=(struct ps_sprite_teleporter*)partner;
+    ps_log(GAME,DEBUG,"  %p role=%d telelinkid=%d active=%d hold=%d",partner,PARTNER->role,PARTNER->telelinkid,PARTNER->active,PARTNER->hold);
     if (PARTNER->role!=PS_TELEPORTER_ROLE_BASE) continue;
     if (PARTNER->telelinkid!=SPR->telelinkid) continue;
 
     // Skip partners that aren't ready to accept a pumpkin.
-    if (!PARTNER->active) continue;
+    //if (!PARTNER->active) continue; // It's OK if not active; that means it's a one-way trip.
     if (PARTNER->hold) continue;
 
     return partner;
@@ -163,8 +165,6 @@ static int ps_teleporter_teleport(struct ps_sprite *spr,struct ps_game *game,str
   struct ps_sprite *dst=ps_teleporter_find_partner(spr,game);
   if (!dst) return 0;
   struct ps_sprite_teleporter *DST=(struct ps_sprite_teleporter*)dst;
-  if (!DST->active) return 0;
-  if (DST->hold) return 0;
   PS_SFX_TELEPORT
   pumpkin->x=dst->x;
   pumpkin->y=dst->y;
@@ -177,7 +177,7 @@ static int ps_teleporter_teleport(struct ps_sprite *spr,struct ps_game *game,str
  */
 
 static int ps_teleporter_check_pumpkins(struct ps_sprite *spr,struct ps_game *game) {
-  if (!SPR->active) return 0;
+  if (!SPR->active&&!SPR->hold) return 0;
 
   double west=spr->x-6.0;
   double east=spr->x+6.0;
@@ -193,7 +193,9 @@ static int ps_teleporter_check_pumpkins(struct ps_sprite *spr,struct ps_game *ga
     if (pumpkin->y<north) continue;
     if (pumpkin->y>south) continue;
     if (ps_sprites_collide(spr,pumpkin)) {
-      if (ps_teleporter_teleport(spr,game,pumpkin)<0) return -1;
+      if (SPR->active) {
+        if (ps_teleporter_teleport(spr,game,pumpkin)<0) return -1;
+      }
       pumpkinc++;
     }
   }

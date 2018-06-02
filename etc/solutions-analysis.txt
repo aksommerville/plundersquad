@@ -7,16 +7,16 @@ RES:WARN: No solution for skills 0x0083: SWORD ARROW FLY [src/test/res/test_res_
 RES:WARN: No solution for skills 0x0045: SWORD HOOKSHOT BOMB [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0085: SWORD HOOKSHOT FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0019: SWORD FLAME HEAL [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0029: SWORD FLAME IMMORTAL [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x0029: SWORD FLAME IMMORTAL [src/test/res/test_res_content.c:663] ---------------- 162
 RES:WARN: No solution for skills 0x0089: SWORD FLAME FLY [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0031: SWORD HEAL IMMORTAL [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x0031: SWORD HEAL IMMORTAL [src/test/res/test_res_content.c:663] ----------------- 162
 RES:WARN: No solution for skills 0x0091: SWORD HEAL FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0061: SWORD IMMORTAL BOMB [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x00c1: SWORD BOMB FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x000e: ARROW HOOKSHOT FLAME [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0016: ARROW HOOKSHOT HEAL [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0026: ARROW HOOKSHOT IMMORTAL [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x0046: ARROW HOOKSHOT BOMB [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x0046: ARROW HOOKSHOT BOMB [src/test/res/test_res_content.c:663] ----------------- 161
 RES:WARN: No solution for skills 0x0086: ARROW HOOKSHOT FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x001a: ARROW FLAME HEAL [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x002a: ARROW FLAME IMMORTAL [src/test/res/test_res_content.c:663]
@@ -27,10 +27,10 @@ RES:WARN: No solution for skills 0x0052: ARROW HEAL BOMB [src/test/res/test_res_
 RES:WARN: No solution for skills 0x0092: ARROW HEAL FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0062: ARROW IMMORTAL BOMB [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x00a2: ARROW IMMORTAL FLY [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x00c2: ARROW BOMB FLY [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x00c2: ARROW BOMB FLY [src/test/res/test_res_content.c:663] -------------------- 161
 RES:WARN: No solution for skills 0x001c: HOOKSHOT FLAME HEAL [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x002c: HOOKSHOT FLAME IMMORTAL [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x004c: HOOKSHOT FLAME BOMB [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x004c: HOOKSHOT FLAME BOMB [src/test/res/test_res_content.c:663] ----------------- 161
 RES:WARN: No solution for skills 0x008c: HOOKSHOT FLAME FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0034: HOOKSHOT HEAL IMMORTAL [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0054: HOOKSHOT HEAL BOMB [src/test/res/test_res_content.c:663]
@@ -43,7 +43,7 @@ RES:WARN: No solution for skills 0x0058: FLAME HEAL BOMB [src/test/res/test_res_
 RES:WARN: No solution for skills 0x0098: FLAME HEAL FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x0068: FLAME IMMORTAL BOMB [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x00a8: FLAME IMMORTAL FLY [src/test/res/test_res_content.c:663]
-RES:WARN: No solution for skills 0x00c8: FLAME BOMB FLY [src/test/res/test_res_content.c:663]
+RES:WARN: No solution for skills 0x00c8: FLAME BOMB FLY [src/test/res/test_res_content.c:663] ---------------------- 161
 RES:WARN: No solution for skills 0x0070: HEAL IMMORTAL BOMB [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x00b0: HEAL IMMORTAL FLY [src/test/res/test_res_content.c:663]
 RES:WARN: No solution for skills 0x00d0: HEAL BOMB FLY [src/test/res/test_res_content.c:663]

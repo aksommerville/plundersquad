@@ -6,6 +6,7 @@
 #include "ps_grid.h"
 #include "ps_zone.h"
 #include "ps_blueprint.h"
+#include "res/ps_resmgr.h"
 
 /* Initialize grid for skinning.
  */
@@ -128,7 +129,10 @@ static int ps_gridgen_select_shape_for_zone(struct ps_scgen *scgen,struct ps_scr
    * We must still force FAT compatibility because the first pass doesn't detect isthmi.
    */
   if (zone->foursquarec&&!zone->fatfailc) {
-    if (ps_zone_force_FAT_compatibility(zone,scgen->zones)<0) return -1;
+    if (ps_zone_force_FAT_compatibility(zone,scgen->zones)<0) {
+      ps_log(GENERATOR,ERROR,"Error skinning blueprint:%d. Check for narrow corners.",ps_res_get_id_by_obj(PS_RESTYPE_BLUEPRINT,screen->blueprint));
+      return -1;
+    }
     if (ps_zone_analyze(zone)<0) return -1;
     if (zone->shape=ps_gridgen_select_shape_of_style(scgen,shapev,shapec,PS_REGION_SHAPE_STYLE_FAT)) {
       return 0;
@@ -144,7 +148,10 @@ static int ps_gridgen_select_shape_for_zone(struct ps_scgen *scgen,struct ps_scr
 
   /* If we have foursquares and a FAT shape exists, split the zone. */
   if (zone->foursquarec&&ps_gridgen_shapes_contain_style(shapev,shapec,PS_REGION_SHAPE_STYLE_FAT)) {
-    if (ps_zone_force_FAT_compatibility(zone,scgen->zones)<0) return -1;
+    if (ps_zone_force_FAT_compatibility(zone,scgen->zones)<0) {
+      ps_log(GENERATOR,ERROR,"Error skinning blueprint:%d. Check for narrow corners.",ps_res_get_id_by_obj(PS_RESTYPE_BLUEPRINT,screen->blueprint));
+      return -1;
+    }
     if (ps_zone_analyze(zone)<0) return -1;
     if (zone->shape=ps_gridgen_select_shape_of_style(scgen,shapev,shapec,PS_REGION_SHAPE_STYLE_FAT)) {
       return 0;
@@ -432,6 +439,7 @@ static int ps_scgen_generate_grid(struct ps_scgen *scgen,struct ps_screen *scree
   if (!screen->grid) return -1;
 
   if (ps_gridgen_initialize(scgen,screen)<0) return -1;
+
   if (ps_zones_rebuild(scgen->zones,screen->grid)<0) return -1;
 
   if (ps_gridgen_select_shapes_for_zones(scgen,screen)<0) return -1;

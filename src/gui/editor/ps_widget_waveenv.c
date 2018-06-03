@@ -138,6 +138,7 @@ static int ps_waveenv_draw_line(struct ps_widget *widget,int parentx,int parenty
 
 static int _ps_waveenv_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
   if (ps_waveenv_draw_line(widget,parentx,parenty)<0) return -1;
   if (ps_widget_draw_children(widget,parentx,parenty)<0) return -1;
   return 0;

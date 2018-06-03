@@ -9,6 +9,7 @@
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
 #include "akgl/akgl.h"
+#include "akau/akau.h"
 #include <math.h>
 
 #define PS_CHESTKEEPER_BLOWCOVER_DISTANCE (PS_TILESIZE*2.0)
@@ -166,6 +167,8 @@ static int ps_chestkeeper_has_worthy_opponents(const struct ps_sprite *spr,const
  */
 
 static int ps_chestkeeper_blow_cover(struct ps_sprite *spr,struct ps_game *game) {
+
+  if (akau_play_song(9,1)<0) return -1;
 
   SPR->incognito=0;
   SPR->blowcover_transition=PS_CHESTKEEPER_BLOWCOVER_TIME;

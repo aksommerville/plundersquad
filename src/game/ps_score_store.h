@@ -36,6 +36,10 @@ int ps_score_store_add_false_record(struct ps_score_store *store,int playtime,in
  */
 int ps_score_store_recommend_difficulty(const struct ps_score_store *store,const struct ps_game *game);
 
+/* Return the length of the most recent game, or -1 if anything goes wrong (eg first play).
+ */
+int ps_score_store_get_most_recent_length(const struct ps_score_store *store);
+
 /* Game rating.
  * Ask for a rating immediately after adding a record.
  * The most recent record is our comparison reference.

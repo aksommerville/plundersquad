@@ -211,14 +211,24 @@ int ps_widget_setuppage_acquire_initial_settings(struct ps_widget *widget) {
   if ((difficulty>=PS_DIFFICULTY_MIN)&&(difficulty<=PS_DIFFICULTY_MAX)) {
     struct ps_widget *menu=ps_setuppage_get_menu(widget);
     struct ps_widget *menupacker=ps_widget_menu_get_packer(menu);
-    if (menupacker&&(menupacker->childc>=0)) {
+    if (menupacker&&(menupacker->childc>=2)) {
       struct ps_widget *slider=menupacker->childv[1];
       if (ps_widget_slider_set_value(slider,difficulty)<0) return -1;
     }
   }
 
-  /* We could do the same for length, but I think that is better left to the user.
+  /* Ask score store for the most recent length and commit it to UI if valid.
    */
+  int length=ps_score_store_get_most_recent_length(game->score_store);
+  ps_log(GUI,DEBUG,"Recommended length: %d",length);
+  if ((length>=PS_LENGTH_MIN)&&(length<=PS_LENGTH_MAX)) {
+    struct ps_widget *menu=ps_setuppage_get_menu(widget);
+    struct ps_widget *menupacker=ps_widget_menu_get_packer(menu);
+    if (menupacker&&(menupacker->childc>=3)) {
+      struct ps_widget *slider=menupacker->childv[2];
+      if (ps_widget_slider_set_value(slider,length)<0) return -1;
+    }
+  }
   
   return 0;
 }

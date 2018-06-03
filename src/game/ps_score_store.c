@@ -278,6 +278,16 @@ int ps_score_store_recommend_difficulty(const struct ps_score_store *store,const
   return recommendation;
 }
 
+/* Get most recent length.
+ */
+ 
+int ps_score_store_get_most_recent_length(const struct ps_score_store *store) {
+  if (!store) return -1;
+  if (store->recordc<1) return -1;
+  const struct ps_score_record *record=store->recordv+store->recordc-1;
+  return record->length;
+}
+
 /* Count plrdefid.
  */
 

@@ -1,4 +1,8 @@
 General errors:
+- Somehow hero was able to walk into water and die.
+  blueprint:170, wizard, with vampire and bomber
+  ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
+  ...investigated, can't find the problem
 
 Raspi errors:
 
@@ -16,6 +20,7 @@ MacOS errors:
 
 Actionable:
 - Make at least one challenge for each player count (see etc/solutions-analysis.txt and test-examineres).
+- Is there any prioritization of harder blueprints or blueprints requiring more skills? There should be.
 
 Windows:
 - Build with GL2 support

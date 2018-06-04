@@ -290,6 +290,7 @@ static int ps_hero_check_grid(struct ps_sprite *spr,struct ps_game *game) {
     case PS_BLUEPRINT_CELL_HOLE: {
         // Landing on a hole is unusal, but can easily be done with a hookshot.
         if (spr->impassable&(1<<PS_BLUEPRINT_CELL_HOLE)) {
+          //ps_log(GAME,DEBUG,"Killing hero due to resting on impassable HOLE.");
           return ps_hero_force_kill(spr,game);
         }
       } break;

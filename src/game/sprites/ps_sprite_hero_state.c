@@ -71,7 +71,10 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
     0;
     spr->collide_sprites=1;
     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY))) {
+      //ps_log(HEROSTATE,DEBUG,"Adding HOLE to impassable.");
       spr->impassable|=(1<<PS_BLUEPRINT_CELL_HOLE);
+    } else {
+      //ps_log(HEROSTATE,DEBUG,"Not adding HOLE to impassable.");
     }
     if (SPR->state&PS_HERO_STATE_PUMPKIN) {
       // No TELEPORT for PUMPKIN, that would get messy.

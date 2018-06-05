@@ -156,6 +156,13 @@ static int _ps_heroindicator_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct 
     vtxv[1].pr=rgb>>16;
     vtxv[1].pg=rgb>>8;
     vtxv[1].pb=rgb;
+
+    if (HERO&&HERO->highlighttime) {
+      vtxv[1].tr=0xff;
+      vtxv[1].tg=0xff;
+      vtxv[1].tb=0x00;
+      vtxv[1].ta=(HERO->highlighttime*255)/PS_HERO_HIGHLIGHT_TIME;
+    }
   }
   
   return vtxc;

@@ -3,22 +3,22 @@
 
 /* Nonzero for normal production startup; the rest of this file will be ignored.
  */
-#define PS_PRODUCTION_STARTUP 1
+#define PS_PRODUCTION_STARTUP 0
 
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, MARTYR, IMMORTAL, BOMBER, BALA
  */
-#define PS_TEST_GAME_PARTY WIZARD,GADGETEER
+#define PS_TEST_GAME_PARTY WIZARD,GADGETEER,ARCHER,NURSE,IMMORTAL,SWORDSMAN,BOMBER,VAMPIRE
 
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL
  */
-#define PS_TEST_GENERATOR_MODE SELECTED
+#define PS_TEST_GENERATOR_MODE NORMAL
 
 /* Parameters for NORMAL and SELECTED modes.
  */
 #define PS_TEST_DIFFICULTY 9
-#define PS_TEST_LENGTH     3
+#define PS_TEST_LENGTH     2
 
 /* Parameters for SELECTED mode.
  * Must name at least one blueprint with a HERO POI.

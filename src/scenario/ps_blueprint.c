@@ -151,6 +151,31 @@ uint8_t ps_blueprint_get_preference(
   return preference;
 }
 
+/* Analyze solutions.
+ */
+ 
+int ps_blueprint_analyze_solutions(
+  struct ps_blueprint_solution *dst,
+  const struct ps_blueprint *blueprint,
+  int playerc,uint16_t skills
+) {
+  if (!blueprint) return 0;
+  const struct ps_blueprint_solution *best=0;
+  int matchc=0;
+  const struct ps_blueprint_solution *solution=blueprint->solutionv;
+  int i=blueprint->solutionc; for (;i-->0;solution++) {
+    if (playerc<solution->plo) continue;
+    if (playerc>solution->phi) continue;
+    if ((skills&solution->skills)!=solution->skills) continue;
+    if (!best||(solution->difficulty<best->difficulty)) {
+      best=solution;
+    }
+    matchc++;
+  }
+  if (dst&&best) memcpy(dst,best,sizeof(struct ps_blueprint_solution));
+  return matchc;
+}
+
 /* Get base difficulty.
  */
  

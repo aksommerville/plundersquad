@@ -496,3 +496,80 @@ PS_TEST(test_scgen_blueprint_reuse,scgen,functional,ignore) {
   ps_resmgr_quit();
   return 0;
 }
+
+/* Test ps_blueprint_chooser by generating a bunch of scenarios.
+ * This is designed to be run twice: Once with the old logic, and once with the new.
+ * The old logic can be found at commit c1b726f943035c434e5afecf3ae532f6389f17af, ps_scgen_select_blueprints(), around ps_scgen.c:700.
+ * Going strictly by the numbers, it's a profound difference: the score that this test outputs, it's about 4 times higher with the new logic.
+ */
+
+static int rate_blueprint_chooser_performance(const struct ps_scgen *scgen) {
+  int score=0;
+  int i=scgen->scenario->w*scgen->scenario->h;
+  const struct ps_screen *screen=scgen->scenario->screenv;
+  for (;i-->0;screen++) {
+
+    /* Copied from ps_blueprint_chooser_weigh_challenge()
+     */
+
+    struct ps_blueprint_solution solution={0};
+    int solutionc=ps_blueprint_analyze_solutions(&solution,screen->blueprint,scgen->playerc,scgen->skills);
+    if (solutionc<1) continue;
+
+    int weight=100; // Start at a reasonable offset. Selection will be mostly random.
+    weight+=solutionc*20; // More valid solutions means a more interesting blueprint.
+    weight+=solution.difficulty*64; // More difficult is more fun.
+    weight+=solution.plo*32; // More players required is more fun.
+    weight+=solution.preference; // Consider the author's opinion of this solution.
+  
+    score+=weight;
+  
+  }
+  return score;
+}
+
+PS_TEST(test_blueprint_chooser,scgen,functional,ignore) {
+  ps_log_level_by_domain[PS_LOG_DOMAIN_RES]=PS_LOG_LEVEL_WARN;
+  ps_resmgr_quit();
+  PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
+
+  int seed=time(0);
+  PS_LOG("Random seed %d",seed);
+  srand(seed);
+
+  int total_by_playerc[1+PS_PLAYER_LIMIT]={0};
+  int total_by_difficulty[1+PS_DIFFICULTY_MAX]={0};
+  int total=0;
+
+  int playerc=1; for (;playerc<=PS_PLAYER_LIMIT;playerc++) {
+    int difficulty=PS_DIFFICULTY_MIN; for (;difficulty<=PS_DIFFICULTY_MAX;difficulty++) {
+
+      struct ps_scgen *scgen=ps_scgen_new();
+      PS_ASSERT(scgen)
+
+      scgen->playerc=playerc;
+      scgen->skills=(1<<playerc)-1;
+      if (scgen->skills&(PS_SKILL_SWORD|PS_SKILL_ARROW|PS_SKILL_FLAME|PS_SKILL_BOMB)) scgen->skills|=PS_SKILL_COMBAT;
+      scgen->difficulty=difficulty;
+      scgen->length=4;
+
+      PS_ASSERT_CALL(ps_scgen_generate(scgen))
+
+      int score=rate_blueprint_chooser_performance(scgen);
+      ps_log(TEST,INFO,"%d players at difficulty %d: %d",playerc,difficulty,score);
+      total_by_playerc[playerc]+=score;
+      total_by_difficulty[difficulty]+=score;
+      total+=score;
+
+      ps_scgen_del(scgen);
+    }
+  }
+
+  int i;
+  for (i=1;i<=PS_PLAYER_LIMIT;i++) ps_log(TEST,INFO,"Total for %d players: %d",i,total_by_playerc[i]);
+  for (i=PS_DIFFICULTY_MIN;i<=PS_DIFFICULTY_MAX;i++) ps_log(TEST,INFO,"Total for difficulty %d: %d",i,total_by_difficulty[i]);
+  ps_log(TEST,INFO,"Total score: %d",total);
+  
+  ps_resmgr_quit();
+  return 0;
+}

@@ -125,6 +125,15 @@ uint8_t ps_blueprint_get_preference(
   int playerc,uint16_t skills
 );
 
+/* Find the least difficult valid solution for this party and copy it into (*dst).
+ * Return the total count of solutions solvable by this party.
+ */
+int ps_blueprint_analyze_solutions(
+  struct ps_blueprint_solution *dst,
+  const struct ps_blueprint *blueprint,
+  int playerc,uint16_t skills
+);
+
 /* Ignoring solutions, what is the baseline difficulty for this blueprint?
  * This only considers explicit sprites with a 'difficulty' property, and returns the highest.
  */

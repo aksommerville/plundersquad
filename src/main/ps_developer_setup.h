@@ -3,12 +3,12 @@
 
 /* Nonzero for normal production startup; the rest of this file will be ignored.
  */
-#define PS_PRODUCTION_STARTUP 0
+#define PS_PRODUCTION_STARTUP 1
 
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, MARTYR, IMMORTAL, BOMBER, BALA
  */
-#define PS_TEST_GAME_PARTY WIZARD,GADGETEER,ARCHER,NURSE,IMMORTAL,SWORDSMAN,BOMBER,VAMPIRE
+#define PS_TEST_GAME_PARTY ARCHER
 
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL

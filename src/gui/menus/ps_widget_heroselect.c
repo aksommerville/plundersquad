@@ -19,19 +19,28 @@
 #include "os/ps_clockassist.h"
 #include "game/ps_sound_effects.h"
 #include "util/ps_enums.h"
+#include "akgl/akgl.h"
 
 #define PS_HEROSELECT_PHASE_WELCOME   1 /* Not clicked in. */
 #define PS_HEROSELECT_PHASE_QUERY     2 /* Select hero and colors. */
 #define PS_HEROSELECT_PHASE_READY     3 /* Committed, waiting for other players. */
 #define PS_HEROSELECT_PHASE_CONFIG    4 /* Configuring device map. */
 
-#define PS_HEROSELECT_NAME_LIMIT 16
+#define PS_HEROSELECT_NAME_LIMIT 12
 
 #define PS_HEROSELECT_INPUT_DELAY 50000
 
 #define PS_HEROSELECT_SPRDEF_ID 1
 
 #define PS_HEROSELECT_TOO_MANY_PLAYERS_WARNING_TTL 120
+
+#define PS_HEROSELECT_BACKGROUND_MARGIN 6
+#define PS_HEROSELECT_BACKGROUND_COLOR 0x80808080
+#define PS_HEROSELECT_CONTENT_MARGIN 12
+#define PS_HEROSELECT_FRAME_TSID 1
+#define PS_HEROSELECT_FRAME_TILEID_CORNER 0x70
+#define PS_HEROSELECT_FRAME_TILEID_VERT 0x71
+#define PS_HEROSELECT_FRAME_TILEID_HORZ 0x72
 
 int ps_heroselect_rebuild_children_for_phase(struct ps_widget *widget,int phase);
 
@@ -47,8 +56,9 @@ struct ps_widget_heroselect {
   int plrdefid;
   int palette;
   int64_t too_many_players_warning; // Timestamp when warning was issued.
-
   struct ps_input_icfg *icfg;
+  struct akgl_vtx_mintile *minvtxv;
+  int minvtxa;
 };
 
 #define WIDGET ((struct ps_widget_heroselect*)widget)
@@ -62,6 +72,7 @@ static void _ps_heroselect_del(struct ps_widget *widget) {
   }
   ps_input_device_del(WIDGET->device);
   ps_input_icfg_del(WIDGET->icfg);
+  if (WIDGET->minvtxv) free(WIDGET->minvtxv);
 }
 
 /* Initialize.
@@ -85,6 +96,19 @@ static int _ps_heroselect_init(struct ps_widget *widget) {
 static int ps_heroselect_obj_validate(const struct ps_widget *widget) {
   if (!widget) return -1;
   if (widget->type!=&ps_widget_type_heroselect) return -1;
+  return 0;
+}
+
+/* Grow vertex buffer.
+ */
+
+static int ps_heroselect_require_minvtxv(struct ps_widget *widget,int c) {
+  if (c<=WIDGET->minvtxa) return 0;
+  if (c>INT_MAX/sizeof(struct akgl_vtx_mintile)) return -1;
+  void *nv=realloc(WIDGET->minvtxv,sizeof(struct akgl_vtx_mintile)*c);
+  if (!nv) return -1;
+  WIDGET->minvtxv=nv;
+  WIDGET->minvtxa=c;
   return 0;
 }
 
@@ -219,13 +243,89 @@ static int _ps_heroselect_get_property_type(const struct ps_widget *widget,int k
   return PS_WIDGET_PROPERTY_TYPE_UNDEFINED;
 }
 
+/* Fallback rendering if we are too small.
+ */
+
+static int ps_heroselect_draw_too_small_fallback(struct ps_widget *widget,int parentx,int parenty) {
+  // OK to just do nothing?
+  return 0;
+}
+
+/* Draw content.
+ */
+
+static int ps_heroselect_draw_content(struct ps_widget *widget,int parentx,int parenty,int x,int y,int w,int h) {
+  int err=ps_widget_draw_children(widget,parentx,parenty);
+  return err;
+}
+
+/* Draw frame.
+ */
+
+static int ps_heroselect_draw_frame(struct ps_widget *widget,int parentx,int parenty,int x,int y,int w,int h) {
+  int vtxc_lr=(h+(PS_TILESIZE>>1))/PS_TILESIZE; // sic floor div; the corner boxes will occlude one tile.
+  int vtxc_tb=(w+(PS_TILESIZE>>1))/PS_TILESIZE; // Add half of tile size because the corner tiles extend beyond (x,y,w,h)
+  int vtxc=((vtxc_lr+vtxc_tb)<<1)+4;
+  if (ps_heroselect_require_minvtxv(widget,vtxc)<0) return -1;
+  struct akgl_vtx_mintile *vtx=WIDGET->minvtxv;
+  int i,p;
+
+  p=y+(h>>1)-((vtxc_lr*PS_TILESIZE)>>1)+(PS_TILESIZE>>1);
+  for (i=vtxc_lr;i-->0;vtx+=2,p+=PS_TILESIZE) {
+    vtx[0].x=x;
+    vtx[0].y=p;
+    vtx[0].tileid=PS_HEROSELECT_FRAME_TILEID_VERT;
+    vtx[1].x=x+w;
+    vtx[1].y=p;
+    vtx[1].tileid=PS_HEROSELECT_FRAME_TILEID_VERT;
+  }
+
+  p=x+(w>>1)-((vtxc_tb*PS_TILESIZE)>>1)+(PS_TILESIZE>>1);
+  for (i=vtxc_tb;i-->0;vtx+=2,p+=PS_TILESIZE) {
+    vtx[0].x=p;
+    vtx[0].y=y;
+    vtx[0].tileid=PS_HEROSELECT_FRAME_TILEID_HORZ;
+    vtx[1].x=p;
+    vtx[1].y=y+h;
+    vtx[1].tileid=PS_HEROSELECT_FRAME_TILEID_HORZ;
+  }
+
+  vtx->x=x;
+  vtx->y=y;
+  vtx->tileid=PS_HEROSELECT_FRAME_TILEID_CORNER;
+  vtx++;
+  vtx->x=x+w;
+  vtx->y=y;
+  vtx->tileid=PS_HEROSELECT_FRAME_TILEID_CORNER;
+  vtx++;
+  vtx->x=x;
+  vtx->y=y+h;
+  vtx->tileid=PS_HEROSELECT_FRAME_TILEID_CORNER;
+  vtx++;
+  vtx->x=x+w;
+  vtx->y=y+h;
+  vtx->tileid=PS_HEROSELECT_FRAME_TILEID_CORNER;
+  vtx++;
+
+  if (ps_video_draw_mintile(WIDGET->minvtxv,vtxc,PS_HEROSELECT_FRAME_TSID)<0) return -1;
+  return 0;
+}
+
 /* Draw.
  */
 
 static int _ps_heroselect_draw(struct ps_widget *widget,int parentx,int parenty) {
-  if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
-  if (ps_video_draw_rect(parentx+widget->x+1,parenty+widget->y+1,widget->w-2,widget->h-2,0x80808080)<0) return -1;
-  if (ps_widget_draw_children(widget,parentx,parenty)<0) return -1;
+  const int minimum_size=PS_HEROSELECT_CONTENT_MARGIN<<1;
+  if ((widget->w<minimum_size)||(widget->h<minimum_size)) {
+    if (ps_heroselect_draw_too_small_fallback(widget,parentx,parenty)<0) return -1;
+  } else {
+    int x=parentx+widget->x+PS_HEROSELECT_BACKGROUND_MARGIN;
+    int y=parenty+widget->y+PS_HEROSELECT_BACKGROUND_MARGIN;
+    int w=widget->w-(PS_HEROSELECT_BACKGROUND_MARGIN<<1);
+    int h=widget->h-(PS_HEROSELECT_BACKGROUND_MARGIN<<1);
+    if (ps_heroselect_draw_content(widget,parentx,parenty,x,y,w,h)<0) return -1;
+    if (ps_heroselect_draw_frame(widget,parentx,parenty,x,y,w,h)<0) return -1;
+  }
   return 0;
 }
 
@@ -246,23 +346,28 @@ static int _ps_heroselect_measure(int *w,int *h,struct ps_widget *widget,int max
 static int _ps_heroselect_pack(struct ps_widget *widget) {
   int chw,chh,i;
   struct ps_widget *child;
+  
+  int x=PS_HEROSELECT_CONTENT_MARGIN;
+  int y=PS_HEROSELECT_CONTENT_MARGIN;
+  int w=widget->w-(PS_HEROSELECT_CONTENT_MARGIN<<1);
+  int h=widget->h-(PS_HEROSELECT_CONTENT_MARGIN<<1);
 
   /* First child is the device label. Take the full width, at top. */
   if (widget->childc>=1) {
     child=widget->childv[0];
-    if (ps_widget_measure(&chw,&chh,child,widget->w,widget->h)<0) return -1;
-    child->x=0;
-    child->y=0;
-    child->w=widget->w;
+    if (ps_widget_measure(&chw,&chh,child,w,h)<0) return -1;
+    child->x=x;
+    child->y=y;
+    child->w=w;
     child->h=chh;
   }
 
   /* Second child is click-in message or sprite. Either way, it gets centered. */
   if (widget->childc>=2) {
     child=widget->childv[1];
-    if (ps_widget_measure(&chw,&chh,child,widget->w,widget->h)<0) return -1;
-    child->x=(widget->w>>1)-(chw>>1);
-    child->y=(widget->h>>1)-(chh>>1);
+    if (ps_widget_measure(&chw,&chh,child,w,h)<0) return -1;
+    child->x=x+(w>>1)-(chw>>1);
+    child->y=y+(h>>1)-(chh>>1);
     child->w=chw;
     child->h=chh;
   }
@@ -270,10 +375,10 @@ static int _ps_heroselect_pack(struct ps_widget *widget) {
   /* Third child if present is the footer. Full width at bottom. */
   if (widget->childc>=3) {
     child=widget->childv[2];
-    if (ps_widget_measure(&chw,&chh,child,widget->w,widget->h)<0) return -1;
-    child->x=0;
-    child->y=widget->h-chh;
-    child->w=widget->w;
+    if (ps_widget_measure(&chw,&chh,child,w,h)<0) return -1;
+    child->x=x;
+    child->y=y+h-chh;
+    child->w=w;
     child->h=chh;
   }
   

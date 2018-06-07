@@ -13,6 +13,7 @@
 #include "gui/ps_gui.h"
 #include "game/ps_game.h"
 #include "input/ps_input_device.h"
+#include "video/ps_video.h"
 
 // Checking the ready state might be a little expensive, so only do it once per 15 frames.
 // That is desirable anyway, since we want a brief oh-shit delay after all players are ready.
@@ -47,10 +48,13 @@ static int _ps_assemblepage_init(struct ps_widget *widget) {
 
   struct ps_widget *child;
 
+  /*
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1; // titlelabel
   if (ps_widget_label_set_text(child,"Plunder Squad",-1)<0) return -1;
   if (ps_widget_label_set_size(child,24)<0) return -1;
   child->fgrgba=0xffffffff;
+  */
+  if (!(child=ps_widget_spawn(widget,&ps_widget_type_introtitle))) return -1;
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_heropacker))) return -1; // heropacker
 
@@ -101,6 +105,16 @@ static int _ps_assemblepage_pack(struct ps_widget *widget) {
     struct ps_widget *child=widget->childv[i];
     if (ps_widget_pack(child)<0) return -1;
   }
+  return 0;
+}
+
+/* Draw.
+ */
+
+static int _ps_assemblepage_draw(struct ps_widget *widget,int parentx,int parenty) {
+  if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
+  if (ps_video_flush_cached_drawing()<0) return -1;
+  if (ps_widget_draw_children(widget,parentx,parenty)<0) return -1;
   return 0;
 }
 
@@ -167,6 +181,7 @@ const struct ps_widget_type ps_widget_type_assemblepage={
   .init=_ps_assemblepage_init,
 
   .pack=_ps_assemblepage_pack,
+  .draw=_ps_assemblepage_draw,
 
   .update=_ps_assemblepage_update,
   .userinput=_ps_assemblepage_userinput,

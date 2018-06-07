@@ -3,6 +3,7 @@ General errors:
   blueprint:170, wizard, with vampire and bomber
   ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
   ...investigated, can't find the problem
+- blueprint:105: Do not persist switches
 
 Raspi errors:
 
@@ -19,7 +20,8 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Make at least one challenge for each player count (see etc/solutions-analysis.txt and test-examineres).
+- Header graphic on assemblepage in place of "Plunder Squad" text.
+- Draw UI sliders with tiles, not flat rectangles. (eg difficulty and length)
 
 Windows:
 - Build with GL2 support

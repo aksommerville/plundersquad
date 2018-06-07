@@ -76,7 +76,6 @@ static int ps_heropacker_obj_validate(const struct ps_widget *widget) {
 
 static int _ps_heropacker_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (widget->childc>0) {
-    if (ps_video_flush_cached_drawing()<0) return -1;
     if (ps_widget_draw_children(widget,parentx,parenty)<0) return -1;
   } else {
 

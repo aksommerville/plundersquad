@@ -25,6 +25,7 @@ extern const struct ps_widget_type ps_widget_type_inputcfgpacker; /* Principal c
 extern const struct ps_widget_type ps_widget_type_inputcfg; /* Panel in inputcfgpacker, for one device. */
 extern const struct ps_widget_type ps_widget_type_inputstatus; /* Shows current values from device. */
 extern const struct ps_widget_type ps_widget_type_awards; /* Shows each player and his award. */
+extern const struct ps_widget_type ps_widget_type_introtitle; /* Displays the words "Plunder Squad" nice and fancy. */
 
 /* Assemblepage.
  *****************************************************************************/

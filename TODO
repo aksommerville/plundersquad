@@ -20,8 +20,6 @@ Windows errors:
 MacOS errors:
 
 Actionable:
-- Header graphic on assemblepage in place of "Plunder Squad" text.
-- Draw UI sliders with tiles, not flat rectangles. (eg difficulty and length)
 
 Windows:
 - Build with GL2 support

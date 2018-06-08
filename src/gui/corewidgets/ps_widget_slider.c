@@ -7,11 +7,14 @@
 #include "../ps_widget.h"
 #include "ps_corewidgets.h"
 #include "video/ps_video.h"
+#include "akgl/akgl.h"
 
 #define PS_SLIDER_BAR_WIDTH    100
 #define PS_SLIDER_BAR_HEIGHT    12
 #define PS_SLIDER_SPACING        5 /* Between label and bar. */
 #define PS_SLIDER_LABEL_LIMIT   20
+
+#define PS_SLIDER_VTXC ((PS_SLIDER_BAR_WIDTH/PS_TILESIZE)+2)
 
 /* Object definition.
  */
@@ -26,6 +29,7 @@ struct ps_widget_slider {
   int textsize;
   uint32_t locolor,hicolor;
   struct ps_callback cb;
+  struct akgl_vtx_maxtile vtxv[PS_SLIDER_VTXC];
 };
 
 #define WIDGET ((struct ps_widget_slider*)widget)
@@ -93,26 +97,21 @@ static uint32_t ps_rgba_blend(uint32_t a,uint32_t b,int p,int c) {
   return dst;
 }
 
-/* Draw.
+/* Draw the slider bar and thumb with maxtile, using our built-in vertex buffer.
  */
 
-static int _ps_slider_draw(struct ps_widget *widget,int parentx,int parenty) {
+static int ps_slider_draw_bar(struct ps_widget *widget,int parentx,int parenty) {
 
-  /* Bar's size is my full height and a constant width, at the right. */
   int barx=parentx+widget->x+widget->w-PS_SLIDER_BAR_WIDTH;
   int bary=parenty+widget->y;
   int barw=PS_SLIDER_BAR_WIDTH;
-  int barh=widget->h;
-  if (ps_video_draw_rect(barx,bary,barw,barh,widget->bgrgba)<0) return -1;
-
-  /* Calculate size and position of thumb. */
+  int barh=PS_TILESIZE;
+  
   int valuec=WIDGET->hi-WIDGET->lo+1; // How many possible values?
   if (valuec<1) valuec=1;
   int valuep=WIDGET->v-WIDGET->lo; // Normalized value, in case (lo) is not zero.
   if (valuep<0) valuep=0; else if (valuep>=valuec) valuep=valuec-1;
-  int thumbw=barw/valuec; // With few values, thumb is proportionately wide.
-  if (thumbw<barh) thumbw=barh; // Thumb is never narrower than square.
-  if (thumbw>barw) thumbw=barw; // Probably not possible, but keep the thumb size within the bar size.
+  int thumbw=PS_TILESIZE;
   int thumblimit=barw-thumbw; // Maximum position for thumb's left edge.
   int thumbx;
   if (valuec<2) {
@@ -123,12 +122,61 @@ static int _ps_slider_draw(struct ps_widget *widget,int parentx,int parenty) {
     else if (thumbx>thumblimit) thumbx=thumblimit;
   }
   thumbx+=barx; // Offset by bar's position.
+
+  /* Initialize vertices. */
+  //WIDGET->vtxv[0].x=?;
+  WIDGET->vtxv[0].y=parenty+widget->y+(widget->h>>1);
+  WIDGET->vtxv[0].tileid=0x74; // [73,74,75],(76)
+  WIDGET->vtxv[0].size=PS_TILESIZE;
+  WIDGET->vtxv[0].ta=0;
+  WIDGET->vtxv[0].pr=0x80;
+  WIDGET->vtxv[0].pg=0x80;
+  WIDGET->vtxv[0].pb=0x80;
+  WIDGET->vtxv[0].a=0xff;
+  WIDGET->vtxv[0].t=0;
+  WIDGET->vtxv[0].xform=AKGL_XFORM_NONE;
+  int i=1; for (;i<PS_SLIDER_VTXC;i++) memcpy(WIDGET->vtxv+i,WIDGET->vtxv,sizeof(struct akgl_vtx_maxtile));
+
+  // Order of vertices matters.
+  int vtx_barc=PS_SLIDER_VTXC-3;
+  struct akgl_vtx_maxtile *vtx_barv=WIDGET->vtxv;
+  struct akgl_vtx_maxtile *vtx_left=WIDGET->vtxv+vtx_barc;
+  struct akgl_vtx_maxtile *vtx_right=vtx_left+1;
+  struct akgl_vtx_maxtile *vtx_thumb=vtx_right+1;
+
+  vtx_left->tileid=0x73;
+  vtx_right->tileid=0x75;
+  vtx_thumb->tileid=0x76;
   
   uint32_t thumbcolor=widget->fgrgba;
   if (WIDGET->locolor||WIDGET->hicolor) {
     thumbcolor=ps_rgba_blend(WIDGET->locolor,WIDGET->hicolor,WIDGET->v-WIDGET->lo,WIDGET->hi-WIDGET->lo+1);
   }
-  if (ps_video_draw_rect(thumbx,bary,thumbw,barh,thumbcolor)<0) return -1;
+  vtx_thumb->pr=thumbcolor>>24;
+  vtx_thumb->pg=thumbcolor>>16;
+  vtx_thumb->pb=thumbcolor>>8;
+
+  vtx_left->x=barx+(PS_TILESIZE>>1);
+  vtx_right->x=barx+barw-(PS_TILESIZE>>1);
+  vtx_thumb->x=thumbx+(thumbw>>1);
+
+  int barleft=barx+(barw>>1)-((vtx_barc*PS_TILESIZE)>>1);
+  int x=barleft+(PS_TILESIZE>>1);
+  for (i=0;i<vtx_barc;i++,x+=PS_TILESIZE) {
+    vtx_barv[i].x=x;
+  }
+
+  if (ps_video_draw_maxtile(WIDGET->vtxv,PS_SLIDER_VTXC,1)<0) return -1;
+
+  return 0;  
+}
+
+/* Draw.
+ */
+
+static int _ps_slider_draw(struct ps_widget *widget,int parentx,int parenty) {
+
+  int barx=parentx+widget->x+widget->w-PS_SLIDER_BAR_WIDTH;
 
   /* Label is left of the bar. */
   if (WIDGET->textc>0) {
@@ -139,6 +187,9 @@ static int _ps_slider_draw(struct ps_widget *widget,int parentx,int parenty) {
     if (ps_video_text_add(WIDGET->textsize,WIDGET->textcolor,textx,texty,WIDGET->text,WIDGET->textc)<0) return -1;
     if (ps_video_text_end(-1)<0) return -1;
   }
+
+  /* Draw the bar with AKGL maxtile. */
+  if (ps_slider_draw_bar(widget,parentx,parenty)<0) return -1;
 
   return 0;
 }

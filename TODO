@@ -3,7 +3,6 @@ General errors:
   blueprint:170, wizard, with vampire and bomber
   ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
   ...investigated, can't find the problem
-- blueprint:105: Do not persist switches
 
 Raspi errors:
 
@@ -20,6 +19,9 @@ Windows errors:
 MacOS errors:
 
 Actionable:
+- Establish and enforce difficulty standards (eg die-cross-heal should be like 5 or 6 minimum).
+- assemblepage sub-menu per user (quit, audio, input, ...)
+- Remove return switches if they might be used to cheat challenges. (eg the sokoban one with three dictionaries and skeletons)
 
 Windows:
 - Build with GL2 support

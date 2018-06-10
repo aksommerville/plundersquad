@@ -12,6 +12,10 @@
 #include "gui/ps_gui.h"
 #include "game/ps_game.h"
 #include "input/ps_input.h"
+#include "os/ps_clockassist.h"
+
+// (us) Must wait so long after construction before selecting from menu.
+#define PS_GAMEOVERPAGE_INITIAL_INPUT_SUPPRESSION_TIME (1*1000000)
 
 static int ps_gameoverpage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
 
@@ -20,6 +24,7 @@ static int ps_gameoverpage_cb_menu(struct ps_widget *menu,struct ps_widget *widg
 
 struct ps_widget_gameoverpage {
   struct ps_widget hdr;
+  int64_t starttime;
 };
 
 #define WIDGET ((struct ps_widget_gameoverpage*)widget)
@@ -34,6 +39,8 @@ static void _ps_gameoverpage_del(struct ps_widget *widget) {
  */
 
 static int _ps_gameoverpage_init(struct ps_widget *widget) {
+
+  WIDGET->starttime=ps_time_now();
 
   widget->bgrgba=0x40b060c0;
 
@@ -98,10 +105,33 @@ static int _ps_gameoverpage_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Test initial input suppression.
+ */
+
+static int ps_gameoverpage_initial_input_suppression_in_force(struct ps_widget *widget) {
+
+  // Already checked, and suppression is expired.
+  if (!WIDGET->starttime) return 0;
+
+  int64_t now=ps_time_now();
+  int64_t elapsed=now-WIDGET->starttime;
+  if (elapsed>=PS_GAMEOVERPAGE_INITIAL_INPUT_SUPPRESSION_TIME) {
+    WIDGET->starttime=0; // Signal future calls that we are no longer suppressed.
+    return 0;
+  }
+
+  return 1;
+}
+
 /* Forward input to menu.
  */
 
 static int _ps_gameoverpage_userinput(struct ps_widget *widget,int plrid,int btnid,int value) {
+
+  if (ps_gameoverpage_initial_input_suppression_in_force(widget)) {
+    return 0;
+  }
+
   struct ps_widget *menu=ps_gameoverpage_get_menu(widget);
   return ps_widget_userinput(menu,plrid,btnid,value);
 }

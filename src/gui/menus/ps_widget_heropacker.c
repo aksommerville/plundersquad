@@ -362,6 +362,7 @@ static struct ps_widget *ps_heropacker_add_player(struct ps_widget *widget,struc
 
   // If this is the initial setup, let it roll. Otherwise, animate all children into new positions.
   if (!WIDGET->startup) {
+    if (ps_widget_heropanel_activate(heropanel)<0) return 0;
     if (ps_heropacker_animate_children(widget)<0) return 0;
   }
   

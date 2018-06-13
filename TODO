@@ -10,6 +10,10 @@ Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
 - Another freeze at quit on Linux. ALSA?
+    CLOCK:ERROR: Shutdown may have stalled. Aborting hard. [src/os/ps_emergency_abort.c:29]
+    CLOCK:ERROR: Last application activity was logged 2.994605 seconds ago:
+      Closing ALSA connection.
+     [src/os/ps_emergency_abort.c:36]
 
 Windows errors:
 - Freeze on startup, Windows:

@@ -3,6 +3,7 @@ General errors:
   blueprint:170, wizard, with vampire and bomber
   ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
   ...investigated, can't find the problem
+- Wizard vs Lobster: magic spell causes a bunch of hurt effects but doesn't seem to actually hurt the lobster
 
 Raspi errors:
 

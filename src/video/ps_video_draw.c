@@ -243,16 +243,16 @@ int ps_video_draw_sprites(const struct ps_sprgrp *grp,int offx,int offy) {
  
 int ps_video_draw_mintile(const struct akgl_vtx_mintile *vtxv,int vtxc,uint8_t tsid) {
   if ((vtxc<0)||(vtxc&&!vtxv)) return -1;
+  if (!vtxc) return 0;
 
-  struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,tsid);
-  if (!tilesheet) {
-    ps_log(VIDEO,ERROR,"Tilesheet %d not found.",tsid);
-    return -1;
+  if (ps_video.vtxc_mintile&&(ps_video.tsid_mintile!=tsid)) {
+    if (ps_video_flush_cached_drawing()<0) return -1;
   }
+  ps_video.tsid_mintile=tsid;
 
-  if (akgl_program_mintile_draw(
-    ps_video.program_mintile,tilesheet->texture,vtxv,vtxc,PS_TILESIZE
-  )<0) return -1;
+  if (ps_video_vtxv_mintile_require(vtxc)<0) return -1;
+  memcpy(ps_video.vtxv_mintile+ps_video.vtxc_mintile,vtxv,sizeof(struct akgl_vtx_mintile)*vtxc);
+  ps_video.vtxc_mintile+=vtxc;
   
   return 0;
 }
@@ -319,6 +319,18 @@ int ps_video_flush_cached_drawing() {
   if (ps_video.vtxc_triangle) {
     if (akgl_program_raw_draw_triangles(ps_video.program_raw,ps_video.vtxv_triangle,ps_video.vtxc_triangle)<0) return -1;
     ps_video.vtxc_triangle=0;
+  }
+
+  if (ps_video.vtxc_mintile) {
+    struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,ps_video.tsid_mintile);
+    if (!tilesheet) {
+      ps_log(VIDEO,ERROR,"Tilesheet %d not found.",ps_video.tsid_mintile);
+      return -1;
+    }
+    if (akgl_program_mintile_draw(
+      ps_video.program_mintile,tilesheet->texture,ps_video.vtxv_mintile,ps_video.vtxc_mintile,PS_TILESIZE
+    )<0) return -1;
+    ps_video.vtxc_mintile=0;
   }
 
   if (ps_video.vtxc_maxtile) {

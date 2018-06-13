@@ -4,6 +4,8 @@
 #ifndef PS_MENUS_H
 #define PS_MENUS_H
 
+#include "util/ps_callback.h"
+
 struct ps_input_device;
 struct ps_game;
 struct ps_res_trdef;
@@ -18,6 +20,7 @@ extern const struct ps_widget_type ps_widget_type_debugmenu; /* Special pause me
 extern const struct ps_widget_type ps_widget_type_audiocfgpage; /* Set audio levels. */
 
 extern const struct ps_widget_type ps_widget_type_heropacker; /* Principal component of assemblepage. */
+extern const struct ps_widget_type ps_widget_type_heropanel; /* Component template of heropacker, one per device. */
 extern const struct ps_widget_type ps_widget_type_heroselect; /* Single player box in assemblepage. */
 extern const struct ps_widget_type ps_widget_type_sprite; /* General-purpose sprite view. */
 extern const struct ps_widget_type ps_widget_type_report; /* Game-over report. */
@@ -30,14 +33,32 @@ extern const struct ps_widget_type ps_widget_type_introtitle; /* Displays the wo
 /* Assemblepage.
  *****************************************************************************/
 
-int ps_widget_heroselect_set_device(struct ps_widget *widget,struct ps_input_device *device);
-struct ps_input_device *ps_widget_heroselect_get_device(const struct ps_widget *widget);
 int ps_widget_heroselect_set_plrdefid(struct ps_widget *widget,int plrdefid);
 int ps_widget_heroselect_get_plrdefid(const struct ps_widget *widget);
 int ps_widget_heroselect_set_palette(struct ps_widget *widget,int palette);
 int ps_widget_heroselect_get_palette(const struct ps_widget *widget);
-int ps_widget_heroselect_is_pending(const struct ps_widget *widget); // => nonzero if user is choosing, not ready
-int ps_widget_heroselect_is_ready(const struct ps_widget *widget); // => nonzero if selection is complete
+int ps_widget_heroselect_change_plrdefid(struct ps_widget *widget,int d);
+int ps_widget_heroselect_change_palette(struct ps_widget *widget,int d);
+int ps_widget_heroselect_set_callback(struct ps_widget *widget,struct ps_callback cb);
+
+#define PS_HEROPANEL_STATE_INIT        0 /* Not fully initialized, eg device unset. */
+#define PS_HEROPANEL_STATE_AVAILABLE   1 /* "click in" */
+#define PS_HEROPANEL_STATE_CHOOSING    2 /* Selecting plrdef and palette. */
+#define PS_HEROPANEL_STATE_READY       3 /* Waiting for other players. */
+#define PS_HEROPANEL_STATE_CONFIGURING 4 /* Configuring input device. */
+#define PS_HEROPANEL_STATE_MENU        5 /* Fooling around in extras menu. */
+
+int ps_widget_heropanel_set_device(struct ps_widget *widget,struct ps_input_device *device);
+struct ps_input_device *ps_widget_heropanel_get_device(const struct ps_widget *widget);
+int ps_heropanel_get_state(const struct ps_widget *widget); // => -1 or any state listed above.
+int ps_heropanel_state_is_pending(int state); // => nonzero if this state should prevent advancing main UI.
+int ps_heropanel_state_is_ready(int state); // => nonzero if this state is committed and ready to advance main UI.
+int ps_widget_heropanel_get_plrdefid(const struct ps_widget *widget);
+int ps_widget_heropanel_get_palette(const struct ps_widget *widget);
+int ps_widget_heropanel_is_pending(const struct ps_widget *widget); // => nonzero if user is choosing, not ready
+int ps_widget_heropanel_is_ready(const struct ps_widget *widget); // => nonzero if selection is complete
+int ps_widget_heropanel_activate(struct ps_widget *widget);
+int ps_widget_heropanel_deactivate(struct ps_widget *widget);
 
 int ps_widget_heropacker_count_active_players(const struct ps_widget *widget);
 int ps_widget_heropacker_select_plrdefid(struct ps_widget *widget);

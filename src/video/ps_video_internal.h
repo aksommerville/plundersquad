@@ -72,6 +72,9 @@ extern struct ps_video {
   struct akgl_vtx_maxtile *vtxv_maxtile;
   int vtxc_maxtile,vtxa_maxtile;
   uint8_t tsid_maxtile;
+  struct akgl_vtx_mintile *vtxv_mintile;
+  int vtxc_mintile,vtxa_mintile;
+  uint8_t tsid_mintile;
   
 } ps_video;
 
@@ -90,6 +93,7 @@ void *ps_video_vtxv_add(int addc);
 int ps_video_vtxv_triangle_require(int addc);
 int ps_video_vtxv_textile_require(int addc);
 int ps_video_vtxv_maxtile_require(int addc);
+int ps_video_vtxv_mintile_require(int addc);
 
 int ps_video_redraw_game_only();
 

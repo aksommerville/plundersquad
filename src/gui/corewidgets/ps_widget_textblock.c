@@ -17,6 +17,7 @@ struct ps_widget_textblock {
   struct ps_linebreaker lines;
   int font_resid;
   int size;
+  int horzalign,vertalign;
 };
 
 #define WIDGET ((struct ps_widget_textblock*)widget)
@@ -37,6 +38,8 @@ static int _ps_textblock_init(struct ps_widget *widget) {
   widget->fgrgba=0x000000ff;
   WIDGET->font_resid=0;
   WIDGET->size=12;
+  WIDGET->horzalign=-1;
+  WIDGET->vertalign=-1;
   return 0;
 }
 
@@ -45,13 +48,35 @@ static int _ps_textblock_init(struct ps_widget *widget) {
 
 static int _ps_textblock_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
-  if (WIDGET->textc) {
+  if (WIDGET->textc&&WIDGET->lines.c) {
     if (ps_video_text_begin()<0) return -1;
-    int x=parentx+widget->x+(WIDGET->size>>2);
-    int y=parenty+widget->y+(WIDGET->size>>1);
+
+    int y;
+    if (WIDGET->vertalign<0) {
+      y=parenty+widget->y+(WIDGET->size>>1);
+    } else if (WIDGET->vertalign>0) {
+      y=parenty+widget->y+widget->h-(WIDGET->size>>1)-((WIDGET->lines.c-1)*WIDGET->size);
+    } else {
+      int texth=WIDGET->size*WIDGET->lines.c;
+      int top=parenty+widget->y+(widget->h>>1)-(texth>>1);
+      y=top+(WIDGET->size>>1);
+    }
+    
     int i=WIDGET->lines.c;
     const struct ps_linebreaker_line *line=WIDGET->lines.v;
     for (;i-->0;line++) {
+    
+      int x;
+      if (WIDGET->horzalign<0) {
+        x=parentx+widget->x+(WIDGET->size>>2);
+      } else if (WIDGET->horzalign>0) {
+        x=parentx+widget->x+widget->w-((WIDGET->size>>1)*line->c)+(WIDGET->size>>2);
+      } else {
+        int textw=line->c*(WIDGET->size>>1);
+        int left=parentx+widget->x+(widget->w>>1)-(textw>>1);
+        x=left+(WIDGET->size>>2);
+      }
+      
       if (ps_video_text_add(WIDGET->size,widget->fgrgba,x,y,WIDGET->text+line->p,line->c)<0) return -1;
       y+=WIDGET->size;
     }
@@ -134,5 +159,15 @@ int ps_widget_textblock_set_text(struct ps_widget *widget,const char *src,int sr
 
   if (ps_linebreaker_rebuild(&WIDGET->lines,WIDGET->text,WIDGET->textc,WIDGET->size>>1,widget->w)<0) return -1;
   
+  return 0;
+}
+
+/* Set alignment.
+ */
+ 
+int ps_widget_textblock_set_alignment(struct ps_widget *widget,int horz,int vert) {
+  if (!widget||(widget->type!=&ps_widget_type_textblock)) return -1;
+  WIDGET->horzalign=(horz<0)?-1:(horz>0)?1:0;
+  WIDGET->vertalign=(vert<0)?-1:(vert>0)?1:0;
   return 0;
 }

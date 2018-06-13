@@ -1,4 +1,7 @@
 /* ps_widget_heropacker.c
+ * The main child of assemblepage, containing a heropanel for each usable input device.
+ * Our responsibility is mostly the positioning of heropanels.
+ * We also deliver a fallback message when no devices are present.
  */
 
 #include "ps.h"
@@ -22,7 +25,7 @@
 static int ps_heropacker_cb_connect(struct ps_input_device *device,void *userdata);
 static int ps_heropacker_cb_disconnect(struct ps_input_device *device,void *userdata);
 static struct ps_widget *ps_heropacker_add_player(struct ps_widget *widget,struct ps_input_device *device);
-static struct ps_widget *ps_heropacker_get_heroselect_for_plrid(const struct ps_widget *widget,struct ps_input_device *device);
+static struct ps_widget *ps_heropacker_get_heropanel_for_plrid(const struct ps_widget *widget,struct ps_input_device *device);
 
 /* Object definition.
  */
@@ -261,18 +264,18 @@ const struct ps_widget_type ps_widget_type_heropacker={
 /* Find child by input device.
  */
  
-static struct ps_widget *ps_heropacker_get_heroselect_for_device(const struct ps_widget *widget,const struct ps_input_device *device) {
+static struct ps_widget *ps_heropacker_get_heropanel_for_device(const struct ps_widget *widget,const struct ps_input_device *device) {
   int i=widget->childc; while (i-->0) {
-    struct ps_widget *heroselect=widget->childv[i];
-    if (ps_widget_heroselect_get_device(heroselect)==device) {
-      return heroselect;
+    struct ps_widget *heropanel=widget->childv[i];
+    if (ps_widget_heropanel_get_device(heropanel)==device) {
+      return heropanel;
     }
   }
   return 0;
 }
 
-/* Select plrdefid for new heroselect.
- * Consult the resource store, highscores, and heroselects already instantiated.
+/* Select plrdefid for new heropanel.
+ * Consult the resource store, highscores, and heropanels already instantiated.
  * Never fails. Returns 1 if anything goes wrong.
  */
 
@@ -305,12 +308,12 @@ int ps_widget_heropacker_select_plrdefid(struct ps_widget *widget) {
 
   /* Lose points for each child currently displaying this one, more if committed. */
   for (i=widget->childc;i-->0;) {
-    struct ps_widget *heroselect=widget->childv[i];
-    int plrdefid=ps_widget_heroselect_get_plrdefid(heroselect);
+    struct ps_widget *heropanel=widget->childv[i];
+    int plrdefid=ps_widget_heropanel_get_plrdefid(heropanel);
     if (plrdefid<0) continue;
     int p=ps_restype_res_search(restype,plrdefid);
     if (p<0) continue;
-    if (ps_widget_heroselect_is_ready(heroselect)) {
+    if (ps_widget_heropanel_is_ready(heropanel)) {
       ratingv[p]-=10;
     } else {
       ratingv[p]-=5;
@@ -350,30 +353,28 @@ int ps_widget_heropacker_select_plrdefid(struct ps_widget *widget) {
 static struct ps_widget *ps_heropacker_add_player(struct ps_widget *widget,struct ps_input_device *device) {
 
   // Already have it? That's possible.
-  struct ps_widget *heroselect=ps_heropacker_get_heroselect_for_device(widget,device);
-  if (heroselect) return heroselect;
+  struct ps_widget *heropanel=ps_heropacker_get_heropanel_for_device(widget,device);
+  if (heropanel) return heropanel;
 
   // Create the new widget.
-  if (!(heroselect=ps_widget_spawn(widget,&ps_widget_type_heroselect))) return 0;
-  if (ps_widget_heroselect_set_device(heroselect,device)<0) return 0;
-  if (ps_widget_heroselect_set_plrdefid(heroselect,1)<0) return 0; // This is a dummy until the heroselect clicks in
-  if (ps_widget_heroselect_set_palette(heroselect,widget->childc-1)<0) return 0;
+  if (!(heropanel=ps_widget_spawn(widget,&ps_widget_type_heropanel))) return 0;
+  if (ps_widget_heropanel_set_device(heropanel,device)<0) return 0;
 
   // If this is the initial setup, let it roll. Otherwise, animate all children into new positions.
   if (!WIDGET->startup) {
     if (ps_heropacker_animate_children(widget)<0) return 0;
   }
   
-  return heroselect;
+  return heropanel;
 }
 
 /* Remove player.
  */
 
 static int ps_heropacker_remove_player(struct ps_widget *widget,struct ps_input_device *device) {
-  struct ps_widget *heroselect=ps_heropacker_get_heroselect_for_device(widget,device);
-  if (!heroselect) return 0;
-  if (ps_widget_remove_child(widget,heroselect)<0) return -1;
+  struct ps_widget *heropanel=ps_heropacker_get_heropanel_for_device(widget,device);
+  if (!heropanel) return 0;
+  if (ps_widget_remove_child(widget,heropanel)<0) return -1;
   if (!WIDGET->startup) {
     if (ps_heropacker_animate_children(widget)<0) return -1;
   }
@@ -409,9 +410,9 @@ int ps_widget_heropacker_count_active_players(const struct ps_widget *widget) {
   if (!widget||(widget->type!=&ps_widget_type_heropacker)) return 0;
   int playerc=0;
   int i=widget->childc; while (i-->0) {
-    struct ps_widget *heroselect=widget->childv[i];
-    if (!heroselect||(heroselect->type!=&ps_widget_type_heroselect)) continue;
-    if (ps_widget_heroselect_is_pending(heroselect)||ps_widget_heroselect_is_ready(heroselect)) {
+    struct ps_widget *heropanel=widget->childv[i];
+    if (!heropanel||(heropanel->type!=&ps_widget_type_heropanel)) continue;
+    if (ps_widget_heropanel_is_pending(heropanel)||ps_widget_heropanel_is_ready(heropanel)) {
       playerc++;
     }
   }

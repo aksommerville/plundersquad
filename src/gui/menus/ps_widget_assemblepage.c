@@ -126,9 +126,9 @@ static int ps_assemblepage_poll_ready(struct ps_widget *widget) {
   struct ps_widget *heropacker=ps_assemblepage_get_heropacker(widget);
   int readyc=0;
   int i=heropacker->childc; while (i-->0) {
-    struct ps_widget *heroselect=heropacker->childv[i];
-    if (ps_widget_heroselect_is_pending(heroselect)) return 0;
-    if (ps_widget_heroselect_is_ready(heroselect)) readyc++;
+    struct ps_widget *heropanel=heropacker->childv[i];
+    if (ps_widget_heropanel_is_pending(heropanel)) return 0;
+    if (ps_widget_heropanel_is_ready(heropanel)) readyc++;
   }
   if (readyc) return 1;
   return 0;
@@ -169,6 +169,39 @@ static int _ps_assemblepage_userinput(struct ps_widget *widget,int plrid,int btn
   return ps_widget_userinput(heropacker,plrid,btnid,value);
 }
 
+/* Set activation state (is there a modal widget on top of us?)
+ */
+
+static int _ps_assemblepage_pageactivate(struct ps_widget *widget) {
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *child=widget->childv[i];
+    if (child->type==&ps_widget_type_heropacker) {
+      int j=child->childc; while (j-->0) {
+        struct ps_widget *grandchild=child->childv[j];
+        if (grandchild->type==&ps_widget_type_heropanel) {
+          if (ps_widget_heropanel_activate(grandchild)<0) return -1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+static int _ps_assemblepage_pagedeactivate(struct ps_widget *widget) {
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *child=widget->childv[i];
+    if (child->type==&ps_widget_type_heropacker) {
+      int j=child->childc; while (j-->0) {
+        struct ps_widget *grandchild=child->childv[j];
+        if (grandchild->type==&ps_widget_type_heropanel) {
+          if (ps_widget_heropanel_deactivate(grandchild)<0) return -1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -185,6 +218,8 @@ const struct ps_widget_type ps_widget_type_assemblepage={
 
   .update=_ps_assemblepage_update,
   .userinput=_ps_assemblepage_userinput,
+  .pageactivate=_ps_assemblepage_pageactivate,
+  .pagedeactivate=_ps_assemblepage_pagedeactivate,
 
 };
 
@@ -205,19 +240,19 @@ static int ps_assemblepage_commit_to_game(struct ps_widget *widget) {
 
   int playerc=0;
   for (i=heropacker->childc;i-->0;) {
-    struct ps_widget *heroselect=heropacker->childv[i];
-    if (ps_widget_heroselect_is_ready(heroselect)) {
+    struct ps_widget *heropanel=heropacker->childv[i];
+    if (ps_widget_heropanel_is_ready(heropanel)) {
       if (playerc>=PS_PLAYER_LIMIT) {
-        struct ps_input_device *device=ps_widget_heroselect_get_device(heroselect);
+        struct ps_input_device *device=ps_widget_heropanel_get_device(heropanel);
         ps_log(GUI,ERROR,"Ignoring player plrdef:%d on device '%.*s'; 8 players already selected.",
-          ps_widget_heroselect_get_plrdefid(heroselect),
+          ps_widget_heropanel_get_plrdefid(heropanel),
           device?device->namec:0,device?device->name:""
         );
       } else {
         struct ps_plrcfg *plrcfg=playerv+playerc++;
-        plrcfg->plrdefid=ps_widget_heroselect_get_plrdefid(heroselect);
-        plrcfg->palette=ps_widget_heroselect_get_palette(heroselect);
-        plrcfg->device=ps_widget_heroselect_get_device(heroselect);
+        plrcfg->plrdefid=ps_widget_heropanel_get_plrdefid(heropanel);
+        plrcfg->palette=ps_widget_heropanel_get_palette(heropanel);
+        plrcfg->device=ps_widget_heropanel_get_device(heropanel);
       }
     }
   }

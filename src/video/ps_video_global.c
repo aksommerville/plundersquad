@@ -151,6 +151,7 @@ void ps_video_quit() {
   if (ps_video.vtxv_triangle) free(ps_video.vtxv_triangle);
   if (ps_video.vtxv_textile) free(ps_video.vtxv_textile);
   if (ps_video.vtxv_maxtile) free(ps_video.vtxv_maxtile);
+  if (ps_video.vtxv_mintile) free(ps_video.vtxv_mintile);
 
   memset(&ps_video,0,sizeof(struct ps_video));
 }
@@ -544,6 +545,20 @@ int ps_video_vtxv_maxtile_require(int addc) {
   if (!nv) return -1;
   ps_video.vtxv_maxtile=nv;
   ps_video.vtxa_maxtile=na;
+  return 0;
+}
+
+int ps_video_vtxv_mintile_require(int addc) {
+  if (addc<1) return 0;
+  if (ps_video.vtxc_mintile>INT_MAX-addc) return -1;
+  int na=ps_video.vtxc_mintile+addc;
+  if (na<=ps_video.vtxa_mintile) return 0;
+  if (na<INT_MAX-32) na=(na+32)&~31;
+  if (na>INT_MAX/sizeof(struct akgl_vtx_mintile)) return -1;
+  void *nv=realloc(ps_video.vtxv_mintile,sizeof(struct akgl_vtx_mintile)*na);
+  if (!nv) return -1;
+  ps_video.vtxv_mintile=nv;
+  ps_video.vtxa_mintile=na;
   return 0;
 }
 

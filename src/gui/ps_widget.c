@@ -158,6 +158,27 @@ struct ps_widget *ps_widget_spawn(struct ps_widget *parent,const struct ps_widge
   return child;
 }
 
+/* Spawn replacement child.
+ */
+ 
+struct ps_widget *ps_widget_spawn_replacement(struct ps_widget *parent,int childp,const struct ps_widget_type *type) {
+  if (!parent) return 0;
+  if ((childp<0)||(childp>=parent->childc)) return 0;
+  struct ps_widget *ochild=parent->childv[childp];
+  struct ps_widget *nchild=ps_widget_new(type);
+  if (!nchild) return 0;
+  if (ps_widget_remove_child(parent,ochild)<0) {
+    ps_widget_del(nchild);
+    return 0;
+  }
+  if (ps_widget_insert_child(parent,childp,nchild)<0) {
+    ps_widget_del(nchild);
+    return 0;
+  }
+  ps_widget_del(nchild);
+  return nchild;
+}
+
 /* Remove from parent, then repack parent.
  */
  

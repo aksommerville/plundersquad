@@ -12,6 +12,9 @@
 #include "gui/ps_keyfocus.h"
 #include "ps_corewidgets.h"
 #include "video/ps_video.h"
+#include "os/ps_clockassist.h"
+
+#define PS_ROOT_PAGE_ACTIVATION_DELAY 50000
 
 static struct ps_widget *ps_root_get_active_child(const struct ps_widget *widget);
 static int ps_root_set_track_hover(struct ps_widget *widget,struct ps_widget *track);
@@ -33,6 +36,8 @@ struct ps_widget_root {
   int dragdx,dragdy; // Position of cursor relative to track_click, if it is draggable.
   struct ps_keyfocus *keyfocus;
   int mod_shift;
+  int64_t page_activation_time;
+  struct ps_widget *recent_active_child; // WEAK, and may be invalid -- You must confirm it's in (childv) before using.
 };
 
 #define WIDGET ((struct ps_widget_root*)widget)
@@ -119,12 +124,49 @@ static int _ps_root_pack(struct ps_widget *widget) {
   return 0;
 }
 
+/* Return nonzero if WIDGET->recent_active_child is still among my children.
+ * DO NOT use ps_widget_has_child() for this, since that dereferences the child.
+ */
+
+static int ps_root_recent_active_child_is_valid(const struct ps_widget *widget) {
+  if (!WIDGET->recent_active_child) return 0;
+  int i=widget->childc; while (i-->0) {
+    if (widget->childv[i]==WIDGET->recent_active_child) return 1;
+  }
+  return 0;
+}
+
 /* Update.
  */
 
 static int _ps_root_update(struct ps_widget *widget) {
   struct ps_widget *active=ps_root_get_active_child(widget);
+
+  /* Call pageactivate and pagedeactivate as needed. */
+  if (active!=WIDGET->recent_active_child) {
+    if (ps_root_recent_active_child_is_valid(widget)) {
+      if (WIDGET->recent_active_child->type->pagedeactivate) {
+        if (WIDGET->recent_active_child->type->pagedeactivate(WIDGET->recent_active_child)<0) return -1;
+      }
+    }
+    WIDGET->recent_active_child=active;
+    if (active) WIDGET->page_activation_time=ps_time_now()+PS_ROOT_PAGE_ACTIVATION_DELAY;
+  } else if (WIDGET->page_activation_time) {
+    if (active) {
+      if (ps_time_now()>=WIDGET->page_activation_time) {
+        WIDGET->page_activation_time=0;
+        if (active->type->pageactivate) {
+          if (active->type->pageactivate(active)<0) return -1;
+        }
+      }
+    } else {
+      WIDGET->page_activation_time=0;
+    }
+  }
+
+  /* Update. */
   if (active) return ps_widget_update(active);
+  
   return 0;
 }
 
@@ -367,6 +409,7 @@ const struct ps_widget_type ps_widget_type_root={
   .mousewheel=_ps_root_mousewheel,
   .key=_ps_root_key,
   .userinput=_ps_root_userinput,
+  .update=_ps_root_update,
 
   .activate=_ps_root_activate,
   .cancel=_ps_root_cancel,

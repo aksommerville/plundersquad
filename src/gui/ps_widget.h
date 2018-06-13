@@ -56,6 +56,13 @@ struct ps_widget_type {
   int (*focus)(struct ps_widget *widget);
   int (*unfocus)(struct ps_widget *widget);
 
+  /* Only relevant to immediate children of root.
+   * Root calls (pageactivate) when a page becomes topmost, after a tasteful interval.
+   * Pages should react to this by enabling or disabling any out-of-band input listeners they've got running.
+   */
+  int (*pageactivate)(struct ps_widget *widget);
+  int (*pagedeactivate)(struct ps_widget *widget);
+
 };
 
 /* The base widget object.
@@ -103,6 +110,12 @@ int ps_widget_get_index_of_child(const struct ps_widget *parent,const struct ps_
  * This returns a WEAK reference.
  */
 struct ps_widget *ps_widget_spawn(struct ps_widget *parent,const struct ps_widget_type *type);
+
+/* Create a new widget and install it as a replacement for an existing child.
+ * Fails if (childp) is out of range.
+ * Returns WEAK reference.
+ */
+struct ps_widget *ps_widget_spawn_replacement(struct ps_widget *parent,int childp,const struct ps_widget_type *type);
 
 /* Convert between screen space and widget space.
  * Screen space is a constant size (PS_SCREENW,PS_SCREENH).

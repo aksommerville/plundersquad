@@ -114,5 +114,14 @@ int ps_linebreaker_rebuild(
     srcp+=line->c;
   }
 
+  /* One more pass, necessitated by addition of center and right alignment in ps_widget_textblock.
+   * Trim all trailing space from every line.
+   */
+  struct ps_linebreaker_line *line=lb->v;
+  int i=lb->c;
+  for (;i-->0;line++) {
+    while ((line->c>0)&&!ps_nonspace(src[line->p+line->c-1])) line->c--;
+  }
+
   return 0;
 }

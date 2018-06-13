@@ -118,6 +118,11 @@ int ps_widget_field_set_cb_blur(struct ps_widget *widget,struct ps_callback cb);
 
 int ps_widget_textblock_set_text(struct ps_widget *widget,const char *src,int srcc);
 
+/* (-1,0,1) = (left/top),center,(right/bottom).
+ * Default is (-1,-1).
+ */
+int ps_widget_textblock_set_alignment(struct ps_widget *widget,int horz,int vert);
+
 /* Packer.
  *****************************************************************************/
 

@@ -204,6 +204,7 @@ static int ps_lobster_arm_update(struct ps_sprite *spr,struct ps_lobster_arm *ar
     struct ps_circle clawcircle=ps_circle(spr->x+arm->dx,spr->y+arm->dy,PS_LOBSTER_CLAW_RADIUS);
     while (i-->0) {
       struct ps_sprite *hero=heroes->sprv[i];
+      if (hero->type!=&ps_sprtype_hero) continue;
       if (ps_sprite_collide_circle(hero,&clawcircle)) {
         if (ps_sprite_receive_damage(game,hero,spr)<0) return -1;
       }

@@ -29,6 +29,7 @@ static struct {
 
   pthread_t iothd;
   pthread_mutex_t iomtx;
+  int ioabort; // Extra cancellation flag for tidy shutdown (not technically necessary).
   
 } ps_alsa={0};
 
@@ -36,6 +37,7 @@ static struct {
  */
 
 static void *ps_alsa_iothd(void *dummy) {
+  pthread_setcancelstate(PTHREAD_CANCEL_DISABLE,NULL);
   while (1) {
     pthread_testcancel();
     ps_emergency_abort_set_message("Refilling audio buffer.");
@@ -52,11 +54,13 @@ static void *ps_alsa_iothd(void *dummy) {
       pthread_testcancel();
       ps_emergency_abort_set_message("Sending audio to ALSA.");
       int err=snd_pcm_writei(ps_alsa.alsa,samplev+samplep,samplec-samplep);
+      if (ps_alsa.ioabort) return 0;
       if (err<=0) {
         if ((err=snd_pcm_recover(ps_alsa.alsa,err,0))<0) {
           fprintf(stderr,"ps: snd_pcm_writei: %d (%s)\n",err,snd_strerror(err));
           return 0;
         }
+        ps_emergency_abort_set_message("Recovered from pcm write error.");
         break;
       }
       samplep+=err;
@@ -110,13 +114,7 @@ int ps_alsa_init(int rate,int chanc,void (*cb)(int16_t *dst,int dstac)) {
 
 void ps_alsa_quit() {
 
-  // This snd_pcm_drop() seems to prevent rare freezes at snd_pcm_close().
-  // It feels like voodoo, I'm not at all sure of it.
-  if (ps_alsa.alsa) {
-    ps_emergency_abort_set_message("Cutting off ALSA output.");
-    snd_pcm_drop(ps_alsa.alsa);
-  }
-
+  ps_alsa.ioabort=1;
   if (ps_alsa.iothd) {
     ps_emergency_abort_set_message("Cancelling audio thread.");
     pthread_cancel(ps_alsa.iothd);
@@ -127,7 +125,7 @@ void ps_alsa_quit() {
   
   if (ps_alsa.hwparams) snd_pcm_hw_params_free(ps_alsa.hwparams);
   if (ps_alsa.alsa) {
-    ps_emergency_abort_set_message("Closing ALSA connection.");
+    ps_emergency_abort_set_message("Closing ALSA connection. a");
     snd_pcm_close(ps_alsa.alsa);
   }
   if (ps_alsa.buf) free(ps_alsa.buf);

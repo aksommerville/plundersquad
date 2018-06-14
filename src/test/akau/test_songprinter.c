@@ -7,7 +7,11 @@
 
 extern const struct akau_driver akau_driver_akmacaudio;
 extern const struct akau_driver akau_driver_alsa;
+#if PS_USE_akmacaudio
 #define AUDIODRIVER akau_driver_akmacaudio
+#elif PS_USE_alsa
+#define AUDIODRIVER akau_driver_alsa
+#endif
 
 static void ps_songprinter_test_log(int level,const char *msg,int msgc) {
   ps_log(TEST,INFO,"[%d] %.*s",level,msgc,msg);

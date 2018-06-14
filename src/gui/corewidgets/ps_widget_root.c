@@ -37,7 +37,7 @@ struct ps_widget_root {
   struct ps_keyfocus *keyfocus;
   int mod_shift;
   int64_t page_activation_time;
-  struct ps_widget *recent_active_child; // WEAK, and may be invalid -- You must confirm it's in (childv) before using.
+  struct ps_widget *recent_active_child; // STRONG
 };
 
 #define WIDGET ((struct ps_widget_root*)widget)
@@ -49,6 +49,7 @@ static void _ps_root_del(struct ps_widget *widget) {
   ps_widget_del(WIDGET->track_hover);
   ps_widget_del(WIDGET->track_click);
   ps_keyfocus_del(WIDGET->keyfocus);
+  ps_widget_del(WIDGET->recent_active_child);
 }
 
 /* Initialize.
@@ -124,15 +125,13 @@ static int _ps_root_pack(struct ps_widget *widget) {
   return 0;
 }
 
-/* Return nonzero if WIDGET->recent_active_child is still among my children.
- * DO NOT use ps_widget_has_child() for this, since that dereferences the child.
+/* Set recent active child.
  */
-
-static int ps_root_recent_active_child_is_valid(const struct ps_widget *widget) {
-  if (!WIDGET->recent_active_child) return 0;
-  int i=widget->childc; while (i-->0) {
-    if (widget->childv[i]==WIDGET->recent_active_child) return 1;
-  }
+ 
+static int ps_root_set_recent_active_child(struct ps_widget *widget,struct ps_widget *active) {
+  if (active&&(ps_widget_ref(active)<0)) return -1;
+  ps_widget_del(WIDGET->recent_active_child);
+  WIDGET->recent_active_child=active;
   return 0;
 }
 
@@ -144,16 +143,17 @@ static int _ps_root_update(struct ps_widget *widget) {
 
   /* Call pageactivate and pagedeactivate as needed. */
   if (active!=WIDGET->recent_active_child) {
-    if (ps_root_recent_active_child_is_valid(widget)) {
+    if (ps_widget_has_child(widget,WIDGET->recent_active_child)) {
       if (WIDGET->recent_active_child->type->pagedeactivate) {
         if (WIDGET->recent_active_child->type->pagedeactivate(WIDGET->recent_active_child)<0) return -1;
       }
     }
-    WIDGET->recent_active_child=active;
+    if (ps_root_set_recent_active_child(widget,active)<0) return -1;
     if (active) WIDGET->page_activation_time=ps_time_now()+PS_ROOT_PAGE_ACTIVATION_DELAY;
   } else if (WIDGET->page_activation_time) {
     if (active) {
       if (ps_time_now()>=WIDGET->page_activation_time) {
+        ps_log(GUI,DEBUG,"Activate page %p (%s)",active,active->type->name);
         WIDGET->page_activation_time=0;
         if (active->type->pageactivate) {
           if (active->type->pageactivate(active)<0) return -1;

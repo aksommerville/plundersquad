@@ -77,6 +77,7 @@ int ps_widget_is_ancestor(const struct ps_widget *ancestor,const struct ps_widge
 
 int ps_widget_has_child(const struct ps_widget *parent,const struct ps_widget *child) {
   if (!parent) return 0;
+  if (!child) return 0;
   return (parent==child->parent)?1:0;
 }
 

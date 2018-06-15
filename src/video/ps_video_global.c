@@ -106,6 +106,10 @@ int ps_video_init(struct ps_userconfig *userconfig) {
   #endif
 
   int soft_render=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"soft-render",11));
+  #if PS_NO_OPENGL2
+    soft_render=1;
+  #endif
+  ps_log(VIDEO,DEBUG,"Soft render? %d",soft_render);
   if (ps_video_init_akgl(soft_render?AKGL_STRATEGY_SOFT:AKGL_STRATEGY_GL2)<0) {
     ps_log(VIDEO,ERROR,"Failed to initialize OpenGL.");
     ps_video_quit();

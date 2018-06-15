@@ -316,10 +316,12 @@ int ps_video_draw_texture(struct akgl_texture *texture,int x,int y,int w,int h) 
  
 int ps_video_flush_cached_drawing() {
 
+  #if !PS_NO_OPENGL2
   if (ps_video.vtxc_triangle) {
     if (akgl_program_raw_draw_triangles(ps_video.program_raw,ps_video.vtxv_triangle,ps_video.vtxc_triangle)<0) return -1;
     ps_video.vtxc_triangle=0;
   }
+  #endif
 
   if (ps_video.vtxc_mintile) {
     struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,ps_video.tsid_mintile);

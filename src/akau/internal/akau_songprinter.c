@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#define HAVE_STRUCT_TIMESPEC 1
 #include <pthread.h>
 #include "os/ps_log.h"
 

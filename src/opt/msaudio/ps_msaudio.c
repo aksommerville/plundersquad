@@ -114,6 +114,10 @@ int ps_msaudio_init(
   ps_log(MSAUDIO,TRACE,"waveOutOpen: %d",result);
   if (result!=MMSYSERR_NOERROR) return -1;
 
+  // 1024 = unintelligible, noisy
+  // 8192 = choppy
+  // 16384 = fine, with some latency
+  // grrr... Now 8192 sounds fine.
   int buffer_size=8192; // bytes (TODO optimal size?)
   WAVEHDR *a=ps_msaudio.bufv+0;
   WAVEHDR *b=ps_msaudio.bufv+1;

@@ -15,6 +15,8 @@ Windows errors:
 - Freeze on startup, Windows:
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
 - Toggling out of fullscreen, other windows don't repaint
+- Soft render scaling borked (see penguin shadow).
+- Boxingglove struts sometimes go all-black when retracted... doesn't happen with GX render
 
 MacOS errors:
 
@@ -29,6 +31,7 @@ Windows:
 - src/opt/mswm/ps_mswm_global.c:66:  int x=100,y=100;//TODO window position
 - src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
 - src/opt/mswm/ps_mswm_graphics.c:25:  //TODO Assert OpenGL features.
+- Configurable audio buffer size?
 
 MacOS:
 - Developer license

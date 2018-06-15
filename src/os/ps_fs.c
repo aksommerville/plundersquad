@@ -99,7 +99,11 @@ int ps_file_append(const char *path,const void *src,int srcc) {
 /* Recursive mkdir.
  */
 
-#define PS_MKDIR_ARGS ,0775
+#if PS_ARCH==PS_ARCH_mswin
+  #define PS_MKDIR_ARGS
+#else
+  #define PS_MKDIR_ARGS ,0775
+#endif
  
 int ps_mkdir_parents(const char *path) {
   if (!path) return -1;

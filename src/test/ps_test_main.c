@@ -161,6 +161,8 @@ static int ps_test_report_results() {
  */
 
 int main(int argc,char **argv) {
+  fprintf(stderr,"Writing this to stderr.\n");
+  fflush(stderr);
 
   int run_default=1;
   int argi=1; for (;argi<argc;argi++) {

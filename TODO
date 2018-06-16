@@ -15,8 +15,10 @@ Windows errors:
 - Freeze on startup, Windows:
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
 - Toggling out of fullscreen, other windows don't repaint
+    ...This is not happening anymore on my Windows 10 box.
 - Soft render scaling borked (see penguin shadow).
 - Boxingglove struts sometimes go all-black when retracted... doesn't happen with GX render
+- Input focus lost after switching window in fullscreen, I'm not sure what happened.
 
 MacOS errors:
 

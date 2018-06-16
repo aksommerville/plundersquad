@@ -15,6 +15,9 @@
 #elif PS_ARCH==PS_ARCH_raspi
   #include <GLES2/gl2.h>
   #include <GLES2/gl2ext.h>
+#elif PS_ARCH==PS_ARCH_mswin
+  #define GLEW_STATIC 1
+  #include <GL/glew.h>
 #else
   #define GL_GLEXT_PROTOTYPES 1
   #include <GL/gl.h>

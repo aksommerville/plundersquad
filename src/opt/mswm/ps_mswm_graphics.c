@@ -81,6 +81,12 @@ int ps_mswm_setup_window() {
   if (glewInit()) return -1;
   if (ps_mswm_assert_opengl()<0) return -1;
 
+  glEnable(GL_POINT_SPRITE);
+  glEnable(GL_PROGRAM_POINT_SIZE);
+  glEnable(GL_BLEND);
+  glBlendFuncSeparate(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA,GL_SRC_ALPHA,GL_ONE);
+  //glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
   return 0;
 }
 

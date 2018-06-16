@@ -3,6 +3,7 @@ General errors:
   blueprint:170, wizard, with vampire and bomber
   ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
   ...investigated, can't find the problem
+- blueprint:89: Monsters appearing on treadle plate (not HEROONLY?)
 
 Raspi errors:
 
@@ -27,13 +28,13 @@ Actionable:
 - Remove return switches if they might be used to cheat challenges.
 
 Windows:
-- Build with GL2 support
 - src/opt/msaudio/ps_msaudio.c:6://TODO Need a mutex to protect callback
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
 - src/opt/mswm/ps_mswm_global.c:66:  int x=100,y=100;//TODO window position
 - src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
 - src/opt/mswm/ps_mswm_graphics.c:25:  //TODO Assert OpenGL features.
 - Configurable audio buffer size?
+- Try GL2 build on craptop and work laptop.
 
 MacOS:
 - Developer license

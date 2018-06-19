@@ -396,7 +396,7 @@ int ps_sdraw_blit_maxtile(
    */
   if (!f_tint&&!f_primary&&!f_alpha&&!f_rotate&&!f_xform) {
     return ps_sdraw_blit(
-      dst,dstx,dsty,srccolw,srcrowh,
+      dst,dstx,dsty,vtx->size,vtx->size,
       src,srcx,srcy,srccolw,srcrowh
     );
   }

@@ -10,14 +10,14 @@ Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
   ...13 June 2018: Let's play for a few hours, and if we don't see this again assume it's OK.
+- Freeze on startup. After 'X11 event type 19', black screen. Could pause, and GUI displayed fine. Soft-render was on.
+- No shift+tab in editor.
 
 Windows errors:
 - Freeze on startup, Windows:
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
 - Toggling out of fullscreen, other windows don't repaint
     ...This is not happening anymore on my Windows 10 box.
-- Soft render scaling borked (see penguin shadow).
-- Boxingglove struts sometimes go all-black when retracted... doesn't happen with GX render
 - Input focus lost after switching window in fullscreen, I'm not sure what happened.
 
 MacOS errors:

@@ -10,7 +10,7 @@
 #define PS_BOXINGGLOVE_STRUT_COUNT 6
 #define PS_BOXINGGLOVE_STRUT_OFFSET_MIN 2
 #define PS_BOXINGGLOVE_STRUT_OFFSET_MAX 16
-#define PS_BOXINGGLOVE_STRUT_ANGLE_MIN 8
+#define PS_BOXINGGLOVE_STRUT_ANGLE_MIN 0
 #define PS_BOXINGGLOVE_STRUT_ANGLE_MAX 64
 
 #define PS_BOXINGGLOVE_PHASE_IDLE 0
@@ -302,7 +302,7 @@ static int _ps_boxingglove_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps
     case PS_DIRECTION_EAST: extent=spr->x-SPR->home; break;
   }
   const int extentrange=PS_BOXINGGLOVE_STRUT_COUNT*offsetrange;
-  int angle=PS_BOXINGGLOVE_STRUT_ANGLE_MIN+((extentrange-extent)*anglerange)/extentrange;
+  int angle=PS_BOXINGGLOVE_STRUT_ANGLE_MIN+(extent*anglerange)/extentrange;
 
   int x=spr->x,y=spr->y,dx=0,dy=0;
   switch (SPR->direction) {

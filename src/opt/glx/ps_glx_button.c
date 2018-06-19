@@ -271,6 +271,12 @@ int ps_glx_codepoint_from_keysym(int keysym) {
    */
   if ((keysym&0xff000000)==0x01000000) return keysym&0x00ffffff;
   
+  /* keysymdef.h:359 XK_ISO_Left_Tab, ie Shift+Tab, ie just call it Tab please.
+   * Andy: Just give me a tab.
+   * X11: You want a tab, kid, you got to order something.
+   */
+  if (keysym==0xfe20) return 0x09;
+  
   /* keysymdef.h:124 */
   if (keysym==0xff0d) return 0x0a;
   if (keysym==0xffff) return 0x7f;
@@ -292,5 +298,28 @@ int ps_glx_codepoint_from_keysym(int keysym) {
     case XK_KP_Divide: return '/';
   }
   
+  return 0;
+}
+
+/* USB usage from keysym.
+ * This is not exhaustive, not even close.
+ * It only needs to apply when no Unicode code point is relevant.
+ * I think only modifier keys matter.
+ */
+ 
+int ps_glx_usb_usage_from_keysym(int keysym) {
+  switch (keysym) {
+    case 0xffe1: return 0x000700e1; // shift l
+    case 0xffe2: return 0x000700e5; // shift r
+    case 0xffe3: return 0x000700e0; // control l
+    case 0xffe4: return 0x000700e4; // control r
+    case 0xffe5: return 0x00070039; // caps lock
+    case 0xffe7: return 0x000700e3; // l meta
+    case 0xffe8: return 0x000700e7; // r meta
+    case 0xffe9: return 0x000700e2; // l alt
+    case 0xffea: return 0x000700e6; // r alt
+    case 0xffeb: return 0x000700e3; // l super
+    case 0xffec: return 0x000700e7; // r super
+  }
   return 0;
 }

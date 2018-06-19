@@ -46,5 +46,6 @@ int ps_glx_update(struct ps_input_provider *provider);
 int ps_glx_report_buttons_keyboard(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
 int ps_glx_report_buttons_mouse(struct ps_input_device *device,void *userdata,int (*cb)(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata));
 int ps_glx_codepoint_from_keysym(int keysym);
+int ps_glx_usb_usage_from_keysym(int keysym);
 
 #endif

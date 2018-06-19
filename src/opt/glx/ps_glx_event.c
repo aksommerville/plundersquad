@@ -4,7 +4,7 @@
  */
  
 static int ps_glx_evt_key(XKeyEvent *evt,int value) {
-  
+
   /* Pass the raw keystroke. */
   KeySym keysym=XkbKeycodeToKeysym(ps_glx.dpy,evt->keycode,0,0);
   if (keysym) {
@@ -16,10 +16,19 @@ static int ps_glx_evt_key(XKeyEvent *evt,int value) {
   /* Pass text if press or repeat, and text can be acquired. */
   int shift=(evt->state&ShiftMask)?1:0;
   KeySym tkeysym=XkbKeycodeToKeysym(ps_glx.dpy,evt->keycode,0,shift);
+  if (shift&&!tkeysym) { // If pressing shift makes this key "not a key anymore", fuck that and pretend shift is off
+    tkeysym=XkbKeycodeToKeysym(ps_glx.dpy,evt->keycode,0,0);
+  }
   if (tkeysym) {
     int codepoint=ps_glx_codepoint_from_keysym(tkeysym);
     if (codepoint) {
       if (ps_input_event_key(tkeysym,codepoint,value)<0) return -1;
+    } else {
+      // No codepoint will be produced for modifier keys, but we still want very much to report them.
+      int usb_usage=ps_glx_usb_usage_from_keysym(tkeysym);
+      if (usb_usage) {
+        if (ps_input_event_key(usb_usage,0,value)<0) return -1;
+      }
     }
   }
   

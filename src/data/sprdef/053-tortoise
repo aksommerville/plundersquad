@@ -2,3 +2,4 @@ type tortoise
 tileid 0x0412
 grpmask VISIBLE UPDATE PHYSICS HEROHAZARD LATCH SOLID TELEPORT
 impassable SOLID HOLE LATCH HEROONLY
+difficulty 3

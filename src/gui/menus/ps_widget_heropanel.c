@@ -26,6 +26,7 @@
 #include "video/ps_video.h"
 #include "akgl/akgl.h"
 #include "os/ps_clockassist.h"
+#include "os/ps_userconfig.h"
 #include "util/ps_enums.h"
 
 #define PS_HEROPANEL_DEVICE_NAME_LIMIT 12
@@ -51,6 +52,7 @@ static int ps_heropanel_cb_button(struct ps_input_device *device,int btnid,int v
 static int ps_heropanel_menucb_dismiss(struct ps_widget *button,void *userdata);
 static int ps_heropanel_menucb_audio(struct ps_widget *button,void *userdata);
 static int ps_heropanel_menucb_input(struct ps_widget *button,void *userdata);
+static int ps_heropanel_menucb_fullscreen(struct ps_widget *button,void *userdata);
 static int ps_heropanel_menucb_quit(struct ps_widget *button,void *userdata);
 
 static int ps_heropanel_cb_heroselect(struct ps_widget *heroselect,void *userdata);
@@ -436,6 +438,9 @@ static int ps_heropanel_enter_menu(struct ps_widget *widget) {
   if (!(item=ps_widget_menu_spawn_button(menu,"Back",-1,ps_callback(ps_heropanel_menucb_dismiss,0,widget)))) return -1;
   if (!(item=ps_widget_menu_spawn_button(menu,"Audio",-1,ps_callback(ps_heropanel_menucb_audio,0,widget)))) return -1;
   if (!(item=ps_widget_menu_spawn_button(menu,"Input",-1,ps_callback(ps_heropanel_menucb_input,0,widget)))) return -1;
+  if (ps_video_supports_fullscreen_toggle()) {
+    if (!(item=ps_widget_menu_spawn_button(menu,"Fullscreen",-1,ps_callback(ps_heropanel_menucb_fullscreen,0,widget)))) return -1;
+  }
   if (!(item=ps_widget_menu_spawn_button(menu,"Quit",-1,ps_callback(ps_heropanel_menucb_quit,0,widget)))) return -1;
   
   if (ps_widget_pack(widget)<0) return -1;
@@ -680,6 +685,23 @@ static int ps_heropanel_menucb_audio(struct ps_widget *button,void *userdata) {
   struct ps_widget *widget=userdata;
   struct ps_gui *gui=ps_widget_get_gui(widget);
   if (ps_gui_load_page_audiocfg(gui)<0) return -1;
+  return 0;
+}
+
+/* Menu: Fullscreen.
+ */
+
+static int ps_heropanel_menucb_fullscreen(struct ps_widget *button,void *userdata) {
+  struct ps_widget *widget=userdata;
+  
+  int fullscreen=ps_video_toggle_fullscreen();
+  if (fullscreen<0) return -1;
+
+  struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
+  if (userconfig) {
+    if (ps_userconfig_set_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"fullscreen",10),fullscreen)>=0) {
+    }
+  }
   return 0;
 }
 

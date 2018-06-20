@@ -1,3 +1,4 @@
 type boxingglove
 tileid 0x04ae
 grpmask VISIBLE UPDATE HAZARD BARRIER
+difficulty 2

@@ -32,7 +32,7 @@ Windows:
 - src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
 - src/opt/mswm/ps_mswm_graphics.c:25:  //TODO Assert OpenGL features.
 - Configurable audio buffer size?
-- Try GL2 build on craptop and work laptop.
+- Try GL2 build on craptop and work laptop. ... no and yes
 
 MacOS:
 - Developer license

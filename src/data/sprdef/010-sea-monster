@@ -5,4 +5,4 @@ grpmask VISIBLE UPDATE
 radius 7
 shape CIRCLE
 impassable VACANT SOLID LATCH HEROONLY HAZARD HEAL
-difficulty 2
+difficulty 3

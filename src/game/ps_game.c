@@ -455,7 +455,8 @@ int ps_game_restart(struct ps_game *game) {
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;
-
+  
+  game->gridx=-1; // Ensure that (homex,homey) is not "where we are now".
   if (ps_game_change_screen(game,game->scenario->homex,game->scenario->homey,PS_CHANGE_SCREEN_MODE_RESET)<0) return -1;
 
   return 0;

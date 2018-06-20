@@ -10,8 +10,6 @@ Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
   ...13 June 2018: Let's play for a few hours, and if we don't see this again assume it's OK.
-- Freeze on startup. After 'X11 event type 19', black screen. Could pause, and GUI displayed fine. Soft-render was on.
-  ...Happened again. Soft-render was off. From pausepage, chose "End game" and everything worked fine then.
 
 Windows errors:
 - Freeze on startup, Windows:

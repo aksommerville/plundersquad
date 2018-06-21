@@ -1245,6 +1245,41 @@ static int ps_game_assess_blueprint_difficulty(const struct ps_game *game,int bl
   return bpdifficulty;
 }
 
+/* We are leaving the current grid in the stated direction, it is already confirmed valid.
+ * If this direction is one of the grid's "awayward" directions, the puzzle is solved and we can persist a deed.
+ * Do so only if a permaswitch POI is present with flag PS_PERMASWITCH_EXIT_AWAYWARD.
+ * The natural awayward directions are east and south.
+ */
+ 
+static int ps_game_check_awayward_permaswitch(struct ps_game *game,int dx,int dy) {
+
+  /* Proceed only if this direction is awayward. */
+  const struct ps_screen *screen=game->scenario->screenv+game->gridy*game->scenario->w+game->gridx;
+  if (dx<0) {
+    if (!(screen->xform&PS_AXIS_HORZ)) return 0;
+  } else if (dx>0) {
+    if (screen->xform&PS_AXIS_HORZ) return 0;
+  } else if (dy<0) {
+    if (!(screen->xform&PS_AXIS_VERT)) return 0;
+  } else if (dy>0) {
+    if (screen->xform&PS_AXIS_VERT) return 0;
+  }
+  
+  /* Look for relevant permaswitch. */
+  const struct ps_blueprint_poi *poi=game->grid->poiv;
+  int i=game->grid->poic;
+  for (;i-->0;poi++) {
+    if (poi->type!=PS_BLUEPRINT_POI_PERMASWITCH) continue;
+    if (poi->argv[0]!=PS_PERMASWITCH_EXIT_AWAYWARD) continue;
+    
+    /* Got one! */
+    if (ps_stats_set_deed(game->stats,game->gridx,game->gridy)<0) return -1;
+    return 0;
+  }
+  
+  return 0;
+}
+
 /* Change screen.
  */
  
@@ -1269,6 +1304,7 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
         dy=y-game->gridy;
         if ((dx<-1)||(dx>1)||(dy<-1)||(dy>1)||(dx&&dy)) return -1;
         PS_SFX_SHIFT_SCREEN
+        if (ps_game_check_awayward_permaswitch(game,dx,dy)<0) return -1;
         if (ps_game_renderer_begin_slide(game->renderer,dx,dy)<0) return -1;
       } break;
       

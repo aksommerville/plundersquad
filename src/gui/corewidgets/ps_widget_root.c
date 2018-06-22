@@ -153,7 +153,7 @@ static int _ps_root_update(struct ps_widget *widget) {
   } else if (WIDGET->page_activation_time) {
     if (active) {
       if (ps_time_now()>=WIDGET->page_activation_time) {
-        ps_log(GUI,DEBUG,"Activate page %p (%s)",active,active->type->name);
+        //ps_log(GUI,DEBUG,"Activate page %p (%s)",active,active->type->name);
         WIDGET->page_activation_time=0;
         if (active->type->pageactivate) {
           if (active->type->pageactivate(active)<0) return -1;

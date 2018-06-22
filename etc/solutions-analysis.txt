@@ -1,15 +1,6 @@
 RES:INFO: For party size 1, 8 of 8 possible parties have a solution. [src/test/res/test_res_content.c:713]
 RES:INFO: For party size 2, 28 of 28 possible parties have a solution. [src/test/res/test_res_content.c:713]
-
-RES:WARN: No solution for skills 0x002a: ARROW FLAME IMMORTAL [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x004a: ARROW FLAME BOMB [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x008a: ARROW FLAME FLY [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x008c: HOOKSHOT FLAME FLY [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x0034: HOOKSHOT HEAL IMMORTAL [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x0070: HEAL IMMORTAL BOMB [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x00d0: HEAL BOMB FLY [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x00e0: IMMORTAL BOMB FLY [src/test/res/test_res_content.c:664]
-RES:INFO: For party size 3, 48 of 56 possible parties have a solution. [src/test/res/test_res_content.c:713]
+RES:INFO: For party size 3, 56 of 56 possible parties have a solution. [src/test/res/test_res_content.c:713]
 
 RES:WARN: No solution for skills 0x0017: SWORD ARROW HOOKSHOT HEAL [src/test/res/test_res_content.c:664]
 RES:WARN: No solution for skills 0x0027: SWORD ARROW HOOKSHOT IMMORTAL [src/test/res/test_res_content.c:664]
@@ -66,10 +57,9 @@ RES:WARN: No solution for skills 0x00b4: HOOKSHOT HEAL IMMORTAL FLY [src/test/re
 RES:WARN: No solution for skills 0x00d4: HOOKSHOT HEAL BOMB FLY [src/test/res/test_res_content.c:664]
 RES:WARN: No solution for skills 0x00e4: HOOKSHOT IMMORTAL BOMB FLY [src/test/res/test_res_content.c:664]
 RES:WARN: No solution for skills 0x0078: FLAME HEAL IMMORTAL BOMB [src/test/res/test_res_content.c:664]
-RES:WARN: No solution for skills 0x00d8: FLAME HEAL BOMB FLY [src/test/res/test_res_content.c:664]
 RES:WARN: No solution for skills 0x00e8: FLAME IMMORTAL BOMB FLY [src/test/res/test_res_content.c:664]
 RES:WARN: No solution for skills 0x00f0: HEAL IMMORTAL BOMB FLY [src/test/res/test_res_content.c:664]
-RES:INFO: For party size 4, 12 of 70 possible parties have a solution. [src/test/res/test_res_content.c:713]
+RES:INFO: For party size 4, 13 of 70 possible parties have a solution. [src/test/res/test_res_content.c:713]
 
 RES:WARN: No solution for skills 0x001f: SWORD ARROW HOOKSHOT FLAME HEAL [src/test/res/test_res_content.c:664]
 RES:WARN: No solution for skills 0x002f: SWORD ARROW HOOKSHOT FLAME IMMORTAL [src/test/res/test_res_content.c:664]

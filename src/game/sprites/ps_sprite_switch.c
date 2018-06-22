@@ -14,6 +14,7 @@ struct ps_sprite_switch {
   int state; // Final answer: Am I on or off?
   int stompbox; // Permanent role: Am I a stompbox or a treadle plate?
   int press; // Is someone standing on me right now?
+  int updatecount;
 };
 
 #define SPR ((struct ps_sprite_switch*)spr)
@@ -83,6 +84,8 @@ static int ps_switch_disengage(struct ps_sprite *spr,struct ps_game *game) {
 
 static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
 
+  SPR->updatecount++;
+
   /* Terminate if weight upon me hasn't changed. */
   struct ps_sprite *presser=0;
   int state=ps_switch_poll_state(spr,game,&presser);
@@ -90,7 +93,7 @@ static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Newly pressed. */
   if (SPR->press=state) {
-    PS_SFX_SWITCH_PRESS
+    if (SPR->updatecount>1) PS_SFX_SWITCH_PRESS
     spr->tileid++;
     if (SPR->stompbox) {
       if (SPR->state) {
@@ -104,7 +107,7 @@ static int _ps_switch_update(struct ps_sprite *spr,struct ps_game *game) {
 
   /* Newly released. */
   } else {
-    PS_SFX_SWITCH_RELEASE
+    if (SPR->updatecount>1) PS_SFX_SWITCH_RELEASE
     spr->tileid--;
     if (!SPR->stompbox) {
       if (ps_switch_disengage(spr,game)<0) return -1;

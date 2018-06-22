@@ -266,6 +266,7 @@ static int ps_sprite_supports_actuation(const struct ps_sprite *spr) {
   if (spr->type==&ps_sprtype_switch) return 1;
   if (spr->type==&ps_sprtype_swordswitch) return 1;
   if (spr->type==&ps_sprtype_multipiston) return 1;
+  if (spr->type==&ps_sprtype_bullseye) return 1;
   // piston and motionsensor are timebound, so they do not support actuation this way.
   return 0;
 }

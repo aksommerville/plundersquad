@@ -44,8 +44,10 @@ static int ps_arrow_kill_mortals(struct ps_sprite *spr,struct ps_game *game) {
   double right=spr->x+SPR->right;
   double top=spr->y+SPR->top;
   double bottom=spr->y+SPR->bottom;
-  int i; for (i=0;i<game->grpv[PS_SPRGRP_FRAGILE].sprc;i++) {
-    struct ps_sprite *victim=game->grpv[PS_SPRGRP_FRAGILE].sprv[i];
+  
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_FRAGILE;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *victim=grp->sprv[i];
     if (victim->x+victim->radius<=left) continue;
     if (victim->x-victim->radius>=right) continue;
     if (victim->y+victim->radius<=top) continue;
@@ -56,6 +58,20 @@ static int ps_arrow_kill_mortals(struct ps_sprite *spr,struct ps_game *game) {
     if (ps_sprite_kill_later(spr,game)<0) return -1;
     return 1;
   }
+  
+  grp=game->grpv+PS_SPRGRP_BARRIER;
+  for (i=grp->sprc;i-->0;) {
+    struct ps_sprite *victim=grp->sprv[i];
+    if (victim->type!=&ps_sprtype_bullseye) continue;
+    if (victim->x+victim->radius<=left) continue;
+    if (victim->x-victim->radius>=right) continue;
+    if (victim->y+victim->radius<=top) continue;
+    if (victim->y-victim->radius>=bottom) continue;
+    if (ps_sprite_actuate(victim,game,1)<0) return -1;
+    if (ps_sprite_kill_later(spr,game)<0) return -1;
+    return 1;
+  }
+  
   return 0;
 }
 

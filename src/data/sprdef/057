@@ -1,0 +1,5 @@
+type bullseye
+tileid 0x0409
+grpmask VISIBLE UPDATE BARRIER
+radius 7
+shape CIRCLE

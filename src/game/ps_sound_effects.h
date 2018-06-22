@@ -66,6 +66,8 @@
 #define PS_SFX_PISTON_ALERT akau_play_sound(54,0x80,0);
 #define PS_SFX_PISTON_UNLOCK akau_play_sound(55,0x80,0);
 #define PS_SFX_PISTON_DEACTIVATE akau_play_sound(56,0x80,0);
+#define PS_SFX_BULLSEYE_ACTIVATE akau_play_sound(37,0x80,0);
+#define PS_SFX_BULLSEYE_REDUNDANT akau_play_sound(56,0x80,0);
 
 #define PS_SFX_GUI_ACTIVATE akau_play_sound(6,0x80,0);
 #define PS_SFX_GUI_CANCEL akau_play_sound(4,0x80,0);

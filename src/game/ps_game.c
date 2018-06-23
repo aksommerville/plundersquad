@@ -136,6 +136,17 @@ static int ps_game_sprite_position_conflicts_with_others(const struct ps_game *g
   return 0;
 }
 
+static int ps_game_sprite_position_is_barrier(const struct ps_game *game,int x,int y) {
+  const struct ps_blueprint_poi *poi=game->grid->poiv;
+  int i=game->grid->poic; for (;i-->0;poi++) {
+    if (poi->x!=x) continue;
+    if (poi->y!=y) continue;
+    if (poi->type==PS_BLUEPRINT_POI_REVBARRIER) return 1;
+    if (poi->type==PS_BLUEPRINT_POI_BARRIER) return 1;
+  }
+  return 0;
+}
+
 static int ps_game_select_position_for_random_sprite(int *x,int *y,const struct ps_game *game,const struct ps_sprdef *sprdef) {
   const int margin=2; // Don't spawn on the edges.
   int attemptc=20;
@@ -144,6 +155,7 @@ static int ps_game_select_position_for_random_sprite(int *x,int *y,const struct 
     int row=margin+(rand()%(PS_GRID_ROWC-(margin<<1)));
     uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
     if (physics!=PS_BLUEPRINT_CELL_VACANT) continue; // Only spawn on vacant cells.
+    if (ps_game_sprite_position_is_barrier(game,col,row)) continue; // We don't know whether barriers are open or closed, so skip them all.
     *x=col*PS_TILESIZE+(PS_TILESIZE>>1);
     *y=row*PS_TILESIZE+(PS_TILESIZE>>1);
     if (ps_game_sprite_position_conflicts_with_others(game,*x,*y)) continue; // Don't crowd other sprites.

@@ -3,7 +3,6 @@ General errors:
   blueprint:170, wizard, with vampire and bomber
   ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
   ...investigated, can't find the problem
-- Random monster spawned inside wall, likely due to REVBARRIER. blueprint:176
 
 Raspi errors:
 
@@ -11,7 +10,6 @@ Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
   ...13 June 2018: Let's play for a few hours, and if we don't see this again assume it's OK.
-- After first setup for Xbox 360 joystick, right thumbstick is sending A and B. Why?
 
 Windows errors:
 - Freeze on startup, Windows:
@@ -93,3 +91,5 @@ Rejected:
   No longer interested in encoded scenario, not worth it.
 - Should we pause or something when window loses focus?
   No. That's not our responsibility.
+- After first setup for Xbox 360 joystick, right thumbstick is sending A and B. Why?
+  I did some other work in new evdev device after this, and it doesn't seem to happen anymore.

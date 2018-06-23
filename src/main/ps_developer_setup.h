@@ -13,11 +13,11 @@
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL
  */
-#define PS_TEST_GENERATOR_MODE SELECTED
+#define PS_TEST_GENERATOR_MODE NORMAL
 
 /* Parameters for NORMAL and SELECTED modes.
  */
-#define PS_TEST_DIFFICULTY 1
+#define PS_TEST_DIFFICULTY 4
 #define PS_TEST_LENGTH     2
 
 /* Parameters for SELECTED mode.

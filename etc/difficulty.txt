@@ -40,6 +40,7 @@ Plunder Squad Difficulty Standards
 --- 7 ---
 > lobster
 *> Gadgeteer dropping pumpkin strategically.
+*> Swordsman must bat heart.
 
 --- 8 ---
 > No map on statusreport.
@@ -69,3 +70,4 @@ Plunder Squad Difficulty Standards
                                                                                    die and reheal------------------------------------------------
                                                                                                    lobster---------------------------------------
                                                                                                    drop pumpkin----------------------------------
+                                                                                                   bat heart-------------------------------------

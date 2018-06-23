@@ -26,6 +26,7 @@
 #define PS_STATUSREPORT_LISTSEP_COLOR    0x000000ff
 #define PS_STATUSREPORT_CIRCLE_COLOR     0xffc020ff
 #define PS_STATUSREPORT_CROSSOUT_COLOR   0x000000ff
+#define PS_STATUSREPORT_HOME_COLOR       0x0000ffff
 
 /* On the easiest settings, we draw the "full map", with screen edges and treasure locations marked.
  * Intermediate settings get the "partial map" with no treasure locations.
@@ -175,6 +176,7 @@ static void ps_statusreport_draw_crossout(uint8_t *pixels,int stride,int x,int y
  *   0 = none
  *   1 = collected
  *   2 = uncollected
+ *   3 = home (I know, it's not "treasure" but it renders the same)
  */
 
 static int ps_statusreport_draw_screen(uint8_t *pixels,int stride,int x,int y,int w,int h,const struct ps_screen *screen,int draw_treasure) {
@@ -206,7 +208,8 @@ static int ps_statusreport_draw_screen(uint8_t *pixels,int stride,int x,int y,in
     int th=h/3;
     int ty=y+th;
     uint32_t treasurecolor;
-    if (draw_treasure==2) treasurecolor=PS_STATUSREPORT_TREASURE_COLOR;
+    if (draw_treasure==3) treasurecolor=PS_STATUSREPORT_HOME_COLOR;
+    else if (draw_treasure==2) treasurecolor=PS_STATUSREPORT_TREASURE_COLOR;
     else treasurecolor=PS_STATUSREPORT_COLLECTED_COLOR;
     ps_statusreport_set_pixels(pixels,stride,tx,ty,tw,th,treasurecolor);
   }
@@ -236,14 +239,18 @@ static int ps_statusreport_compose_image_full_map(void *pixels,int w,int h,const
       if (col<screenw_extra) colw++;
 
       int draw_treasure=0;
-      const struct ps_blueprint_poi *poi=screen->grid->poiv;
-      int i=screen->grid->poic; for (;i-->0;poi++) {
-        if (poi->type==PS_BLUEPRINT_POI_TREASURE) {
-          draw_treasure=1;
-          if ((poi->argv[0]>=0)&&(poi->argv[0]<PS_TREASURE_LIMIT)) {
-            if (!game->treasurev[poi->argv[0]]) draw_treasure=2;
+      if ((screen->x==game->scenario->homex)&&(screen->y==game->scenario->homey)) {
+        draw_treasure=3;
+      } else {
+        const struct ps_blueprint_poi *poi=screen->grid->poiv;
+        int i=screen->grid->poic; for (;i-->0;poi++) {
+          if (poi->type==PS_BLUEPRINT_POI_TREASURE) {
+            draw_treasure=1;
+            if ((poi->argv[0]>=0)&&(poi->argv[0]<PS_TREASURE_LIMIT)) {
+              if (!game->treasurev[poi->argv[0]]) draw_treasure=2;
+            }
+            break;
           }
-          break;
         }
       }
       
@@ -281,7 +288,9 @@ static int ps_statusreport_compose_image_partial_map(void *pixels,int w,int h,co
     int col=0; for (;col<game->scenario->w;col++,screen++) {
       int colw=screenw_base;
       if (col<screenw_extra) colw++;
-      if (ps_statusreport_draw_screen(pixels,stride,x,y,colw,rowh,screen,0)<0) return -1;
+      int draw_treasure=0;
+      if ((screen->x==game->scenario->homex)&&(screen->y==game->scenario->homey)) draw_treasure=3;
+      if (ps_statusreport_draw_screen(pixels,stride,x,y,colw,rowh,screen,draw_treasure)<0) return -1;
       x+=colw;
     }
     y+=rowh;

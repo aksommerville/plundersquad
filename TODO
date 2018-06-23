@@ -76,7 +76,6 @@ Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
 - src/video/ps_image_decode.c:242:  /* TODO Image filter: Either improve it or take it out.
 - Review award assignment with realistic data
-- Goal: 200 blueprints
 - Finish sound effects
 - Finish music
 - Goal: 100 sprdefs

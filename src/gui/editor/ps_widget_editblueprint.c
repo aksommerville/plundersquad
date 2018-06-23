@@ -14,6 +14,7 @@
 #include "scenario/ps_blueprint.h"
 #include "util/ps_text.h"
 #include "util/ps_enums.h"
+#include "util/ps_geometry.h"
 #include "res/ps_resmgr.h"
 #include "os/ps_fs.h"
 #include "video/ps_video.h"
@@ -317,7 +318,7 @@ static int ps_editblueprint_cb_solution(struct ps_widget *button,struct ps_widge
   return 0;
 }
 
-/* Compose label for POI or solution.
+/* Compose label for POI.
  */
 
 static int ps_editblueprint_repr_poi(char *dst,int dsta,const struct ps_blueprint_poi *poi) {
@@ -337,9 +338,59 @@ static int ps_editblueprint_repr_poi(char *dst,int dsta,const struct ps_blueprin
   return dstc;
 }
 
-static int ps_editblueprint_repr_solution(char *dst,int dsta,const struct ps_blueprint_solution *solution) {
-  int dstc=snprintf(dst,dsta,"%d,%d,%d,%04x",solution->plo,solution->phi,solution->difficulty,solution->skills);
-  return dstc;
+/* Generate button for solution.
+ */
+ 
+static int ps_editblueprint_count_bits_16(uint16_t src) {
+  int bitc=0;
+  while (src) {
+    if (src&1) bitc++;
+    src>>=1;
+  }
+  return bitc;
+}
+ 
+static struct ps_widget *ps_editblueprint_spawn_solution_button(
+  struct ps_widget *widget,struct ps_widget *metadata,const struct ps_blueprint_solution *solution
+) {
+  struct ps_widget *button=ps_widget_button_spawn(metadata,0,0,0,ps_callback(ps_editblueprint_cb_solution,0,widget));
+  if (!button) return 0;
+  
+  struct ps_widget *packer=ps_widget_spawn(button,&ps_widget_type_packer);
+  if (!packer) return 0;
+  if (ps_widget_packer_set_axis(packer,PS_AXIS_HORZ)<0) return 0;
+  
+  struct ps_widget *icon;
+  if (!(icon=ps_widget_spawn(packer,&ps_widget_type_label))) return 0;
+  char difficulty='0'+solution->difficulty;
+  if (ps_widget_label_set_text(icon,&difficulty,1)<0) return 0;
+  
+  int remainc=solution->plo;
+  int skillc=ps_editblueprint_count_bits_16(solution->skills);
+  if (skillc>5) {
+    if (!(icon=ps_widget_spawn(packer,&ps_widget_type_label))) return 0;
+    if (ps_widget_label_set_textf(icon,"(%d sk)",skillc)<0) return 0;
+    remainc=0;
+  } else {
+    int skillix=0; for (;skillix<16;skillix++) {
+      if (solution->skills&(1<<skillix)) {
+        if (!(icon=ps_widget_spawn(packer,&ps_widget_type_icon))) return 0;
+        if (ps_widget_icon_set_tile(icon,0x0130+skillix)<0) return 0;
+        remainc--;
+      }
+    }
+  }
+  
+  if (remainc>0) {
+    if (!(icon=ps_widget_spawn(packer,&ps_widget_type_icon))) return 0;
+    if (ps_widget_icon_set_tile(icon,0x0190+remainc)<0) return 0;
+  }
+  if (solution->plo<solution->phi) {
+    if (!(icon=ps_widget_spawn(packer,&ps_widget_type_icon))) return 0;
+    if (ps_widget_icon_set_tile(icon,0x0190)<0) return 0;
+  }
+  
+  return button;
 }
 
 /* Rebuild metadata.
@@ -373,9 +424,7 @@ static int ps_editblueprint_rebuild_metadata(struct ps_widget *widget) {
 
   const struct ps_blueprint_solution *solution=WIDGET->blueprint->solutionv;
   for (i=WIDGET->blueprint->solutionc;i-->0;solution++) {
-    bufc=ps_editblueprint_repr_solution(buf,sizeof(buf),solution);
-    if (bufc>(int)sizeof(buf)) bufc=0;
-    if (!(button=ps_widget_button_spawn(metadata,0,buf,bufc,ps_callback(ps_editblueprint_cb_solution,0,widget)))) return -1;
+    if (!(button=ps_editblueprint_spawn_solution_button(widget,metadata,solution))) return -1;
   }
 
   return 0;

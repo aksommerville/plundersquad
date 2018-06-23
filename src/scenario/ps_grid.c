@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "ps_grid.h"
 #include "ps_blueprint.h"
+#include "game/ps_path.h"
 
 /* New.
  */
@@ -60,7 +61,7 @@ int ps_grid_set_physics(struct ps_grid *grid,int x,int y,int w,int h,uint8_t phy
  * It's a little wonky because we now have BARRIER and REVBARRIER.
  */
  
-int ps_grid_open_barrier(struct ps_grid *grid,int barrierid) {
+int ps_grid_open_barrier(struct ps_grid *grid,int barrierid,struct ps_path *path) {
   if (!grid) return -1;
   //ps_log(GAME,TRACE,"%s %d",__func__,barrierid);
   struct ps_blueprint_poi *poi=grid->poiv;
@@ -74,6 +75,7 @@ int ps_grid_open_barrier(struct ps_grid *grid,int barrierid) {
           poi->argv[2]=grid->cellv[cellp].physics;
           grid->cellv[cellp].tileid=0;
           grid->cellv[cellp].physics=0;
+          if (path&&(ps_path_add(path,poi->x,poi->y)<0)) return -1;
         } break;
       case PS_BLUEPRINT_POI_REVBARRIER: {
           if (poi->argv[0]!=barrierid) continue;
@@ -81,13 +83,14 @@ int ps_grid_open_barrier(struct ps_grid *grid,int barrierid) {
           if (grid->cellv[cellp].tileid) continue; // Already open.
           grid->cellv[cellp].tileid=poi->argv[1];
           grid->cellv[cellp].physics=poi->argv[2];
+          if (path&&(ps_path_add(path,poi->x,poi->y)<0)) return -1;
         } break;
     }
   }
   return 0;
 }
 
-int ps_grid_close_barrier(struct ps_grid *grid,int barrierid) {
+int ps_grid_close_barrier(struct ps_grid *grid,int barrierid,struct ps_path *path) {
   if (!grid) return -1;
   //ps_log(GAME,TRACE,"%s %d",__func__,barrierid);
   struct ps_blueprint_poi *poi=grid->poiv;
@@ -99,6 +102,7 @@ int ps_grid_close_barrier(struct ps_grid *grid,int barrierid) {
           if (grid->cellv[cellp].tileid) continue; // Already open.
           grid->cellv[cellp].tileid=poi->argv[1];
           grid->cellv[cellp].physics=poi->argv[2];
+          if (path&&(ps_path_add(path,poi->x,poi->y)<0)) return -1;
         } break;
       case PS_BLUEPRINT_POI_REVBARRIER: {
           if (poi->argv[0]!=barrierid) continue;
@@ -108,6 +112,7 @@ int ps_grid_close_barrier(struct ps_grid *grid,int barrierid) {
           poi->argv[2]=grid->cellv[cellp].physics;
           grid->cellv[cellp].tileid=0;
           grid->cellv[cellp].physics=0;
+          if (path&&(ps_path_add(path,poi->x,poi->y)<0)) return -1;
         } break;
     }
   }

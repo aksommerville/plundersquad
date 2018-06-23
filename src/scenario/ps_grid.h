@@ -8,6 +8,7 @@
 
 struct ps_blueprint_poi;
 struct ps_region;
+struct ps_path;
 
 /* Cell shape bits. */
 #define PS_GRID_CELL_SHAPE_RNW    0x01
@@ -47,9 +48,10 @@ int ps_grid_set_physics(struct ps_grid *grid,int x,int y,int w,int h,uint8_t phy
 
 /* Only ps_game should use these functions.
  * It has a broader concept of barrier, with its own API (ps_game_adjust_barrier()).
+ * (path) is optional. If provided, we fill it with all cells changed.
  */
-int ps_grid_open_barrier(struct ps_grid *grid,int barrierid);
-int ps_grid_close_barrier(struct ps_grid *grid,int barrierid);
+int ps_grid_open_barrier(struct ps_grid *grid,int barrierid,struct ps_path *path);
+int ps_grid_close_barrier(struct ps_grid *grid,int barrierid,struct ps_path *path);
 int ps_grid_close_all_barriers(struct ps_grid *grid);
 
 /* Given a rectangle in pixels, is there any cell matching (impassable) within it?

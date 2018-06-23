@@ -209,6 +209,7 @@ extern const struct ps_sprtype ps_sprtype_tortoise;
 extern const struct ps_sprtype ps_sprtype_singleswitch;
 extern const struct ps_sprtype ps_sprtype_chestkeeper;
 extern const struct ps_sprtype ps_sprtype_bullseye;
+extern const struct ps_sprtype ps_sprtype_changeindicator;
 //INSERT SPRTYPE DEFINITION HERE
 
 /* API for sprite types too trivial to warrant their own headers.
@@ -225,6 +226,7 @@ struct ps_sprite *ps_sprite_heroindicator_get_hero(const struct ps_sprite *spr);
 int ps_sprite_heroindicator_set_hero(struct ps_sprite *spr,struct ps_sprite *hero);
 int ps_sprite_react_to_sword(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *hero,int state); // Dispatcher for SWORDAWARE group. (state) in (0,1,2)
 int ps_sprite_inert_fling(struct ps_sprite *spr,struct ps_game *game,int dir);
+struct ps_sprite *ps_sprite_changeindicator_spawn(struct ps_game *game,int col,int row);
 
 /* Toggle a switch.
  * Works for 'switch' and 'swordswitch', and we'll add other types as needed.

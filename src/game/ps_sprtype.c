@@ -66,6 +66,7 @@ const struct ps_sprtype *ps_sprtype_by_name(const char *name,int namec) {
   if ((namec==12)&&!memcmp(name,"singleswitch",12)) return &ps_sprtype_singleswitch;
   if ((namec==11)&&!memcmp(name,"chestkeeper",11)) return &ps_sprtype_chestkeeper;
   if ((namec==8)&&!memcmp(name,"bullseye",8)) return &ps_sprtype_bullseye;
+  if ((namec==15)&&!memcmp(name,"changeindicator",15)) return &ps_sprtype_changeindicator;
 //INSERT SPRTYPE NAME TEST HERE
 
   return 0;
@@ -132,5 +133,6 @@ const struct ps_sprtype *ps_all_sprtypes[]={
   &ps_sprtype_singleswitch,
   &ps_sprtype_chestkeeper,
   &ps_sprtype_bullseye,
+  &ps_sprtype_changeindicator,
 //INSERT SPRTYPE REFERENCE HERE
 0};

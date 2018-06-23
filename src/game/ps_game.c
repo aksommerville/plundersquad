@@ -14,6 +14,7 @@
 #include "ps_switchboard.h"
 #include "ps_gamelog.h"
 #include "ps_score_store.h"
+#include "ps_path.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_scgen.h"
@@ -1121,11 +1122,22 @@ int ps_game_reverse_nonpersistent_grid_change(struct ps_game *game,int col,int r
 static int ps_game_cb_switch(int switchid,int value,void *userdata) {
   struct ps_game *game=userdata;
 
+  struct ps_path changes={};
   if (value) {
-    if (ps_grid_open_barrier(game->grid,switchid)<0) return -1;
+    if (ps_grid_open_barrier(game->grid,switchid,&changes)<0) {
+      ps_path_cleanup(&changes);
+      return -1;
+    }
   } else {
-    if (ps_grid_close_barrier(game->grid,switchid)<0) return -1;
+    if (ps_grid_close_barrier(game->grid,switchid,&changes)<0) {
+      ps_path_cleanup(&changes);
+      return -1;
+    }
   }
+  while (changes.c-->0) {
+    struct ps_sprite *indicator=ps_sprite_changeindicator_spawn(game,changes.v[changes.c].x,changes.v[changes.c].y);
+  }
+  ps_path_cleanup(&changes);
 
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_BARRIER;
   int i=grp->sprc; while (i-->0) {

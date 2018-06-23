@@ -8,23 +8,23 @@
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, MARTYR, IMMORTAL, BOMBER, BALA
  */
-#define PS_TEST_GAME_PARTY BOMBER,GADGETEER,WIZARD
+#define PS_TEST_GAME_PARTY SWORDSMAN,GADGETEER,ARCHER,NURSE,WIZARD,VAMPIRE,IMMORTAL,BOMBER
 
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL
  */
-#define PS_TEST_GENERATOR_MODE SELECTED
+#define PS_TEST_GENERATOR_MODE NORMAL
 
 /* Parameters for NORMAL and SELECTED modes.
  */
-#define PS_TEST_DIFFICULTY 4
-#define PS_TEST_LENGTH     2
+#define PS_TEST_DIFFICULTY 9
+#define PS_TEST_LENGTH     3
 
 /* Parameters for SELECTED mode.
  * Must name at least one blueprint with a HERO POI.
  * Region may be <0 to select randomly.
  */
-#define PS_TEST_BLUEPRINTS  2,27
+#define PS_TEST_BLUEPRINTS  2,204
 #define PS_TEST_REGION     -1
 
 /* Parameters for ALL mode.
@@ -50,7 +50,7 @@ static int ps_setup_test_game(struct ps_game *game,struct ps_userconfig *config)
   int playerc=sizeof(plrdefidv)/sizeof(int);
   if (ps_game_set_player_count(game,playerc)<0) return -1;
   int i=0; for (;i<playerc;i++) {
-    if (ps_game_configure_player(game,1+i,plrdefidv[i],0,0)<0) return -1;
+    if (ps_game_configure_player(game,1+i,plrdefidv[i],i,0)<0) return -1;
   }
   if (ps_input_set_noninteractive_device_assignment()<0) return -1;
   

@@ -24,6 +24,7 @@ Actionable:
 - Establish and enforce difficulty standards (eg die-cross-heal should be like 5 or 6 minimum).
 - Remove return switches if they might be used to cheat challenges.
 - Retrofit challenges with PS_PERMASWITCH_EXIT_AWAYWARD where applicable.
+- blueprint:44 confirm Gadgeteer+1 listed as solution
 
 Windows:
 - src/opt/msaudio/ps_msaudio.c:6://TODO Need a mutex to protect callback

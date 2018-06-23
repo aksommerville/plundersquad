@@ -1276,11 +1276,19 @@ static int ps_game_check_awayward_permaswitch(struct ps_game *game,int dx,int dy
   } else if (dy>0) {
     if (screen->xform&PS_AXIS_VERT) return 0;
   }
+
+  /* Proceed only if all players are alive. */
+  int i=game->grpv[PS_SPRGRP_HERO].sprc;
+  while (i-->0) {
+    struct ps_sprite *hero=game->grpv[PS_SPRGRP_HERO].sprv[i];
+    if (!hero||(hero->type!=&ps_sprtype_hero)) continue;
+    struct ps_sprite_hero *HERO=(struct ps_sprite_hero*)hero;
+    if (!HERO->hp) return 0;
+  }
   
   /* Look for relevant permaswitch. */
   const struct ps_blueprint_poi *poi=game->grid->poiv;
-  int i=game->grid->poic;
-  for (;i-->0;poi++) {
+  for (i=game->grid->poic;i-->0;poi++) {
     if (poi->type!=PS_BLUEPRINT_POI_PERMASWITCH) continue;
     if (poi->argv[0]!=PS_PERMASWITCH_EXIT_AWAYWARD) continue;
     

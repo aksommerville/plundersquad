@@ -116,7 +116,9 @@ static int ps_evdev_default_cb_connect(int devid) {
   ps_input_device_del(device);
 
   if (ps_input_event_connect(device)<0) {
-    return -1;
+    ps_log(EVDEV,ERROR,"Error connecting device '%.*s'. Removing from registry.",device->namec,device->name);
+    ps_input_provider_uninstall_device(ps_input_provider_evdev,device);
+    return 0;
   }
 
   return 0;

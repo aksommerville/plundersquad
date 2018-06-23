@@ -11,25 +11,8 @@ Linux errors:
 - !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
   ...update: it's not the strawberry
   ...13 June 2018: Let's play for a few hours, and if we don't see this again assume it's OK.
-- Crash when entering input config. Just connected Xbox 360 pad for the first time, does that matter?
-  CONFIG:INFO: /home/andy/proj/plundersquad/out/linux-default/plundersquad.cfg: Rewrote general config file [src/os/ps_userconfig.c:743]
-  GUI:DEBUG: Player 3 controlling pausepage exclusively. [src/gui/menus/ps_widget_pausepage.c:342]
-  GUI:DEBUG: Skinning pausepage for player 3. [src/gui/menus/ps_widget_pausepage.c:408]
-  INPUT:WARN: Ignoring duplicate button #65365 on device 'Keyboard'. [src/input/ps_input_premap.c:113]
-  INPUT:WARN: Ignoring duplicate button #65366 on device 'Keyboard'. [src/input/ps_input_premap.c:113]
-  INPUT:WARN: Ignoring duplicate button #65406 on device 'Keyboard'. [src/input/ps_input_premap.c:113]
-  INPUT:WARN: Ignoring duplicate button #65434 on device 'Keyboard'. [src/input/ps_input_premap.c:113]
-  INPUT:WARN: Ignoring duplicate button #65435 on device 'Keyboard'. [src/input/ps_input_premap.c:113]
-  INPUT:WARN: Ignoring duplicate button #39 on device 'Keyboard'. [src/input/ps_input_premap.c:113]
-  INPUT:WARN: Ignoring duplicate button #96 on device 'Keyboard'. [src/input/ps_input_premap.c:113]
-  etc/make/commands.mk:1: recipe for target 'run' failed
-  make: *** [run] Error 1
- ...tried again after configuring device and it went fine. Same warnings in log.
- ...This is a Very Serious Problem, if connecting a device for the first time crashes, if done during play.
-    That's not the expected usage, one expects the devices will be connected before launch.
-    But it's common enough to care about.
 - After first setup for Xbox 360 joystick, right thumbstick is sending A and B. Why?
-
+- F-keys don't work in inputcfgpage
 
 Windows errors:
 - Freeze on startup, Windows:

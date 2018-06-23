@@ -33,7 +33,7 @@ struct ps_input_device *ps_input_device_new(int size) {
 void ps_input_device_del(struct ps_input_device *device) {
   if (!device) return;
   if (device->refc-->1) return;
-
+  
   if (device->name) free(device->name);
   if (device->map) ps_input_map_del(device->map);
   if (device->premap) ps_input_premap_del(device->premap);

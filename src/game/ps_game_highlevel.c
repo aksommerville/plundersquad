@@ -849,9 +849,10 @@ int ps_game_cb_device_connect(struct ps_input_device *device,void *userdata) {
   if (game->finished) return 0;
   if (game->paused) return 0;
   if (game->playerc<1) return 0; // Not initialized
-  int playerid=0;
-  if (device&&device->map) playerid=device->map->plrid;
-  if (playerid) {
+  if (!device) return 0; // Um, that's not OK.
+  if (!device->map) return 0; // Can't assign unmapped devices, just ignore it.
+  int playerid=device->map->plrid;
+  if ((playerid>=1)&&(playerid<=PS_PLAYER_LIMIT)) {
     ps_log(GAME,DEBUG,"Connect device '%s', playerid %d.",device->name,playerid);
   } else {
     if (ps_input_assign_device_to_least_covered_player(device,game->playerc)<0) return -1;

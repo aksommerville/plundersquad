@@ -171,7 +171,15 @@ static int ps_evdev_try_file(const char *base) {
     ps_evdev.callingback=1;
     int err=ps_evdev.cb_connect(dev->devid);
     ps_evdev.callingback=0;
-    if (err<0) { ps_evdev_device_cleanup(dev); ps_evdev.devc--; return -1; }
+    if (err<0) {
+      ps_log(EVDEV,WARN,"Ignoring error from device connect callback, and ignoring device.");
+      if (ps_evdev.cb_disconnect) {
+        if ((err=ps_evdev.cb_disconnect(dev->devid,err))>0) err=0;
+      }
+      ps_evdev_device_cleanup(dev);
+      ps_evdev.devc--;
+      return err;
+    }
   }
 
   return 1;
@@ -356,8 +364,10 @@ int ps_evdev_update() {
     if ((ps_evdev.infd>=0)&&FD_ISSET(ps_evdev.infd,&fdr)) {
       int err=ps_evdev_update_inotify();
       if (err<=0) {
+        ps_log(INPUT,WARN,"Closing inotify link for evdev -- we will not detect further joystick connections.");
         inotify_rm_watch(ps_evdev.infd,ps_evdev.inwd);
         close(ps_evdev.infd);
+        ps_evdev.infd=-1;
         if (ps_evdev.cb_disconnect) {
           ps_evdev.callingback=1;
           err=ps_evdev.cb_disconnect(0,err);

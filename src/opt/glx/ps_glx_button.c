@@ -305,10 +305,52 @@ int ps_glx_codepoint_from_keysym(int keysym) {
  * This is not exhaustive, not even close.
  * It only needs to apply when no Unicode code point is relevant.
  * I think only modifier keys matter.
+ * ...You think wrong, Andy-of-the-Past. We also need F-keys, and let's throw in arrows and such.
+ * Everything that isn't Unicode.
  */
  
 int ps_glx_usb_usage_from_keysym(int keysym) {
   switch (keysym) {
+  
+    case 0xffbe: return 0x0007003a; // F1
+    case 0xffbf: return 0x0007003b; // F2
+    case 0xffc0: return 0x0007003c; // F3
+    case 0xffc1: return 0x0007003d; // F4
+    case 0xffc2: return 0x0007003e; // F5
+    case 0xffc3: return 0x0007003f; // F6
+    case 0xffc4: return 0x00070040; // F7
+    case 0xffc5: return 0x00070041; // F8
+    case 0xffc6: return 0x00070042; // F9
+    case 0xffc7: return 0x00070043; // F10
+    case 0xffc8: return 0x00070044; // F11
+    case 0xffc9: return 0x00070045; // F12
+    case 0xffca: return 0x00070068; // F13
+    case 0xffcb: return 0x00070069; // F14
+    case 0xffcc: return 0x0007006a; // F15
+    case 0xffcd: return 0x0007006b; // F16
+    case 0xffce: return 0x0007006c; // F17
+    case 0xffcf: return 0x0007006d; // F18
+    case 0xffd0: return 0x0007006e; // F19
+    case 0xffd1: return 0x0007006f; // F20
+    case 0xffd2: return 0x00070070; // F21
+    case 0xffd3: return 0x00070071; // F22
+    case 0xffd4: return 0x00070072; // F23
+    case 0xffd5: return 0x00070073; // F24
+    
+    case 0xff61: return 0x00070046; // print screen
+    case 0xff14: return 0x00070047; // scroll lock
+    case 0xff13: return 0x00070048; // pause
+    case 0xff63: return 0x00070049; // insert
+    case 0xff50: return 0x0007004a; // home
+    case 0xff55: return 0x0007004b; // page up
+    case 0xff57: return 0x0007004d; // end
+    case 0xff56: return 0x0007004e; // page down
+    case 0xff53: return 0x0007004f; // right
+    case 0xff51: return 0x00070050; // left
+    case 0xff54: return 0x00070051; // down
+    case 0xff52: return 0x00070052; // up
+    case 0xff7f: return 0x00070053; // num lock
+  
     case 0xffe1: return 0x000700e1; // shift l
     case 0xffe2: return 0x000700e5; // shift r
     case 0xffe3: return 0x000700e0; // control l
@@ -320,6 +362,7 @@ int ps_glx_usb_usage_from_keysym(int keysym) {
     case 0xffea: return 0x000700e6; // r alt
     case 0xffeb: return 0x000700e3; // l super
     case 0xffec: return 0x000700e7; // r super
+    
   }
   return 0;
 }

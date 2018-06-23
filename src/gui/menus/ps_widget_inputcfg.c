@@ -24,6 +24,7 @@
 
 #define PS_INPUTCFG_TEXT_MARGIN 5
 #define PS_INPUTCFG_MAP_COUNT 7
+#define PS_INPUTCFG_NAME_LENGTH_LIMIT 14
 
 static int ps_inputcfg_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
 
@@ -319,7 +320,10 @@ int ps_widget_inputcfg_setup(struct ps_widget *widget,struct ps_input_device *de
 
   if ((WIDGET->watchid=ps_input_device_watch_buttons(device,ps_inputcfg_cb_button,0,widget))<0) return -1;
 
-  if (ps_widget_label_set_text(ps_inputcfg_get_namelabel(widget),device->name,device->namec)<0) return -1;
+  int namec=device->namec;
+  if (namec>PS_INPUTCFG_NAME_LENGTH_LIMIT) namec=PS_INPUTCFG_NAME_LENGTH_LIMIT;
+  if (ps_widget_label_set_text(ps_inputcfg_get_namelabel(widget),device->name,namec)<0) return -1;
+  
   if (ps_widget_textblock_set_text(ps_inputcfg_get_message(widget),"",0)<0) return -1;
   if (ps_widget_inputstatus_set_device(ps_inputcfg_get_inputstatus(widget),device)<0) return -1;
   

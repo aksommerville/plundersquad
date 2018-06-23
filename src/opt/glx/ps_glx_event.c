@@ -25,6 +25,7 @@ static int ps_glx_evt_key(XKeyEvent *evt,int value) {
       if (ps_input_event_key(tkeysym,codepoint,value)<0) return -1;
     } else {
       // No codepoint will be produced for modifier keys, but we still want very much to report them.
+      // This also applies to F-keys and the like.
       int usb_usage=ps_glx_usb_usage_from_keysym(tkeysym);
       if (usb_usage) {
         if (ps_input_event_key(usb_usage,0,value)<0) return -1;

@@ -21,8 +21,6 @@ struct ps_widget_scrolllist {
   struct ps_widget hdr;
   int contenth; // Total height of content, reset at measure.
   int pixelp; // Scroll position in imaginary pixels.
-  int vischildp; // Index of first visible child.
-  int vischildc; // Count of visible children.
   struct ps_scrolllist_entry *entryv; // Child preferred sizes, recalculated at each measure().
   int entryc,entrya;
   int selp; // Index of selected child or -1
@@ -223,6 +221,12 @@ static int _ps_scrolllist_mousewheel(struct ps_widget *widget,int dx,int dy) {
 }
 
 static int _ps_scrolllist_key(struct ps_widget *widget,int keycode,int codepoint,int value) {
+  if (keycode&&value) switch (keycode) {
+    case 0x0007004a: if (ps_widget_scrolllist_adjust(widget,-9999)<0) return -1; break; // home
+    case 0x0007004d: if (ps_widget_scrolllist_adjust(widget,9999)<0) return -1; break; // end
+    case 0x0007004b: if (ps_widget_scrolllist_adjust(widget,-widget->h/WIDGET->scrollspeed)<0) return -1; break; // page up
+    case 0x0007004e: if (ps_widget_scrolllist_adjust(widget,widget->h/WIDGET->scrollspeed)<0) return -1; break; // page down
+  }
   return 0;
 }
 

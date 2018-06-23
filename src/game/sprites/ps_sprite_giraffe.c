@@ -94,7 +94,7 @@ static int _ps_giraffe_init(struct ps_sprite *spr) {
 
   SPR->phase=PS_GIRAFFE_PHASE_EXTEND; // Leave times zero; will enter IDLE phase at update.
 
-  SPR->hp=3;
+  SPR->hp=2;
 
   return 0;
 }

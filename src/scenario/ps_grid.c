@@ -172,7 +172,7 @@ int ps_grid_should_persist_switch(const struct ps_grid *grid,int switchid) {
   const struct ps_blueprint_poi *poi=grid->poiv;
   int i=grid->poic; for (;i-->0;poi++) {
     if (poi->type==PS_BLUEPRINT_POI_PERMASWITCH) {
-      if (poi->argv[0]<1) return 2;
+      if (poi->argv[0]==PS_PERMASWITCH_ALL_SWITCHES) return 2;
       if (poi->argv[0]==switchid) return 1;
     }
   }

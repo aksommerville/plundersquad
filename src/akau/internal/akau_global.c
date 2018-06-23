@@ -111,7 +111,7 @@ static int akau_fire_sync_token(uint16_t token) {
  
 int akau_update() {
   if (!akau.init) return 0;
-
+  
   /* Report deferred errors. */
   if (akau.error) {
     akau.error=0;
@@ -155,14 +155,20 @@ int akau_play_sound_as(int ipcmid,uint8_t trim,int8_t pan,uint8_t intent) {
   if (!akau.init) return -1;
   struct akau_ipcm *ipcm=akau_store_get_ipcm(akau.store,ipcmid);
   if (!ipcm) return -1;
-  return akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,0,intent);
+  if (akau_lock()<0) return -1;
+  int err=akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,0,intent);
+  akau_unlock();
+  return err;
 }
  
 int akau_play_loop_as(int ipcmid,uint8_t trim,int8_t pan,uint8_t intent) {
   if (!akau.init) return -1;
   struct akau_ipcm *ipcm=akau_store_get_ipcm(akau.store,ipcmid);
   if (!ipcm) return -1;
-  return akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,1,intent);
+  if (akau_lock()<0) return -1;
+  int err=akau_mixer_play_ipcm(akau.mixer,ipcm,trim,pan,1,intent);
+  akau_unlock();
+  return err;
 }
 
 int akau_play_song_as(int songid,int restart,uint8_t intent) {
@@ -172,7 +178,10 @@ int akau_play_song_as(int songid,int restart,uint8_t intent) {
     song=akau_store_get_song(akau.store,songid);
     if (!song) return -1;
   }
-  return akau_mixer_play_song(akau.mixer,song,restart,intent);
+  if (akau_lock()<0) return -1;
+  int err=akau_mixer_play_song(akau.mixer,song,restart,intent);
+  akau_unlock();
+  return err;
 }
 
 /* Intent.

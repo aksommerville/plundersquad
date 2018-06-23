@@ -7,9 +7,6 @@ General errors:
 Raspi errors:
 
 Linux errors:
-- !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
-  ...update: it's not the strawberry
-  ...13 June 2018: Let's play for a few hours, and if we don't see this again assume it's OK.
 
 Windows errors:
 - Freeze on startup, Windows:
@@ -94,3 +91,7 @@ Rejected:
   No. That's not our responsibility.
 - After first setup for Xbox 360 joystick, right thumbstick is sending A and B. Why?
   I did some other work in new evdev device after this, and it doesn't seem to happen anymore.
+- !!! segfault collecting treasure (GLX, strawberry, 2/5) !!!
+  ...update: it's not the strawberry
+  ...13 June 2018: Let's play for a few hours, and if we don't see this again assume it's OK.
+  ...23 June 2018: Fixed a separate concurrency problem in AKAU, and I don't expect to see this again.

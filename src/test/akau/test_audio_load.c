@@ -8,6 +8,11 @@
 #if PS_USE_alsa
   #include "opt/alsa/ps_alsa.h"
   #define driver &akau_driver_alsa
+#elif PS_USE_msaudio
+  #define driver &akau_driver_msaudio
+#else
+  // This won't work but will compile:
+  #define driver 0
 #endif
 
 /* Callback.

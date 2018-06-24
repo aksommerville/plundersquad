@@ -166,7 +166,11 @@ static int akau_store_decode_resource(struct akau_store *store,uint8_t restype,u
 
 static int akau_read_file(void *dstpp,const char *path) {
   if (!dstpp||!path) return -1;
-  int fd=open(path,O_RDONLY);
+  int mode=O_RDONLY;
+  #if PS_ARCH==PS_ARCH_mswin
+    mode|=O_BINARY;
+  #endif
+  int fd=open(path,mode);
   if (fd<0) return -1;
   off_t flen=lseek(fd,0,SEEK_END);
   if ((flen<0)||(flen>INT_MAX)||lseek(fd,0,SEEK_SET)) {

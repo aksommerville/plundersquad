@@ -300,7 +300,16 @@ int ps_glx_show_cursor(int show) {
 static void ps_glx_copy_pixels(long *dst,const uint8_t *src,int c) {
   for (;c-->0;dst++,src+=4) {
     #if BYTE_ORDER==BIG_ENDIAN
-      //TODO Test window icon for big-endian GLX. Do we have a PowerPC box somewhere?
+      /* https://standards.freedesktop.org/wm-spec/wm-spec-1.3.html
+       * """
+       * This is an array of 32bit packed CARDINAL ARGB with high byte being A, low byte being B.
+       * The first two cardinals are width, height. Data is in rows, left to right and top to bottom.
+       * """
+       * I take this to mean that big-endian should work the same as little-endian.
+       * But I'm nervous about it because:
+       *  - I don't have any big-endian machines handy for testing.
+       *  - The data type is "long" which is not always "32bit" as they say. (eg it is 64 on my box)
+       */
       *dst=(src[3]<<24)|(src[0]<<16)|(src[1]<<8)|src[2];
     #else
       *dst=(src[3]<<24)|(src[0]<<16)|(src[1]<<8)|src[2];

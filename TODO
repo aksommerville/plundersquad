@@ -21,6 +21,11 @@ Actionable:
 - Establish and enforce difficulty standards (eg die-cross-heal should be like 5 or 6 minimum).
 - Remove return switches if they might be used to cheat challenges.
 - Retrofit challenges with PS_PERMASWITCH_EXIT_AWAYWARD where applicable.
+- Full review of data
+- Documentation
+- Promo
+- Steam licensing
+- Other app stores?
 
 Windows:
 - src/opt/msaudio/ps_msaudio.c:6://TODO Need a mutex to protect callback
@@ -39,12 +44,10 @@ MacOS:
 - Screen saver?
 
 Linux:
-- src/opt/glx/ps_glx_global.c:298:      //TODO Test window icon for big-endian GLX. Do we have a PowerPC box somewhere?
 
 Raspi:
 
 Optimization, cleanup, low priority:
-- Store background image to texture
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits
 - Clean up logging
@@ -58,20 +61,14 @@ Ongoing, loosely-defined items:
 - Review award assignment with realistic data
 - Finish sound effects
 - Finish music
-- Goal: 100 sprdefs
 - More background graphics
 
 Optional:
 - src/input/ps_input_report_reader.h:3: * TODO We don't support collection fields, like for HID keyboards. Should we? Our focus is joysticks.
 
 Blocked:
-- Full review of data
-- Documentation
-- Promo
 - Final packaging
 - Normalize sound effects and music
-- Steam licensing
-- Other app stores?
 
 Rejected:
 - Scissor for sdraw blits. Only needed by editor.
@@ -96,3 +93,7 @@ Rejected:
   ...update: it's not the strawberry
   ...13 June 2018: Let's play for a few hours, and if we don't see this again assume it's OK.
   ...23 June 2018: Fixed a separate concurrency problem in AKAU, and I don't expect to see this again.
+- Store background image to texture
+  No point.
+- Goal: 100 sprdefs
+  Not going to reach this, and that's OK.

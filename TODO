@@ -32,13 +32,16 @@ Windows:
 - Configurable audio buffer size?
 - Try GL2 build on craptop and work laptop. ... no and yes
 - Check modifiers and F-keys (eg inputcfgpage)
+- Investigate screen saver suppression
 
 MacOS:
 - Developer license
 - Sign code
+- Screen saver?
 
 Linux:
 - src/opt/glx/ps_glx_global.c:298:      //TODO Test window icon for big-endian GLX. Do we have a PowerPC box somewhere?
+- Suppress X11 screensaver. See XSetScreenSaver()
 
 Raspi:
 

@@ -186,6 +186,11 @@ int ps_sprite_release_from_master(struct ps_sprite *slave,struct ps_game *game) 
     return 0;
   }
 
+  if (master->type==&ps_sprtype_elefence) {
+    if (ps_sprite_elefence_drop_slave(master,slave,game)<0) return -1;
+    return 0;
+  }
+
   ps_log(GAME,ERROR,"ps_sprite_release_from_master() is not aware of type '%s'.",master->type->name);
   return -1;
 }

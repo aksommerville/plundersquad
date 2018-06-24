@@ -397,3 +397,18 @@ const struct ps_sprtype ps_sprtype_elefence={
   .draw=_ps_elefence_draw,
   
 };
+
+/* Drop slave, public entry point (via ps_sprite_release_from_master()).
+ */
+ 
+int ps_sprite_elefence_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,struct ps_game *game) {
+  if (!spr||(spr->type!=&ps_sprtype_elefence)) return -1;
+  if (slave) {
+    if (slave->type==&ps_sprtype_elefence) { // Should always be true, we only accept other elefences as slave.
+      struct ps_sprite_elefence *SLAVE=(struct ps_sprite_elefence*)slave;
+      ps_sprgrp_clear(slave->master);
+    }
+    if (ps_sprgrp_remove_sprite(SPR->slaves,slave)<0) return -1;
+  }
+  return 0;
+}

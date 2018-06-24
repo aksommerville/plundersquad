@@ -238,6 +238,7 @@ int ps_sprite_actuate(struct ps_sprite *spr,struct ps_game *game,int value);
 int ps_sprite_turtle_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_rabbit_drop_slave(struct ps_sprite *spr,struct ps_game *game);
 int ps_sprite_hookshot_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,struct ps_game *game); // pumpkin or user
+int ps_sprite_elefence_drop_slave(struct ps_sprite *spr,struct ps_sprite *slave,struct ps_game *game);
 
 /* ps_sprdef: Resource type combining sprtype with parameters.
  * This is the interface you typically want for creating new sprites.

@@ -29,7 +29,7 @@ extern struct ps_mswm {
   HGLRC hglrc;
   int winw,winh;
   int fullscreen;
-  int cursor;
+  int showcursor;
   WINDOWPLACEMENT fsrestore;
   struct ps_input_provider *input_provider;
   struct ps_input_device *dev_keyboard;

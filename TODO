@@ -14,7 +14,6 @@ Windows errors:
 - Toggling out of fullscreen, other windows don't repaint
     ...This is not happening anymore on my Windows 10 box.
 - Input focus lost after switching window in fullscreen, I'm not sure what happened.
-- Windows 10: Hiding cursor now applies to the border chrome as well? The fuck!
 
 MacOS errors:
 

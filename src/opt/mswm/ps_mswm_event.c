@@ -146,6 +146,15 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
         }
       } break;
 
+    case WM_SETCURSOR: if (LOWORD(lparam)==HTCLIENT) {
+        //ps_log(MSWM,DEBUG,"WM_SETCURSOR with HTCLIENT");
+        SetCursor(0);
+        return 1;
+      } else {
+        //ps_log(MSWM,DEBUG,"WM_SETCURSOR with other lparam");
+        ShowCursor(1);
+      } break;
+
     //default: ps_log(MSWM,TRACE,"event %d",msg);
 
   }

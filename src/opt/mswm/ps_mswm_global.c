@@ -31,7 +31,6 @@ static int ps_mswm_populate_wndclass() {
   ps_mswm.wndclass.style=CS_HREDRAW|CS_VREDRAW|CS_OWNDC;
   ps_mswm.wndclass.lpfnWndProc=(WNDPROC)ps_mswm_cb_msg;
   ps_mswm.wndclass.hInstance=ps_mswm.instance;
-  ps_mswm.wndclass.hCursor=LoadCursor(0,IDC_ARROW);
   ps_mswm.wndclass.lpszClassName=PS_MSWM_WINDOW_CLASS_NAME;
   return 0;
 }
@@ -127,7 +126,7 @@ void ps_mswm_quit() {
   ps_input_provider_del(ps_mswm.input_provider);
 
   if (ps_mswm.appicon) DestroyIcon(ps_mswm.appicon);
-  
+
   if (ps_mswm.hglrc) {
     wglMakeCurrent(ps_mswm.hdc,0);
     wglDeleteContext(ps_mswm.hglrc);
@@ -212,12 +211,12 @@ int ps_mswm_show_cursor(int flag) {
   if (!ps_mswm.init) return -1;
   if (flag) {
     if (ps_mswm.cursor) return 0;
-    ShowCursor(1);
-    ps_mswm.cursor=1;
+    //ShowCursor(1);
+    ps_mswm.showcursor=1;
   } else{
     if (!ps_mswm.cursor) return 0;
-    ShowCursor(0);
-    ps_mswm.cursor=0;
+    //ShowCursor(0);
+    ps_mswm.showcursor=0;
   }
   return 0;
 }

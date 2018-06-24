@@ -14,6 +14,7 @@ Windows errors:
 - Toggling out of fullscreen, other windows don't repaint
     ...This is not happening anymore on my Windows 10 box.
 - Input focus lost after switching window in fullscreen, I'm not sure what happened.
+- Windows 10: Hiding cursor now applies to the border chrome as well? The fuck!
 
 MacOS errors:
 
@@ -29,7 +30,6 @@ Actionable:
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
-- src/opt/mswm/ps_mswm_global.c:66:  int x=100,y=100;//TODO window position
 - src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
 - src/opt/mswm/ps_mswm_graphics.c:25:  //TODO Assert OpenGL features.
 - Configurable audio buffer size?

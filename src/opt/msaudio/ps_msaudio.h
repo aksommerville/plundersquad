@@ -1,5 +1,4 @@
 /* ps_msaudio.h
- * This has nothing to do with GDI. I'm just dumping it here with all the Windows stuff.
  * Simple callback-oriented audio with the DIB interface.
  * This interface was deprecated as of Windows Vista in favour of DirectAudio and CoreAudio.
  * Unfortunately, stock MinGW doesn't appear to support either of those.

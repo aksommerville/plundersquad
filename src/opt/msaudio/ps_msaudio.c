@@ -3,8 +3,6 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-//TODO Need a mutex to protect callback
-
 /* Globals.
  */
 
@@ -18,6 +16,7 @@ static struct {
   HANDLE thread_terminate;
   HANDLE thread_complete;
   HANDLE buffer_ready;
+  HANDLE mutex;
 } ps_msaudio={0};
 
 /* Callback.
@@ -47,8 +46,17 @@ static void CALLBACK ps_msaudio_cb(
 static void ps_msaudio_check_buffer(WAVEHDR *hdr) {
   if (hdr->dwUser) return;
   //ps_log(MSAUDIO,TRACE,"fire audio callback");
+
+  if (WaitForSingleObject(ps_msaudio.mutex,INFINITE)) {
+    ps_log(MSAUDIO,ERROR,"Audio thread failed to acquire mutex.");
+    return;
+  }
+  
   hdr->dwUser=1;
   ps_msaudio.cb_audio((int16_t*)hdr->lpData,hdr->dwBufferLength>>1);
+
+  ReleaseMutex(ps_msaudio.mutex);
+  
   hdr->dwBytesRecorded=hdr->dwBufferLength;
   hdr->dwFlags=WHDR_PREPARED;
   waveOutWrite(ps_msaudio.waveout,hdr,sizeof(WAVEHDR));
@@ -91,6 +99,12 @@ int ps_msaudio_init(
   if (ps_msaudio.init) return -1;
 
   ps_msaudio.cb_audio=cb;
+
+  ps_msaudio.mutex=CreateMutex(0,0,0);
+  if (!ps_msaudio.mutex) {
+    ps_log(MSAUDIO,ERROR,"CreateMutex() failed");
+    return -1;
+  }
 
   WAVEFORMATEX format={
     .wFormatTag=WAVE_FORMAT_PCM,
@@ -157,6 +171,7 @@ void ps_msaudio_quit() {
   ps_log(MSAUDIO,TRACE,"ps_msaudio_quit");
   if (ps_msaudio.init) {
     if (ps_msaudio.thread) {
+      WaitForSingleObject(ps_msaudio.mutex,INFINITE);
       SetEvent(ps_msaudio.thread_terminate);
       WaitForSingleObject(ps_msaudio.thread_complete,INFINITE);
     }
@@ -172,20 +187,28 @@ void ps_msaudio_quit() {
     if (ps_msaudio.waveout) {
       waveOutClose(ps_msaudio.waveout);
     }
+    if (ps_msaudio.mutex) {
+      CloseHandle(ps_msaudio.mutex);
+    }
     if (ps_msaudio.bufv[0].lpData) free(ps_msaudio.bufv[0].lpData);
     if (ps_msaudio.bufv[1].lpData) free(ps_msaudio.bufv[1].lpData);
     ps_msaudio.init=0;
   }
 }
 
-/* Lock. TODO
+/* Lock.
  */
 
 static int ps_msaudio_lock() {
+  if (WaitForSingleObject(ps_msaudio.mutex,INFINITE)) {
+    ps_log(MSAUDIO,ERROR,"Failed to lock audio mutex.");
+    return -1;
+  }
   return 0;
 }
 
 static int ps_msaudio_unlock() {
+  ReleaseMutex(ps_msaudio.mutex);
   return 0;
 }
 

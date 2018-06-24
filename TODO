@@ -28,7 +28,6 @@ Actionable:
 - Other app stores?
 
 Windows:
-- src/opt/msaudio/ps_msaudio.c:6://TODO Need a mutex to protect callback
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
 - src/opt/mswm/ps_mswm_global.c:66:  int x=100,y=100;//TODO window position
 - src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?

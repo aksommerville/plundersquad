@@ -35,6 +35,7 @@ extern struct ps_glx {
   int w,h;
   int fullscreen;
   int cursor_visible;
+  int screensaver_inhibited;
 
   struct ps_input_provider *input_provider;
   struct ps_input_device *dev_keyboard;

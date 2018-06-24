@@ -5,8 +5,6 @@
  
 struct ps_glx ps_glx={0};
  
-int mpi_video_size_mutable=1;
-
 /* Initialize X11 (display is already open).
  */
  
@@ -164,6 +162,7 @@ int ps_glx_swap() {
   //ps_log(GLX,TRACE,"%s",__func__);
   if (!ps_glx.dpy) return -1;
   glXSwapBuffers(ps_glx.dpy,ps_glx.win);
+  ps_glx.screensaver_inhibited=0;
   return 0;
 }
 
@@ -320,5 +319,16 @@ int ps_glx_set_icon(const void *rgba,int w,int h) {
   ps_glx_copy_pixels(pixels+2,rgba,w*h);
   XChangeProperty(ps_glx.dpy,ps_glx.win,ps_glx.atom__NET_WM_ICON,XA_CARDINAL,32,PropModeReplace,(unsigned char*)pixels,length);
   free(pixels);
+  return 0;
+}
+
+/* Inhibit screensaver.
+ */
+ 
+int ps_glx_inhibit_screensaver() {
+  if (!ps_glx.dpy) return -1;
+  if (ps_glx.screensaver_inhibited) return 0;
+  XForceScreenSaver(ps_glx.dpy,ScreenSaverReset);
+  ps_glx.screensaver_inhibited=1;
   return 0;
 }

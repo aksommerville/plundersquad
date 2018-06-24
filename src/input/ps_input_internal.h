@@ -41,5 +41,8 @@ extern struct ps_input {
 
 /* Private API.
  *****************************************************************************/
+ 
+// Call whenever joystick events are received. Dispatches to window manager.
+int ps_input_inhibit_screensaver();
 
 #endif

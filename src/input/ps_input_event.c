@@ -7,6 +7,11 @@
 #include "gui/ps_gui.h"
 #include "video/ps_video.h"
 
+// Need WM headers for ps_input_inhibit_screensaver()
+#if PS_USE_glx
+  #include "opt/glx/ps_glx.h"
+#endif
+
 /* Connect device.
  */
  
@@ -86,6 +91,8 @@ int ps_input_event_disconnect(struct ps_input_device *device) {
 static int ps_input_event_button_cb(int plrid,int btnid,int value,void *userdata) {
   struct ps_input_device *device=userdata;
   ps_log(INPUT,TRACE,"%s plrid=%d btnid=%d value=%d device='%.*s'",__func__,plrid,btnid,value,device->namec,device->name);
+  
+  if (ps_input_inhibit_screensaver()<0) return -1;
 
   if (ps_input.gui) {
     if (ps_gui_userinput(ps_input.gui,plrid,btnid,value)<0) return -1;
@@ -151,5 +158,21 @@ int ps_input_event_key(int keycode,int codepoint,int value) {
   if (ps_input.gui) {
     if (ps_gui_key(ps_input.gui,keycode,codepoint,value)<0) return -1;
   }
+  return 0;
+}
+
+/* Inhibit screensaver.
+ */
+
+int ps_input_inhibit_screensaver() {
+  #if PS_USE_glx
+    return ps_glx_inhibit_screensaver();
+  #elif PS_USE_bcm
+    //TODO bcm screensaver -- is there such a thing? I know the console does blank after a time.
+  #elif PS_USE_macwm
+    //TODO macwm screensaver
+  #elif PS_USE_mswm
+    //TODO mswm screensaver
+  #endif
   return 0;
 }

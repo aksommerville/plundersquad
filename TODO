@@ -29,12 +29,10 @@ Actionable:
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
-- src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
 - src/opt/mswm/ps_mswm_graphics.c:25:  //TODO Assert OpenGL features.
 - Configurable audio buffer size?
 - Try GL2 build on craptop and work laptop. ... no and yes
-- Check modifiers and F-keys (eg inputcfgpage)
-- Investigate screen saver suppression
+- Window doesn't have the usual orange border in Windows 10
 
 MacOS:
 - Developer license
@@ -44,6 +42,7 @@ MacOS:
 Linux:
 
 Raspi:
+- Confirm launching via X11.
 
 Optimization, cleanup, low priority:
 - ps_sdraw_draw_line(): Optimize writes
@@ -95,3 +94,5 @@ Rejected:
   No point.
 - Goal: 100 sprdefs
   Not going to reach this, and that's OK.
+- src/opt/mswm/ps_mswm_event.c:105:    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
+  ...I can get WM_SIZE live, but can't figure out how to repaint without Windows blacking it out right after. I give up.

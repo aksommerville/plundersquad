@@ -37,12 +37,12 @@ int ps_mswm_usage_from_keysym(int keysym) {
   if ((keysym<1)||(keysym>255)) return 0;
 
   /* ASCII digits and letters don't have VK symbols.
-   * Windows seems to always use upper-case ASCII, but we'll handle lower-case too to be safe.
+   * Digits and upper-case letters are themselves.
+   * BEWARE: Lowercase ASCII are used for other purposes in the VK gamut.
    */
   if (keysym==0x30) return 0x00070027;
   if ((keysym>=0x31)&&(keysym<=0x39)) return 0x0007001e +keysym-0x31;
   if ((keysym>=0x41)&&(keysym<=0x5a)) return 0x00070004+keysym-0x41;
-  if ((keysym>=0x61)&&(keysym<=0x7a)) return 0x00070004+keysym-0x61;
 
   /* Keypad 1..9 are sequential.
    */

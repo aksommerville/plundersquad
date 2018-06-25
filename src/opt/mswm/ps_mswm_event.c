@@ -35,6 +35,7 @@ static int ps_mswm_evt_key(WPARAM wparam,LPARAM lparam) {
     value=1;
   }
   if (ps_input_event_button(ps_mswm.dev_keyboard,wparam,value)<0) return -1;
+  wparam=ps_mswm_usage_from_keysym(wparam);
   if (ps_input_event_key(wparam,0,value)<0) return -1;
   return 0;
 }

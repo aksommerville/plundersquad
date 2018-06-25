@@ -16,6 +16,16 @@
  * - Same test without logging, just to be sure...
  *   ...Same result. We have a winner.
  */
+
+/* None of this matters to Windows.
+ * I don't know what it looks at exactly, but somehow when the program is running the display never sleeps.
+ */
+
+/* This shouldn't matter to raspi but do confirm. TODO
+ */
+
+/* I do expect similar trouble with MacOS. TODO
+ */
  
 static void delay_seconds(int s) {
   ps_log(TEST,INFO,"Delaying for %d seconds...",s);

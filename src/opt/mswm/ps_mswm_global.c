@@ -210,11 +210,11 @@ int ps_mswm_set_fullscreen(int flag) {
 int ps_mswm_show_cursor(int flag) {
   if (!ps_mswm.init) return -1;
   if (flag) {
-    if (ps_mswm.cursor) return 0;
+    if (ps_mswm.showcursor) return 0;
     //ShowCursor(1);
     ps_mswm.showcursor=1;
   } else{
-    if (!ps_mswm.cursor) return 0;
+    if (!ps_mswm.showcursor) return 0;
     //ShowCursor(0);
     ps_mswm.showcursor=0;
   }

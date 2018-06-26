@@ -25,6 +25,7 @@ static struct {
 static void CALLBACK ps_msaudio_cb(
   HWAVEOUT hwo,UINT uMsg,DWORD_PTR dwInstance,DWORD dwParam1,DWORD dwParam2
 ) {
+  //ps_log(MSAUDIO,TRACE,"%s %d",__func__,uMsg);
   if (!ps_msaudio.cb_audio) {
     ps_log(MSAUDIO,ERROR,"ps_msaudio_cb(%p,%u,%p,%d,%d)",hwo,uMsg,dwInstance,dwParam1,dwParam2);
     return;
@@ -43,13 +44,19 @@ static void CALLBACK ps_msaudio_cb(
 /* Thread main.
  */
 
-static void ps_msaudio_check_buffer(WAVEHDR *hdr) {
-  if (hdr->dwUser) return;
+// Returns <0 to abort.
+static int ps_msaudio_check_buffer(WAVEHDR *hdr) {
+  if (hdr->dwUser) return 0;
   //ps_log(MSAUDIO,TRACE,"fire audio callback");
 
-  if (WaitForSingleObject(ps_msaudio.mutex,INFINITE)) {
+  if (WaitForSingleObject(ps_msaudio.mutex,0)!=WAIT_OBJECT_0) {
     ps_log(MSAUDIO,ERROR,"Audio thread failed to acquire mutex.");
-    return;
+    return 0;
+  }
+  if (WaitForSingleObject(ps_msaudio.thread_terminate,0)==WAIT_OBJECT_0) {
+    ps_log(MSAUDIO,INFO,"Terminated during audio callback -- This is the case I was looking for.");
+    ReleaseMutex(ps_msaudio.mutex);
+    return -1;
   }
   
   hdr->dwUser=1;
@@ -60,6 +67,8 @@ static void ps_msaudio_check_buffer(WAVEHDR *hdr) {
   hdr->dwBytesRecorded=hdr->dwBufferLength;
   hdr->dwFlags=WHDR_PREPARED;
   waveOutWrite(ps_msaudio.waveout,hdr,sizeof(WAVEHDR));
+
+  return 0;
 }
 
 static DWORD WINAPI ps_msaudio_thread(LPVOID arg) {
@@ -67,16 +76,19 @@ static DWORD WINAPI ps_msaudio_thread(LPVOID arg) {
   while (1) {
 
     /* Check for termination. */
-    if (WaitForSingleObject(ps_msaudio.thread_terminate,0)==WAIT_OBJECT_0) {
-      break;
-    }
+    //ps_log(MSAUDIO,TRACE,"ps_msaudio_thread");
+    if (WaitForSingleObject(ps_msaudio.thread_terminate,0)==WAIT_OBJECT_0) break;
 
     /* Populate any buffers with zero user data. */
-    ps_msaudio_check_buffer(ps_msaudio.bufv+ps_msaudio.bufp);
-    ps_msaudio_check_buffer(ps_msaudio.bufv+(ps_msaudio.bufp^1));
+    //ps_log(MSAUDIO,TRACE,"ps_msaudio_thread");
+    if (ps_msaudio_check_buffer(ps_msaudio.bufv+ps_msaudio.bufp)<0) break;
+    //Sleep(1);
+    if (ps_msaudio_check_buffer(ps_msaudio.bufv+(ps_msaudio.bufp^1))<0) break;
 
     /* Sleep for a little. Swap buffers if signalled. */
+    //ps_log(MSAUDIO,TRACE,"ps_msaudio_thread");
     if (WaitForSingleObject(ps_msaudio.buffer_ready,1)==WAIT_OBJECT_0) {
+      //ps_log(MSAUDIO,TRACE,"ps_msaudio_thread");
       ps_msaudio.bufv[ps_msaudio.bufp].dwUser=0;
       ps_msaudio.bufp^=1;
     }
@@ -116,7 +128,6 @@ int ps_msaudio_init(
     .cbSize=0,
   };
 
-  //TODO I have observed freezes here. Can't fathom why.
   MMRESULT result=waveOutOpen(
     &ps_msaudio.waveout,
     WAVE_MAPPER,
@@ -160,7 +171,6 @@ int ps_msaudio_init(
   if (!ps_msaudio.thread) return -1;
   
   ps_msaudio.init=1;
-  ps_log(MSAUDIO,TRACE,"ps_msaudio_init ok");
   return 0;
 }
 
@@ -168,7 +178,6 @@ int ps_msaudio_init(
  */
 
 void ps_msaudio_quit() {
-  ps_log(MSAUDIO,TRACE,"ps_msaudio_quit");
   if (ps_msaudio.init) {
     if (ps_msaudio.thread) {
       WaitForSingleObject(ps_msaudio.mutex,INFINITE);

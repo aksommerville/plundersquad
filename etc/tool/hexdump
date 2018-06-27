@@ -26,8 +26,8 @@ extrapatterns=map(eval,patternwords[2:])
 src=open(sys.argv[3],"rb").read()
 srcp=0
 while srcp<len(src):
-  for i in xrange(repc):
-    value=ord(src[srcp])
+  for i in range(repc):
+    value=src[srcp]
     srcp+=1
     sys.stdout.write(mainpattern%(value,))
   for pattern in extrapatterns:

@@ -103,7 +103,6 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
     case WM_QUIT:
     case WM_CLOSE: break;
 
-    //TODO We receive WM_SIZE when the resize is complete. Can we get it on the fly too?
     case WM_SIZE: {
         if (hwnd!=ps_mswm.hwnd) return 0;
         if (ps_mswm_cb_resize(wparam,LOWORD(lparam),HIWORD(lparam))<0) return -1;

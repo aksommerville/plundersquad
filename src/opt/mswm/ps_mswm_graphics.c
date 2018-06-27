@@ -53,7 +53,7 @@ int ps_mswm_setup_window() {
 
   if (ps_mswm.window_setup_complete) return -1;
   ps_mswm.window_setup_complete=1;
-  
+
   if (!(ps_mswm.hdc=GetDC(ps_mswm.hwnd))) return -1;
 
   /* Select pixel format. */

@@ -72,22 +72,9 @@ int ps_mswm_init(int w,int h,int fullscreen,const char *title) {
   AdjustWindowRect(&bounds,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,0);
   int outerw=bounds.right-bounds.left;
   int outerh=bounds.bottom-bounds.top;
-
-  /* If possible, center in the primary monitor.
-   * Experimentally, it seems the program always launches on primary, which is fine by me.
-   */
   ps_mswm.winw=w;
   ps_mswm.winh=h;
-  int x=0,y=0;
-  POINT pt={.x=INT_MIN,.y=INT_MIN}; // Choose a point sure to be out of bounds.
-  HMONITOR monitor=MonitorFromPoint(pt,MONITOR_DEFAULTTOPRIMARY);
-  if (monitor) {
-    MONITORINFO mi={.cbSize=sizeof(MONITORINFO)};
-    GetMonitorInfo(monitor,&mi);
-    RECT r=mi.rcMonitor;
-    x=r.left+((r.right-r.left)>>1)-(w>>1);
-    y=r.top+((r.bottom-r.top)>>1)-(h>>1);
-  }
+  int x=CW_USEDEFAULT,y=0;
 
   ps_mswm.hwnd=CreateWindow(
     PS_MSWM_WINDOW_CLASS_NAME,
@@ -109,6 +96,8 @@ int ps_mswm_init(int w,int h,int fullscreen,const char *title) {
     ShowWindow(ps_mswm.hwnd,SW_SHOW);
   }
   UpdateWindow(ps_mswm.hwnd);
+
+  FlashWindow(ps_mswm.hwnd,0);
 
   ShowCursor(0);
 
@@ -241,14 +230,15 @@ int ps_mswm_set_icon(const void *rgba,int w,int h) {
   void *dst=malloc(w*h*4);
   if (!dst) return -1;
   ps_mswm_copy_icon(dst,rgba,w*h);
-  
-  if (!(ps_mswm.appicon=CreateIcon(0,w,h,1,32,0,dst))) {
+
+  if (!(ps_mswm.appicon=CreateIcon(ps_mswm.instance,w,h,1,32,0,dst))) {
+    ps_log(MSWM,ERROR,"CreateIcon() failed");
     free(dst);
     return -1;
   }
   free(dst);
   
-  SetClassLongPtr(ps_mswm.hwnd,GCLP_HICON,(LONG)ps_mswm.appicon);
+  SendMessage(ps_mswm.hwnd,WM_SETICON,ICON_BIG,(LPARAM)ps_mswm.appicon);
 
   return 0;
 }

@@ -16,6 +16,7 @@
 struct ps_mshid_device {
   struct ps_input_device hdr;
   int hat_fldix;
+  int hat_logmin;
 };
 
 #define DEVICE ((struct ps_mshid_device*)device)
@@ -153,6 +154,11 @@ static int ps_mshid_apply_usage(struct ps_input_device *device,const void *src,i
   int physical_min=RD32(src,0x58);
   int physical_max=RD32(src,0x5c);
 
+  //ps_log(MSHID,TRACE,
+  //  "usage:%04x/%04x..%04x, shift:%02x, size:%d, count:%d, flags:%04x, log:%d..%d, phy:%d..%d",
+  //  usage_page,usage_low,usage_high,shift,report_size,report_count,flags,logical_min,logical_max,physical_min,physical_max
+  //);
+
   /* Validate. If it doesn't compute, give up and return zero. */
   if (shift>=8) return 0;
   if (!report_size) return 0;
@@ -165,9 +171,13 @@ static int ps_mshid_apply_usage(struct ps_input_device *device,const void *src,i
 
   /* Detect hat switches. eg my "BDA Pro Ex" has one like this.
    * This won't catch every possible case.
+   * Logical range for BDA Pro Ex is 0..7.
+   * For Xbox 360 it is 1..8. Otherwise that matches.
    */
-  if ((report_count==1)&&(logical_min==0)&&(logical_max==7)&&(usage_page==0x0001)&&(usage_low==0x0039)&&(flags&0x40)) {
+  if ((report_count==1)&&(logical_min+7==logical_max)&&(usage_page==0x0001)&&(usage_low==0x0039)&&(flags&0x40)) {
     DEVICE->hat_fldix=ps_input_report_reader_count_fields(device->report_reader);
+    DEVICE->hat_logmin=logical_min;
+    ps_log(MSHID,DEBUG,"Device %p Found hat at field %d with logical min %d",device,DEVICE->hat_fldix,DEVICE->hat_logmin);
   }
 
   /* Define report elements. */
@@ -318,12 +328,14 @@ static int ps_mshid_setup_device(struct ps_input_device *device,RAWINPUT *evt) {
 static int ps_mshid_rcvrpt_cb(struct ps_input_report_reader *reader,int fldix,int fldid,int v,int pv,void *userdata) {
   struct ps_input_device *device=userdata;
 
+  //ps_log(MSHID,TRACE,"%s fldix=%d fldid=%d v=%d pv=%d",__func__,fldix,fldid,v,pv);
+
   /* Hacky special handling for hat switches. */
   if (fldix==DEVICE->hat_fldix) {
     int btnid_x=ps_input_report_reader_count_fields(reader);
     int btnid_y=btnid_x+1;
     int vx=0,vy=0;
-    switch (v) {
+    switch (v-DEVICE->hat_logmin) {
       case 0: vy=-1; break;
       case 1: vy=-1; vx=1; break;
       case 2: vx=1; break;

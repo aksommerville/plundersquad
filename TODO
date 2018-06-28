@@ -26,6 +26,7 @@ Actionable:
 - Promo
 - Steam licensing
 - Other app stores?
+- Build into a Pi-based arcade console. See http://www.ultimarc.com/
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)

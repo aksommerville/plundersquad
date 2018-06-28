@@ -141,6 +141,7 @@ LRESULT ps_mswm_cb_msg(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam) {
 
     case WM_INPUT: return ps_mshid_event(wparam,lparam);
     case WM_DEVICECHANGE: {
+        ps_log(MSWM,DEBUG,"WM_DEVICECHANGE wparam=%d",wparam);
         if (wparam==7) { // DBT_DEVNODES_CHANGED
           if (ps_mshid_poll_disconnected_devices()<0) return -1;
         }

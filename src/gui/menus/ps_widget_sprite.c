@@ -73,7 +73,7 @@ static struct ps_game *ps_sprite_create_mock_game() {
 
 /* Delete.
  */
-
+ 
 static void _ps_sprite_del(struct ps_widget *widget) {
   ps_sprgrp_clear(WIDGET->grp);
   ps_sprgrp_del(WIDGET->grp);
@@ -97,7 +97,7 @@ static int _ps_sprite_init(struct ps_widget *widget) {
   WIDGET->player->playerid=-1; // Prevent automatic input retrieval
 
   if (!(WIDGET->record=ps_sprite_build_input_record())) return -1;
-
+  
   return 0;
 }
 

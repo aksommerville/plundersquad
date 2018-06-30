@@ -89,17 +89,22 @@ static struct ps_sprite *ps_hookshot_find_pumpkin(struct ps_sprite *spr,struct p
 
 static int ps_hookshot_check_pumpkin_final_position(struct ps_sprite *spr,struct ps_game *game,struct ps_sprite *pumpkin) {
 
+  // Prizes don't care if they're over water or what.
+  if (pumpkin->type==&ps_sprtype_prize) return 0;
+  
+  // Heroes handle this on their own.
+  if (pumpkin->type==&ps_sprtype_hero) return 0;
+
+  // All others will fall in the water if we drop at the right place.
   if (game->grid) {
     int col=pumpkin->x/PS_TILESIZE;
     int row=pumpkin->y/PS_TILESIZE;
     if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
       const struct ps_grid_cell *cell=game->grid->cellv+row*PS_GRID_COLC+col;
       if (cell->physics==PS_BLUEPRINT_CELL_HOLE) {
-        if (pumpkin->type!=&ps_sprtype_hero) { // Hero sprites manage this on their own.
-          if (ps_game_create_splash(game,pumpkin->x,pumpkin->y)<0) return -1;
-          ps_sprite_kill_later(pumpkin,game);
-          if (ps_game_decorate_monster_death(game,pumpkin->x,pumpkin->y)<0) return -1;
-        }
+        if (ps_game_create_splash(game,pumpkin->x,pumpkin->y)<0) return -1;
+        ps_sprite_kill_later(pumpkin,game);
+        if (ps_game_decorate_monster_death(game,pumpkin->x,pumpkin->y)<0) return -1;
       }
     }
   }

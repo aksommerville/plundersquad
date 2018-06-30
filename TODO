@@ -4,6 +4,8 @@ General errors:
   ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
+  ...investigated, can't reproduce
+- Gadgeteer drops heart in river - that's not a kill
 
 Raspi errors:
 
@@ -28,8 +30,12 @@ Actionable:
 - Steam licensing
 - Other app stores?
 - Build into a Pi-based arcade console. See http://www.ultimarc.com/
+  ...Build the electronics first, then get a membership at Idea Foundry to build it.
+  ...And as far as that goes, prototype a single player's inputs before spending the full $300 or so on parts.
 - Screen cap with many players
-- Adjust hero palettes, esp archer
+- elefence vs hookshot, behave more predictably
+- Prevent mimic getting stuck on walls
+- Prevent unwanted re-teleportation?
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)

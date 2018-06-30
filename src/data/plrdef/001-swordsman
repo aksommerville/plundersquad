@@ -2,12 +2,12 @@ head 0x4c
 body 0xc6
 skill SWORD
 skill COMBAT
-colors 604020ff ff0000ff
-colors 604020ff 00c000ff
-colors 604020ff 0000ffff
-colors 604020ff ffff00ff
-colors 604020ff ff00ffff
-colors 604020ff 00ffffff
-colors 604020ff 808080ff
-colors 604020ff 404040ff
-colors 604020ff c0c0c0ff
+colors 291503ff e25244ff
+colors 604020ff 2ca735ff
+colors 30150aff 2947ffff
+colors 301108ff ffff00ff
+colors 392719ff eb9fe2ff
+colors d5dcd2ff 8fd7e5ff
+colors 9e8a7dff 806480ff
+colors 0c0803ff 2b4040ff
+colors 150707ff d7cec0ff

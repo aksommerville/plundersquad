@@ -1,13 +1,13 @@
 head 0x09
 body 0x86
-skill arrow
-skill combat
-colors 00c000 00c000
-colors ff0000 ff0000
-colors 0000ff 0000ff
-colors ffff00 ffff00
-colors ff00ff ff00ff
-colors 00ffff 00ffff
-colors 808080 808080
-colors 404040 404040
-colors c0c0c0 c0c0c0
+skill ARROW
+skill COMBAT
+colors 209a40ff 30a744ff
+colors dc3b2eff d7372cff
+colors 1e5dffff 4062ffff
+colors d0c534ff e4d500ff
+colors 814635ff ff8ae4ff
+colors 8cb8e2ff 57a1b8ff
+colors 80938dff 628096ff
+colors 5f3e60ff 403050ff
+colors c0cec0ff c0d5c0ff

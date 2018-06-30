@@ -2,6 +2,10 @@
 #include "os/ps_userconfig.h"
 #include "sdraw/ps_sdraw.h"
 
+// Default window size, relative to framebuffer size. 2/1 is a good choice. 1/1 for screen recording.
+#define PS_DEFAULT_WINDOW_SIZE_NUMERATOR    2
+#define PS_DEFAULT_WINDOW_SIZE_DENOMINATOR  1
+
 struct ps_video ps_video={0};
 
 /* Application icon, for providers that support such a thing.
@@ -58,8 +62,8 @@ int ps_video_init(struct ps_userconfig *userconfig) {
   memset(&ps_video,0,sizeof(struct ps_video));
   ps_video.init=1;
 
-  ps_video.winw=PS_SCREENW;//XXX double these for normal builds. set to 1x for recording
-  ps_video.winh=PS_SCREENH;
+  ps_video.winw=(PS_SCREENW*PS_DEFAULT_WINDOW_SIZE_NUMERATOR)/PS_DEFAULT_WINDOW_SIZE_DENOMINATOR;
+  ps_video.winh=(PS_SCREENH*PS_DEFAULT_WINDOW_SIZE_NUMERATOR)/PS_DEFAULT_WINDOW_SIZE_DENOMINATOR;
   ps_video.dstx=0;
   ps_video.dsty=0;
   ps_video.dstw=ps_video.winw;

@@ -2,11 +2,11 @@ head 0x43
 body 0xc0
 skill FLAME
 skill COMBAT
-colors c0c0c0ff a04080ff
-colors f0d0b0ff 8040a0ff
-colors d8d8d0ff 304050ff
-colors c8c8c8ff 504030ff
+colors c9c0aeff a04080ff
+colors f0c396ff 8040a0ff
+colors b8a89fff 304050ff
+colors ac492eff 504030ff
 colors ae6030ff 136d29ff
-colors c5a880ff 4452b1ff
-colors 80522cff c1b340ff
-colors bab3a5ff cac3bcff
+colors c5b780ff 4452b1ff
+colors 804222ff c1b340ff
+colors 5d2510ff cac3bcff

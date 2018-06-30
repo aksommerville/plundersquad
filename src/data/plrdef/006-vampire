@@ -1,11 +1,11 @@
 head 0x40
 body 0x8c
 skill FLY
-colors 604020ff 404040ff
-colors 604020ff 401018ff
-colors 604020ff 502080ff
-colors 80807bff 9a394bff
-colors 808080ff 4280a7ff
-colors 808080ff 328822ff
-colors 808080ff 9a602eff
-colors 808080ff 9e9644ff
+colors 251107ff 404040ff
+colors 271505ff 71404bff
+colors 4f2313ff 6620aaff
+colors 522903ff 9a394bff
+colors 290a01ff 4280a7ff
+colors dcd3c7ff 328822ff
+colors c5cac1ff 9a602eff
+colors 6f5637ff 9e9644ff

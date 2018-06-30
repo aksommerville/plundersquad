@@ -1,11 +1,11 @@
 head 0x0c
 body 0x89
 skill HOOKSHOT
-colors f0e0a0ff 808080ff
-colors 604020ff a0a0a0ff
-colors 402010ff 606060ff
-colors a06010ff 8080c0ff
-colors 845b32ff b54980ff
+colors 694717ff 9aa7afff
+colors b8591eff 377b13ff
+colors 402010ff 465260ff
+colors 783e10ff 8080c0ff
+colors a8a598ff b55980ff
 colors 80461aff 80b780ff
-colors a84956ff d7a73eff
+colors 9a4937ff d7a754ff
 colors 66341aff 5d3480ff

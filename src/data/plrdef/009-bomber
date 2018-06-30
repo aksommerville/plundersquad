@@ -2,12 +2,12 @@ head 0x00
 body 0x86
 skill BOMB
 skill COMBAT
-colors 604020ff ff0000ff
-colors 604020ff 00c000ff
-colors 604020ff 0000ffff
-colors 604020ff ffff00ff
-colors 604020ff ff00ffff
-colors 604020ff 00ffffff
-colors 604020ff 808080ff
-colors 604020ff 404040ff
-colors 604020ff c0c0c0ff
+colors 604020ff c32319ff
+colors 602213ff 00ae00ff
+colors 603420ff 1a54ebff
+colors 7a4b39ff ffff00ff
+colors 493017ff ff69d0ff
+colors 2b1e11ff 00b8ffff
+colors 602711ff 808080ff
+colors 695952ff 403440ff
+colors 723420ff c7d0ceff

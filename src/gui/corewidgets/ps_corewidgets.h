@@ -136,12 +136,14 @@ int ps_widget_packer_set_alignment(struct ps_widget *widget,int major,int minor)
 int ps_widget_packer_set_axis(struct ps_widget *widget,int axis);
 
 /* Menu.
+ * A menu's foreground color is used by new buttons.
  *****************************************************************************/
 
 struct ps_widget *ps_widget_menu_get_thumb(const struct ps_widget *widget);
 struct ps_widget *ps_widget_menu_get_packer(const struct ps_widget *widget);
 
 int ps_widget_menu_set_callback(struct ps_widget *widget,struct ps_callback cb);
+int ps_widget_menu_set_thumb_color(struct ps_widget *widget,uint32_t rgba);
 
 int ps_widget_menu_get_selected_index(const struct ps_widget *widget);
 struct ps_widget *ps_widget_menu_get_selected_widget(const struct ps_widget *widget);

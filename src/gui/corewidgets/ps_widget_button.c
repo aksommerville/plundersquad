@@ -320,6 +320,7 @@ static struct ps_widget *ps_button_require_label(struct ps_widget *widget) {
     return 0;
   }
   ps_widget_del(label);
+  label->fgrgba=widget->fgrgba;
   return label;
 }
 

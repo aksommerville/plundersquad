@@ -239,6 +239,14 @@ int ps_widget_menu_set_callback(struct ps_widget *widget,struct ps_callback cb) 
   WIDGET->cb=cb;
   return 0;
 }
+ 
+int ps_widget_menu_set_thumb_color(struct ps_widget *widget,uint32_t rgba) {
+  if (!widget||(widget->type!=&ps_widget_type_menu)) return -1;
+  if (widget->childc<1) return -1;
+  struct ps_widget *thumb=widget->childv[0];
+  thumb->bgrgba=rgba;
+  return 0;
+}
 
 /* Get selection.
  */
@@ -318,6 +326,7 @@ struct ps_widget *ps_widget_menu_spawn_button(struct ps_widget *widget,const cha
   struct ps_widget *button=ps_widget_spawn(widget->childv[1],&ps_widget_type_button);
   if (!button) return 0;
   button->bgrgba=0x00000000;
+  button->fgrgba=widget->fgrgba;
   if (ps_widget_button_set_text(button,src,srcc)<0) return 0;
   if (ps_widget_button_set_margins(button,0,0)<0) return 0;
   if (ps_widget_button_set_callback(button,cb)<0) return 0;

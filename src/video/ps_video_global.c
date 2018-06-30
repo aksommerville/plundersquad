@@ -58,8 +58,8 @@ int ps_video_init(struct ps_userconfig *userconfig) {
   memset(&ps_video,0,sizeof(struct ps_video));
   ps_video.init=1;
 
-  ps_video.winw=PS_SCREENW<<1;
-  ps_video.winh=PS_SCREENH<<1;
+  ps_video.winw=PS_SCREENW;//XXX double these for normal builds. set to 1x for recording
+  ps_video.winh=PS_SCREENH;
   ps_video.dstx=0;
   ps_video.dsty=0;
   ps_video.dstw=ps_video.winw;

@@ -358,6 +358,7 @@ static int ps_heropanel_rebuild_AVAILABLE(struct ps_widget *widget) {
   struct ps_widget *content=ps_widget_spawn_replacement(widget,2,&ps_widget_type_label);
   if (!content) return -1;
   if (ps_widget_label_set_text(content,"Click in!",-1)<0) return -1;
+  content->fgrgba=0xffff00ff;
 
   struct ps_widget *messagelabel=ps_heropanel_get_messagelabel(widget);
   if (ps_widget_label_set_text(messagelabel,"",0)<0) return -1;
@@ -433,6 +434,8 @@ static int ps_heropanel_rebuild_icfg(struct ps_widget *widget) {
 static int ps_heropanel_enter_menu(struct ps_widget *widget) {
   struct ps_widget *menu=ps_widget_spawn_replacement(widget,2,&ps_widget_type_menu);
   if (!menu) return -1;
+  menu->fgrgba=0xffe0a0ff;
+  if (ps_widget_menu_set_thumb_color(menu,0x002040ff)<0) return -1;
 
   struct ps_widget *item;
   if (!(item=ps_widget_menu_spawn_button(menu,"Back",-1,ps_callback(ps_heropanel_menucb_dismiss,0,widget)))) return -1;

@@ -310,7 +310,7 @@ int ps_fbox_collide_circle(struct ps_overlap *overlap,struct ps_fbox a,struct ps
 
   if (overlap) {
     overlap->penetration=penetration;
-    if (!distance) distance=1.0;
+    if (distance<=0.001) distance=0.001;
     overlap->axis.dx=(b.x-cornerx)/distance;
     overlap->axis.dy=(b.y-cornery)/distance;
     if (!overlap->axis.dx&&!overlap->axis.dy) overlap->axis.dy=1.0;
@@ -352,7 +352,7 @@ int ps_circle_collide_circle(struct ps_overlap *overlap,struct ps_circle a,struc
    */
   if (overlap) {
     overlap->penetration=penetration;
-    if (!distance) distance=1.0;
+    if (distance<=0.001) distance=0.001;
     overlap->axis.dx=(b.x-a.x)/distance;
     overlap->axis.dy=(b.y-a.y)/distance;
     if (!overlap->axis.dx&&!overlap->axis.dy) overlap->axis.dy=1.0;

@@ -776,19 +776,19 @@ int ps_game_update(struct ps_game *game) {
     if (ps_game_pause(game,1)<0) return -1;
     return 0;
   }
-
+  
   /* Externalized game logic. */
   ps_gamelog_tick(game->gamelog); // Ignore errors.
   if (ps_bloodhound_activator_update(game->bloodhound_activator,game)<0) return -1;
   if (ps_dragoncharger_update(game->dragoncharger,game)<0) return -1;
   if (ps_summoner_update(game->summoner,game)<0) return -1;
-
+  
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
   int i=0; for (i=0;i<grp->sprc;i++) {
     if (ps_sprite_update(grp->sprv[i],game)<0) return -1;
   }
-
+  
   /* Poll routine events and record stats. */
   if (ps_game_update_stats(game)<0) return -1;
 
@@ -796,7 +796,7 @@ int ps_game_update(struct ps_game *game) {
   if (ps_physics_update(game->physics)<0) return -1;
   if (ps_game_check_physics_for_damage(game)<0) return -1;
   if (ps_game_check_physics_for_heroonly_hack(game)<0) return -1;
-
+  
   /* Look for collisions between HAZARD and FRAGILE sprites.
    * Some damage methods, eg sword, are managed by individual sprite types.
    */
@@ -815,7 +815,7 @@ int ps_game_update(struct ps_game *game) {
 
   /* Check for completion. */
   if (ps_game_check_completion(game)<0) return -1;
-
+  
   return 0;
 }
 

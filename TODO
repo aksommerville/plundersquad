@@ -5,7 +5,6 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
-- Gadgeteer drops heart in river - that's not a kill
 
 Raspi errors:
 
@@ -33,7 +32,6 @@ Actionable:
   ...Build the electronics first, then get a membership at Idea Foundry to build it.
   ...And as far as that goes, prototype a single player's inputs before spending the full $300 or so on parts.
 - Screen cap with many players
-- elefence vs hookshot, behave more predictably
 - Prevent mimic getting stuck on walls
 - Prevent unwanted re-teleportation?
 

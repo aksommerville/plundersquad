@@ -168,18 +168,19 @@ static int ps_mimic_approach_player(struct ps_sprite *spr,struct ps_game *game) 
   /* Our target position is cardinal to the player, based on *our own* face direction.
    * That face direction has just been set, as the last thing.
    */
+  int principal_axis;
   double targetx=hero->x;
   double targety=hero->y;
   switch (SPR->facedir) {
-    case PS_DIRECTION_NORTH: targety+=PS_MIMIC_TARGET_DISTANCE; break;
-    case PS_DIRECTION_SOUTH: targety-=PS_MIMIC_TARGET_DISTANCE; break;
-    case PS_DIRECTION_WEST: targetx+=PS_MIMIC_TARGET_DISTANCE; break;
-    case PS_DIRECTION_EAST: targetx-=PS_MIMIC_TARGET_DISTANCE; break;
+    case PS_DIRECTION_NORTH: targety+=PS_MIMIC_TARGET_DISTANCE; principal_axis=PS_AXIS_VERT; break;
+    case PS_DIRECTION_SOUTH: targety-=PS_MIMIC_TARGET_DISTANCE; principal_axis=PS_AXIS_VERT; break;
+    case PS_DIRECTION_WEST: targetx+=PS_MIMIC_TARGET_DISTANCE; principal_axis=PS_AXIS_HORZ; break;
+    case PS_DIRECTION_EAST: targetx-=PS_MIMIC_TARGET_DISTANCE; principal_axis=PS_AXIS_HORZ; break;
   }
 
   /* Check where to walk.
-   * If we want to use both axes, alternate frames.
-   * So we only change one axis per frame. This helps prevent sticking to curved walls.
+   * We've had problems with mimics sticking to walls, especially round-cornered ones.
+   * So now they move only on the principal axis, to keep it clean.
    */
   int walking=0;
   double dx=targetx-spr->x;
@@ -189,7 +190,8 @@ static int ps_mimic_approach_player(struct ps_sprite *spr,struct ps_game *game) 
   int walkx=(adx>PS_MIMIC_WALK_SPEED);
   int walky=(ady>PS_MIMIC_WALK_SPEED);
   if (walkx&&walky) {
-    if (SPR->counter&1) walky=0; else walkx=0;
+    if (principal_axis==PS_AXIS_HORZ) walky=0;
+    else walkx=0;
   }
 
   if (adx<=PS_MIMIC_WALK_SPEED) spr->x=targetx;

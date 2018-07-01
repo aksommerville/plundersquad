@@ -25,7 +25,7 @@
  * Region may be <0 to select randomly.
  */
 #define PS_TEST_BLUEPRINTS  2,177
-#define PS_TEST_REGION      6
+#define PS_TEST_REGION      8
 
 /* Parameters for ALL mode.
  * (LO>HI) means extend to end of list.

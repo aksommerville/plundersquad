@@ -260,6 +260,7 @@ static int ps_chicken_assailant_should_cause_egg(struct ps_sprite *assailant) {
   if (!assailant) return 1;
   if (assailant->type==&ps_sprtype_boxingglove) return 0;
   if (assailant->type==&ps_sprtype_killozap) return 0;
+  if (assailant->type==&ps_sprtype_flamethrower) return 0;
   return 1;
 }
 

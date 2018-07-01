@@ -117,7 +117,7 @@ int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...
 /* Another test option.
  * Generate a scenario that uses every blueprint, for exhaustive testing.
  */
-int ps_game_generate_all_blueprints_test(struct ps_game *game,int blueprintidlo,int blueprintidhi);
+int ps_game_generate_all_blueprints_test(struct ps_game *game,int blueprintidlo,int blueprintidhi,int regionid);
 
 /* Broad controls of game state during play.
  *****************************************************************************/

@@ -8,7 +8,7 @@
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, MARTYR, IMMORTAL, BOMBER, BALA
  */
-#define PS_TEST_GAME_PARTY BOMBER,VAMPIRE
+#define PS_TEST_GAME_PARTY WIZARD
 
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL
@@ -24,11 +24,12 @@
  * Must name at least one blueprint with a HERO POI.
  * Region may be <0 to select randomly.
  */
-#define PS_TEST_BLUEPRINTS  2,134
-#define PS_TEST_REGION      -1
+#define PS_TEST_BLUEPRINTS  2,177
+#define PS_TEST_REGION      6
 
 /* Parameters for ALL mode.
  * (LO>HI) means extend to end of list.
+ * PS_TEST_REGION also applies in this mode.
  */
 #define PS_TEST_BLUEPRINTID_LO    130
 #define PS_TEST_BLUEPRINTID_HI    -1
@@ -69,7 +70,7 @@ static int ps_setup_test_game(struct ps_game *game,struct ps_userconfig *config)
       } break;
 
     case 3: { /* Generate a scenario with every blueprint. */
-        if (ps_game_generate_all_blueprints_test(game,PS_TEST_BLUEPRINTID_LO,PS_TEST_BLUEPRINTID_HI)<0) return -1;
+        if (ps_game_generate_all_blueprints_test(game,PS_TEST_BLUEPRINTID_LO,PS_TEST_BLUEPRINTID_HI,PS_TEST_REGION)<0) return -1;
       } break;
 
     default: {

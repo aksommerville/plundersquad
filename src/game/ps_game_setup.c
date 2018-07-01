@@ -198,7 +198,7 @@ int _ps_game_generate_test(struct ps_game *game,int regionid,int blueprintid,...
 /* Generate test scenario with all blueprints.
  */
  
-int ps_game_generate_all_blueprints_test(struct ps_game *game,int blueprintidlo,int blueprintidhi) {
+int ps_game_generate_all_blueprints_test(struct ps_game *game,int blueprintidlo,int blueprintidhi,int regionid) {
   if (!game) return -1;
   if (!game->difficulty) game->difficulty=4;
   if (!game->length) game->length=4;
@@ -218,6 +218,7 @@ int ps_game_generate_all_blueprints_test(struct ps_game *game,int blueprintidlo,
   scgen->playerc=game->playerc;
   scgen->difficulty=game->difficulty;
   scgen->length=game->length;
+  scgen->regionid=regionid;
 
   scgen->skills=0;
   int i; for (i=0;i<game->playerc;i++) scgen->skills|=game->playerv[i]->plrdef->skills;

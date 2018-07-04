@@ -3,7 +3,7 @@
 #include "sdraw/ps_sdraw.h"
 
 // Default window size, relative to framebuffer size. 2/1 is a good choice. 1/1 for screen recording.
-#define PS_DEFAULT_WINDOW_SIZE_NUMERATOR    2
+#define PS_DEFAULT_WINDOW_SIZE_NUMERATOR    1
 #define PS_DEFAULT_WINDOW_SIZE_DENOMINATOR  1
 
 struct ps_video ps_video={0};

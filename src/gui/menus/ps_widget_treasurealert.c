@@ -12,6 +12,9 @@
 #include "gui/ps_gui.h"
 #include "res/ps_restype.h"
 #include "input/ps_input.h"
+#include "os/ps_clockassist.h"
+
+#define PS_TREASUREALERT_INITIAL_DELAY 1000000
 
 /* Object definition.
  */
@@ -19,6 +22,7 @@
 struct ps_widget_treasurealert {
   struct ps_widget hdr;
   const struct ps_res_trdef *trdef;
+  int64_t starttime;
 };
 
 #define WIDGET ((struct ps_widget_treasurealert*)widget)
@@ -35,6 +39,7 @@ static void _ps_treasurealert_del(struct ps_widget *widget) {
 static int _ps_treasurealert_init(struct ps_widget *widget) {
 
   widget->bgrgba=0x00000000;
+  WIDGET->starttime=ps_time_now();
 
   struct ps_widget *child;
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1;
@@ -123,6 +128,10 @@ static int _ps_treasurealert_userinput(struct ps_widget *widget,int plrid,int bt
     case PS_PLRBTN_A:
     case PS_PLRBTN_B:
     case PS_PLRBTN_START: {
+        int64_t now=ps_time_now();
+        if (now<WIDGET->starttime+PS_TREASUREALERT_INITIAL_DELAY) {
+          return 0;
+        }
         if (ps_widget_kill(widget)<0) return -1;
         if (ps_input_suppress_player_actions(30)<0) return -1;
       } break;

@@ -14,7 +14,14 @@
 #include "gui/ps_gui.h"
 #include "game/ps_game.h"
 #include "game/ps_score_store.h"
+#include "game/ps_sound_effects.h"
 #include "input/ps_input.h"
+#include "os/ps_clockassist.h"
+
+/* Refuse to submit or cancel for so long after construction (microseconds).
+ * This does not prevent moving the cursor.
+ */
+#define PS_SETUPPAGE_INITIAL_DELAY 500000
 
 static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
 
@@ -23,6 +30,7 @@ static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
 
 struct ps_widget_setuppage {
   struct ps_widget hdr;
+  int64_t starttime;
 };
 
 #define WIDGET ((struct ps_widget_setuppage*)widget)
@@ -40,6 +48,7 @@ static int _ps_setuppage_init(struct ps_widget *widget) {
   struct ps_widget *child,*menu,*menupacker;
 
   widget->bgrgba=0x4080c0ff;
+  WIDGET->starttime=ps_time_now();
 
   if (!(menu=ps_widget_spawn(widget,&ps_widget_type_menu))) return -1;
   if (!(menupacker=ps_widget_menu_get_packer(menu))) return -1;
@@ -63,7 +72,7 @@ static int _ps_setuppage_init(struct ps_widget *widget) {
   if (!ps_widget_menu_spawn_label(menu,"Return to player selection",-1)) return -1;
   if (!ps_widget_menu_spawn_label(menu,"Input config",-1)) return -1;
   if (!ps_widget_menu_spawn_label(menu,"Quit",4)) return -1;
-
+  
   return 0;
 }
 
@@ -122,10 +131,24 @@ const struct ps_widget_type ps_widget_type_setuppage={
 
 };
 
+/* Check time.
+ * If within the initial blackout window, play a negative buzz and return nonzero.
+ */
+ 
+static int ps_setuppage_too_soon_to_leave(struct ps_widget *widget) {
+  int64_t now=ps_time_now();
+  if (now<WIDGET->starttime+PS_SETUPPAGE_INITIAL_DELAY) {
+    //PS_SFX_GUI_REJECT
+    return 1;
+  }
+  return 0;
+}
+
 /* Return to player select.
  */
 
 static int ps_setuppage_return_to_assemble(struct ps_widget *widget) {
+  if (ps_setuppage_too_soon_to_leave(widget)) return 0;
   struct ps_gui *gui=ps_widget_get_gui(widget);
   if (ps_widget_kill(widget)<0) return -1;
   if (ps_gui_load_page_assemble(gui)<0) return -1;
@@ -155,6 +178,7 @@ static int ps_setuppage_get_length(const struct ps_widget *widget) {
  */
 
 static int ps_setuppage_finish(struct ps_widget *widget) {
+  if (ps_setuppage_too_soon_to_leave(widget)) return 0;
   struct ps_gui *gui=ps_widget_get_gui(widget);
   struct ps_game *game=ps_gui_get_game(gui);
 
@@ -190,7 +214,10 @@ static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 2: break; // length
     case 3: return ps_setuppage_return_to_assemble(widget);
     case 4: return ps_setuppage_input_config(widget);
-    case 5: return ps_input_request_termination();
+    case 5: {
+        if (ps_setuppage_too_soon_to_leave(widget)) return 0;
+        return ps_input_request_termination();
+      } break;
   }
   return 0;
 }

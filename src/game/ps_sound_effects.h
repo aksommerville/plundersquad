@@ -71,6 +71,7 @@
 
 #define PS_SFX_GUI_ACTIVATE akau_play_sound(6,0x80,0);
 #define PS_SFX_GUI_CANCEL akau_play_sound(4,0x80,0);
+#define PS_SFX_GUI_REJECT akau_play_sound(18,0x80,0);
 #define PS_SFX_MENU_MOVE akau_play_sound(3,0x80,0);
 #define PS_SFX_MENU_ADJUST akau_play_sound(2,0x80,0);
 #define PS_SFX_BTNMAP akau_play_sound(2,0x80,0);

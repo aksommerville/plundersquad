@@ -153,6 +153,7 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
 
   /* If offscreen, the only thing we can do is go back onscreen. 
    * UPDATE: We also permit starting auxaction, when b-to-swap is enabled.
+   * UPUPDATE: We also permit stopping main action (but not starting).
    */
   if (SPR->state&PS_HERO_STATE_OFFSCREEN) {
     if (spr->x<=0.0) {
@@ -176,6 +177,9 @@ static int ps_hero_rcvinput(struct ps_sprite *spr,uint16_t input,struct ps_game 
       if ((input&PS_PLRBTN_B)&&!(SPR->input&PS_PLRBTN_B)) {
         if (ps_hero_auxaction_begin(spr,game)<0) return -1;
       }
+    }
+    if ((SPR->input&PS_PLRBTN_A)&&!(input&PS_PLRBTN_A)) {
+      if (ps_hero_action_end(spr,game)<0) return -1;
     }
     SPR->input=input;
     return 0;

@@ -5,9 +5,7 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
-- BDA Pro Ex went haywire at demo, playing on Asus laptop. The fuck? Reconfiguring fixed it.
 - Vampire kicked offscreen in 8-player game, entering a new screen.
-- Check hold-button actions when button released while offscreen (immortal, vampire, witch)
 
 Raspi errors:
 

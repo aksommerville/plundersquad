@@ -171,6 +171,9 @@ static int ps_hero_add_OFFSCREEN(struct ps_sprite *spr,struct ps_game *game) {
     return 0;
   }
   
+  SPR->indx=0;
+  SPR->indy=0;
+  
   if (ps_game_add_indicator_for_hero(game,spr)<0) return -1;
   
   return 2;

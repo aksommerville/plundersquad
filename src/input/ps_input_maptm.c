@@ -130,6 +130,7 @@ static int ps_input_maptm_set_range(struct ps_input_map_fld *dstfld,const struct
 }
 
 /* Apply maps based on default_usage.
+ * I'm not sure this needs to exist at all, it seems to have been a bad idea.
  */
 
 static int ps_input_maptm_apply_default(struct ps_input_map *map,const struct ps_input_btncfg *btncfg) {
@@ -177,7 +178,7 @@ static int ps_input_maptm_apply_default(struct ps_input_map *map,const struct ps
       } return 0;
     
   }
-  if (btncfg->default_usage) {
+  if (btncfg->default_usage&&!(btncfg->default_usage&~0xffff)) {
     struct ps_input_map_fld *fld=ps_input_map_insert(map,-1,btncfg->srcbtnid);
     if (!fld) return -1;
     fld->dstbtnid=btncfg->default_usage;

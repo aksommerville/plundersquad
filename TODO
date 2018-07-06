@@ -8,8 +8,6 @@ General errors:
 - BDA Pro Ex went haywire at demo, playing on Asus laptop. The fuck? Reconfiguring fixed it.
 - Vampire kicked offscreen in 8-player game, entering a new screen.
 - Check hold-button actions when button released while offscreen (immortal, vampire, witch)
-- Does dragonbug not respect HEROONLY?
-- Exit-awayward permaswitch didn't pick up... went back and forth again, then it did. ?
 
 Raspi errors:
 
@@ -109,3 +107,5 @@ Rejected:
   ...I can get WM_SIZE live, but can't figure out how to repaint without Windows blacking it out right after. I give up.
 - Window doesn't have the usual orange border in Windows 10
   ...I think it's not supposed to, after some googling
+- Exit-awayward permaswitch didn't pick up... went back and forth again, then it did. ? (174, swordsman and witch)
+  ...in retrospect, it's possible that one sprite was dead the first time.

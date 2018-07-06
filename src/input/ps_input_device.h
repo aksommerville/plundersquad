@@ -12,9 +12,13 @@ struct ps_input_premap;
 struct ps_input_report_reader;
 
 struct ps_input_btncfg {
+
   int srcbtnid;
   int lo,hi;
   int value;
+  
+  // See aggregates in ps_input_button.h.
+  // It's also safe to drop USB-HID usage in here, but that's not what it's for.
   int default_usage;
 };
 

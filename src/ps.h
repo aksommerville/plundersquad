@@ -65,6 +65,6 @@
 // Remaining 3 reserved for generic skills
 
 // If enabled, the B button swaps input. For testing only.
-#define PS_B_TO_SWAP_INPUT 0
+#define PS_B_TO_SWAP_INPUT 1
 
 #endif

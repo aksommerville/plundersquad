@@ -5,12 +5,11 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
-- blueprint:174: not solvable by immortal alone
-- blueprint:119: not solvable by immortal alone. Update: solved it, but required monster to hold piston
-- blueprint:89: permaswitch
 - BDA Pro Ex went haywire at demo, playing on Asus laptop. The fuck? Reconfiguring fixed it.
 - Vampire kicked offscreen in 8-player game, entering a new screen.
 - Check hold-button actions when button released while offscreen (immortal, vampire, witch)
+- Does dragonbug not respect HEROONLY?
+- Exit-awayward permaswitch didn't pick up... went back and forth again, then it did. ?
 
 Raspi errors:
 

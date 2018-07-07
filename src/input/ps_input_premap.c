@@ -107,6 +107,7 @@ int ps_input_btncfg_describe(const struct ps_input_btncfg *btncfg) {
 
 static int ps_input_premap_cb_btncfg(struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata) {
   struct ps_input_premap *premap=userdata;
+  //ps_log(INPUT,DEBUG,"  %d (%d..%d) =%d [%d]",btncfg->srcbtnid,btncfg->lo,btncfg->hi,btncfg->value,btncfg->default_usage);
 
   int p=ps_input_premap_search(premap,btncfg->srcbtnid);
   if (p>=0) {
@@ -139,6 +140,7 @@ int ps_input_premap_rebuild(struct ps_input_premap *premap,struct ps_input_devic
   premap->garbagec=0;
 
   if (device&&device->report_buttons) {
+    //ps_log(INPUT,DEBUG,"Rebuild premap for device '%.*s'...",device->namec,device->name);
     if (device->report_buttons(device,premap,ps_input_premap_cb_btncfg)<0) return -1;
   }
   

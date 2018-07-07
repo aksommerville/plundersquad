@@ -48,12 +48,6 @@ static int _ps_assemblepage_init(struct ps_widget *widget) {
 
   struct ps_widget *child;
 
-  /*
-  if (!(child=ps_widget_spawn(widget,&ps_widget_type_label))) return -1; // titlelabel
-  if (ps_widget_label_set_text(child,"Plunder Squad",-1)<0) return -1;
-  if (ps_widget_label_set_size(child,24)<0) return -1;
-  child->fgrgba=0xffffffff;
-  */
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_introtitle))) return -1;
 
   if (!(child=ps_widget_spawn(widget,&ps_widget_type_heropacker))) return -1; // heropacker

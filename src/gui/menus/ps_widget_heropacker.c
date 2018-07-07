@@ -386,6 +386,7 @@ static int ps_heropacker_remove_player(struct ps_widget *widget,struct ps_input_
  */
  
 static int ps_heropacker_cb_connect(struct ps_input_device *device,void *userdata) {
+  //ps_log(GUI,DEBUG,"%s %.*s",__func__,device->namec,device->name);
   struct ps_widget *widget=userdata;
   if (device->map) {
     if (!ps_heropacker_add_player(widget,device)) return -1;

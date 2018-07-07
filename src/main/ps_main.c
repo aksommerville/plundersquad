@@ -7,6 +7,8 @@
 #include "video/ps_video.h"
 #include "input/ps_input.h"
 #include "input/ps_input_button.h"
+#include "input/ps_input_provider_mock.h"
+#include "input/ps_input_provider.h"
 #include "res/ps_resmgr.h"
 #include "game/ps_game.h"
 #include "gui/ps_gui.h"
@@ -100,6 +102,23 @@ static int ps_main_init_input(struct ps_userconfig *userconfig) {
   #if PS_USE_mshid
     if (ps_mshid_init()<0) return -1;
   #endif
+  
+  /* XXX TEMP: Create a mock input provider for testing. */
+  { struct ps_input_provider *provider=ps_input_provider_mock_new();
+    if (!provider) return -1;
+    if (ps_input_install_provider(provider)<0) return -1;
+    ps_input_provider_del(provider);
+    
+    if (ps_input_provider_mock_add_device(provider,"FakeOne")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeTwo")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeThree")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeFour")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeFive")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeSix")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeSeven")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeEight")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeNine")<0) return -1;
+  }
 
   /* Load configuration and take it live. */
   const char *input_config_path=0;

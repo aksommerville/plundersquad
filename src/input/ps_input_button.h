@@ -36,5 +36,6 @@
 #define PS_INPUT_PROVIDER_x11          5
 #define PS_INPUT_PROVIDER_mswm         6
 #define PS_INPUT_PROVIDER_mshid        7
+#define PS_INPUT_PROVIDER_mock         8
 
 #endif

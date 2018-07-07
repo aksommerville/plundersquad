@@ -26,6 +26,7 @@ struct ps_widget_inputcfgpacker {
   int input_watchid;
   int repack;
   int animate_on_repack;
+  int pvrowc;
 };
 
 #define WIDGET ((struct ps_widget_inputcfgpacker*)widget)
@@ -138,6 +139,22 @@ static int ps_inputcfgpacker_select_row_count(const struct ps_widget *widget) {
   return best_rowc;
 }
 
+/* Set style of inputstatus.
+ */
+ 
+static int ps_inputcfgpacker_set_style(struct ps_widget *widget,int style) {
+  int i=widget->childc; while (i-->0) {
+    struct ps_widget *child=widget->childv[i];
+    int j=child->childc; while (j-->0) {
+      struct ps_widget *inputstatus=child->childv[j];
+      if (inputstatus->type==&ps_widget_type_inputstatus) {
+        if (ps_widget_inputstatus_set_style(inputstatus,style)<0) return -1;
+      }
+    }
+  }
+  return 0;
+}
+
 /* Pack.
  */
 
@@ -171,9 +188,18 @@ static int _ps_inputcfgpacker_pack(struct ps_widget *widget) {
   int availh=widget->h-(PS_INPUTCFGPACKER_MARGIN<<1)-(PS_INPUTCFGPACKER_SPACING*(rowc-1));
   int rowh_base=availh/rowc;
   int rowh_extra=availh%rowc;
+  
+  /* If row count <=2 (<=10 devices), use the large layout.
+   * >=3 rows (>=11 devices), use the small layout.
+   */
+  if ((WIDGET->pvrowc<3)&&(rowc>=3)) {
+    if (ps_inputcfgpacker_set_style(widget,PS_WIDGET_INPUTSTATUS_STYLE_SMALL)<0) return -1;
+  } else if ((WIDGET->pvrowc>=3)&&(rowc<3)) {
+    if (ps_inputcfgpacker_set_style(widget,PS_WIDGET_INPUTSTATUS_STYLE_LARGE)<0) return -1;
+  }
 
   struct ps_gui *gui=ps_widget_get_gui(widget);
-
+  
   int childp=0;
   int y=PS_INPUTCFGPACKER_MARGIN;
   int row=0; for (;row<rowc;row++) {

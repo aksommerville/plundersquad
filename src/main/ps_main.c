@@ -104,7 +104,7 @@ static int ps_main_init_input(struct ps_userconfig *userconfig) {
   #endif
   
   /* XXX TEMP: Create a mock input provider for testing. */
-  if (1) {
+  if (0) {
     struct ps_input_provider *provider=ps_input_provider_mock_new();
     if (!provider) return -1;
     if (ps_input_install_provider(provider)<0) return -1;
@@ -119,6 +119,15 @@ static int ps_main_init_input(struct ps_userconfig *userconfig) {
     if (ps_input_provider_mock_add_device(provider,"FakeSeven")<0) return -1;
     if (ps_input_provider_mock_add_device(provider,"FakeEight")<0) return -1;
     if (ps_input_provider_mock_add_device(provider,"FakeNine")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeTen")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeEleven")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeTwelve")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeThirteen")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeFourteen")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeFifteen")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeSixteen")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeSeventeen")<0) return -1;
+    if (ps_input_provider_mock_add_device(provider,"FakeEighteen")<0) return -1;
   }
 
   /* Load configuration and take it live. */

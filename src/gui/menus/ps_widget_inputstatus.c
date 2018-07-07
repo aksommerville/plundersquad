@@ -22,6 +22,7 @@ struct ps_widget_inputstatus {
   uint16_t manual_buttons; // Set by our owner.
   int use_device_buttons; // Nonzero to display the device state instead of manual (default=1)
   int watchid;
+  int style;
   struct akgl_vtx_maxtile vtxv[7];
 };
 
@@ -44,6 +45,7 @@ static int _ps_inputstatus_init(struct ps_widget *widget) {
 
   WIDGET->watchid=-1;
   WIDGET->use_device_buttons=1;
+  WIDGET->style=PS_WIDGET_INPUTSTATUS_STYLE_LARGE;
 
   return 0;
 }
@@ -62,9 +64,8 @@ static int ps_inputstatus_obj_validate(const struct ps_widget *widget) {
  */
 
 static int ps_inputstatus_should_use_large_view(const struct ps_widget *widget) {
-  if (widget->w<PS_TILESIZE*4) return 0;
-  if (widget->h<PS_TILESIZE*2) return 0;
-  return 1;
+  if (WIDGET->style==PS_WIDGET_INPUTSTATUS_STYLE_LARGE) return 1;
+  return 0;
 }
 
 /* Draw.
@@ -169,8 +170,16 @@ static int _ps_inputstatus_draw(struct ps_widget *widget,int parentx,int parenty
  */
 
 static int _ps_inputstatus_measure(int *w,int *h,struct ps_widget *widget,int maxw,int maxh) {
-  *w=200;
-  *h=50;
+  switch (WIDGET->style) {
+    case PS_WIDGET_INPUTSTATUS_STYLE_LARGE: {
+        *w=200;
+        *h=50;
+      } break;
+    case PS_WIDGET_INPUTSTATUS_STYLE_SMALL: {
+        *w=24;
+        *h=24;
+      } break;
+  }
   return 0;
 }
 
@@ -268,5 +277,15 @@ int ps_widget_inputstatus_highlight(struct ps_widget *widget,uint16_t btnid,int 
   } else {
     WIDGET->manual_buttons&=~btnid;
   }
+  return 0;
+}
+
+/* Change style.
+ */
+ 
+int ps_widget_inputstatus_set_style(struct ps_widget *widget,int style) {
+  if (ps_inputstatus_obj_validate(widget)<0) return -1;
+  if (WIDGET->style==style) return 0;
+  WIDGET->style=style;
   return 0;
 }

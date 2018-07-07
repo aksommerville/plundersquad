@@ -112,6 +112,10 @@ int ps_widget_inputstatus_set_device(struct ps_widget *widget,struct ps_input_de
 int ps_widget_inputstatus_set_manual(struct ps_widget *widget,int manual); // Do this to highlight buttons manually.
 int ps_widget_inputstatus_highlight(struct ps_widget *widget,uint16_t btnid,int value);
 
+int ps_widget_inputstatus_set_style(struct ps_widget *widget,int style);
+#define PS_WIDGET_INPUTSTATUS_STYLE_LARGE    0
+#define PS_WIDGET_INPUTSTATUS_STYLE_SMALL    1
+
 /* Treasurealert.
  *****************************************************************************/
 

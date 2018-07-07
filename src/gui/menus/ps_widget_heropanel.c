@@ -314,6 +314,7 @@ int ps_heropanel_get_state(const struct ps_widget *widget) {
   struct ps_widget *content=ps_heropanel_get_content(widget);
 
   /* If the menu is open, state is MENU. */
+  if (content->type==&ps_widget_type_menu2d) return PS_HEROPANEL_STATE_MENU;
   if (content->type==&ps_widget_type_menu) return PS_HEROPANEL_STATE_MENU;
 
   /* If input configuration is in progress, state is CONFIGURING. */
@@ -432,19 +433,15 @@ static int ps_heropanel_rebuild_icfg(struct ps_widget *widget) {
  */
 
 static int ps_heropanel_enter_menu(struct ps_widget *widget) {
-  struct ps_widget *menu=ps_widget_spawn_replacement(widget,2,&ps_widget_type_menu);
+  struct ps_widget *menu=ps_widget_spawn_replacement(widget,2,&ps_widget_type_menu2d);
   if (!menu) return -1;
-  menu->fgrgba=0xffe0a0ff;
-  if (ps_widget_menu_set_thumb_color(menu,0x002040ff)<0) return -1;
-
+  
   struct ps_widget *item;
-  if (!(item=ps_widget_menu_spawn_button(menu,"Back",-1,ps_callback(ps_heropanel_menucb_dismiss,0,widget)))) return -1;
-  if (!(item=ps_widget_menu_spawn_button(menu,"Audio",-1,ps_callback(ps_heropanel_menucb_audio,0,widget)))) return -1;
-  if (!(item=ps_widget_menu_spawn_button(menu,"Input",-1,ps_callback(ps_heropanel_menucb_input,0,widget)))) return -1;
-  if (ps_video_supports_fullscreen_toggle()) {
-    if (!(item=ps_widget_menu_spawn_button(menu,"Fullscreen",-1,ps_callback(ps_heropanel_menucb_fullscreen,0,widget)))) return -1;
-  }
-  if (!(item=ps_widget_menu_spawn_button(menu,"Quit",-1,ps_callback(ps_heropanel_menucb_quit,0,widget)))) return -1;
+  if (!(item=ps_widget_menu2d_add_option(menu,0x0177,ps_callback(ps_heropanel_menucb_dismiss,0,widget)))) return -1;
+  if (!(item=ps_widget_menu2d_add_option(menu,0x0178,ps_callback(ps_heropanel_menucb_audio,0,widget)))) return -1;
+  if (!(item=ps_widget_menu2d_add_option(menu,0x0179,ps_callback(ps_heropanel_menucb_input,0,widget)))) return -1;
+  if (!(item=ps_widget_menu2d_add_option(menu,0x017a,ps_callback(ps_heropanel_menucb_fullscreen,0,widget)))) return -1;
+  if (!(item=ps_widget_menu2d_add_option(menu,0x017b,ps_callback(ps_heropanel_menucb_quit,0,widget)))) return -1;
   
   if (ps_widget_pack(widget)<0) return -1;
   return 0;
@@ -637,11 +634,11 @@ static int ps_heropanel_cb_button(struct ps_input_device *device,int btnid,int v
         switch (btnid) {
           case PS_PLRBTN_START: if (ps_heropanel_dismiss_menu(widget)<0) return -1; break;
           case PS_PLRBTN_B: if (ps_heropanel_dismiss_menu(widget)<0) return -1; break;
-          case PS_PLRBTN_A: if (ps_widget_menu_activate(ps_heropanel_get_content(widget))<0) return -1; break;
-          case PS_PLRBTN_LEFT: if (ps_widget_menu_adjust_selection(ps_heropanel_get_content(widget),-1)<0) return -1; break;
-          case PS_PLRBTN_RIGHT: if (ps_widget_menu_adjust_selection(ps_heropanel_get_content(widget),1)<0) return -1; break;
-          case PS_PLRBTN_UP: if (ps_widget_menu_change_selection(ps_heropanel_get_content(widget),-1)<0) return -1; break;
-          case PS_PLRBTN_DOWN: if (ps_widget_menu_change_selection(ps_heropanel_get_content(widget),1)<0) return -1; break;
+          case PS_PLRBTN_A: if (ps_widget_menu2d_activate(ps_heropanel_get_content(widget))<0) return -1; break;
+          case PS_PLRBTN_LEFT: if (ps_widget_menu2d_change_selection(ps_heropanel_get_content(widget),-1,0)<0) return -1; break;
+          case PS_PLRBTN_RIGHT: if (ps_widget_menu2d_change_selection(ps_heropanel_get_content(widget),1,0)<0) return -1; break;
+          case PS_PLRBTN_UP: if (ps_widget_menu2d_change_selection(ps_heropanel_get_content(widget),0,-1)<0) return -1; break;
+          case PS_PLRBTN_DOWN: if (ps_widget_menu2d_change_selection(ps_heropanel_get_content(widget),0,1)<0) return -1; break;
         }
       } break;
 

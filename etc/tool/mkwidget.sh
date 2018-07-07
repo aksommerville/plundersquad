@@ -1,6 +1,7 @@
 #!/bin/bash
 
-EDITOR="open -a /Applications/gedit.app"
+#EDITOR="open -a /Applications/gedit.app"
+EDITOR="pluma"
 
 if [ "$#" -ne 2 ] ; then
   echo "Usage: $0 SUBSET NAME"

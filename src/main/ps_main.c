@@ -104,7 +104,8 @@ static int ps_main_init_input(struct ps_userconfig *userconfig) {
   #endif
   
   /* XXX TEMP: Create a mock input provider for testing. */
-  { struct ps_input_provider *provider=ps_input_provider_mock_new();
+  if (1) {
+    struct ps_input_provider *provider=ps_input_provider_mock_new();
     if (!provider) return -1;
     if (ps_input_install_provider(provider)<0) return -1;
     ps_input_provider_del(provider);

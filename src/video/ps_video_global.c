@@ -48,7 +48,7 @@ static int ps_video_init_akgl(int strategy) {
 
   if (!(ps_video.texture_minfont=akgl_texture_new())) return -1;
   if (ps_video_load_minfont(ps_video.texture_minfont)<0) return -1;
-
+  
   return 0;
 }
 

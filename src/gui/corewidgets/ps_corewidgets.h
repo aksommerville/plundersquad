@@ -29,6 +29,7 @@ extern const struct ps_widget_type ps_widget_type_dialogue; /* Box with optional
 extern const struct ps_widget_type ps_widget_type_plaindialogue; /* Agnostic dialogue box, put whatever you want in it. */
 extern const struct ps_widget_type ps_widget_type_menubar; /* Horizontal bar of buttons. */
 extern const struct ps_widget_type ps_widget_type_scrollbar; /* General-purpose scrollbar. */
+extern const struct ps_widget_type ps_widget_type_menu2d; /* 2d menu of icons. */
 
 /* Root.
  *****************************************************************************/
@@ -253,5 +254,12 @@ int ps_widget_slider_set_text_color(struct ps_widget *widget,uint32_t rgba);
 
 // Color of thumb blends from (locolor) to (hicolor) depending on its position.
 int ps_widget_slider_set_variable_color(struct ps_widget *widget,uint32_t locolor,uint32_t hicolor);
+
+/* Menu2d.
+ ****************************************************************************/
+ 
+struct ps_widget *ps_widget_menu2d_add_option(struct ps_widget *widget,int iconid,struct ps_callback cb);
+int ps_widget_menu2d_activate(struct ps_widget *widget);
+int ps_widget_menu2d_change_selection(struct ps_widget *widget,int dx,int dy);
 
 #endif

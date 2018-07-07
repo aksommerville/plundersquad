@@ -143,21 +143,6 @@ int ps_video_text_addfv(int size,uint32_t rgba,int x,int y,const char *fmt,va_li
 }
 
 int ps_video_text_end(int resid) {
-#if 0//XXX
-  if (ps_video.vtxsize!=sizeof(struct akgl_vtx_textile)) return -1;
-  if (ps_video.vtxc<1) return 0;
-
-  struct akgl_texture *font=0;
-  if (resid>0) {
-    struct ps_res_TILESHEET *tilesheet=ps_res_get(PS_RESTYPE_TILESHEET,resid);
-    if (tilesheet) font=tilesheet->texture;
-  }
-  if (!font) font=ps_video.texture_minfont;
-  
-  if (akgl_program_textile_draw(
-    ps_video.program_textile,font,(struct akgl_vtx_textile*)ps_video.vtxv,ps_video.vtxc
-  )<0) return -1;
-#endif
   return 0;
 }
 
@@ -346,7 +331,8 @@ int ps_video_flush_cached_drawing() {
   }
 
   if (ps_video.vtxc_textile) {
-    if (akgl_program_textile_draw(ps_video.program_textile,ps_video.texture_minfont,ps_video.vtxv_textile,ps_video.vtxc_textile)<0) return -1;
+    struct akgl_texture *texture=ps_video.texture_minfont;
+    if (akgl_program_textile_draw(ps_video.program_textile,texture,ps_video.vtxv_textile,ps_video.vtxc_textile)<0) return -1;
     ps_video.vtxc_textile=0;
   }
 

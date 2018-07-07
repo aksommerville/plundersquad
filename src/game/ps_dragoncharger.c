@@ -96,6 +96,7 @@ static int ps_dragoncharger_identify_companions(struct ps_sprite **companionv,st
   int companionc=0;
   int i=candidatec; for (;i-->0;candidatev++) {
     struct ps_sprite *candidate=*candidatev;
+    if (candidate->type!=&ps_sprtype_hero) continue;
     int dx=candidate->x-focus->x;
     if ((dx<-PS_DRAGONCHARGER_PARTY_DISTANCE)||(dx>PS_DRAGONCHARGER_PARTY_DISTANCE)) continue;
     int dy=candidate->y-focus->y;

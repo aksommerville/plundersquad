@@ -17,7 +17,7 @@ int ps_string_loggable(const char *src,int srcc);
 #define PS_TEST_VERBOSITY_FAILURE_REPORT  -1
 #define PS_TEST_VERBOSITY_FINAL_REPORT    -3
 #define PS_TEST_VERBOSITY_LIST_FAILURES   -2
-#define PS_TEST_VERBOSITY_LIST_SKIPS      -1
+#define PS_TEST_VERBOSITY_LIST_SKIPS       1
 #define PS_TEST_VERBOSITY_PRELAUNCH        2
 
 /* Logging.

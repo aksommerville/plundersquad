@@ -31,7 +31,7 @@ Actionable:
 - Build into a Pi-based arcade console. See http://www.ultimarc.com/
   ...Build the electronics first, then get a membership at Idea Foundry to build it.
   ...And as far as that goes, prototype a single player's inputs before spending the full $300 or so on parts.
-- Prevent unwanted re-teleportation?
+- What happens when swordsman flings eg a book into another book?
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)

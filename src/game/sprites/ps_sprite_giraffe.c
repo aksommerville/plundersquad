@@ -131,6 +131,7 @@ static int ps_giraffe_check_headbutt(struct ps_sprite *spr,struct ps_game *game)
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
   int i=grp->sprc; while (i-->0) {
     struct ps_sprite *victim=grp->sprv[i];
+    if (victim->type!=&ps_sprtype_hero) continue;
     if (ps_sprite_collide_fbox(victim,&headbox)) {
       if (ps_sprite_receive_damage(game,victim,spr)<0) return -1;
     }

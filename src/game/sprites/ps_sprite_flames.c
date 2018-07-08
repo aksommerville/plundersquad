@@ -170,6 +170,17 @@ static int _ps_flames_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_spri
   return 4;
 }
 
+/* Hurt.
+ * We are not (or should not be) in the FRAGILE group.
+ * But we are in the HERO group, and some monsters unwisely search that one for victims.
+ * Those should be fixed, but we can also cut it off here.
+ */
+ 
+static int _ps_flames_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant) {
+  ps_log(GAME,DEBUG,"Attempting to hurt flames, assailant %s",assailant?assailant->type->name:"unset");
+  return 0;
+}
+
 /* Type definition.
  */
 
@@ -187,6 +198,7 @@ const struct ps_sprtype ps_sprtype_flames={
   .get_configure_argument_name=_ps_flames_get_configure_argument_name,
   .update=_ps_flames_update,
   .draw=_ps_flames_draw,
+  .hurt=_ps_flames_hurt,
   
 };
 

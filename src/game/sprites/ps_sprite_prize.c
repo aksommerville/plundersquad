@@ -81,6 +81,7 @@ static int ps_prize_should_skip_hero(const struct ps_sprite *spr,const struct ps
   const struct ps_sprgrp *solids=game->grpv+PS_SPRGRP_SOLID;
   int i=solids->sprc; while (i-->0) {
     const struct ps_sprite *solid=solids->sprv[i];
+    if (solid==hero) continue;
     if (ps_sprites_collide(solid,hero)) {
       return 1;
     }

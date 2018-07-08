@@ -497,6 +497,48 @@ int ps_physics_update(struct ps_physics *physics) {
   return 0;
 }
 
+/* Test previously-recorded events.
+ */
+ 
+int ps_physics_test_sprite_collision_grid(const struct ps_physics *physics,const struct ps_sprite *spr) {
+  if (!physics||!spr) return 0;
+  return (ps_physics_search_event(physics,0,spr)>=0)?1:0;
+}
+
+int ps_physics_test_sprite_collision_sprite(const struct ps_physics *physics,const struct ps_sprite *spr) {
+  if (!physics||!spr) return 0;
+  
+  /* Searching (spr,0) will never find something because (a<b).
+   * But it will return an insertion point immediately before any records where (spr==a).
+   * Check (a) only on that first event, then check (b) on all events <(p), stopping when (a==0).
+   */
+  int p=ps_physics_search_event(physics,spr,0);
+  if (p>=0) return 1; // impossible
+  p=-p-1;
+  if ((p<physics->eventc)&&(physics->eventv[p].a==spr)) return 1;
+  while ((p-->0)&&physics->eventv[p].a) {
+    if (physics->eventv[p].b==spr) return 1;
+  }
+  
+  return 0;
+}
+
+int ps_physics_test_sprite_collision_any(const struct ps_physics *physics,const struct ps_sprite *spr) {
+  if (ps_physics_test_sprite_collision_grid(physics,spr)) return 1;
+  if (ps_physics_test_sprite_collision_sprite(physics,spr)) return 1;
+  return 0;
+}
+
+int ps_physics_test_sprite_collision_exact(const struct ps_physics *physics,const struct ps_sprite *a,const struct ps_sprite *b) {
+  if (!physics) return 0;
+  if (a>b) {
+    const struct ps_sprite *tmp=a;
+    a=b;
+    b=tmp;
+  }
+  return (ps_physics_search_event(physics,a,b)>=0)?1:0;
+}
+
 /* Test a sprite collision (public interface).
  * This considers shape and position; it doesn't care about SOLID group or anything.
  */

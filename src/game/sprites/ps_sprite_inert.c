@@ -4,10 +4,11 @@
 
 #include "ps.h"
 #include "game/ps_sprite.h"
+#include "game/ps_game.h"
+#include "game/ps_physics.h"
 #include "util/ps_geometry.h"
 
 #define PS_INERT_DEFAULT_SPEED 3.0
-#define PS_INERT_STOP_SPEED 1.0 /* Actual movement less than this, we stop. */
 
 /* Private sprite object.
  */
@@ -26,19 +27,12 @@ struct ps_sprite_inert {
 
 static int _ps_inert_update(struct ps_sprite *spr,struct ps_game *game) {
 
-  if (SPR->dx||SPR->dy) {
-    double adx=(spr->x>SPR->pvx)?(spr->x-SPR->pvx):(SPR->pvx-spr->x);
-    double ady=(spr->y>SPR->pvy)?(spr->y-SPR->pvy):(SPR->pvy-spr->y);
-    double actual_travel=adx+ady;
-    if (actual_travel<=PS_INERT_STOP_SPEED) {
-      SPR->dx=0;
-      SPR->dy=0;
-    } else {
-      SPR->pvx=spr->x;
-      SPR->pvy=spr->y;
-      spr->x+=SPR->speed*SPR->dx;
-      spr->y+=SPR->speed*SPR->dy;
-    }
+  if (ps_physics_test_sprite_collision_any(game->physics,spr)) {
+    SPR->dx=0;
+    SPR->dy=0;
+  } else {
+    spr->x+=SPR->speed*SPR->dx;
+    spr->y+=SPR->speed*SPR->dy;
   }
   
   return 0;

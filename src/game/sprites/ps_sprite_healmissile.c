@@ -82,6 +82,7 @@ static int ps_healmissile_should_skip_victim(const struct ps_game *game,const st
   const struct ps_sprgrp *solids=game->grpv+PS_SPRGRP_SOLID;
   int i=solids->sprc; while (i-->0) {
     const struct ps_sprite *solid=solids->sprv[i];
+    if (solid==victim) continue;
     if (ps_sprites_collide(solid,victim)) {
       return 1;
     }

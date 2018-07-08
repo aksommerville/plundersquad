@@ -43,4 +43,11 @@ int ps_physics_set_grid(struct ps_physics *physics,struct ps_grid *grid);
 
 int ps_physics_update(struct ps_physics *physics);
 
+/* Return nonzero if (spr) in the last update collided with something.
+ */
+int ps_physics_test_sprite_collision_grid(const struct ps_physics *physics,const struct ps_sprite *spr);
+int ps_physics_test_sprite_collision_sprite(const struct ps_physics *physics,const struct ps_sprite *spr);
+int ps_physics_test_sprite_collision_any(const struct ps_physics *physics,const struct ps_sprite *spr);
+int ps_physics_test_sprite_collision_exact(const struct ps_physics *physics,const struct ps_sprite *a,const struct ps_sprite *b);
+
 #endif

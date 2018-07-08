@@ -6,7 +6,6 @@ General errors:
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
 - Don't heal if atop a solid sprite (eg NURSE+1 on blueprint:144)
-- Don't register deed for deathgate if a permaswitch is present (eg blueprint:145)
   
 Raspi errors:
 

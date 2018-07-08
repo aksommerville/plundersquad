@@ -183,3 +183,17 @@ int ps_grid_should_persist_switch(const struct ps_grid *grid,int switchid) {
   }
   return 0;
 }
+
+/* Count POI.
+ */
+ 
+int ps_grid_count_poi_of_type(const struct ps_grid *grid,uint8_t type) {
+  if (!grid) return 0;
+  int c=0;
+  const struct ps_blueprint_poi *poi=grid->poiv;
+  int i=grid->poic;
+  for (;i-->0;poi++) {
+    if (poi->type==type) c++;
+  }
+  return c;
+}

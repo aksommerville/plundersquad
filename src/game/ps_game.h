@@ -74,6 +74,7 @@ struct ps_game {
   int gridx,gridy; // Grid's position in world.
   struct ps_physics *physics;
   int inhibit_screen_switch; // Nonzero when we first move to a neighbor grid. Heroes reset it.
+  int suppress_switch_effects; // Nonzero during screen change. Switches don't cause visual effects.
 
   struct ps_game_renderer *renderer;
 

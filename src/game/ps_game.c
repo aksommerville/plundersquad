@@ -796,6 +796,7 @@ int ps_game_update(struct ps_game *game) {
   if (ps_physics_update(game->physics)<0) return -1;
   if (ps_game_check_physics_for_damage(game)<0) return -1;
   if (ps_game_check_physics_for_heroonly_hack(game)<0) return -1;
+  game->suppress_switch_effects=0; // Deferred from grid change, until after the first general update.
   
   /* Look for collisions between HAZARD and FRAGILE sprites.
    * Some damage methods, eg sword, are managed by individual sprite types.
@@ -1003,8 +1004,12 @@ static int ps_game_remove_deathgate(struct ps_game *game) {
   }
   if (removec) {
     PS_SFX_DEATHGATE
-    if (ps_stats_set_deed(game->stats,game->gridx,game->gridy)<0) return -1;
-    ps_log(GAME,DEBUG,"Set deed for (%d,%d)",game->gridx,game->gridy);
+    if (ps_grid_count_poi_of_type(game->grid,PS_BLUEPRINT_POI_PERMASWITCH)>0) {
+      ps_log(GAME,DEBUG,"Deathgate does not set deed due to permaswitch.");
+    } else {
+      if (ps_stats_set_deed(game->stats,game->gridx,game->gridy)<0) return -1;
+      ps_log(GAME,DEBUG,"Set deed for (%d,%d)",game->gridx,game->gridy);
+    }
   }
   return 0;
 }
@@ -1134,8 +1139,10 @@ static int ps_game_cb_switch(int switchid,int value,void *userdata) {
       return -1;
     }
   }
-  while (changes.c-->0) {
-    struct ps_sprite *indicator=ps_sprite_changeindicator_spawn(game,changes.v[changes.c].x,changes.v[changes.c].y);
+  if (!game->suppress_switch_effects) {
+    while (changes.c-->0) {
+      struct ps_sprite *indicator=ps_sprite_changeindicator_spawn(game,changes.v[changes.c].x,changes.v[changes.c].y);
+    }
   }
   ps_path_cleanup(&changes);
 
@@ -1347,6 +1354,7 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
   }
 
   /* Change grid in our model. */
+  game->suppress_switch_effects=1;
   ps_game_npgc_pop(game);
   if (ps_switchboard_clear(game->switchboard,1)<0) return -1;
   if (ps_game_renderer_cancel_fade(game->renderer)<0) return -1;

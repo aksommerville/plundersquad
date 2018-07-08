@@ -63,8 +63,8 @@ static int ps_healmissile_should_skip_victim(const struct ps_game *game,const st
   /* Only examine the principal standing-on cell. If there's overlap, physics can fix it.
    */
   if ((spr->x>=0.0)&&(spr->y>=0.0)) {
-    int col=spr->x/PS_TILESIZE;
-    int row=spr->y/PS_TILESIZE;
+    int col=victim->x/PS_TILESIZE;
+    int row=victim->y/PS_TILESIZE;
     if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
       uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
       if (physics==PS_BLUEPRINT_CELL_HOLE) {
@@ -74,6 +74,18 @@ static int ps_healmissile_should_skip_victim(const struct ps_game *game,const st
   }
 
   //TODO should we check hazardous sprites for the healmissile ignore test?
+  
+  /* Also skip if the victim is standing inside another solid sprite.
+   * Ordinarily, physics will take care of this, but if there is nowhere to go, the two sprites will compete for the space.
+   * It's an ugly, buggy-looking situation. (blueprint:144 can easily demonstrate it)
+   */
+  const struct ps_sprgrp *solids=game->grpv+PS_SPRGRP_SOLID;
+  int i=solids->sprc; while (i-->0) {
+    const struct ps_sprite *solid=solids->sprv[i];
+    if (ps_sprites_collide(solid,victim)) {
+      return 1;
+    }
+  }
   
   return 0;
 }

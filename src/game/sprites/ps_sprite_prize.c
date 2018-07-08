@@ -4,6 +4,8 @@
 #include "game/ps_sound_effects.h"
 #include "ps_sprite_hero.h"
 #include "util/ps_geometry.h"
+#include "scenario/ps_blueprint.h"
+#include "scenario/ps_grid.h"
 
 #define PS_PRIZE_FRAME_TIME 7
 #define PS_PRIZE_FRAME_COUNT 4
@@ -50,6 +52,43 @@ static int _ps_prize_configure(struct ps_sprite *spr,struct ps_game *game,const 
   return 0;
 }
 
+/* Consider a hero's position, and maybe don't heal him.
+ * We should skip if the hero would immediately die or get stuck in a wall.
+ * NB: healmissile has this same test.
+ */
+ 
+static int ps_prize_should_skip_hero(const struct ps_sprite *spr,const struct ps_game *game,const struct ps_sprite *hero) {
+  if (!hero) return 0;
+  if (!game) return 0;
+
+  /* Only examine the principal standing-on cell. If there's overlap, physics can fix it.
+   */
+  if ((spr->x>=0.0)&&(spr->y>=0.0)) {
+    int col=hero->x/PS_TILESIZE;
+    int row=hero->y/PS_TILESIZE;
+    if ((col>=0)&&(row>=0)&&(col<PS_GRID_COLC)&&(row<PS_GRID_ROWC)) {
+      uint8_t physics=game->grid->cellv[row*PS_GRID_COLC+col].physics;
+      if (physics==PS_BLUEPRINT_CELL_HOLE) {
+        return 1;
+      }
+    }
+  }
+
+  //TODO should we check hazardous sprites for the healmissile ignore test?
+  
+  /* Also skip if the hero is standing inside another solid sprite.
+   */
+  const struct ps_sprgrp *solids=game->grpv+PS_SPRGRP_SOLID;
+  int i=solids->sprc; while (i-->0) {
+    const struct ps_sprite *solid=solids->sprv[i];
+    if (ps_sprites_collide(solid,hero)) {
+      return 1;
+    }
+  }
+  
+  return 0;
+}
+
 /* Update.
  */
 
@@ -84,9 +123,11 @@ static int _ps_prize_update(struct ps_sprite *spr,struct ps_game *game) {
     struct ps_sprite *hero=grp->sprv[i];
     if (hero->type!=&ps_sprtype_hero) continue;
     if (ps_sprites_collide(spr,hero)) {
-      if (ps_hero_add_state(hero,PS_HERO_STATE_HEAL,game)<0) return -1;
-      if (ps_sprite_kill_later(spr,game)<0) return -1;
-      return 0;
+      if (!ps_prize_should_skip_hero(spr,game,hero)) {
+        if (ps_hero_add_state(hero,PS_HERO_STATE_HEAL,game)<0) return -1;
+        if (ps_sprite_kill_later(spr,game)<0) return -1;
+        return 0;
+      }
     }
   }
 

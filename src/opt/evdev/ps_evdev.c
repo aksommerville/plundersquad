@@ -159,9 +159,15 @@ static int ps_evdev_try_file(const char *base) {
     }
   }
 
-  /* Try to grab it. */
+  /* Try to grab it. 
+   * Update: Fail if we can't. This prevents evdev-filter parents from appearing, uselessly.
+   */
   if (ioctl(fd,EVIOCGRAB,1)>=0) {
     dev->grabbed=1;
+  } else {
+    ps_evdev_device_cleanup(dev);
+    ps_evdev.devc--;
+    return 0;
   }
 
   ps_evdev.devid_next++;

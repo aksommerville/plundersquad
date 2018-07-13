@@ -3,7 +3,7 @@
 
 /* Nonzero for normal production startup; the rest of this file will be ignored.
  */
-#define PS_PRODUCTION_STARTUP 1
+#define PS_PRODUCTION_STARTUP 0
 
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, IMMORTAL, BOMBER
@@ -24,7 +24,7 @@
  * Must name at least one blueprint with a HERO POI.
  * Region may be <0 to select randomly.
  */
-#define PS_TEST_BLUEPRINTS  2,205
+#define PS_TEST_BLUEPRINTS  2,63
 #define PS_TEST_REGION      5
 
 /* Parameters for ALL mode.

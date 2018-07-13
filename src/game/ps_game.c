@@ -361,7 +361,22 @@ int ps_game_setup_deathgate(struct ps_game *game) {
  */
 
 static int ps_game_remove_all_monsters(struct ps_game *game) {
+
   if (ps_sprgrp_kill(game->grpv+PS_SPRGRP_HEROHAZARD)<0) return -1;
+
+  /* There can be other sprites which are not in HEROHAZARD but also must be destroyed.
+   * Check group UPDATE for specific types.
+   */
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+    if (
+      (spr->type==&ps_sprtype_seamonster)||
+    0) {
+      ps_sprite_kill(spr);
+    }
+  }
+  
   return 0;
 }
 

@@ -33,6 +33,8 @@ Actionable:
 - Build into a Pi-based arcade console. See http://www.ultimarc.com/
   ...Build the electronics first, then get a membership at Idea Foundry to build it.
   ...And as far as that goes, prototype a single player's inputs before spending the full $300 or so on parts.
+- blueprint:80: chestkeeper sometimes doesn't move much.
+  Is it reasonable to write a new motion controller? Maybe could generalize and also use for others (eg bug).
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
@@ -44,6 +46,12 @@ MacOS:
 - Developer license
 - Sign code
 - Screen saver?
+    Test whether joystick activity implicitly suppresses screen saver.
+    If not, use IOPMAssertionCreateWithName():
+    https://developer.apple.com/documentation/iokit/1557134-iopmassertioncreatewithname?language=occ
+    IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep, kIOPMAssertionLevelOn, reasonForActivity, &assertionID);
+- Hide cursor
+- Application icon
 
 Linux:
 

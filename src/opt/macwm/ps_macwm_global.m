@@ -105,6 +105,7 @@ void ps_macwm_abort(const char *fmt,...) {
 }
 
 /* Show or hide cursor.
+ * XXX [NSCursor hide] / [NSCursor unhide] hide the cursor globally -- even when it leaves our window.
  */
 
 int ps_macwm_show_cursor(int show) {

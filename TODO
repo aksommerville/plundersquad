@@ -5,7 +5,6 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
-- Boxingglove should be nonhazardous when disabled.
 - blueprint:113: not always enough room to guide mimic
 - blueprint:50: yak appeared in water
 - Heart should stop when flung into a small obstruction. Instead tends to push its way past.

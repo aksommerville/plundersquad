@@ -7,7 +7,6 @@ General errors:
   ...investigated, can't reproduce
 - blueprint:50: yak appeared in water
 - Heart should stop when flung into a small obstruction. Instead tends to push its way past.
-- Does seamonster always face towards center? sometimes we need him looking out, towards the hero.
 - Gadgeteer movement sometimes suppressed after dropping hook.
   
 Raspi errors:

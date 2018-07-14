@@ -3,6 +3,7 @@
 #include "game/ps_game.h"
 #include "game/ps_sound_effects.h"
 #include "game/sprites/ps_sprite_hookshot.h"
+#include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "util/ps_geometry.h"
@@ -38,8 +39,6 @@
 
 #define PS_SEAMONSTER_FIREBALL_SPRDEF_ID 11
 
-#define PS_SEAMONSTER_FACING_RIGHT (spr->x<(PS_SCREENW>>1))
-
 /* Private sprite object.
  */
 
@@ -60,6 +59,7 @@ struct ps_sprite_seamonster {
   int tentaclec;
   int holec; // Count of HOLE tiles in grid; refresh if zero.
   int first_update; // To prevent DIVE sound from all sea monsters at screen start.
+  int facedir;
 };
 
 #define SPR ((struct ps_sprite_seamonster*)spr)
@@ -77,6 +77,7 @@ static int _ps_seamonster_init(struct ps_sprite *spr) {
 
   SPR->phase=PS_SEAMONSTER_PHASE_RESET;
   SPR->first_update=1;
+  SPR->facedir=(rand()&1)?1:-1;
   
   return 0;
 }
@@ -227,6 +228,34 @@ static int ps_seamonster_update_swim(struct ps_sprite *spr,struct ps_game *game)
   return 0;
 }
 
+/* Decide which direction to face, left or right.
+ */
+
+static int ps_seamonster_select_facedir(struct ps_sprite *spr,struct ps_game *game) {
+
+  /* Three points for a living hero, two for a ghost, one for anything else.
+   */
+  int herocleft=0,herocright=0;
+  const struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_HERO;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *hero=grp->sprv[i];
+    int *bucket=(hero->x<spr->x)?&herocleft:&herocright;
+    if (hero->type!=&ps_sprtype_hero) {
+      (*bucket)+=1;
+    } else if (((struct ps_sprite_hero*)hero)->hp) {
+      (*bucket)+=3;
+    } else {
+      (*bucket)+=2;
+    }
+  }
+
+  if (herocleft>herocright) SPR->facedir=-1;
+  else if (herocleft<herocright) SPR->facedir=1;
+  else SPR->facedir=(rand()&1)?1:-1;
+
+  return 0;
+}
+
 /* Calculate and store tentacle positions.
  */
 
@@ -301,7 +330,7 @@ static int ps_seamonster_calculate_tentacle_positions(struct ps_sprite *spr,stru
 }
 
 /* Decide where the fireball should go and create it.
- * We will consider the direction the sea monster is facing (left or right, depending which half of screen we are on).
+ * We will consider the direction the sea monster is facing (left or right).
  * Then consider a sector 90 degrees wide pointing that direction.
  * If there's any heroes in the Cone of Potential Death, pick one at random.
  * Otherwise, pick a random angle.
@@ -312,8 +341,7 @@ static struct ps_sprite *ps_seamonster_select_target(struct ps_sprite *spr,struc
   if (!game) return 0;
   if (game->grpv[PS_SPRGRP_HERO].sprc<1) return 0;
 
-  double dx; // Which way I am facing.
-  if (PS_SEAMONSTER_FACING_RIGHT) dx=1.0; else dx=-1.0;
+  double dx=SPR->facedir;
   
   struct ps_sprite *herov[PS_PLAYER_LIMIT];
   int heroc=0,i;
@@ -336,7 +364,7 @@ static struct ps_sprite *ps_seamonster_select_target(struct ps_sprite *spr,struc
 
 static int ps_seamonster_select_default_fireball_target(double *dstx,double *dsty,struct ps_sprite *spr,struct ps_game *game) {
   // Offset (*dstx) by a constant amount, then (*dsty) in either direction up to that same constant, randomly.
-  if (PS_SEAMONSTER_FACING_RIGHT) *dstx=spr->x+100.0; else *dstx=spr->x-100.0;
+  if (SPR->facedir>0) *dstx=spr->x+100.0; else *dstx=spr->x-100.0;
   *dsty=spr->y-100.0+rand()%200;
   return 0;
 }
@@ -389,6 +417,7 @@ static int ps_seamonster_begin_prefire(struct ps_sprite *spr,struct ps_game *gam
   SPR->phasetimer=PS_SEAMONSTER_PREFIRE_TIME_MIN+rand()%(PS_SEAMONSTER_PREFIRE_TIME_MAX-PS_SEAMONSTER_PREFIRE_TIME_MIN+1);
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_FRAGILE,spr)<0) return -1;
   if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_HEROHAZARD,spr)<0) return -1;
+  if (ps_seamonster_select_facedir(spr,game)<0) return -1;
   if (ps_seamonster_calculate_tentacle_positions(spr,game)<0) return -1;
   return 0;
 }
@@ -474,7 +503,7 @@ static int _ps_seamonster_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_
   vtxv->pr=vtxv->pg=vtxv->pb=0x80;
   vtxv->a=0xff;
   vtxv->t=0;
-  vtxv->xform=(PS_SEAMONSTER_FACING_RIGHT?AKGL_XFORM_FLOP:AKGL_XFORM_NONE); // Face center.
+  vtxv->xform=((SPR->facedir>0)?AKGL_XFORM_FLOP:AKGL_XFORM_NONE); // Face center.
 
   /* If we have tentacles, copy the base vertex then update (x,y,tileid,xform). 
    * First vertex must still be on the base tile at this point.

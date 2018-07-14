@@ -7,6 +7,14 @@ General errors:
   ...investigated, can't reproduce
 - Boxingglove should be nonhazardous when disabled.
 - blueprint:113: not always enough room to guide mimic
+- blueprint:50: yak appeared in water
+- Heart should stop when flung into a small obstruction. Instead tends to push its way past.
+- Does seamonster always face towards center? sometimes we need him looking out, towards the hero.
+- Deathgate reappeared and seamonsters (statically placed) alive again after deed set:
+  GAME:DEBUG: Set deed for (2,0) [src/game/ps_game.c:1011]
+  GAME:DEBUG: Switch to grid (1,0), blueprint:5, difficulty:0 [src/game/ps_game.c:1413]
+  GAME:DEBUG: Applying deed for (2,0) [src/game/ps_game.c:1402]
+  GAME:DEBUG: Switch to grid (2,0), blueprint:63, difficulty:6 [src/game/ps_game.c:1413]
   
 Raspi errors:
 

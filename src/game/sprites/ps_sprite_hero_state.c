@@ -9,6 +9,7 @@
 #include "game/ps_stats.h"
 #include "scenario/ps_blueprint.h"
 #include "scenario/ps_grid.h"
+#include "input/ps_input_button.h"
 
 #define PS_GHOST_HAZARD_DIFFICULTY 3
 
@@ -88,6 +89,18 @@ static int ps_hero_react_to_changed_state(struct ps_sprite *spr,struct ps_game *
   /* If our impassable mask changed, try to fudge our position onto a legal cell. */
   if (spr->impassable!=pvimpassable) {
     if (ps_sprite_attempt_legal_position(spr,game)<0) return -1;
+  }
+
+  /* We might have just re-enabled the ability to walk, but not walking yet.
+   * eg pressing d-pad while travelling via hookshot.
+   * Check for this and if found, make the d-pad events look fresh.
+   */
+  if (ps_hero_stateq_can_walk(spr)) {
+    if (SPR->input&(PS_PLRBTN_LEFT|PS_PLRBTN_RIGHT|PS_PLRBTN_UP|PS_PLRBTN_DOWN)) {
+      if (!SPR->indx&&!SPR->indy) {
+        SPR->reexamine_dpad=1;
+      }
+    }
   }
   
 
@@ -370,7 +383,7 @@ static int ps_hero_add_HOOKSHOT(struct ps_sprite *spr,struct ps_game *game) {
 }
 
 static int ps_hero_remove_HOOKSHOT(struct ps_sprite *spr,struct ps_game *game) {
-  ps_log(HEROSTATE,TRACE,"%s",__func__);
+  ps_log(HEROSTATE,TRACE,"%s ind=(%+d,%+d) input=%04x",__func__,SPR->indx,SPR->indy,SPR->input);
 
   struct ps_sprite *master=ps_sprite_get_master(spr);
   if (master&&(master->type==&ps_sprtype_hookshot)) {

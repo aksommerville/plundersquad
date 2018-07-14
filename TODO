@@ -6,8 +6,6 @@ General errors:
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
 - blueprint:50: yak appeared in water
-- Heart should stop when flung into a small obstruction. Instead tends to push its way past.
-- Gadgeteer movement sometimes suppressed after dropping hook.
   
 Raspi errors:
 

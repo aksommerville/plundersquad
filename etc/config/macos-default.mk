@@ -17,6 +17,7 @@ EXE_MAIN:=$(BUNDLE_MAIN)/Contents/MacOS/PlunderSquad
 DATA_ARCHIVE:=$(BUNDLE_MAIN)/Contents/Resources/ps-data
 INPUTCFG_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/input.cfg
 CFG_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/plundersquad.cfg
+ICON_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/appicon.png
 
 BUNDLE_EDIT:=$(OUTDIR)/EditPlunderSquad.app
 PLIST_EDIT:=$(BUNDLE_EDIT)/Contents/Info.plist
@@ -24,11 +25,12 @@ NIB_EDIT:=$(BUNDLE_EDIT)/Contents/Resources/Main.nib
 EXE_EDIT:=$(BUNDLE_EDIT)/Contents/MacOS/EditPlunderSquad
 CFG_EDIT:=$(BUNDLE_EDIT)/Contents/Resources/plundersquad.cfg
 
-$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN) $(CFG_MAIN) $(INPUTCFG_MAIN)
+$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN) $(CFG_MAIN) $(INPUTCFG_MAIN) $(ICON_MAIN)
 $(EXE_EDIT):$(PLIST_EDIT) $(NIB_EDIT) $(CFG_EDIT)
 
 $(PLIST_MAIN):src/main/Info.plist;$(PRECMD) cp $< $@
 $(NIB_MAIN):src/main/Main.xib;$(PRECMD) ibtool --compile $@ $<
+$(ICON_MAIN):src/main/appicon.png;$(PRECMD) cp $< $@
 
 $(PLIST_EDIT):src/edit/Info.plist;$(PRECMD) cp $< $@
 $(NIB_EDIT):src/edit/Main.xib;$(PRECMD) ibtool --compile $@ $<

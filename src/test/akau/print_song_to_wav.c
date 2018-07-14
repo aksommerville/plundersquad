@@ -51,7 +51,7 @@ static int compose_output_path_for_printed_song(char *dst,int dsta,int songid) {
     return dstc;
   }
   int dstc=snprintf(dst,dsta,"%d.wav",songid);
-  if ((dstc<1)||(dsta>=dsta)) return -1;
+  if ((dstc<1)||(dstc>=dsta)) return -1;
   return dstc;
 }
 

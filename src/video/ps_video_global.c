@@ -77,6 +77,9 @@ int ps_video_init(struct ps_userconfig *userconfig) {
       ps_video_quit();
       return -1;
     }
+    if (ps_macwm_show_cursor(0)<0) {
+      ps_log(VIDEO,ERROR,"Failed to hide cursor. Proceeding.");
+    }
 
   #elif PS_USE_bcm
     if (ps_bcm_init()<0) {

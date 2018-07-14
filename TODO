@@ -15,6 +15,7 @@ General errors:
   GAME:DEBUG: Switch to grid (1,0), blueprint:5, difficulty:0 [src/game/ps_game.c:1413]
   GAME:DEBUG: Applying deed for (2,0) [src/game/ps_game.c:1402]
   GAME:DEBUG: Switch to grid (2,0), blueprint:63, difficulty:6 [src/game/ps_game.c:1413]
+- Gadgeteer movement sometimes suppressed after dropping hook.
   
 Raspi errors:
 
@@ -28,6 +29,7 @@ Windows errors:
 - Input focus lost after switching window in fullscreen, I'm not sure what happened.
 
 MacOS errors:
+- Input stuck "down". Bens Deutch, vampire, 1-player. Cleared up after pausing with other controller, blueprint:65
 
 Actionable:
 - Establish and enforce difficulty standards (eg die-cross-heal should be like 5 or 6 minimum).
@@ -41,6 +43,8 @@ Actionable:
 - Build into a Pi-based arcade console. See http://www.ultimarc.com/
   ...Build the electronics first, then get a membership at Idea Foundry to build it.
   ...And as far as that goes, prototype a single player's inputs before spending the full $300 or so on parts.
+- blueprint:80: chestkeeper sometimes doesn't move much.
+  Is it reasonable to write a new motion controller? Maybe could generalize and also use for others (eg bug).
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
@@ -52,6 +56,14 @@ MacOS:
 - Developer license
 - Sign code
 - Screen saver?
+    Test whether joystick activity implicitly suppresses screen saver.
+    If not, use IOPMAssertionCreateWithName():
+    https://developer.apple.com/documentation/iokit/1557134-iopmassertioncreatewithname?language=occ
+    IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep, kIOPMAssertionLevelOn, reasonForActivity, &assertionID);
+- Hide cursor
+- Application icon. Bundle and window switcher -- are they the same thing?
+  See ps_video_global.c:74, we aren't even trying.
+- Menu contents
 
 Linux:
 

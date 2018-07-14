@@ -24,7 +24,7 @@
  * Must name at least one blueprint with a HERO POI.
  * Region may be <0 to select randomly.
  */
-#define PS_TEST_BLUEPRINTS  2,205
+#define PS_TEST_BLUEPRINTS  2,63
 #define PS_TEST_REGION      5
 
 /* Parameters for ALL mode.

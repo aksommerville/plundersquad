@@ -421,7 +421,7 @@ static int ps_physics_detect_collisions(struct ps_physics *physics) {
 
 static int ps_physics_resolve_collision(struct ps_physics *physics,struct ps_coll *coll) {
 
-  //ps_log(PHYSICS,TRACE,"Bump! pen=%f v=(%+f,%+f)",coll->pen,coll->vx,coll->vy);
+  //ps_log(PHYSICS,TRACE,"Bump! pen=%f v=(%+f,%+f)",coll->overlap.penetration,coll->overlap.axis.dx,coll->overlap.axis.dy);
 
   /* If either (phreconsider) flag is set, reassess the collision. */
   if (coll->a->phreconsider||(coll->b&&coll->b->phreconsider)) {

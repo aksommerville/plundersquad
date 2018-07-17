@@ -539,6 +539,21 @@ int ps_physics_test_sprite_collision_exact(const struct ps_physics *physics,cons
   return (ps_physics_search_event(physics,a,b)>=0)?1:0;
 }
 
+int ps_physics_test_sprite_collision_type(const struct ps_physics *physics,const struct ps_sprite *a,const struct ps_sprtype *btype) {
+  if (!physics||!a||!btype) return 0;
+  int i=physics->eventc;
+  while (i-->0) {
+    const struct ps_physics_event *event=physics->eventv+i;
+    if (!event->a) break; // End of sprite-on-sprite collisions.
+    if (event->a==a) {
+      if (event->b->type==btype) return 1;
+    } else if (event->b==a) {
+      if (event->a->type==btype) return 1;
+    }
+  }
+  return 0;
+}
+
 /* Test a sprite collision (public interface).
  * This considers shape and position; it doesn't care about SOLID group or anything.
  */

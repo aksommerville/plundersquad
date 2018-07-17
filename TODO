@@ -6,7 +6,6 @@ General errors:
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
 - blueprint:80: Prevent flamethrower from landing in corner when chestkeeper wakes up.
-- Immortal pushing basketball up conveyor -- broken? (eg blueprint:101)
   
 Raspi errors:
 

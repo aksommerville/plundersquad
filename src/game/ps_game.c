@@ -273,8 +273,10 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
  */
 
 static int ps_game_should_use_chestkeeper(const struct ps_game *game,int treasureid) {
-  if ((treasureid<0)||(treasureid>=game->treasurec)) return 0;
-  if (game->treasurev[treasureid]) return 0;
+  if (game->treasurec>0) { // No treasures means we are testing -- pretend it's the final treasure.
+    if ((treasureid<0)||(treasureid>=game->treasurec)) return 0;
+    if (game->treasurev[treasureid]) return 0;
+  }
   if (game->difficulty<PS_MINIMUM_DIFFICULTY_FOR_CHESTKEEPER) return 0;
 
   int have_combat=0;
@@ -287,6 +289,7 @@ static int ps_game_should_use_chestkeeper(const struct ps_game *game,int treasur
   }
   if (!have_combat) return 0;
   
+  if (game->treasurec<1) return 1;
   if (ps_game_count_collected_treasures(game)==game->treasurec-1) return 1;
   return 0;
 }

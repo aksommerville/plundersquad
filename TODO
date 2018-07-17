@@ -5,7 +5,6 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
-- blueprint:80: Prevent flamethrower from landing in corner when chestkeeper wakes up.
   
 Raspi errors:
 

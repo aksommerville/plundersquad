@@ -72,4 +72,8 @@ int ps_grid_should_persist_switch(const struct ps_grid *grid,int switchid);
 
 int ps_grid_count_poi_of_type(const struct ps_grid *grid,uint8_t type);
 
+/* Nonzero if any cell along a line from (ax,ay) to (bx,by) contains physics in the mask (phymask).
+ */
+int ps_grid_line_contains_physics(const struct ps_grid *grid,int ax,int ay,int bx,int by,uint16_t phymask);
+
 #endif

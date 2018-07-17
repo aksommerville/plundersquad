@@ -197,3 +197,38 @@ int ps_grid_count_poi_of_type(const struct ps_grid *grid,uint8_t type) {
   }
   return c;
 }
+
+/* Trace line to detect physics.
+ */
+ 
+int ps_grid_line_contains_physics(const struct ps_grid *grid,int ax,int ay,int bx,int by,uint16_t phymask) {
+  if (!grid) return 0;
+  if (ax<0) ax=0; else if (ax>=PS_GRID_COLC) ax=PS_GRID_COLC-1;
+  if (ay<0) ay=0; else if (ay>=PS_GRID_ROWC) ay=PS_GRID_ROWC-1;
+  if (bx<0) bx=0; else if (bx>=PS_GRID_COLC) bx=PS_GRID_COLC-1;
+  if (by<0) by=0; else if (by>=PS_GRID_ROWC) by=PS_GRID_ROWC-1;
+  
+  int dx=(ax<bx)?1:-1;
+  int dy=(ay<by)?1:-1;
+  int wx=bx-ax; if (wx<0) wx=-wx;
+  int wy=by-ay; if (wy>0) wy=-wy;
+  int xthresh=wx>>1;
+  int ythresh=wy>>1;
+  int weight=wx+wy;
+  
+  while (1) {
+    if (phymask&(1<<grid->cellv[ay*PS_GRID_COLC+ax].physics)) return 1;
+    if (weight>xthresh) {
+      if (ax!=bx) ax+=dx;
+      weight+=wy;
+    } else if (weight<ythresh) {
+      if (ay!=by) ay+=dy;
+      weight+=wx;
+    } else {
+      if (ax!=bx) ax+=dx;
+      if (ay!=by) ay+=dy;
+      weight+=wx+wy;
+    }
+    if ((ax==bx)&&(ay==by)) return 0;
+  }
+}

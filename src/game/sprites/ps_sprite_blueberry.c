@@ -87,23 +87,7 @@ static int ps_blueberry_rebuild(struct ps_sprite *spr,int nodec) {
  */
 
 static int ps_blueberry_begin_step(struct ps_sprite *spr,struct ps_game *game) {
-
-  double t=(rand()%628)/100.0;
-  SPR->dx=PS_BLUEBERRY_WALK_SPEED*cos(t);
-  SPR->dy=PS_BLUEBERRY_WALK_SPEED*sin(t);
-
-  /* If we are currently within 25% of an edge, point towards the bulk of the screen. */
-  if (spr->x<PS_SCREENW>>2) {
-    if (SPR->dx<0.0) SPR->dx=-SPR->dx;
-  } else if (spr->x>(PS_SCREENW*3)>>2) {
-    if (SPR->dx>0.0) SPR->dx=-SPR->dx;
-  }
-  if (spr->y<PS_SCREENH>>2) {
-    if (SPR->dy<0.0) SPR->dy=-SPR->dy;
-  } else if (spr->y>(PS_SCREENH*3)>>2) {
-    if (SPR->dy>0.0) SPR->dy=-SPR->dy;
-  }
-  
+  if (ps_game_select_random_travel_vector(&SPR->dx,&SPR->dy,game,spr->x,spr->y,PS_BLUEBERRY_WALK_SPEED,spr->impassable)<0) return -1;
   return 0;
 }
 

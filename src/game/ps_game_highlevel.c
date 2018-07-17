@@ -28,6 +28,7 @@
 #include "util/ps_geometry.h"
 #include "util/ps_text.h"
 #include "util/ps_enums.h"
+#include <math.h>
 
 #define PS_BLOODHOUND_SPRDEF_ID 21
 #define PS_TREASURE_SPRDEF_ID 12
@@ -897,5 +898,52 @@ int ps_game_recreate_treasure_chest(struct ps_game *game,int x,int y) {
     return -1;
   }
   
+  return 0;
+}
+
+/* Select a random vector for monster travel.
+ */
+ 
+int ps_game_select_random_travel_vector(
+  double *dx,double *dy,const struct ps_game *game,double x,double y,double speed,uint16_t impassable
+) {
+  if (!dx||!dy||!game) return -1;
+  if (speed<0.1) speed=0.1;
+  if (x<1.0) x=1.0;
+  else if (x>=PS_SCREENW-1.0) x=PS_SCREENW-1.0;
+  if (y<1.0) y=1.0;
+  else if (y>=PS_SCREENH-1.0) y=PS_SCREENH-1.0;
+  int srccol=(int)x/PS_TILESIZE;
+  int srcrow=(int)y/PS_TILESIZE;
+  
+  /* Begin some short distance out, say 4 tiles, and select a random vector.
+   * If it collides with anything (even screen edge), cut the distance and try again.
+   * Once we've reached the bottom, return anything.
+   * Our contract is best-effort: It's totally fine if monsters ram into the wall from time to time.
+   */
+  double distance=PS_TILESIZE*4.0+2.0;
+  while (distance>=PS_TILESIZE) {
+    int tryc=5;
+    while (tryc-->0) {
+      double t=(rand()%6282)/1000.0;
+      *dx=-sin(t);
+      *dy=cos(t);
+      double dstx=x+(*dx)*distance;
+      double dsty=y+(*dy)*distance;
+      if ((dstx>0.0)&&(dsty>0.0)&&(dstx<PS_SCREENW)&&(dsty<PS_SCREENH)) {
+        int dstcol=(int)dstx/PS_TILESIZE;
+        int dstrow=(int)dsty/PS_TILESIZE;
+        if (!ps_grid_line_contains_physics(game->grid,srccol,srcrow,dstcol,dstrow,impassable)) {
+          (*dx)*=speed;
+          (*dy)*=speed;
+          return 0;
+        }
+      }
+    }
+    distance-=PS_TILESIZE;
+  }
+  
+  (*dx)*=speed;
+  (*dy)*=speed;
   return 0;
 }

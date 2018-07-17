@@ -150,6 +150,7 @@ static int ps_chestkeeper_should_blow_cover(struct ps_sprite *spr,struct ps_game
 /* Be a good sport: Only use the chainsaw hands if the party contains one of (ARCHER,WIZARD,BOMBER).
  * ps_game already confirms that at least one COMBAT hero is present before creating us.
  * But if the only combatant is a swordsman, it is nearly impossible to kill the chestkeeper.
+ * TODO Reassess BOMBER in this list -- That's also really hard with chainsaws.
  */
 
 static int ps_chestkeeper_has_worthy_opponents(const struct ps_sprite *spr,const struct ps_game *game) {
@@ -292,23 +293,9 @@ static int ps_chestkeeper_arm_update(struct ps_sprite *spr,struct ps_chestkeeper
  */
 
 static int ps_chestkeeper_adjust_walk(struct ps_sprite *spr,struct ps_game *game) {
-
   double speed=PS_CHESTKEEPER_WALK_SPEED_LO+(rand()%1000)*((PS_CHESTKEEPER_WALK_SPEED_HI-PS_CHESTKEEPER_WALK_SPEED_LO)/1000.0);
-
-  double t=(rand()%6282)/1000.0;
-  double dx=-sin(t)*speed;
-  double dy=cos(t)*speed;
-
-  if ((spr->x<PS_SCREENW/4)&&(dx<0.0)) dx=-dx;
-  else if ((spr->x>(PS_SCREENW*3)/4)&&(dx>0.0)) dx=-dx;
-  if ((spr->y<PS_SCREENH/4)&&(dy<0.0)) dy=-dy;
-  else if ((spr->y>(PS_SCREENH*3)/4)&&(dy>0.0)) dy=-dy;
-
-  SPR->walkdx=dx;
-  SPR->walkdy=dy;
-
+  if (ps_game_select_random_travel_vector(&SPR->walkdx,&SPR->walkdy,game,spr->x,spr->y,speed,spr->impassable)<0) return -1;
   SPR->walktime=PS_CHESTKEEPER_WALK_TIME_LO+rand()%(PS_CHESTKEEPER_WALK_TIME_HI-PS_CHESTKEEPER_WALK_TIME_LO);
-
   return 0;
 }
 

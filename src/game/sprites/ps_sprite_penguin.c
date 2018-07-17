@@ -112,18 +112,7 @@ static int ps_penguin_begin_IDLE(struct ps_sprite *spr,struct ps_game *game) {
 static int ps_penguin_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phase=PS_PENGUIN_PHASE_WALK;
   SPR->phasetime=PS_PENGUIN_WALK_TIME_MIN+rand()%(PS_PENGUIN_WALK_TIME_MAX-PS_PENGUIN_WALK_TIME_MIN);
-
-  double t=(rand()%6282)/1000.0;
-  SPR->walkdx=cos(t)*PS_PENGUIN_WALK_SPEED;
-  SPR->walkdy=sin(t)*PS_PENGUIN_WALK_SPEED;
-
-  const double xmargin=PS_TILESIZE*4.0;
-  const double ymargin=PS_TILESIZE*2.0;
-  if ((spr->x<xmargin)&&(SPR->walkdx<0.0)) SPR->walkdx=-SPR->walkdx;
-  else if ((spr->x>PS_SCREENW-xmargin)&&(SPR->walkdx>0.0)) SPR->walkdx=-SPR->walkdx;
-  if ((spr->y<ymargin)&&(SPR->walkdy<0.0)) SPR->walkdy=-SPR->walkdy;
-  else if ((spr->y>PS_SCREENH-ymargin)&&(SPR->walkdy>0.0)) SPR->walkdy=-SPR->walkdy;
-
+  if (ps_game_select_random_travel_vector(&SPR->walkdx,&SPR->walkdy,game,spr->x,spr->y,PS_PENGUIN_WALK_SPEED,spr->impassable)<0) return -1;
   return 0;
 }
 

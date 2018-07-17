@@ -231,23 +231,7 @@ static int ps_yak_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phaselimit=PS_YAK_WALK_TIME_MIN+rand()%(PS_YAK_WALK_TIME_MAX-PS_YAK_WALK_TIME_MIN);
   SPR->animframe=0;
 
-  double t=(rand()%6282)/1000.0;
-  SPR->walkdx=cos(t)*PS_YAK_WALK_SPEED;
-  SPR->walkdy=-sin(t)*PS_YAK_WALK_SPEED;
-
-  // If close to screen edge, walk toward center.
-  const int horzmargin=(PS_SCREENW/5);
-  const int vertmargin=(PS_SCREENH/3);
-  if (spr->x<horzmargin) {
-    if (SPR->walkdx<0.0) SPR->walkdx=-SPR->walkdx;
-  } else if (spr->x>PS_SCREENW-horzmargin) {
-    if (SPR->walkdx>0.0) SPR->walkdx=-SPR->walkdx;
-  }
-  if (spr->y<vertmargin) {
-    if (SPR->walkdy<0.0) SPR->walkdy=-SPR->walkdy;
-  } else if (spr->y>PS_SCREENH-vertmargin) {
-    if (SPR->walkdy>0.0) SPR->walkdy=-SPR->walkdy;
-  }
+  if (ps_game_select_random_travel_vector(&SPR->walkdx,&SPR->walkdy,game,spr->x,spr->y,PS_YAK_WALK_SPEED,spr->impassable)<0) return -1;
 
   if (SPR->walkdx<0.0) {
     if (SPR->facedx>0) {

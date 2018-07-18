@@ -42,11 +42,6 @@ Windows:
 MacOS:
 - Developer license
 - Sign code
-- Screen saver?
-    Test whether joystick activity implicitly suppresses screen saver.
-    If not, use IOPMAssertionCreateWithName():
-    https://developer.apple.com/documentation/iokit/1557134-iopmassertioncreatewithname?language=occ
-    IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep, kIOPMAssertionLevelOn, reasonForActivity, &assertionID);
 - Hide cursor
 - Application icon. Bundle and window switcher -- are they the same thing?
   See ps_video_global.c:74, we aren't even trying.

@@ -42,9 +42,6 @@ Windows:
 MacOS:
 - Developer license
 - Sign code
-- Application icon. Bundle and window switcher -- are they the same thing?
-  See ps_video_global.c:74, we aren't even trying.
-- Menu contents
 
 Linux:
 

@@ -10,7 +10,7 @@
 	<string>PlunderSquad</string>
 
 	<key>CFBundleIconFile</key>
-	<string>appicon.png</string>
+	<string>appicon</string>
 
 	<key>CFBundleIdentifier</key>
 	<string>com.aksommerville.plundersquad</string>
@@ -19,7 +19,7 @@
 	<string>6.0</string>
 
 	<key>CFBundleName</key>
-	<string>PlunderSquad</string>
+	<string>Plunder Squad</string>
 
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
@@ -37,7 +37,7 @@
 	<string>10.0.0</string>
 
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2017 Andy Sommerville. All rights reserved.</string>
+	<string>Copyright © 2018 Andy Sommerville. All rights reserved.</string>
 
 	<key>NSMainNibFile</key>
 	<string>Main</string>

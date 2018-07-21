@@ -5,8 +5,25 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
+- Monsters with new path selection (eg dragonbug, giraffe, ...), prevent walking offscreen.
+- Missing PERMASWITCH, id unknown... 1 piston and 3 dictionaries
   
 Raspi errors:
+- Built on dev image, run on new "user" image:
+  libGLESv2.so: cannot open shared object file: No such file or directory
+  a. DO NOT install dev tools on user image
+  b. Make this work
+  ...
+  User image has /opt/vc/lib/libGLESv2_static.a and /opt/vc/lib/libbrcmGLESv2.so
+  Trying a fake symlink to libbrcmGLESv2.so...
+  ...worked, now the same problem with libEGL.so/libbrcmEGL.so
+  ...works great, audio and everything right off the bat. X11 does not interfere with the keyboard like I worried.
+  Determine the correct strategy re GL SO names.
+  https://www.raspberrypi.org/forums/viewtopic.php?p=1230753#p1230787
+- Test joysticks and screen saver on Pi user image.
+- Kind of annoying that my keyboard shows up twice, and mouse once. Can we nix those?
+  ...you kind of can play with the mouse, it's fucking stupid.
+- Is there anything like custom icons, etc, for Pi's desktop manager?
 
 Linux errors:
 
@@ -34,7 +51,7 @@ Windows:
 - Try GL2 build on craptop and work laptop. ... no and yes
 
 MacOS:
-- Developer license
+- Developer license: Purchased 21 July 2018. Per Apple, may take 48 hours. (what are they, the fucking post office?)
 - Sign code
 
 Linux:

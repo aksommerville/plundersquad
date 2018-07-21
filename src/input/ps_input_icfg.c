@@ -216,7 +216,6 @@ static int ps_input_icfg_normalize_value(const struct ps_input_btncfg *btncfg,in
  */
 
 static int ps_input_icfg_already_mapping_event(const struct ps_input_icfg *icfg,int btnid,int nvalue) {
-return 0;//XXX
   const struct ps_input_icfg_map *map=icfg->mapv;
   int i=0; for (;i<icfg->mapc;i++,map++) {
     if (map->srcbtnid!=btnid) continue;

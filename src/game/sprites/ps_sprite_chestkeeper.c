@@ -30,6 +30,7 @@
 #define PS_CHESTKEEPER_WALK_SPEED_HI  1.5
 #define PS_CHESTKEEPER_HP 3
 #define PS_CHESTKEEPER_INVINCIBLE_TIME 60
+#define PS_CHESTKEEPER_EDGE_MARGIN (PS_TILESIZE>>1)
 
 #define PS_TREASURECHEST_DAZZLE_LIMIT 20 /* 1/256 circle from center */
 #define PS_TREASURECHEST_DAZZLE_RATE   2 /* 1/256 circle per frame */
@@ -312,6 +313,18 @@ static int ps_chestkeeper_walk(struct ps_sprite *spr,struct ps_game *game) {
   } else {
     spr->y+=SPR->walkdy;
   }
+  
+  if ((spr->x<PS_CHESTKEEPER_EDGE_MARGIN)&&(SPR->walkdx<0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  } else if ((spr->x>PS_SCREENW-PS_CHESTKEEPER_EDGE_MARGIN)&&(SPR->walkdx>0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  }
+  if ((spr->y<PS_CHESTKEEPER_EDGE_MARGIN)&&(SPR->walkdy<0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  } else if ((spr->y>PS_SCREENH-PS_CHESTKEEPER_EDGE_MARGIN)&&(SPR->walkdy>0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  }
+  
   return 0;
 }
 

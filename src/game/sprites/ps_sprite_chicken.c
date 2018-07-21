@@ -18,6 +18,7 @@
 #define PS_CHICKEN_CHAT_TIME       30
 #define PS_CHICKEN_SQUAWK_TIME     50
 #define PS_CHICKEN_PECK_TIME       30
+#define PS_CHICKEN_EDGE_MARGIN (PS_TILESIZE>>1)
 
 #define PS_CHICKEN_WALK_SPEED 0.4
 #define PS_CHICKEN_WALK_FRAME_TIME 8
@@ -129,6 +130,17 @@ static int ps_chicken_update_WALK(struct ps_sprite *spr,struct ps_game *game) {
 
   spr->x+=SPR->walkdx;
   spr->y+=SPR->walkdy;
+  
+  if ((spr->x<PS_CHICKEN_EDGE_MARGIN)&&(SPR->walkdx<0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  } else if ((spr->x>PS_SCREENW-PS_CHICKEN_EDGE_MARGIN)&&(SPR->walkdx>0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  }
+  if ((spr->y<PS_CHICKEN_EDGE_MARGIN)&&(SPR->walkdy<0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  } else if ((spr->y>PS_SCREENH-PS_CHICKEN_EDGE_MARGIN)&&(SPR->walkdy>0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  }
 
   return 0;
 }

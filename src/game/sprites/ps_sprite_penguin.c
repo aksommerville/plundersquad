@@ -30,6 +30,7 @@
 #define PS_PENGUIN_WALK_FRAME_TIME 8
 #define PS_PENGUIN_WALK_FRAME_COUNT 4
 #define PS_PENGUIN_WALK_SPEED 1.0
+#define PS_PENGUIN_EDGE_MARGIN (PS_TILESIZE>>1)
 
 #define PS_PENGUIN_NORMAL_GROUPS ( \
   (1<<PS_SPRGRP_KEEPALIVE)| \
@@ -130,6 +131,17 @@ static int ps_penguin_update_WALK(struct ps_sprite *spr,struct ps_game *game) {
 
   spr->x+=SPR->walkdx;
   spr->y+=SPR->walkdy;
+  
+  if ((spr->x<PS_PENGUIN_EDGE_MARGIN)&&(SPR->walkdx<0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  } else if ((spr->x>PS_SCREENW-PS_PENGUIN_EDGE_MARGIN)&&(SPR->walkdx>0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  }
+  if ((spr->y<PS_PENGUIN_EDGE_MARGIN)&&(SPR->walkdy<0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  } else if ((spr->y>PS_SCREENH-PS_PENGUIN_EDGE_MARGIN)&&(SPR->walkdy>0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  }
 
   return 0;
 }

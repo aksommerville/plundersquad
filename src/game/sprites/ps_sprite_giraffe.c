@@ -16,6 +16,7 @@
 #define PS_GIRAFFE_WALK_ANIM_COUNT  4
 #define PS_GIRAFFE_WALK_SPEED       0.5
 #define PS_GIRAFFE_INVINCIBLE_TIME  60
+#define PS_GIRAFFE_EDGE_MARGIN (PS_TILESIZE>>1)
 
 #define PS_GIRAFFE_PHASE_IDLE         0
 #define PS_GIRAFFE_PHASE_WALK         1
@@ -154,6 +155,17 @@ static int ps_giraffe_update_WALK(struct ps_sprite *spr,struct ps_game *game) {
 
   spr->x+=SPR->walkdx;
   spr->y+=SPR->walkdy;
+  
+  if ((spr->x<PS_GIRAFFE_EDGE_MARGIN)&&(SPR->walkdx<0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  } else if ((spr->x>PS_SCREENW-PS_GIRAFFE_EDGE_MARGIN)&&(SPR->walkdx>0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  }
+  if ((spr->y<PS_GIRAFFE_EDGE_MARGIN)&&(SPR->walkdy<0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  } else if ((spr->y>PS_SCREENH-PS_GIRAFFE_EDGE_MARGIN)&&(SPR->walkdy>0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  }
   
   return 0;
 }

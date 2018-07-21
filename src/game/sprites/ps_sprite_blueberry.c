@@ -11,6 +11,7 @@
 #define PS_BLUEBERRY_SINEC 60
 #define PS_BLUEBERRY_BOUNCEM_DEFAULT 3.0
 #define PS_BLUEBERRY_INVINCIBLE_TIME 60
+#define PS_BLUEBERRY_EDGE_MARGIN (PS_TILESIZE>>1)
 
 /* Private sprite object.
  */
@@ -103,8 +104,21 @@ static int ps_blueberry_end_step(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_blueberry_update_step(struct ps_sprite *spr,struct ps_game *game) {
+
   spr->x+=SPR->dx*ps_blueberry_walk_attenuationv[SPR->bouncep];
   spr->y+=SPR->dy*ps_blueberry_walk_attenuationv[SPR->bouncep];
+  
+  if ((spr->x<PS_BLUEBERRY_EDGE_MARGIN)&&(SPR->dx<0.0)) {
+    SPR->dx=-SPR->dx;
+  } else if ((spr->x>PS_SCREENW-PS_BLUEBERRY_EDGE_MARGIN)&&(SPR->dx>0.0)) {
+    SPR->dx=-SPR->dx;
+  }
+  if ((spr->y<PS_BLUEBERRY_EDGE_MARGIN)&&(SPR->dy<0.0)) {
+    SPR->dy=-SPR->dy;
+  } else if ((spr->y>PS_SCREENH-PS_BLUEBERRY_EDGE_MARGIN)&&(SPR->dy>0.0)) {
+    SPR->dy=-SPR->dy;
+  }
+  
   return 0;
 }
 

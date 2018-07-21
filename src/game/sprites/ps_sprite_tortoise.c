@@ -25,6 +25,7 @@
 
 #define PS_TORTOISE_HP_DEFAULT 3
 #define PS_TORTOISE_HURT_TIME 60
+#define PS_TORTOISE_EDGE_MARGIN (PS_TILESIZE>>1)
 
 #define PS_TORTOISE_COWER_TIME_MIN    60
 #define PS_TORTOISE_COWER_TIME_MAX   120
@@ -298,7 +299,7 @@ static int ps_tortoise_shell_begin_CUDGEL(struct ps_sprite *spr,struct ps_game *
   CUDGEL->retreat_speed=PS_TORTOISE_CUDGEL_RETREAT_SPEED;
 
   SPR->phase=PS_TORTOISE_PHASE_CUDGEL;
-  SPR->phasetime=100;//TODO
+  SPR->phasetime=100;
   
   return 0;
 }
@@ -382,8 +383,21 @@ static int ps_tortoise_shell_select_phase(struct ps_sprite *spr,struct ps_game *
  */
 
 static int ps_tortoise_shell_update_WALK(struct ps_sprite *spr,struct ps_game *game) {
+
   spr->x+=SPR->dx;
   spr->y+=SPR->dy;
+  
+  if ((spr->x<PS_TORTOISE_EDGE_MARGIN)&&(SPR->dx<0.0)) {
+    SPR->dx=-SPR->dx;
+  } else if ((spr->x>PS_SCREENW-PS_TORTOISE_EDGE_MARGIN)&&(SPR->dx>0.0)) {
+    SPR->dx=-SPR->dx;
+  }
+  if ((spr->y<PS_TORTOISE_EDGE_MARGIN)&&(SPR->dy<0.0)) {
+    SPR->dy=-SPR->dy;
+  } else if ((spr->y>PS_SCREENH-PS_TORTOISE_EDGE_MARGIN)&&(SPR->dy>0.0)) {
+    SPR->dy=-SPR->dy;
+  }
+  
   return 0;
 }
 

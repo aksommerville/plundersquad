@@ -45,6 +45,7 @@
 #define PS_BANANA_SPRDEF_ID 35
 
 #define PS_GORILLA_INVINCIBLE_TIME 60
+#define PS_GORILLA_EDGE_MARGIN (PS_TILESIZE>>1)
 
 /* Private sprite object.
  */
@@ -258,6 +259,17 @@ static int ps_gorilla_update_WALK(struct ps_sprite *spr,struct ps_game *game) {
   /* Move. */
   spr->x+=SPR->walkdx;
   spr->y+=SPR->walkdy;
+  
+  if ((spr->x<PS_GORILLA_EDGE_MARGIN)&&(SPR->walkdx<0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  } else if ((spr->x>PS_SCREENW-PS_GORILLA_EDGE_MARGIN)&&(SPR->walkdx>0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  }
+  if ((spr->y<PS_GORILLA_EDGE_MARGIN)&&(SPR->walkdy<0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  } else if ((spr->y>PS_SCREENH-PS_GORILLA_EDGE_MARGIN)&&(SPR->walkdy>0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  }
   
   return 0;
 }

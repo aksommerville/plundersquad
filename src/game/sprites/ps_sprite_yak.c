@@ -42,6 +42,7 @@
 #define PS_YAK_SPIT_FRAME_COUNT 2
 
 #define PS_YAK_BUTT_EPSILON 0.001
+#define PS_YAK_EDGE_MARGIN (PS_TILESIZE>>1)
 
 /* Private sprite object.
  */
@@ -285,6 +286,17 @@ static int ps_yak_update_WALK(struct ps_sprite *spr,struct ps_game *game) {
 
   spr->x+=SPR->walkdx;
   spr->y+=SPR->walkdy;
+  
+  if ((spr->x<PS_YAK_EDGE_MARGIN)&&(SPR->walkdx<0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  } else if ((spr->x>PS_SCREENW-PS_YAK_EDGE_MARGIN)&&(SPR->walkdx>0.0)) {
+    SPR->walkdx=-SPR->walkdx;
+  }
+  if ((spr->y<PS_YAK_EDGE_MARGIN)&&(SPR->walkdy<0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  } else if ((spr->y>PS_SCREENH-PS_YAK_EDGE_MARGIN)&&(SPR->walkdy>0.0)) {
+    SPR->walkdy=-SPR->walkdy;
+  }
   
   return 0;
 }

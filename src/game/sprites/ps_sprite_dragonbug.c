@@ -21,6 +21,7 @@
 #define PS_DRAGONBUG_WALK_EDGE_SIZE (PS_TILESIZE*2)
 
 #define PS_DRAGONBUG_HEAD_OFFSET 4
+#define PS_DRAGONBUG_EDGE_MARGIN (PS_TILESIZE>>1)
 
 #define PS_DRAGONBUG_FAST_SPIN_INCREMENT 10
 #define PS_DRAGONBUG_AIM_SPEED 2
@@ -223,8 +224,21 @@ static int ps_dragonbug_update_aim(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_dragonbug_update_walk(struct ps_sprite *spr,struct ps_game *game) {
+
   spr->x+=SPR->dx;
   spr->y+=SPR->dy;
+  
+  if ((spr->x<PS_DRAGONBUG_EDGE_MARGIN)&&(SPR->dx<0.0)) {
+    SPR->dx=-SPR->dx;
+  } else if ((spr->x>PS_SCREENW-PS_DRAGONBUG_EDGE_MARGIN)&&(SPR->dx>0.0)) {
+    SPR->dx=-SPR->dx;
+  }
+  if ((spr->y<PS_DRAGONBUG_EDGE_MARGIN)&&(SPR->dy<0.0)) {
+    SPR->dy=-SPR->dy;
+  } else if ((spr->y>PS_SCREENH-PS_DRAGONBUG_EDGE_MARGIN)&&(SPR->dy>0.0)) {
+    SPR->dy=-SPR->dy;
+  }
+  
   return 0;
 }
 

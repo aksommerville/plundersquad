@@ -947,3 +947,85 @@ int ps_game_select_random_travel_vector(
   (*dy)*=speed;
   return 0;
 }
+
+/* React to grid changes.
+ *  1. Don't panic -- Most changes will be managed sanely by the next physics pass.
+ *  2. If a cell becomes SOLID or LATCH, identify sprites:
+ *    2a. ...whose center is in that cell
+ *    2b. ...who are in group SOLID
+ *    2c. ...and whose impassable mask matches the cell.
+ *  3. If any cardinal neighbor is VACANT, HEROONLY, or HEAL, move the sprite there.
+ *  4. Otherwise if any cardinal neighbor is HOLE, move the sprite there (it will likely die on the next update).
+ *  5. Otherwise, hurt the sprite and move it to the nearest passable cell.
+ * This is necessary to prevent heroes from erroring across a wall when a door shuts on them (which did happen before).
+ * We only look at the sprite's center because it's cheaper, and we can otherwise depend on physics to correct the situation.
+ */
+ 
+static int ps_game_adjust_sprite_for_grid_change(struct ps_game *game,struct ps_sprite *spr,int col,int row) {
+  uint16_t friendly_physics=
+    (1<<PS_BLUEPRINT_CELL_VACANT)|
+    (1<<PS_BLUEPRINT_CELL_HEROONLY)|
+    (1<<PS_BLUEPRINT_CELL_HEAL)|
+  0;
+  uint16_t possible_physics=
+    friendly_physics|
+    (1<<PS_BLUEPRINT_CELL_HAZARD)|
+    (1<<PS_BLUEPRINT_CELL_HOLE)|
+  0;
+  int dstcol,dstrow;
+  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,friendly_physics)>=0) {
+    spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
+    spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
+    return 0;
+  }
+  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,1<<PS_BLUEPRINT_CELL_HOLE)>=0) {
+    spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
+    spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
+    // Hero update would kill it in this case, but physics will see it first and toss it away. Kill manually.
+    if (ps_sprite_receive_damage(game,spr,0)<0) return -1;
+    return 0;
+  }
+  if (ps_grid_get_nearest_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,possible_physics)>=0) {
+    spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
+    spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
+    if (ps_sprite_receive_damage(game,spr,0)<0) return -1;
+    return 0;
+  }
+  if (ps_sprite_receive_damage(game,spr,0)<0) return -1;
+  return 0;
+}
+ 
+static int ps_game_adjust_sprites_for_grid_change(struct ps_game *game,int col,int row,uint8_t physics) {
+  uint16_t physicsmask=1<<physics;
+  if (!physicsmask) return 0;
+  double left=col*PS_TILESIZE;
+  double top=row*PS_TILESIZE;
+  double right=left+PS_TILESIZE;
+  double bottom=top+PS_TILESIZE;
+  const struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_SOLID;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+    if (!(spr->impassable&physicsmask)) continue;
+    if (spr->x<left) continue;
+    if (spr->x>=right) continue;
+    if (spr->y<top) continue;
+    if (spr->y>=bottom) continue;
+    if (ps_game_adjust_sprite_for_grid_change(game,spr,col,row)<0) return -1;
+  }
+  return 0;
+}
+ 
+int ps_game_adjust_sprites_for_grid_changes(struct ps_game *game,const struct ps_path *changes) {
+  if (!game||!changes) return 0;
+  if (!game->grid) return 0;
+  const struct ps_path_entry *entry=changes->v;
+  int i=changes->c; for (;i-->0;entry++) {
+    uint8_t physics=game->grid->cellv[entry->y*PS_GRID_COLC+entry->x].physics;
+    if ((physics==PS_BLUEPRINT_CELL_SOLID)||(physics==PS_BLUEPRINT_CELL_LATCH)) {
+      if (ps_game_adjust_sprites_for_grid_change(game,entry->x,entry->y,physics)<0) {
+        return -1;
+      }
+    }
+  }
+  return 0;
+}

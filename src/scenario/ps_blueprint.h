@@ -25,7 +25,7 @@
 #define PS_BLUEPRINT_CELL_HOLE         0x02 /* Pass aerially only. */
 #define PS_BLUEPRINT_CELL_LATCH        0x03 /* SOLID, and gadgeteer can grab it. */
 #define PS_BLUEPRINT_CELL_HEROONLY     0x04 /* VACANT, but monsters may not pass. */
-#define PS_BLUEPRINT_CELL_HAZARD       0x05 /* VACANT, but harmful to heroes. Illegal as an edge. */
+#define PS_BLUEPRINT_CELL_HAZARD       0x05 /* VACANT, but harmful to heroes. Illegal as an edge. (unused) */
 #define PS_BLUEPRINT_CELL_HEAL         0x06 /* VACANT, but resuccitates heroes. */
 #define PS_BLUEPRINT_CELL_STATUSREPORT 0x07 /* Placeholder for status report sign; becomes SOLID at grid skinning. */
 

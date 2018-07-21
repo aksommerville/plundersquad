@@ -41,6 +41,7 @@ static int ps_game_cb_switch(int switchid,int value,void *userdata);
 int ps_game_assign_awards(struct ps_game *game);
 int ps_game_cb_device_connect(struct ps_input_device *device,void *userdata);
 int ps_game_cb_device_disconnect(struct ps_input_device *device,void *userdata);
+int ps_game_adjust_sprites_for_grid_changes(struct ps_game *game,const struct ps_path *changes);
 
 /* New game.
  */
@@ -1214,6 +1215,10 @@ static int ps_game_cb_switch(int switchid,int value,void *userdata) {
       ps_path_cleanup(&changes);
       return -1;
     }
+  }
+  if (ps_game_adjust_sprites_for_grid_changes(game,&changes)<0) {
+    ps_path_cleanup(&changes);
+    return -1;
   }
   if (!game->suppress_switch_effects) {
     while (changes.c-->0) {

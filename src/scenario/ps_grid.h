@@ -76,4 +76,11 @@ int ps_grid_count_poi_of_type(const struct ps_grid *grid,uint8_t type);
  */
 int ps_grid_line_contains_physics(const struct ps_grid *grid,int ax,int ay,int bx,int by,uint16_t phymask);
 
+/* Get the nearest cell to (col,row) with physics matching (phymask).
+ * Optionally examine only immediate cardinal neighbors.
+ * Both return <0 if not found.
+ */
+int ps_grid_get_cardinal_neighbor_matching_physics(int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask);
+int ps_grid_get_nearest_neighbor_matching_physics(int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask);
+
 #endif

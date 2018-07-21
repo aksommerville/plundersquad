@@ -87,23 +87,7 @@ static int ps_blueberry_rebuild(struct ps_sprite *spr,int nodec) {
  */
 
 static int ps_blueberry_begin_step(struct ps_sprite *spr,struct ps_game *game) {
-
-  double t=(rand()%628)/100.0;
-  SPR->dx=PS_BLUEBERRY_WALK_SPEED*cos(t);
-  SPR->dy=PS_BLUEBERRY_WALK_SPEED*sin(t);
-
-  /* If we are currently within 25% of an edge, point towards the bulk of the screen. */
-  if (spr->x<PS_SCREENW>>2) {
-    if (SPR->dx<0.0) SPR->dx=-SPR->dx;
-  } else if (spr->x>(PS_SCREENW*3)>>2) {
-    if (SPR->dx>0.0) SPR->dx=-SPR->dx;
-  }
-  if (spr->y<PS_SCREENH>>2) {
-    if (SPR->dy<0.0) SPR->dy=-SPR->dy;
-  } else if (spr->y>(PS_SCREENH*3)>>2) {
-    if (SPR->dy>0.0) SPR->dy=-SPR->dy;
-  }
-  
+  if (ps_game_select_random_travel_vector(&SPR->dx,&SPR->dy,game,spr->x,spr->y,PS_BLUEBERRY_WALK_SPEED,spr->impassable)<0) return -1;
   return 0;
 }
 
@@ -206,6 +190,11 @@ static int _ps_blueberry_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps_s
 static int _ps_blueberry_hurt(struct ps_game *game,struct ps_sprite *spr,struct ps_sprite *assailant) {
 
   if (SPR->invincible) return 0;
+  
+  if (assailant&&(assailant->type==&ps_sprtype_killozap)) {
+    //ps_log(GAME,DEBUG,"Blueberry hurt by kill-o-zap -- pretend we have just one node, and kill the whole thing.");
+    SPR->nodec=1;
+  }
 
   if ((SPR->nodec<=1)||!spr->grpc) {
     PS_SFX_MONSTER_DEAD
@@ -224,7 +213,18 @@ static int _ps_blueberry_hurt(struct ps_game *game,struct ps_sprite *spr,struct 
   if (!other) return -1;
   struct ps_sprite_blueberry *OTHER=(struct ps_sprite_blueberry*)other;
 
-  if (ps_sprite_join_all(other,spr)<0) {
+  /* Prefer the grpmask from our sprdef, and use our current group list if that's not available.
+   * Sprite may temporarily have a different group list, eg if being ferried by the hookshot.
+   * The likeliest case of this, ferrying into a kill-o-zap, is handled specially above.
+   */
+  int grpmask=ps_sprdef_fld_get(spr->def,PS_SPRDEF_FLD_grpmask,0);
+  if (grpmask) {
+    if (ps_game_set_group_mask_for_sprite(game,other,grpmask)<0) {
+      ps_sprite_kill(other);
+      ps_sprite_del(other);
+      return -1;
+    }
+  } else if (ps_sprite_join_all(other,spr)<0) {
     ps_sprite_kill(other);
     ps_sprite_del(other);
     return -1;

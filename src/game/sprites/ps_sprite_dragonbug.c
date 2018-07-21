@@ -233,23 +233,8 @@ static int ps_dragonbug_update_walk(struct ps_sprite *spr,struct ps_game *game) 
 
 static int ps_dragonbug_begin_walk(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phase=PS_DRAGONBUG_PHASE_WALK;
-
-  /* Select a normal vector at random. */
-  double t=(rand()%628)/100.0;
-  SPR->dx=cos(t);
-  SPR->dy=sin(t);
-
-  /* Follow that vector to a reasonable distance, and flip axes to avoid the screen's edge. */
-  double dstx=spr->x+SPR->dx*PS_DRAGONBUG_WALK_CHECK_DISTANCE;
-  double dsty=spr->y+SPR->dy*PS_DRAGONBUG_WALK_CHECK_DISTANCE;
-  if ((SPR->dx<0.0)&&(dstx<PS_DRAGONBUG_WALK_EDGE_SIZE)) SPR->dx=-SPR->dx;
-  else if ((SPR->dx>0.0)&&(dstx>PS_SCREENW-PS_DRAGONBUG_WALK_EDGE_SIZE)) SPR->dx=-SPR->dx;
-  if ((SPR->dy<0.0)&&(dsty<PS_DRAGONBUG_WALK_EDGE_SIZE)) SPR->dy=-SPR->dy;
-  else if ((SPR->dy>0.0)&&(dsty>PS_SCREENH-PS_DRAGONBUG_WALK_EDGE_SIZE)) SPR->dy=-SPR->dy;
-
-  /* (dx,dy) is normal right now; premultiply by the speed. */
-  SPR->dx*=PS_DRAGONBUG_WALK_SPEED;
-  SPR->dy*=PS_DRAGONBUG_WALK_SPEED;
+  
+  if (ps_game_select_random_travel_vector(&SPR->dx,&SPR->dy,game,spr->x,spr->y,PS_DRAGONBUG_WALK_SPEED,spr->impassable)<0) return -1;
   
   return 0;
 }

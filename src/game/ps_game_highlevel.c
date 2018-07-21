@@ -28,6 +28,7 @@
 #include "util/ps_geometry.h"
 #include "util/ps_text.h"
 #include "util/ps_enums.h"
+#include <math.h>
 
 #define PS_BLOODHOUND_SPRDEF_ID 21
 #define PS_TREASURE_SPRDEF_ID 12
@@ -418,6 +419,12 @@ uint32_t ps_game_get_group_mask_for_sprite(const struct ps_game *game,const stru
 int ps_game_set_group_mask_for_sprite(struct ps_game *game,struct ps_sprite *spr,uint32_t grpmask) {
   if (!game||!spr) return -1;
   if (ps_sprite_ref(spr)<0) return -1; // This operation could kill the sprite inadvertently, so retain throughout.
+  
+  // We don't necessarily include KEEPALIVE when storing group masks, because it's assumed.
+  // And it's inconceivable that a sprite would have a nonzero mask without KEEPALIVE.
+  // So force it here.
+  if (grpmask) grpmask|=(1<<PS_SPRGRP_KEEPALIVE);
+  
   uint32_t bit=1,i=0;
   for (;i<PS_SPRGRP_COUNT;i++,bit<<=1) {
     if (grpmask&bit) {
@@ -897,5 +904,134 @@ int ps_game_recreate_treasure_chest(struct ps_game *game,int x,int y) {
     return -1;
   }
   
+  return 0;
+}
+
+/* Select a random vector for monster travel.
+ */
+ 
+int ps_game_select_random_travel_vector(
+  double *dx,double *dy,const struct ps_game *game,double x,double y,double speed,uint16_t impassable
+) {
+  if (!dx||!dy||!game) return -1;
+  if (speed<0.1) speed=0.1;
+  if (x<1.0) x=1.0;
+  else if (x>=PS_SCREENW-1.0) x=PS_SCREENW-1.0;
+  if (y<1.0) y=1.0;
+  else if (y>=PS_SCREENH-1.0) y=PS_SCREENH-1.0;
+  int srccol=(int)x/PS_TILESIZE;
+  int srcrow=(int)y/PS_TILESIZE;
+  
+  /* Begin some short distance out, say 4 tiles, and select a random vector.
+   * If it collides with anything (even screen edge), cut the distance and try again.
+   * Once we've reached the bottom, return anything.
+   * Our contract is best-effort: It's totally fine if monsters ram into the wall from time to time.
+   */
+  double distance=PS_TILESIZE*4.0+2.0;
+  while (distance>=PS_TILESIZE) {
+    int tryc=5;
+    while (tryc-->0) {
+      double t=(rand()%6282)/1000.0;
+      *dx=-sin(t);
+      *dy=cos(t);
+      double dstx=x+(*dx)*distance;
+      double dsty=y+(*dy)*distance;
+      if ((dstx>0.0)&&(dsty>0.0)&&(dstx<PS_SCREENW)&&(dsty<PS_SCREENH)) {
+        int dstcol=(int)dstx/PS_TILESIZE;
+        int dstrow=(int)dsty/PS_TILESIZE;
+        if (!ps_grid_line_contains_physics(game->grid,srccol,srcrow,dstcol,dstrow,impassable)) {
+          (*dx)*=speed;
+          (*dy)*=speed;
+          return 0;
+        }
+      }
+    }
+    distance-=PS_TILESIZE;
+  }
+  
+  (*dx)*=speed;
+  (*dy)*=speed;
+  return 0;
+}
+
+/* React to grid changes.
+ *  1. Don't panic -- Most changes will be managed sanely by the next physics pass.
+ *  2. If a cell becomes SOLID or LATCH, identify sprites:
+ *    2a. ...whose center is in that cell
+ *    2b. ...who are in group SOLID
+ *    2c. ...and whose impassable mask matches the cell.
+ *  3. If any cardinal neighbor is VACANT, HEROONLY, or HEAL, move the sprite there.
+ *  4. Otherwise if any cardinal neighbor is HOLE, move the sprite there (it will likely die on the next update).
+ *  5. Otherwise, hurt the sprite and move it to the nearest passable cell.
+ * This is necessary to prevent heroes from erroring across a wall when a door shuts on them (which did happen before).
+ * We only look at the sprite's center because it's cheaper, and we can otherwise depend on physics to correct the situation.
+ */
+ 
+static int ps_game_adjust_sprite_for_grid_change(struct ps_game *game,struct ps_sprite *spr,int col,int row) {
+  uint16_t friendly_physics=
+    (1<<PS_BLUEPRINT_CELL_VACANT)|
+    (1<<PS_BLUEPRINT_CELL_HEROONLY)|
+    (1<<PS_BLUEPRINT_CELL_HEAL)|
+  0;
+  uint16_t possible_physics=
+    friendly_physics|
+    (1<<PS_BLUEPRINT_CELL_HAZARD)|
+    (1<<PS_BLUEPRINT_CELL_HOLE)|
+  0;
+  int dstcol,dstrow;
+  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,friendly_physics)>=0) {
+    spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
+    spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
+    return 0;
+  }
+  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,1<<PS_BLUEPRINT_CELL_HOLE)>=0) {
+    spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
+    spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
+    // Hero update would kill it in this case, but physics will see it first and toss it away. Kill manually.
+    if (ps_sprite_receive_damage(game,spr,0)<0) return -1;
+    return 0;
+  }
+  if (ps_grid_get_nearest_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,possible_physics)>=0) {
+    spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
+    spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
+    if (ps_sprite_receive_damage(game,spr,0)<0) return -1;
+    return 0;
+  }
+  if (ps_sprite_receive_damage(game,spr,0)<0) return -1;
+  return 0;
+}
+ 
+static int ps_game_adjust_sprites_for_grid_change(struct ps_game *game,int col,int row,uint8_t physics) {
+  uint16_t physicsmask=1<<physics;
+  if (!physicsmask) return 0;
+  double left=col*PS_TILESIZE;
+  double top=row*PS_TILESIZE;
+  double right=left+PS_TILESIZE;
+  double bottom=top+PS_TILESIZE;
+  const struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_SOLID;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+    if (!(spr->impassable&physicsmask)) continue;
+    if (spr->x<left) continue;
+    if (spr->x>=right) continue;
+    if (spr->y<top) continue;
+    if (spr->y>=bottom) continue;
+    if (ps_game_adjust_sprite_for_grid_change(game,spr,col,row)<0) return -1;
+  }
+  return 0;
+}
+ 
+int ps_game_adjust_sprites_for_grid_changes(struct ps_game *game,const struct ps_path *changes) {
+  if (!game||!changes) return 0;
+  if (!game->grid) return 0;
+  const struct ps_path_entry *entry=changes->v;
+  int i=changes->c; for (;i-->0;entry++) {
+    uint8_t physics=game->grid->cellv[entry->y*PS_GRID_COLC+entry->x].physics;
+    if ((physics==PS_BLUEPRINT_CELL_SOLID)||(physics==PS_BLUEPRINT_CELL_LATCH)) {
+      if (ps_game_adjust_sprites_for_grid_change(game,entry->x,entry->y,physics)<0) {
+        return -1;
+      }
+    }
+  }
   return 0;
 }

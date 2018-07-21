@@ -202,22 +202,7 @@ static int ps_tortoise_shell_begin_WALK(struct ps_sprite *spr,struct ps_game *ga
   SPR->phase=PS_TORTOISE_PHASE_WALK;
   SPR->phasetime=PS_TORTOISE_COWER_TIME_MIN+rand()%(PS_TORTOISE_COWER_TIME_MAX-PS_TORTOISE_COWER_TIME_MIN+1);
 
-  /* Select a completely random direction. */
-  double t=(rand()%6280)/1000.0;
-  SPR->dx=cos(t)*PS_TORTOISE_WALK_SPEED;
-  SPR->dy=sin(t)*PS_TORTOISE_WALK_SPEED;
-
-  /* Don't walk towards the screen edge. */
-  if (spr->x<PS_SCREENW/5) {
-    if (SPR->dx<0.0) SPR->dx=-SPR->dx;
-  } else if (spr->x>(PS_SCREENW*4)/5) {
-    if (SPR->dx>0.0) SPR->dx=-SPR->dx;
-  }
-  if (spr->y<PS_SCREENH/5) {
-    if (SPR->dy<0.0) SPR->dy=-SPR->dy;
-  } else if (spr->y>(PS_SCREENH*4)/5) {
-    if (SPR->dy>0.0) SPR->dy=-SPR->dy;
-  }
+  if (ps_game_select_random_travel_vector(&SPR->dx,&SPR->dy,game,spr->x,spr->y,PS_TORTOISE_WALK_SPEED,spr->impassable)<0) return -1;
 
   /* Face the direction we are walking. */
   if (SPR->dx<0.0) SPR->facedir=-1;

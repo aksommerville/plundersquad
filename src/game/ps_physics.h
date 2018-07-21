@@ -11,6 +11,7 @@
 
 struct ps_sprite;
 struct ps_sprgrp;
+struct ps_sprtype;
 struct ps_grid;
 
 struct ps_coll {
@@ -49,5 +50,6 @@ int ps_physics_test_sprite_collision_grid(const struct ps_physics *physics,const
 int ps_physics_test_sprite_collision_sprite(const struct ps_physics *physics,const struct ps_sprite *spr);
 int ps_physics_test_sprite_collision_any(const struct ps_physics *physics,const struct ps_sprite *spr);
 int ps_physics_test_sprite_collision_exact(const struct ps_physics *physics,const struct ps_sprite *a,const struct ps_sprite *b);
+int ps_physics_test_sprite_collision_type(const struct ps_physics *physics,const struct ps_sprite *a,const struct ps_sprtype *btype);
 
 #endif

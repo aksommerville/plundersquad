@@ -421,7 +421,7 @@ static int ps_physics_detect_collisions(struct ps_physics *physics) {
 
 static int ps_physics_resolve_collision(struct ps_physics *physics,struct ps_coll *coll) {
 
-  //ps_log(PHYSICS,TRACE,"Bump! pen=%f v=(%+f,%+f)",coll->pen,coll->vx,coll->vy);
+  //ps_log(PHYSICS,TRACE,"Bump! pen=%f v=(%+f,%+f)",coll->overlap.penetration,coll->overlap.axis.dx,coll->overlap.axis.dy);
 
   /* If either (phreconsider) flag is set, reassess the collision. */
   if (coll->a->phreconsider||(coll->b&&coll->b->phreconsider)) {
@@ -537,6 +537,21 @@ int ps_physics_test_sprite_collision_exact(const struct ps_physics *physics,cons
     b=tmp;
   }
   return (ps_physics_search_event(physics,a,b)>=0)?1:0;
+}
+
+int ps_physics_test_sprite_collision_type(const struct ps_physics *physics,const struct ps_sprite *a,const struct ps_sprtype *btype) {
+  if (!physics||!a||!btype) return 0;
+  int i=physics->eventc;
+  while (i-->0) {
+    const struct ps_physics_event *event=physics->eventv+i;
+    if (!event->a) break; // End of sprite-on-sprite collisions.
+    if (event->a==a) {
+      if (event->b->type==btype) return 1;
+    } else if (event->b==a) {
+      if (event->a->type==btype) return 1;
+    }
+  }
+  return 0;
 }
 
 /* Test a sprite collision (public interface).

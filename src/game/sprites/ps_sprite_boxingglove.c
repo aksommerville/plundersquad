@@ -77,7 +77,10 @@ static const char *_ps_boxingglove_get_configure_argument_name(int argp) {
 static int ps_boxingglove_setup(struct ps_sprite *spr,struct ps_game *game) {
 
   /* If no switch, we start enabled. */
-  if (spr->switchid) SPR->enable=0;
+  if (spr->switchid) {
+    if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_HAZARD,spr)<0) return -1;
+    SPR->enable=0;
+  }
 
   /* If the grid is flipped from its blueprint, we must flip too. Check both axes. */
   if (game&&game->scenario) {
@@ -363,7 +366,11 @@ static int _ps_boxingglove_draw(struct akgl_vtx_maxtile *vtxv,int vtxa,struct ps
  */
 
 static int _ps_boxingglove_set_switch(struct ps_game *game,struct ps_sprite *spr,int value) {
-  SPR->enable=value;
+  if (SPR->enable=value) {
+    if (ps_sprgrp_add_sprite(game->grpv+PS_SPRGRP_HAZARD,spr)<0) return -1;
+  } else {
+    if (ps_sprgrp_remove_sprite(game->grpv+PS_SPRGRP_HAZARD,spr)<0) return -1;
+  }
   return 0;
 }
 

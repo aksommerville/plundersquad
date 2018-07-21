@@ -129,24 +129,8 @@ static int ps_gorilla_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->state_head=PS_GORILLA_HEAD_STATE_IDLE;
   SPR->state_left=PS_GORILLA_BODY_STATE_WALK;
   SPR->state_right=PS_GORILLA_BODY_STATE_IDLE;
-  //ps_log(GAME,DEBUG,"gorilla WALK %d",SPR->phasetime);
-
-  double t=(rand()%6282)/1000.0;
-  SPR->walkdx=cos(t)*PS_GORILLA_WALK_SPEED;
-  SPR->walkdy=-sin(t)*PS_GORILLA_WALK_SPEED;
-
-  const int xmargin=(PS_TILESIZE*3);
-  const int ymargin=(PS_TILESIZE*2);
-  if (spr->x<xmargin) {
-    if (SPR->walkdx<0.0) SPR->walkdx=-SPR->walkdx;
-  } else if (spr->x>PS_SCREENW-xmargin) {
-    if (SPR->walkdx>0.0) SPR->walkdx=-SPR->walkdx;
-  }
-  if (spr->y<ymargin) {
-    if (SPR->walkdy<0.0) SPR->walkdy=-SPR->walkdy;
-  } else if (spr->y>PS_SCREENH-ymargin) {
-    if (SPR->walkdy>0.0) SPR->walkdy=-SPR->walkdy;
-  }
+  
+  if (ps_game_select_random_travel_vector(&SPR->walkdx,&SPR->walkdy,game,spr->x,spr->y,PS_GORILLA_WALK_SPEED,spr->impassable)<0) return -1;
 
   return 0;
 }

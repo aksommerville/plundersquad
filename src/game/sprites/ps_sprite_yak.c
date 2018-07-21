@@ -12,6 +12,7 @@
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
 #include "game/ps_sound_effects.h"
+#include "game/ps_physics.h"
 #include "scenario/ps_grid.h"
 #include "scenario/ps_blueprint.h"
 #include "util/ps_geometry.h"
@@ -99,6 +100,10 @@ static const char *_ps_yak_get_configure_argument_name(int argp) {
  */
 
 static int ps_yak_create_butt(struct ps_sprite *spr,struct ps_game *game) {
+  
+  // Yaks are special, the sprdef has an artificially high radius to prevent collisions.
+  // We do this so the random-monster spawner doesn't put them too close together.
+  spr->radius=7.0;
 
   struct ps_sprite *butt=ps_sprite_new(&ps_sprtype_dummy);
   if (!butt) return -1;
@@ -128,16 +133,16 @@ static int ps_yak_create_butt(struct ps_sprite *spr,struct ps_game *game) {
  * We don't just blindly position it -- If the butt was acted upon by physics, react to that.
  */
 
-static int ps_yak_position_butt(struct ps_sprite *spr) {
+static int ps_yak_position_butt(struct ps_sprite *spr,struct ps_game *game) {
   if (!SPR->butt) return 0;
   if (SPR->butt->sprc<1) return 0;
   struct ps_sprite *butt=SPR->butt->sprv[0];
 
   double targetx,targety;
   if (SPR->facedx<0) {
-    targetx=spr->x+PS_TILESIZE;
+    targetx=spr->x+PS_TILESIZE-1;
   } else {
-    targetx=spr->x-PS_TILESIZE;
+    targetx=spr->x-PS_TILESIZE+1;
   }
   targety=spr->y;
 
@@ -146,23 +151,33 @@ static int ps_yak_position_butt(struct ps_sprite *spr) {
     butt->y=targety;
     SPR->force_butt_position=0;
   } else {
-    double expectx=butt->x; // Where the butt would be, if head moved without interference.
-    double expecty=butt->y;
-    if (SPR->phase==PS_YAK_PHASE_WALK) {
-      expectx+=SPR->walkdx;
-      expecty+=SPR->walkdy;
-    }
-    double errx=expectx-targetx; if (errx<0.0) errx=-errx;
-    double erry=expecty-targety; if (erry<0.0) erry=-erry;
-    if (errx+erry>PS_YAK_BUTT_EPSILON) {
-      butt->x=(expectx+targetx)/2.0;
-      butt->y=(expecty+targety)/2.0;
+    int head_collision=ps_physics_test_sprite_collision_any(game->physics,spr);
+    int butt_collision=ps_physics_test_sprite_collision_any(game->physics,butt);
+    
+    // If both sprites had a collision, split the difference.
+    if (head_collision&&butt_collision) {
+      double midx=(spr->x+butt->x)/2.0;
+      double midy=(spr->y+butt->y)/2.0;
+      if (SPR->facedx<0) {
+        spr->x=midx-(PS_TILESIZE>>1);
+        butt->x=midx+(PS_TILESIZE>>1);
+      } else {
+        spr->x=midx+(PS_TILESIZE>>1);
+        butt->x=midx-(PS_TILESIZE>>1);
+      }
+      spr->y=midy;
+      butt->y=midy;
+    
+    // If the butt collided with something, keep its position and move the head.
+    } else if (butt_collision) {
       if (SPR->facedx<0) {
         spr->x=butt->x-PS_TILESIZE;
       } else {
         spr->x=butt->x+PS_TILESIZE;
       }
       spr->y=butt->y;
+    
+    // Otherwise keep the head's position and move the butt.
     } else {
       butt->x=targetx;
       butt->y=targety;
@@ -216,23 +231,7 @@ static int ps_yak_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phaselimit=PS_YAK_WALK_TIME_MIN+rand()%(PS_YAK_WALK_TIME_MAX-PS_YAK_WALK_TIME_MIN);
   SPR->animframe=0;
 
-  double t=(rand()%6282)/1000.0;
-  SPR->walkdx=cos(t)*PS_YAK_WALK_SPEED;
-  SPR->walkdy=-sin(t)*PS_YAK_WALK_SPEED;
-
-  // If close to screen edge, walk toward center.
-  const int horzmargin=(PS_SCREENW/5);
-  const int vertmargin=(PS_SCREENH/3);
-  if (spr->x<horzmargin) {
-    if (SPR->walkdx<0.0) SPR->walkdx=-SPR->walkdx;
-  } else if (spr->x>PS_SCREENW-horzmargin) {
-    if (SPR->walkdx>0.0) SPR->walkdx=-SPR->walkdx;
-  }
-  if (spr->y<vertmargin) {
-    if (SPR->walkdy<0.0) SPR->walkdy=-SPR->walkdy;
-  } else if (spr->y>PS_SCREENH-vertmargin) {
-    if (SPR->walkdy>0.0) SPR->walkdy=-SPR->walkdy;
-  }
+  if (ps_game_select_random_travel_vector(&SPR->walkdx,&SPR->walkdy,game,spr->x,spr->y,PS_YAK_WALK_SPEED,spr->impassable)<0) return -1;
 
   if (SPR->walkdx<0.0) {
     if (SPR->facedx>0) {
@@ -428,7 +427,7 @@ static int _ps_yak_update(struct ps_sprite *spr,struct ps_game *game) {
     }
   }
 
-  if (ps_yak_position_butt(spr)<0) return -1;
+  if (ps_yak_position_butt(spr,game)<0) return -1;
   SPR->first_frame=0;
   return 0;
 }

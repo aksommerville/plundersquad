@@ -51,20 +51,6 @@ int ps_macwm_connect_input() {
   if (ps_input_provider_install_device(ps_macwm.input_provider,ps_macwm.device_mouse)<0) return -1;
   if (ps_input_event_connect(ps_macwm.device_mouse)<0) return -1;
 
-  #if PS_MACWM_CREATE_FAKE_INPUT_DEVICES
-    { int i;
-      for (i=0;i<8;i++) {
-        struct ps_input_device *device=ps_input_device_new(0);
-        if (!device) return -1;
-        ps_macwm.device_fake[i]=device;
-        if (ps_input_device_set_name(device,"fake",4)<0) return -1;
-        device->report_buttons=ps_macwm_report_buttons_keyboard; // Report the full set
-        if (ps_input_provider_install_device(ps_macwm.input_provider,device)<0) return -1;
-        if (ps_input_event_connect(device)<0) return -1;
-      }
-    }
-  #endif
-  
   return 0;
 }
 
@@ -73,12 +59,6 @@ int ps_macwm_connect_input() {
 
 void ps_macwm_quit() {
   [ps_macwm.window release];
-
-  #if PS_MACWM_CREATE_FAKE_INPUT_DEVICES
-    { int i;
-      for (i=0;i<8;i++) ps_input_device_del(ps_macwm.device_fake[i]);
-    }
-  #endif
 
   ps_input_device_del(ps_macwm.device_wm);
   ps_input_device_del(ps_macwm.device_keyboard);
@@ -104,6 +84,18 @@ void ps_macwm_abort(const char *fmt,...) {
   [NSApplication.sharedApplication terminate:nil];
 }
 
+/* Test cursor within window, based on last reported position.
+ */
+
+int ps_macwm_cursor_within_window() {
+  if (!ps_macwm.window) return 0;
+  if (ps_macwm.window->mousex<0) return 0;
+  if (ps_macwm.window->mousey<0) return 0;
+  if (ps_macwm.window->mousex>=ps_macwm.window->w) return 0;
+  if (ps_macwm.window->mousey>=ps_macwm.window->h) return 0;
+  return 1;
+}
+
 /* Show or hide cursor.
  */
 
@@ -111,11 +103,15 @@ int ps_macwm_show_cursor(int show) {
   if (!ps_macwm.window) return -1;
   if (show) {
     if (ps_macwm.window->cursor_visible) return 0;
-    [NSCursor unhide];
+    if (ps_macwm_cursor_within_window()) {
+      [NSCursor unhide];
+    }
     ps_macwm.window->cursor_visible=1;
   } else {
     if (!ps_macwm.window->cursor_visible) return 0;
-    [NSCursor hide];
+    if (ps_macwm_cursor_within_window()) {
+      [NSCursor hide];
+    }
     ps_macwm.window->cursor_visible=0;
   }
   return 0;

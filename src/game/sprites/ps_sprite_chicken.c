@@ -70,23 +70,8 @@ static int ps_chicken_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
   SPR->phasetime=PS_CHICKEN_WALK_TIME_MIN+rand()%(PS_CHICKEN_WALK_TIME_MAX-PS_CHICKEN_WALK_TIME_MIN);
   SPR->animtime=0;
   SPR->animframe=0;
-
-  double t=(rand()%6282)/1000.0;
-  SPR->walkdx=cos(t)*PS_CHICKEN_WALK_SPEED;
-  SPR->walkdy=-sin(t)*PS_CHICKEN_WALK_SPEED;
-
-  const int xmargin=(PS_TILESIZE*3);
-  const int ymargin=(PS_TILESIZE*2);
-  if (spr->x<xmargin) {
-    if (SPR->walkdx<0.0) SPR->walkdx=-SPR->walkdx;
-  } else if (spr->x>PS_SCREENW-xmargin) {
-    if (SPR->walkdx>0.0) SPR->walkdx=-SPR->walkdx;
-  }
-  if (spr->y<ymargin) {
-    if (SPR->walkdy<0.0) SPR->walkdy=-SPR->walkdy;
-  } else if (spr->y>PS_SCREENH-ymargin) {
-    if (SPR->walkdy>0.0) SPR->walkdy=-SPR->walkdy;
-  }
+  
+  if (ps_game_select_random_travel_vector(&SPR->walkdx,&SPR->walkdy,game,spr->x,spr->y,PS_CHICKEN_WALK_SPEED,spr->impassable)<0) return -1;
 
   if (SPR->walkdx<0.0) SPR->facedx=-1;
   else SPR->facedx=1;

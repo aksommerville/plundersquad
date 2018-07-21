@@ -17,6 +17,7 @@ EXE_MAIN:=$(BUNDLE_MAIN)/Contents/MacOS/PlunderSquad
 DATA_ARCHIVE:=$(BUNDLE_MAIN)/Contents/Resources/ps-data
 INPUTCFG_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/input.cfg
 CFG_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/plundersquad.cfg
+ICON_MAIN:=$(BUNDLE_MAIN)/Contents/Resources/appicon.icns
 
 BUNDLE_EDIT:=$(OUTDIR)/EditPlunderSquad.app
 PLIST_EDIT:=$(BUNDLE_EDIT)/Contents/Info.plist
@@ -24,7 +25,7 @@ NIB_EDIT:=$(BUNDLE_EDIT)/Contents/Resources/Main.nib
 EXE_EDIT:=$(BUNDLE_EDIT)/Contents/MacOS/EditPlunderSquad
 CFG_EDIT:=$(BUNDLE_EDIT)/Contents/Resources/plundersquad.cfg
 
-$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN) $(CFG_MAIN) $(INPUTCFG_MAIN)
+$(EXE_MAIN):$(PLIST_MAIN) $(NIB_MAIN) $(CFG_MAIN) $(INPUTCFG_MAIN) $(ICON_MAIN)
 $(EXE_EDIT):$(PLIST_EDIT) $(NIB_EDIT) $(CFG_EDIT)
 
 $(PLIST_MAIN):src/main/Info.plist;$(PRECMD) cp $< $@
@@ -42,3 +43,6 @@ CMD_EDIT:=open -W $(BUNDLE_EDIT) --args --reopen-tty=$$(tty) --chdir=$$(pwd)
 
 clean:remove-macos-preferences
 remove-macos-preferences:;rm -rf ~/Library/Preferences/com.aksommerville.plundersquad
+
+INPUT_ICONS:=$(wildcard src/main/appicon.iconset/*)
+$(ICON_MAIN):$(INPUT_ICONS);$(PRECMD) iconutil -c icns -o $@ src/main/appicon.iconset

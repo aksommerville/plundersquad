@@ -240,8 +240,20 @@
  */
 
 static void ps_macwm_event_mouse_motion(NSPoint loc) {
+
+  int wasin=ps_macwm_cursor_within_window();
   ps_macwm.window->mousex=loc.x;
   ps_macwm.window->mousey=ps_macwm.window->h-loc.y;
+  int nowin=ps_macwm_cursor_within_window();
+
+  if (!ps_macwm.window->cursor_visible) {
+    if (wasin&&!nowin) {
+      [NSCursor unhide];
+    } else if (!wasin&&nowin) {
+      [NSCursor hide];
+    }
+  }
+  
   if (ps_input_event_mmotion(ps_macwm.window->mousex,ps_macwm.window->mousey)<0) {
     ps_macwm_abort("Failure in mouse motion event handler.");
   }

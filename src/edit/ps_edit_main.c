@@ -59,6 +59,7 @@ static int ps_edit_init(struct ps_userconfig *userconfig) {
   #endif
   #if PS_USE_macwm
     if (ps_macwm_connect_input()<0) return -1;
+    if (ps_macwm_show_cursor(1)<0) return -1;
   #endif
   #if PS_USE_machid
     {

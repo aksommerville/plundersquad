@@ -252,6 +252,13 @@ int ps_game_recreate_treasure_chest(struct ps_game *game,int x,int y);
 
 int ps_game_save_to_score_store(struct ps_game *game);
 
+/* For a monster at (x,y), return a reasonable random direction for it to move.
+ * We attempt to point towards passable cells.
+ */
+int ps_game_select_random_travel_vector(
+  double *dx,double *dy,const struct ps_game *game,double x,double y,double speed,uint16_t impassable
+);
+
 /* ===== Serial Format =====
  *  0000   8 Signature: "\0PLSQD\n\xff"
  *  0008   4 Game Serial Version: 1

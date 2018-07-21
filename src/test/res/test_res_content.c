@@ -772,7 +772,7 @@ PS_TEST(examineres,ignore) {
   
   //PS_ASSERT_CALL(list_hero_blueprints())
   //PS_ASSERT_CALL(locate_footswitches())
-  PS_ASSERT_CALL(locate_sprites(38))
+  PS_ASSERT_CALL(locate_sprites(10))
   //PS_ASSERT_CALL(check_ipcm_levels())
   //PS_ASSERT_CALL(list_treasure_blueprints())
   //PS_ASSERT_CALL(list_party_compositions_with_no_challenges())

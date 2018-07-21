@@ -41,6 +41,7 @@ static int ps_game_cb_switch(int switchid,int value,void *userdata);
 int ps_game_assign_awards(struct ps_game *game);
 int ps_game_cb_device_connect(struct ps_input_device *device,void *userdata);
 int ps_game_cb_device_disconnect(struct ps_input_device *device,void *userdata);
+int ps_game_adjust_sprites_for_grid_changes(struct ps_game *game,const struct ps_path *changes);
 
 /* New game.
  */
@@ -118,24 +119,71 @@ void ps_game_del(struct ps_game *game) {
   free(game);
 }
 
-/* About to spawn a random sprite, select a position for it.
- * Failures here are not fatal.
+/* Select a position for a sprite larger than one tile.
+ * Failure here is not fatal.
+ * Assume that the sprite is no larger than 2x2 tiles; this will be true of all random sprites.
  */
 
-static int ps_game_sprite_position_conflicts_with_others(const struct ps_game *game,int x,int y) {
+static int ps_game_sprite_position_conflicts_with_others(const struct ps_game *game,int x,int y,int radius) {
+  radius<<=1;
   // We'll use all sprites for this test. Maybe we should restrict to PHYSICS?
   const struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_KEEPALIVE;
   int i=grp->sprc; while (i-->0) {
     const struct ps_sprite *spr=grp->sprv[i];
     int dx=x-spr->x;
-    if (dx>=PS_TILESIZE) continue;
-    if (dx<=-PS_TILESIZE) continue;
+    if (dx>=radius) continue;
+    if (dx<=-radius) continue;
     int dy=y-spr->y;
-    if (dy>=PS_TILESIZE) continue;
-    if (dy<=-PS_TILESIZE) continue;
+    if (dy>=radius) continue;
+    if (dy<=-radius) continue;
+    return 1;
   }
   return 0;
 }
+ 
+static int ps_game_list_candidate_positions_for_large_random_sprite(struct ps_path *candidates,const struct ps_game *game) {
+  int cola=2,rowa=2,colz=PS_GRID_COLC-4,rowz=PS_GRID_ROWC-4;
+  int row=rowa; for (;row<=rowz;row++) {
+    int p=row*PS_GRID_COLC+cola;
+    int col=cola; for (;col<=colz;col++,p++) {
+    
+      if (game->grid->cellv[p].physics!=PS_BLUEPRINT_CELL_VACANT) continue;
+      if (game->grid->cellv[p+1].physics!=PS_BLUEPRINT_CELL_VACANT) continue;
+      if (game->grid->cellv[p+PS_GRID_COLC].physics!=PS_BLUEPRINT_CELL_VACANT) continue;
+      if (game->grid->cellv[p+PS_GRID_COLC+1].physics!=PS_BLUEPRINT_CELL_VACANT) continue;
+      
+      if (ps_path_add(candidates,col,row)<0) return -1;
+    }
+  }
+  if (candidates->c<1) return -1;
+  return 0;
+}
+ 
+static int ps_game_select_position_for_large_random_sprite(
+  int *x,int *y,const struct ps_game *game,const struct ps_sprdef *sprdef
+) {
+  int result=-1;
+  struct ps_path candidates={0};
+  if (ps_game_list_candidate_positions_for_large_random_sprite(&candidates,game)>=0) {
+    while (candidates.c>0) {
+      int p=rand()%candidates.c;
+      *x=(candidates.v[p].x+1)*PS_TILESIZE;
+      *y=(candidates.v[p].y+1)*PS_TILESIZE;
+      if (!ps_game_sprite_position_conflicts_with_others(game,*x,*y,ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_radius,0))) {
+        result=0;
+        break;
+      }
+      candidates.c--;
+      memmove(candidates.v+p,candidates.v+p+1,sizeof(struct ps_path_entry)*(candidates.c-p));
+    }
+  }
+  ps_path_cleanup(&candidates);
+  return result;
+}
+
+/* About to spawn a random sprite, select a position for it.
+ * Failures here are not fatal.
+ */
 
 static int ps_game_sprite_position_is_barrier(const struct ps_game *game,int x,int y) {
   const struct ps_blueprint_poi *poi=game->grid->poiv;
@@ -148,7 +196,17 @@ static int ps_game_sprite_position_is_barrier(const struct ps_game *game,int x,i
   return 0;
 }
 
-static int ps_game_select_position_for_random_sprite(int *x,int *y,const struct ps_game *game,const struct ps_sprdef *sprdef) {
+static int ps_game_select_position_for_random_sprite(
+  int *x,int *y,const struct ps_game *game,const struct ps_sprdef *sprdef,int *large_ok
+) {
+
+  if (ps_sprdef_fld_get(sprdef,PS_SPRDEF_FLD_radius,0)>PS_TILESIZE>>1) {
+    if (!*large_ok) return -1;
+    int err=ps_game_select_position_for_large_random_sprite(x,y,game,sprdef);
+    if (err<0) *large_ok=0;
+    return err;
+  }
+
   const int margin=2; // Don't spawn on the edges.
   int attemptc=20;
   while (attemptc-->0) {
@@ -159,7 +217,7 @@ static int ps_game_select_position_for_random_sprite(int *x,int *y,const struct 
     if (ps_game_sprite_position_is_barrier(game,col,row)) continue; // We don't know whether barriers are open or closed, so skip them all.
     *x=col*PS_TILESIZE+(PS_TILESIZE>>1);
     *y=row*PS_TILESIZE+(PS_TILESIZE>>1);
-    if (ps_game_sprite_position_conflicts_with_others(game,*x,*y)) continue; // Don't crowd other sprites.
+    if (ps_game_sprite_position_conflicts_with_others(game,*x,*y,PS_TILESIZE>>1)) continue; // Don't crowd other sprites.
     return 0;
   }
   return -1;
@@ -184,6 +242,7 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
   int monsterc=monsterc_min+rand()%(monsterc_max-monsterc_min+1);
   if (monsterc<1) return 0;
 
+  int large_ok=1;
   int i=monsterc; while (i-->0) {
     int defp=rand()%defc;
     int sprdefid=ps_region_get_monster_at_difficulty(game->grid->region,defp,game->difficulty);
@@ -197,7 +256,7 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
       return -1;
     }
     int x,y;
-    if (ps_game_select_position_for_random_sprite(&x,&y,game,sprdef)<0) {
+    if (ps_game_select_position_for_random_sprite(&x,&y,game,sprdef,&large_ok)<0) {
       // It could be that the screen is overpopulated. In this case, skip it.
       continue;
     }
@@ -215,8 +274,10 @@ static int ps_game_spawn_random_sprites(struct ps_game *game) {
  */
 
 static int ps_game_should_use_chestkeeper(const struct ps_game *game,int treasureid) {
-  if ((treasureid<0)||(treasureid>=game->treasurec)) return 0;
-  if (game->treasurev[treasureid]) return 0;
+  if (game->treasurec>0) { // No treasures means we are testing -- pretend it's the final treasure.
+    if ((treasureid<0)||(treasureid>=game->treasurec)) return 0;
+    if (game->treasurev[treasureid]) return 0;
+  }
   if (game->difficulty<PS_MINIMUM_DIFFICULTY_FOR_CHESTKEEPER) return 0;
 
   int have_combat=0;
@@ -229,6 +290,7 @@ static int ps_game_should_use_chestkeeper(const struct ps_game *game,int treasur
   }
   if (!have_combat) return 0;
   
+  if (game->treasurec<1) return 1;
   if (ps_game_count_collected_treasures(game)==game->treasurec-1) return 1;
   return 0;
 }
@@ -361,7 +423,22 @@ int ps_game_setup_deathgate(struct ps_game *game) {
  */
 
 static int ps_game_remove_all_monsters(struct ps_game *game) {
+
   if (ps_sprgrp_kill(game->grpv+PS_SPRGRP_HEROHAZARD)<0) return -1;
+
+  /* There can be other sprites which are not in HEROHAZARD but also must be destroyed.
+   * Check group UPDATE for specific types.
+   */
+  struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
+  int i=grp->sprc; while (i-->0) {
+    struct ps_sprite *spr=grp->sprv[i];
+    if (
+      (spr->type==&ps_sprtype_seamonster)||
+    0) {
+      ps_sprite_kill(spr);
+    }
+  }
+  
   return 0;
 }
 
@@ -1138,6 +1215,10 @@ static int ps_game_cb_switch(int switchid,int value,void *userdata) {
       ps_path_cleanup(&changes);
       return -1;
     }
+  }
+  if (ps_game_adjust_sprites_for_grid_changes(game,&changes)<0) {
+    ps_path_cleanup(&changes);
+    return -1;
   }
   if (!game->suppress_switch_effects) {
     while (changes.c-->0) {

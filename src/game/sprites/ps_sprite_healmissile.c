@@ -78,12 +78,14 @@ static int ps_healmissile_should_skip_victim(const struct ps_game *game,const st
   /* Also skip if the victim is standing inside another solid sprite.
    * Ordinarily, physics will take care of this, but if there is nowhere to go, the two sprites will compete for the space.
    * It's an ugly, buggy-looking situation. (blueprint:144 can easily demonstrate it)
+   * Update: Only trigger this if they are deeply collided (reduce victim's radius to 4).
    */
+  struct ps_circle circle=ps_circle(victim->x,victim->y,4.0);
   const struct ps_sprgrp *solids=game->grpv+PS_SPRGRP_SOLID;
   int i=solids->sprc; while (i-->0) {
     const struct ps_sprite *solid=solids->sprv[i];
     if (solid==victim) continue;
-    if (ps_sprites_collide(solid,victim)) {
+    if (ps_sprite_collide_circle(solid,&circle)) {
       return 1;
     }
   }

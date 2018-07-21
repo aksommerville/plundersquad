@@ -82,18 +82,12 @@ static struct akgl_texture *ps_image_decode_psimage(const uint8_t *src,int srcc,
   if (stride>INT_MAX/h) return 0;
   int expect_size=stride*h;
   if (srcc!=16+expect_size) return 0;
-  
-  void *dst=malloc(expect_size);
-  if (!dst) return 0;
-  ps_image_unfilter(dst,src+16,pixelsize,stride,h);
 
   struct akgl_texture *texture=akgl_texture_new();
-  if (akgl_texture_load(texture,dst,fmt,w,h)<0) {
+  if (akgl_texture_load(texture,src+16,fmt,w,h)<0) {
     akgl_texture_del(texture);
-    free(dst);
     return 0;
   }
-  free(dst);
   return texture;
 }
 
@@ -201,8 +195,8 @@ int ps_image_encode(void *dst,int dsta,const void *pixels,int w,int h,int fmt) {
     DST[13]=0;
     DST[14]=0;
     DST[15]=0;
-    
-    ps_image_filter(DST+16,pixels,pixelsize,stride,h);
+
+    memcpy(DST+16,pixels,bodysize);
     
   }
   return dstc;
@@ -220,97 +214,4 @@ int ps_pixelsize_for_akgl_fmt(int fmt) {
     case AKGL_FMT_A8: return 1;
   }
   return 0;
-}
-
-/* Plain image filter.
- */
-
-static inline uint8_t ps_paeth(uint8_t a,uint8_t b,uint8_t c) {
-  int p=a+b-c;
-  int pa=(p>a)?(p-a):(a-p);
-  int pb=(p>b)?(p-b):(b-p);
-  int pc=(p>c)?(p-c):(c-p);
-  if ((pa<=pb)&&(pa<=pc)) return a;
-  if (pb<=pc) return b;
-  return c;
-}
- 
-void ps_image_filter(void *dst,const void *src,int colstride,int rowstride,int h) {
-  if (!dst||!src) return;
-  if ((colstride<1)||(rowstride<1)||(h<1)) return;
-  
-  /* TODO Image filter: Either improve it or take it out.
-   * I thought for sure the PNG SUB filter would improve compressibility, turns out the opposite.
-   * Maybe we'd do better with Paeth?
-   * It's not a really big deal either way.
-   *
-   * 112497 with filter
-   *  96736 without filter
-   */
-  memcpy(dst,src,rowstride*h);
-  return;
-  
-  /* Copy the first row verbatim and start pointers at second row. */
-  memcpy(dst,src,rowstride);
-  const uint8_t *pv=src;
-  uint8_t *DST=dst;
-  const uint8_t *SRC=src;
-  DST+=rowstride;
-  SRC+=rowstride;
-  h--;
-  int pixelc=rowstride*h;
-  
-  /* Copy one pixel at a time. */
-  int x=0;
-  while (pixelc-->0) {
-    int a,b,c;
-    if (x>=colstride) {
-      a=SRC[-colstride];
-      b=pv[0];
-      c=pv[-colstride];
-    } else {
-      a=b=c=0;
-    }
-    *DST=*SRC-ps_paeth(a,b,c);
-    DST++;
-    SRC++;
-    pv++;
-    if (++x>=rowstride) x=0;
-  }
-}
-
-void ps_image_unfilter(void *dst,const void *src,int colstride,int rowstride,int h) {
-  if (!dst||!src) return;
-  if ((colstride<1)||(rowstride<1)||(h<1)) return;
-  
-  memcpy(dst,src,rowstride*h);
-  return;
-  
-  /* Copy the first row verbatim and start pointers at second row. */
-  memcpy(dst,src,rowstride);
-  const uint8_t *pv=dst;
-  uint8_t *DST=dst;
-  const uint8_t *SRC=src;
-  DST+=rowstride;
-  SRC+=rowstride;
-  h--;
-  int pixelc=rowstride*h;
-  
-  /* Copy one pixel at a time. */
-  int x=0;
-  while (pixelc-->0) {
-    int a,b,c;
-    if (x>=colstride) {
-      a=DST[-colstride];
-      b=pv[0];
-      c=pv[-colstride];
-    } else {
-      a=b=c=0;
-    }
-    *DST=*SRC+ps_paeth(a,b,c);
-    DST++;
-    SRC++;
-    pv++;
-    if (++x>=rowstride) x=0;
-  }
 }

@@ -1,6 +1,7 @@
 #include "ps.h"
 #include "game/ps_sprite.h"
 #include "game/ps_game.h"
+#include "game/ps_physics.h"
 #include "game/sprites/ps_sprite_hero.h"
 #include "scenario/ps_scenario.h"
 #include "scenario/ps_screen.h"
@@ -76,9 +77,20 @@ static const char *_ps_conveyor_get_configure_argument_name(int argp) {
  */
 
 static int ps_conveyor_special_nonconveyable(const struct ps_sprite *spr,const struct ps_game *game) {
+
+  // Heroes are nonconveyable when floating (ghost, bat, or pumpkin).
   if (spr->type==&ps_sprtype_hero) {
     return ps_hero_stateq_feet_on_ground(spr)?0:1;
   }
+  
+  // Dummy and inert become nonconveyable when they collide with a hero.
+  // This is to ensure that the immortal can push things up a conveyor belt using nitro.
+  if ((spr->type==&ps_sprtype_dummy)||(spr->type==&ps_sprtype_inert)) {
+    if (ps_physics_test_sprite_collision_type(game->physics,spr,&ps_sprtype_hero)) {
+      return 1;
+    }
+  }
+  
   return 0;
 }
 

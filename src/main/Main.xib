@@ -22,10 +22,10 @@
     <customObject id="-3" userLabel="Application" customClass="NSObject"/>
     <menu title="AMainMenu" systemMenu="main" id="29">
       <items>
-        <menuItem title="AkDemo" id="56">
-          <menu key="submenu" title="AkDemo" systemMenu="apple" id="57">
+        <menuItem title="Plunder Squad" id="56">
+          <menu key="submenu" title="Plunder Squad" systemMenu="apple" id="57">
             <items>
-              <menuItem title="About AkDemo" id="58">
+              <menuItem title="About Plunder Squad" id="58">
                 <modifierMask key="keyEquivalentModifierMask"/>
                 <connections>
                   <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
@@ -44,7 +44,7 @@
               <menuItem isSeparatorItem="YES" id="144">
                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
               </menuItem>
-              <menuItem title="Hide AkDemo" keyEquivalent="h" id="134">
+              <menuItem title="Hide Plunder Squad" keyEquivalent="h" id="134">
                 <connections>
                   <action selector="hide:" target="-1" id="367"/>
                 </connections>
@@ -63,7 +63,7 @@
               <menuItem isSeparatorItem="YES" id="149">
                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
               </menuItem>
-              <menuItem title="Quit AkDemo" keyEquivalent="q" id="136">
+              <menuItem title="Quit Plunder Squad" keyEquivalent="q" id="136">
                 <connections>
                   <action selector="terminate:" target="-3" id="449"/>
                 </connections>
@@ -90,18 +90,6 @@
               <menuItem title="Bring All to Front" id="5">
                 <connections>
                   <action selector="arrangeInFront:" target="-1" id="39"/>
-                </connections>
-              </menuItem>
-            </items>
-          </menu>
-        </menuItem>
-        <menuItem title="Help" id="490">
-          <modifierMask key="keyEquivalentModifierMask"/>
-          <menu key="submenu" title="Help" systemMenu="help" id="491">
-            <items>
-              <menuItem title="AkDemo Help" keyEquivalent="?" id="492">
-                <connections>
-                  <action selector="showHelp:" target="-1" id="493"/>
                 </connections>
               </menuItem>
             </items>

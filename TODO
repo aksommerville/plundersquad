@@ -5,8 +5,6 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
-- Boxingglove should be nonhazardous when disabled.
-- blueprint:113: not always enough room to guide mimic
   
 Raspi errors:
 
@@ -20,19 +18,14 @@ Windows errors:
 - Input focus lost after switching window in fullscreen, I'm not sure what happened.
 
 MacOS errors:
+- Input stuck "down". Bens Deutch, vampire, 1-player. Cleared up after pausing with other controller, blueprint:65
 
 Actionable:
-- Establish and enforce difficulty standards (eg die-cross-heal should be like 5 or 6 minimum).
-- Remove return switches if they might be used to cheat challenges.
-- Retrofit challenges with PS_PERMASWITCH_EXIT_AWAYWARD where applicable.
 - Full review of data
 - Documentation
 - Promo
 - Steam licensing
 - Other app stores?
-- Build into a Pi-based arcade console. See http://www.ultimarc.com/
-  ...Build the electronics first, then get a membership at Idea Foundry to build it.
-  ...And as far as that goes, prototype a single player's inputs before spending the full $300 or so on parts.
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
@@ -43,7 +36,6 @@ Windows:
 MacOS:
 - Developer license
 - Sign code
-- Screen saver?
 
 Linux:
 
@@ -53,14 +45,12 @@ Raspi:
 Optimization, cleanup, low priority:
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits
-- Clean up logging
 - src/opt/msaudio/ps_msaudio.c:117:  int buffer_size=8192; // bytes (TODO optimal size?)
 - Review stubs in akgl_soft_shaders.c
 - Remove scenario encoding (it's already disabled)
 
 Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
-- src/video/ps_image_decode.c:242:  /* TODO Image filter: Either improve it or take it out.
 - Review award assignment with realistic data
 - Finish sound effects
 - Finish music

@@ -2,6 +2,7 @@
 #include "game/ps_game.h"
 #include "game/ps_sprite.h"
 #include "game/ps_sound_effects.h"
+#include "game/ps_physics.h"
 #include "ps_sprite_hero.h"
 #include "util/ps_geometry.h"
 #include "scenario/ps_blueprint.h"
@@ -12,6 +13,7 @@
 #define PS_PRIZE_TTL 600
 #define PS_PRIZE_FADE_TIME 120
 #define PS_PRIZE_SPEED 3
+#define PS_PRIZE_RESISTANCE_LIMIT 4
 
 /* Private sprite object.
  */
@@ -22,6 +24,7 @@ struct ps_sprite_prize {
   int counter,frame;
   int ttl;
   int dx,dy;
+  int resistance;
 };
 
 #define SPR ((struct ps_sprite_prize*)spr)
@@ -133,8 +136,19 @@ static int _ps_prize_update(struct ps_sprite *spr,struct ps_game *game) {
   }
 
   /* Get flung. */
-  spr->x+=SPR->dx*PS_PRIZE_SPEED;
-  spr->y+=SPR->dy*PS_PRIZE_SPEED;
+  if (SPR->dx||SPR->dy) {
+    if (ps_physics_test_sprite_collision_any(game->physics,spr)) {
+      SPR->resistance++;
+      if (SPR->resistance>=PS_PRIZE_RESISTANCE_LIMIT) {
+        SPR->dx=0;
+        SPR->dy=0;
+      }
+    } else {
+      SPR->resistance=0;
+    }
+    spr->x+=SPR->dx*PS_PRIZE_SPEED;
+    spr->y+=SPR->dy*PS_PRIZE_SPEED;
+  }
 
   /* Force on-screen. */
   if (spr->x<spr->radius) spr->x=spr->radius;

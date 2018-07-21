@@ -52,6 +52,44 @@ int ps_input_maptm_set_namepattern(struct ps_input_maptm *maptm,const char *src,
   return 0;
 }
 
+/* Confirm that all of this map template's source buttons actually exist on the input device.
+ */
+ 
+struct ps_input_maptm_all_buttons_exist_on_device_ctx {
+  const struct ps_input_maptm *maptm;
+  uint8_t bits[16];
+};
+ 
+static int ps_input_maptm_all_buttons_exist_on_device_cb(
+  struct ps_input_device *device,const struct ps_input_btncfg *btncfg,void *userdata
+) {
+  struct ps_input_maptm_all_buttons_exist_on_device_ctx *ctx=userdata;
+  int fldp=ps_input_maptm_fld_search(ctx->maptm,btncfg->srcbtnid);
+  if (fldp<0) return 0;
+  if (fldp>=128) return 0;
+  ctx->bits[fldp>>3]|=(1<<(fldp&7));
+  return 0;
+}
+ 
+static int ps_input_maptm_all_buttons_exist_on_device(const struct ps_input_maptm *maptm,const struct ps_input_device *device) {
+  if (!device->report_buttons) {
+    return 1; // Assume it's OK.
+  }
+  struct ps_input_maptm_all_buttons_exist_on_device_ctx ctx={
+    .maptm=maptm,
+  };
+  int err=device->report_buttons((struct ps_input_device*)device,&ctx,ps_input_maptm_all_buttons_exist_on_device_cb);
+  if (err<0) return 0;
+  
+  int i=maptm->fldc;
+  if (i>=128) i=127;
+  while (i-->0) {
+    if (!(ctx.bits[i>>3]&(1<<(i&7)))) return 0;
+  }
+  
+  return 1;
+}
+
 /* Match device.
  */
  
@@ -59,6 +97,10 @@ int ps_input_maptm_match_device(const struct ps_input_maptm *maptm,const struct 
   if (!maptm||!device) return 0;
 
   if (maptm->invalid_provider) return 0;
+  
+  if (!ps_input_maptm_all_buttons_exist_on_device(maptm,device)) {
+    return 0;
+  }
   
   int score;
   if (maptm->namepatternc) {

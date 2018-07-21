@@ -6,7 +6,6 @@ General errors:
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
 - Monsters with new path selection (eg dragonbug, giraffe, ...), prevent walking offscreen.
-- Before assigning map to device, confirm that the input buttons actually exist.
   
 Raspi errors:
 

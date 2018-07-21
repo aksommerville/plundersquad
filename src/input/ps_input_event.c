@@ -168,11 +168,11 @@ int ps_input_inhibit_screensaver() {
   #if PS_USE_glx
     return ps_glx_inhibit_screensaver();
   #elif PS_USE_bcm
-    //TODO bcm screensaver -- is there such a thing? I know the console does blank after a time.
+    // Unnecessary. Even with X11 running, BCM video apparently takes precedence.
   #elif PS_USE_macwm
-    //TODO macwm screensaver
+    // Unnecessary.
   #elif PS_USE_mswm
-    //TODO mswm screensaver
+    // Unnecessary.
   #endif
   return 0;
 }

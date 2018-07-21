@@ -45,7 +45,6 @@ Raspi:
 Optimization, cleanup, low priority:
 - ps_sdraw_draw_line(): Optimize writes
 - sdraw: optimize blits
-- Clean up logging
 - src/opt/msaudio/ps_msaudio.c:117:  int buffer_size=8192; // bytes (TODO optimal size?)
 - Review stubs in akgl_soft_shaders.c
 - Remove scenario encoding (it's already disabled)

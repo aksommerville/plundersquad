@@ -1,0 +1,233 @@
+  plundersquad
+[32mCONFIG[0m:[42;30mINFO[0m: Input path: /home/pi/proj/plundersquad/out/raspi-default/input.cfg [2m[src/opt/genioc/ps_genioc.c:218][0m
+[32mCONFIG[0m:[42;30mINFO[0m: Data path: /home/pi/proj/plundersquad/out/raspi-default/ps-data [2m[src/opt/genioc/ps_genioc.c:225][0m
+[32mCONFIG[0m:[42;30mINFO[0m: High scores path: /home/pi/proj/plundersquad/out/raspi-default/highscores [2m[src/opt/genioc/ps_genioc.c:230][0m
+[31mMAIN[0m:[43;30mWARNING[0m: Press B to swap input -- Do not leave this enabled in production builds! [2m[src/main/ps_main.c:195][0m
+[31mMAIN[0m:[42;30mINFO[0m: Random seed 1532193105. [2m[src/main/ps_main.c:199][0m
+[34mEVDEV[0m:[40mTRACE[0m: ps_evdev_default_cb_connect 1 [2m[src/opt/evdev/ps_evdev_default.c:87][0m
+[34mEVDEV[0m:[40mTRACE[0m: ps_evdev_default_cb_connect 2 [2m[src/opt/evdev/ps_evdev_default.c:87][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'machid'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'macwm'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'macwm'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'machid'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'mshid'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'mshid'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'machid'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'mshid'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'mswm'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[43;30mWARN[0m: Ignoring map template due to uninstalled provider 'mshid'. [2m[src/input/ps_input_maptm.c:436][0m
+[38mINPUT[0m:[42;30mINFO[0m: /home/pi/proj/plundersquad/out/raspi-default/input.cfg: Loaded input configuration. [2m[src/input/ps_input_config.c:146][0m
+[38mINPUT[0m:[44mDEBUG[0m: Connecting input device 'Logitech USB Keyboard'. [2m[src/input/ps_input_event.c:30][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010071 (0..1) =>458879 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010072 (0..1) =>458881 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010073 (0..1) =>458880 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010074 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010080 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001008c (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001008e (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001008f (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010090 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001009b (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001009c (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001009e (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001009f (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a1 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a3 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a4 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a5 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a6 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a8 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100ab (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100ac (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100ad (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100d0 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100d9 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00030020 (-24..24) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[44mDEBUG[0m: Connecting input device 'Logitech USB Keyboard'. [2m[src/input/ps_input_event.c:30][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010001 (0..1) =>458793 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010002 (0..1) =>458782 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010003 (0..1) =>458783 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010004 (0..1) =>458784 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010005 (0..1) =>458785 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010006 (0..1) =>458786 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010007 (0..1) =>458787 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010008 (0..1) =>458788 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010009 (0..1) =>458789 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001000a (0..1) =>458790 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001000b (0..1) =>458791 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001000c (0..1) =>458797 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001000d (0..1) =>458798 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001000e (0..1) =>458794 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001000f (0..1) =>458795 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010010 (0..1) =>458772 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010011 (0..1) =>458778 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010012 (0..1) =>458760 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010013 (0..1) =>458773 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010014 (0..1) =>458775 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010015 (0..1) =>458780 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010016 (0..1) =>458776 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010017 (0..1) =>458764 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010018 (0..1) =>458770 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010019 (0..1) =>458771 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001001a (0..1) =>458799 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001001b (0..1) =>458800 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001001c (0..1) =>458792 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Mapping button 0x0001001c to 0x00000040 [2m[src/input/ps_input_maptm.c:220][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001001d (0..1) =>458976 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001001e (0..1) =>458756 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001001f (0..1) =>458774 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010020 (0..1) =>458759 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010021 (0..1) =>458761 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010022 (0..1) =>458762 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010023 (0..1) =>458763 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010024 (0..1) =>458765 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010025 (0..1) =>458766 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010026 (0..1) =>458767 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010027 (0..1) =>458803 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010028 (0..1) =>458804 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010029 (0..1) =>458805 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001002a (0..1) =>458977 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001002b (0..1) =>458801 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001002c (0..1) =>458781 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Mapping button 0x0001002c to 0x00000010 [2m[src/input/ps_input_maptm.c:220][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001002d (0..1) =>458779 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Mapping button 0x0001002d to 0x00000020 [2m[src/input/ps_input_maptm.c:220][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001002e (0..1) =>458758 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001002f (0..1) =>458777 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010030 (0..1) =>458757 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010031 (0..1) =>458769 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010032 (0..1) =>458768 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010033 (0..1) =>458806 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010034 (0..1) =>458807 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010035 (0..1) =>458808 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010036 (0..1) =>458981 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010037 (0..1) =>458837 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010038 (0..1) =>458978 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010039 (0..1) =>458796 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001003a (0..1) =>458809 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001003b (0..1) =>458810 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001003c (0..1) =>458811 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001003d (0..1) =>458812 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001003e (0..1) =>458813 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001003f (0..1) =>458814 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010040 (0..1) =>458815 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010041 (0..1) =>458816 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010042 (0..1) =>458817 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010043 (0..1) =>458818 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010044 (0..1) =>458819 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010045 (0..1) =>458835 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010046 (0..1) =>458823 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010047 (0..1) =>458847 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010048 (0..1) =>458848 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010049 (0..1) =>458849 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001004a (0..1) =>458838 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001004b (0..1) =>458844 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001004c (0..1) =>458845 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001004d (0..1) =>458846 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001004e (0..1) =>458839 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001004f (0..1) =>458841 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010050 (0..1) =>458842 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010051 (0..1) =>458843 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010052 (0..1) =>458850 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010053 (0..1) =>458851 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010055 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010056 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010057 (0..1) =>458820 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010058 (0..1) =>458821 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010059 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001005a (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001005b (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001005c (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001005d (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001005e (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001005f (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010060 (0..1) =>458840 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010061 (0..1) =>458980 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010062 (0..1) =>458836 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010063 (0..1) =>458906 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010064 (0..1) =>458982 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010066 (0..1) =>458826 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010067 (0..1) =>458834 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Mapping button 0x00010067 to 0x00000001 [2m[src/input/ps_input_maptm.c:220][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010068 (0..1) =>458827 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010069 (0..1) =>458832 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Mapping button 0x00010069 to 0x00000004 [2m[src/input/ps_input_maptm.c:220][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001006a (0..1) =>458831 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Mapping button 0x0001006a to 0x00000008 [2m[src/input/ps_input_maptm.c:220][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001006b (0..1) =>458829 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001006c (0..1) =>458833 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Mapping button 0x0001006c to 0x00000002 [2m[src/input/ps_input_maptm.c:220][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001006d (0..1) =>458830 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001006e (0..1) =>458825 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001006f (0..1) =>458828 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010071 (0..1) =>458879 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010072 (0..1) =>458881 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010073 (0..1) =>458880 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010074 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010075 (0..1) =>458855 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010077 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010079 (0..1) =>458885 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001007a (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001007b (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001007c (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001007d (0..1) =>458979 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001007e (0..1) =>458983 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001007f (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010080 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010081 (0..1) =>458914 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010082 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010083 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010084 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010085 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010086 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010087 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010088 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010089 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001008a (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001008c (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001008e (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010096 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x00010098 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001009e (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x0001009f (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a1 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a3 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a4 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a5 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100a6 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100ad (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b0 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b1 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b2 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b3 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b4 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b7 (0..1) =>458856 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b8 (0..1) =>458857 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100b9 (0..1) =>458858 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100ba (0..1) =>458859 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100bb (0..1) =>458860 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100bc (0..1) =>458861 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100bd (0..1) =>458862 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100be (0..1) =>458863 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100bf (0..1) =>458864 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100c0 (0..1) =>458865 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100c1 (0..1) =>458866 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100c2 (0..1) =>458867 [2m[src/input/ps_input_maptm.c:203][0m
+[38mINPUT[0m:[40mTRACE[0m: Device 'Logitech USB Keyboard' reports button 0x000100f0 (0..1) =>0 [2m[src/input/ps_input_maptm.c:203][0m
+[34mRES[0m:[42;30mINFO[0m: Loaded resources in 3.574628 s. [2m[src/res/ps_res_load.c:192][0m
+[33mCLOCK[0m:[42;30mINFO[0m: Startup in 3.761586 s [2m[src/util/ps_perfmon.c:29][0m
+[32mCONFIG[0m:[42;30mINFO[0m: /home/pi/proj/plundersquad/out/raspi-default/plundersquad.cfg: Rewrote general config file [2m[src/os/ps_userconfig.c:743][0m
+[34mEVDEV[0m:[40mTRACE[0m: ps_evdev_default_cb_event 2.1:28=1 [2m[src/opt/evdev/ps_evdev_default.c:143][0m
+[38mINPUT[0m:[40mTRACE[0m: ps_input_event_button_cb plrid=0 btnid=64 value=1 device='Logitech USB Keyboard' [2m[src/input/ps_input_event.c:93][0m
+[34mEVDEV[0m:[40mTRACE[0m: ps_evdev_default_cb_event 2.1:28=0 [2m[src/opt/evdev/ps_evdev_default.c:143][0m
+[38mINPUT[0m:[40mTRACE[0m: ps_input_event_button_cb plrid=0 btnid=64 value=0 device='Logitech USB Keyboard' [2m[src/input/ps_input_event.c:93][0m
+[34mEVDEV[0m:[40mTRACE[0m: ps_evdev_default_cb_event 2.1:105=1 [2m[src/opt/evdev/ps_evdev_default.c:143][0m
+[38mINPUT[0m:[40mTRACE[0m: ps_input_event_button_cb plrid=0 btnid=4 value=1 device='Logitech USB Keyboard' [2m[src/input/ps_input_event.c:93][0m
+[34mEVDEV[0m:[40mTRACE[0m: ps_evdev_default_cb_event 2.1:105=0 [2m[src/opt/evdev/ps_evdev_default.c:143][0m
+[38mINPUT[0m:[40mTRACE[0m: ps_input_event_button_cb plrid=0 btnid=4 value=0 device='Logitech USB Keyboard' [2m[src/input/ps_input_event.c:93][0m
+[34mEVDEV[0m:[40mTRACE[0m: ps_evdev_default_cb_event 2.1:44=1 [2m[src/opt/evdev/ps_evdev_default.c:143][0m
+[38mINPUT[0m:[40mTRACE[0m: ps_input_event_button_cb plrid=0 btnid=16 value=1 device='Logitech USB Keyboard' [2m[src/input/ps_input_event.c:93][0m
+[33mCLOCK[0m:[42;30mINFO[0m: Average: 146 frames in 2.454806 s: 59.48 Hz [2m[src/util/ps_perfmon.c:53][0m
+[33mCLOCK[0m:[42;30mINFO[0m: Set emergency abort timeout for 3000000 us. [2m[src/os/ps_emergency_abort.c:49][0m
+[36mGAME[0m:[44mDEBUG[0m: Rewrote etc/playtest/gamelog [2m[src/game/ps_gamelog.c:78][0m
+[33mCLOCK[0m:[42;30mINFO[0m: Shutdown in 0.233022 s [2m[src/util/ps_perfmon.c:60][0m

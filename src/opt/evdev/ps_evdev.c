@@ -66,6 +66,20 @@ static struct {
 
 } ps_evdev={0};
 
+/* Eliminate event bits that we know we don't care about.
+ * My cheap keyboard gets reported as two devices, one of which is a bunch of audio-control keys.
+ * It doesn't even have those keys!
+ * Grrr
+ * Right after reading the event bits, we'll scratch certain ranges to pretend they don't exist.
+ * This should cause stupid excess devices to not appear in the list.
+ */
+
+static void ps_evdev_eliminate_stupid_event_bits(struct ps_evdev_device *dev) {
+  dev->keybit[14]=0; // 112..119 (KEY_MACRO..KEY_PAUSE)
+  memset(dev->keybit+16,0,6); // 128..175 (KEY_STOP..KEY_MOVE)
+  memset(dev->keybit+25,0,7); // 200..255 (KEY_PLAYCD..BTN_MISC(excl))
+}
+
 /* Open device.
  * If already open or not an event device, return 0.
  * Return <0 only for serious errors.
@@ -131,6 +145,7 @@ static int ps_evdev_try_file(const char *base) {
   ioctl(fd,EVIOCGBIT(EV_KEY,sizeof(dev->keybit)),dev->keybit);
   ioctl(fd,EVIOCGBIT(EV_ABS,sizeof(dev->absbit)),dev->absbit);
   ioctl(fd,EVIOCGBIT(EV_REL,sizeof(dev->relbit)),dev->relbit);
+  ps_evdev_eliminate_stupid_event_bits(dev);
 
   /* Read range and initial value of absolute axes. */
   int major; for (major=0;major<sizeof(dev->absbit);major++) {

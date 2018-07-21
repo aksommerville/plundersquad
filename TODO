@@ -52,7 +52,6 @@ Optimization, cleanup, low priority:
 
 Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
-- src/video/ps_image_decode.c:242:  /* TODO Image filter: Either improve it or take it out.
 - Review award assignment with realistic data
 - Finish sound effects
 - Finish music

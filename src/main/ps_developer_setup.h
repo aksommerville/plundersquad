@@ -8,7 +8,7 @@
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, IMMORTAL, BOMBER
  */
-#define PS_TEST_GAME_PARTY SWORDSMAN,ARCHER,VAMPIRE,BOMBER
+#define PS_TEST_GAME_PARTY SWORDSMAN,ARCHER,BOMBER
 
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL

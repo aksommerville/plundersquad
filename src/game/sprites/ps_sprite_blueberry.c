@@ -230,6 +230,11 @@ static int _ps_blueberry_hurt(struct ps_game *game,struct ps_sprite *spr,struct 
     return -1;
   }
   ps_sprite_del(other);
+  
+  ps_log(GAME,DEBUG,
+    ps_game_get_group_mask_for_sprite(game,spr),
+    ps_game_get_group_mask_for_sprite(game,other)
+  );
 
   other->x=spr->x;
   other->y=spr->y;

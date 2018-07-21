@@ -419,6 +419,12 @@ uint32_t ps_game_get_group_mask_for_sprite(const struct ps_game *game,const stru
 int ps_game_set_group_mask_for_sprite(struct ps_game *game,struct ps_sprite *spr,uint32_t grpmask) {
   if (!game||!spr) return -1;
   if (ps_sprite_ref(spr)<0) return -1; // This operation could kill the sprite inadvertently, so retain throughout.
+  
+  // We don't necessarily include KEEPALIVE when storing group masks, because it's assumed.
+  // And it's inconceivable that a sprite would have a nonzero mask without KEEPALIVE.
+  // So force it here.
+  if (grpmask) grpmask|=(1<<PS_SPRGRP_KEEPALIVE);
+  
   uint32_t bit=1,i=0;
   for (;i<PS_SPRGRP_COUNT;i++,bit<<=1) {
     if (grpmask&bit) {

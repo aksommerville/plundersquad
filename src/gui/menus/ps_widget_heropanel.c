@@ -466,6 +466,10 @@ static int ps_heropanel_dismiss_menu(struct ps_widget *widget) {
 
 static int ps_heropanel_click_in(struct ps_widget *widget) {
   WIDGET->clicked_in=1;
+  ps_log(GUI,INFO,"ps_heropanel_click_in device=%p",WIDGET->device);
+  if (WIDGET->device) {
+    ps_log(GUI,INFO,"'%s' map=%p",WIDGET->device->name,WIDGET->device->map);
+  }
   if (WIDGET->device->map) {
     if (ps_heropanel_rebuild_CHOOSING(widget)<0) return -1;
   } else {

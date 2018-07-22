@@ -66,8 +66,12 @@ static int ps_input_maptm_all_buttons_exist_on_device_cb(
   struct ps_input_maptm_all_buttons_exist_on_device_ctx *ctx=userdata;
   int fldp=ps_input_maptm_fld_search(ctx->maptm,btncfg->srcbtnid);
   if (fldp<0) return 0;
+  while (fldp&&(ctx->maptm->fldv[fldp-1].srcbtnid==btncfg->srcbtnid)) fldp--;
   if (fldp>=128) return 0;
-  ctx->bits[fldp>>3]|=(1<<(fldp&7));
+  while ((fldp<ctx->maptm->fldc)&&(fldp<128)&&(ctx->maptm->fldv[fldp].srcbtnid==btncfg->srcbtnid)) {
+    ctx->bits[fldp>>3]|=(1<<(fldp&7));
+    fldp++;
+  }
   return 0;
 }
  
@@ -84,7 +88,9 @@ static int ps_input_maptm_all_buttons_exist_on_device(const struct ps_input_mapt
   int i=maptm->fldc;
   if (i>=128) i=127;
   while (i-->0) {
-    if (!(ctx.bits[i>>3]&(1<<(i&7)))) return 0;
+    if (!(ctx.bits[i>>3]&(1<<(i&7)))) {
+      return 0;
+    }
   }
   
   return 1;

@@ -9,7 +9,7 @@ fi
 
 DST_EXE=$DST/bin/plundersquad
 DST_DATA=$DST/share/plundersquad/ps-data
-DST_DESKTOP=$DST/applications/plundersquad.desktop
+DST_DESKTOP=/usr/share/applications/plundersquad.desktop
 DST_INPUT_CONFIG=$DST/share/plundersquad/input.cfg
 DST_HIGHSCORES=$DST/share/plundersquad/highscores
 DST_GENERAL_CONFIG=$DST/share/plundersquad/plundersquad.cfg

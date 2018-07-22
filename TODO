@@ -27,7 +27,6 @@ Actionable:
 - Promo
 - Steam licensing
 - Other app stores?
-- One more treasure
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)

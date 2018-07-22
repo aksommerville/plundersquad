@@ -140,6 +140,7 @@ static int ps_gorilla_begin_WALK(struct ps_sprite *spr,struct ps_game *game) {
  */
 
 static int ps_gorilla_begin_HOWL(struct ps_sprite *spr,struct ps_game *game) {
+  PS_SFX_GORILLA_ROAR
   SPR->phase=PS_GORILLA_PHASE_HOWL;
   SPR->phasetime=PS_GORILLA_HOWL_TIME_MIN+rand()%(PS_GORILLA_HOWL_TIME_MAX-PS_GORILLA_HOWL_TIME_MIN);
   SPR->animtime=0;
@@ -330,6 +331,7 @@ static int ps_gorilla_select_banana_destination(int *dstx,int *dsty,struct ps_sp
 
 static int ps_gorilla_update_SPIT(struct ps_sprite *spr,struct ps_game *game) {
   if (SPR->phasetime==PS_GORILLA_SPIT_TIME>>1) {
+    PS_SFX_GORILLA_SPIT
     SPR->state_left=PS_GORILLA_BODY_STATE_IDLE;
     SPR->state_right=PS_GORILLA_BODY_STATE_IDLE;
     SPR->state_head=PS_GORILLA_HEAD_STATE_HOWL;

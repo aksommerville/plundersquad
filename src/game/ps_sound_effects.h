@@ -52,6 +52,8 @@
 #define PS_SFX_PENGUIN_FALL akau_play_sound(57,0x80,0);
 #define PS_SFX_PENGUIN_LAND akau_play_sound(58,0x80,0);
 #define PS_SFX_CHESTKEEPER_BLOW_COVER akau_play_sound(59,0x80,0);
+#define PS_SFX_GORILLA_SPIT akau_play_sound(60,0x80,0);
+#define PS_SFX_GORILLA_ROAR akau_play_sound(61,0x80,1);
 
 #define PS_SFX_SWITCH_PRESS akau_play_sound(35,0x80,0);
 #define PS_SFX_SWITCH_RELEASE akau_play_sound(36,0x80,0);

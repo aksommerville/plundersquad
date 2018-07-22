@@ -22,7 +22,7 @@ int ps_log_level_by_domain[PS_LOG_DOMAIN_COUNT]={
   _(TEXT          ,INFO)
   _(PHYSICS       ,INFO)
   _(MACHID        ,INFO)
-  _(GUI           ,INFO)
+  _(GUI           ,DEBUG)
   _(HEROSTATE     ,INFO)
   _(EVDEV         ,INFO)
   _(GLX           ,INFO)

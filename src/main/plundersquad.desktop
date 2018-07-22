@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Plunder Squad
+Exec=/usr/local/bin/plundersquad
+Icon=/usr/local/share/plundersquad/plundersquad.png
+Categories=Game

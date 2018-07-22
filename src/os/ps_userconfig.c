@@ -699,7 +699,10 @@ int ps_userconfig_load_file(struct ps_userconfig *userconfig) {
   }
   int err=ps_userconfig_decode(userconfig,src,srcc);
   if (src) free(src);
-  if (err<0) return -1;
+  if (err<0) {
+    ps_log(CONFIG,ERROR,"%s: Failing due to malformed config file.",userconfig->path);
+    return -1;
+  }
   return 0;
 }
 
@@ -733,12 +736,16 @@ int ps_userconfig_save_file(struct ps_userconfig *userconfig) {
 
   /* Write it. */
   if (ps_mkdir_parents(userconfig->path)<0) {
+    ps_log(CONFIG,ERROR,"%s: Failed to create parent directories.",userconfig->path);
     ps_buffer_cleanup(&buffer);
     return -1;
   }
   int err=ps_file_write(userconfig->path,buffer.v,buffer.c);
   ps_buffer_cleanup(&buffer);
-  if (err<0) return -1;
+  if (err<0) {
+    ps_log(CONFIG,ERROR,"%s: Failed to write config file.",userconfig->path);
+    return -1;
+  }
   userconfig->dirty=0;
   ps_log(CONFIG,INFO,"%s: Rewrote general config file",userconfig->path);
   return 0;

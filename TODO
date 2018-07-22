@@ -5,21 +5,11 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
-- Monsters with new path selection (eg dragonbug, giraffe, ...), prevent walking offscreen.
-commit f4e8c6f22df4912052324990920b455be3e2265e
-src/game/sprites/ps_sprite_blueberry.c
-src/game/sprites/ps_sprite_chestkeeper.c
-src/game/sprites/ps_sprite_chicken.c
-src/game/sprites/ps_sprite_dragonbug.c
-src/game/sprites/ps_sprite_giraffe.c
-src/game/sprites/ps_sprite_gorilla.c
-src/game/sprites/ps_sprite_penguin.c
-src/game/sprites/ps_sprite_tortoise.c
-src/game/sprites/ps_sprite_yak.c
   
 Raspi errors:
 
 Linux errors:
+- After trial installation, aborted on pause.
 
 Windows errors:
 - Freeze on startup, Windows:

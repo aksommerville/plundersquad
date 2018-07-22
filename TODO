@@ -27,6 +27,8 @@ Actionable:
 - Promo
 - Steam licensing
 - Other app stores?
+- Sound effects for gorilla
+- One more treasure
 
 Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)

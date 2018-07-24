@@ -280,22 +280,53 @@ int ps_grid_get_nearest_neighbor_matching_physics_1(
   }
 }
  
-int ps_grid_get_cardinal_neighbor_matching_physics(int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask) {
+int ps_grid_get_cardinal_neighbor_matching_physics(
+  int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask,int xpref,int ypref
+) {
   if (!dstcol||!dstrow||!grid||!phymask) return -1;
   if (col<0) col=0; else if (col>=PS_GRID_COLC) col=PS_GRID_COLC-1;
   if (row<0) row=0; else if (row>=PS_GRID_ROWC) row=PS_GRID_ROWC-1;
   
-  if (phymask&(1<<grid->cellv[row*PS_GRID_COLC+col].physics)) {
-    *dstcol=col;
-    *dstrow=row;
-    return 0;
+  #define GO(dx,dy) { *dstcol=col+dx; *dstrow=row+dy; return 0; }
+  
+  if (phymask&(1<<grid->cellv[row*PS_GRID_COLC+col].physics)) GO(0,0)
+  
+  int east=((col>0)&&(phymask&(1<<grid->cellv[row*PS_GRID_COLC+col-1].physics)));
+  int west=((col<PS_GRID_COLC-1)&&(phymask&(1<<grid->cellv[row*PS_GRID_COLC+col+1].physics)));
+  int north=((row>0)&&(phymask&(1<<grid->cellv[(row-1)*PS_GRID_COLC+col].physics)));
+  int south=((row<PS_GRID_ROWC-1)&&(phymask&(1<<grid->cellv[(row+1)*PS_GRID_COLC+col].physics)));
+  int absxpref=(xpref<0)?-xpref:xpref;
+  int absypref=(ypref<0)?-ypref:ypref;
+  
+  /* Do we have a strong preference for one direction? ie, preferring one axis over another */
+  if (absxpref>absypref) {
+    if (west&&(xpref<0)) GO(-1,0)
+    if (east&&(xpref>0)) GO(1,0)
+  } else if (absypref>absxpref) {
+    if (north&&(ypref<0)) GO(0,-1)
+    if (south&&(ypref>0)) GO(0,1)
   }
   
-  if (ps_grid_get_nearest_neighbor_matching_physics_1(dstcol,dstrow,grid,col,row,phymask,1)>0) return 0;
+  /* Axes are equally preferred. Follow one of the two preferred directions if possible. */
+  if ((xpref<0)&&west) GO(-1,0)
+  if ((xpref>0)&&east) GO(1,0)
+  if ((ypref<0)&&north) GO(0,-1)
+  if ((ypref>0)&&south) GO(0,1)
+  
+  /* Can't get a preferred direction. Take whatever we can get. */
+  if (west) GO(-1,0)
+  if (east) GO(1,0)
+  if (north) GO(0,-1)
+  if (south) GO(0,1)
+  
+  #undef GO
+  
   return -1;
 }
 
-int ps_grid_get_nearest_neighbor_matching_physics(int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask) {
+int ps_grid_get_nearest_neighbor_matching_physics(
+  int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask
+) {
   if (!dstcol||!dstrow||!grid||!phymask) return -1;
   if (col<0) col=0; else if (col>=PS_GRID_COLC) col=PS_GRID_COLC-1;
   if (row<0) row=0; else if (row>=PS_GRID_ROWC) row=PS_GRID_ROWC-1;

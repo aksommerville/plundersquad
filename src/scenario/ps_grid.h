@@ -78,9 +78,14 @@ int ps_grid_line_contains_physics(const struct ps_grid *grid,int ax,int ay,int b
 
 /* Get the nearest cell to (col,row) with physics matching (phymask).
  * Optionally examine only immediate cardinal neighbors.
+ * (xpref,ypref) are <0 or >0, which direction would you prefer in a tie?
  * Both return <0 if not found.
  */
-int ps_grid_get_cardinal_neighbor_matching_physics(int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask);
-int ps_grid_get_nearest_neighbor_matching_physics(int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask);
+int ps_grid_get_cardinal_neighbor_matching_physics(
+  int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask,int xpref,int ypref
+);
+int ps_grid_get_nearest_neighbor_matching_physics(
+  int *dstcol,int *dstrow,const struct ps_grid *grid,int col,int row,uint16_t phymask
+);
 
 #endif

@@ -968,6 +968,7 @@ int ps_game_select_random_travel_vector(
  */
  
 static int ps_game_adjust_sprite_for_grid_change(struct ps_game *game,struct ps_sprite *spr,int col,int row) {
+
   uint16_t friendly_physics=
     (1<<PS_BLUEPRINT_CELL_VACANT)|
     (1<<PS_BLUEPRINT_CELL_HEROONLY)|
@@ -978,13 +979,34 @@ static int ps_game_adjust_sprite_for_grid_change(struct ps_game *game,struct ps_
     (1<<PS_BLUEPRINT_CELL_HAZARD)|
     (1<<PS_BLUEPRINT_CELL_HOLE)|
   0;
+  
+  double dx=spr->x-(col*PS_TILESIZE+(PS_TILESIZE>>1));
+  double dy=spr->y-(row*PS_TILESIZE+(PS_TILESIZE>>1));
+  double adx,ady;
+  int xpref,ypref;
+  if (dx<0.0) {
+    adx=-dx;
+    xpref=-1;
+  } else {
+    adx=dx;
+    xpref=1;
+  }
+  if (dy<0.0) {
+    ady=-dy;
+    ypref=-1;
+  } else {
+    ady=dy;
+    ypref=1;
+  }
+  if (adx>ady) xpref*=2; else ypref*=2;
+  
   int dstcol,dstrow;
-  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,friendly_physics)>=0) {
+  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,friendly_physics,xpref,ypref)>=0) {
     spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
     spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
     return 0;
   }
-  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,1<<PS_BLUEPRINT_CELL_HOLE)>=0) {
+  if (ps_grid_get_cardinal_neighbor_matching_physics(&dstcol,&dstrow,game->grid,col,row,1<<PS_BLUEPRINT_CELL_HOLE,xpref,ypref)>=0) {
     spr->x=dstcol*PS_TILESIZE+(PS_TILESIZE>>1);
     spr->y=dstrow*PS_TILESIZE+(PS_TILESIZE>>1);
     // Hero update would kill it in this case, but physics will see it first and toss it away. Kill manually.

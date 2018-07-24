@@ -5,6 +5,8 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
+- Immediate solid-block reappearance correction (recent fix): Correct towards the nearest side; it matters.
+- Can we make input device names longer in assemblepage, when there's room?
   
 Raspi errors:
 

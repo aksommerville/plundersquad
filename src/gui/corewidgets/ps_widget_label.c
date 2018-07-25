@@ -43,13 +43,20 @@ static int _ps_label_draw(struct ps_widget *widget,int parentx,int parenty) {
   if (ps_widget_draw_background(widget,parentx,parenty)<0) return -1;
   if (WIDGET->textc>0) {
   
+    /* Don't exceed our horizontal boundaries. No such consideration for the vertical. */
+    int textlimit=(widget->w/(WIDGET->size>>1));
+    int effective_length=WIDGET->textc;
+    if (effective_length>textlimit) {
+      effective_length=textlimit;
+    }
+  
     int x=parentx+widget->x+(widget->w>>1); // Horiztonal midpoint...
-    x-=((WIDGET->textc*WIDGET->size)>>2); // ...minus half of the text's width...
+    x-=((effective_length*WIDGET->size)>>2); // ...minus half of the text's width...
     x+=(WIDGET->size>>2); // ...plus half of one glyph's width.
     int y=parenty+widget->y+(widget->h>>1)+1; // Vertical midpoint. I don't know why '+1'.
     
     if (ps_video_text_begin()<0) return -1;
-    if (ps_video_text_add(WIDGET->size,widget->fgrgba,x,y,WIDGET->text,WIDGET->textc)<0) return -1;
+    if (ps_video_text_add(WIDGET->size,widget->fgrgba,x,y,WIDGET->text,effective_length)<0) return -1;
     if (ps_video_text_end(WIDGET->font_resid)<0) return -1;
     
   }

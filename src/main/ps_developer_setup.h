@@ -3,7 +3,7 @@
 
 /* Nonzero for normal production startup; the rest of this file will be ignored.
  */
-#define PS_PRODUCTION_STARTUP 0
+#define PS_PRODUCTION_STARTUP 1
 
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, IMMORTAL, BOMBER

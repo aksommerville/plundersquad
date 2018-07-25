@@ -29,8 +29,6 @@
 #include "os/ps_userconfig.h"
 #include "util/ps_enums.h"
 
-#define PS_HEROPANEL_DEVICE_NAME_LIMIT 12
-
 #define PS_HEROPANEL_DEVICELABEL_COLOR  0xffffffff
 #define PS_HEROPANEL_MESSAGELABEL_COLOR 0xffffffff
 
@@ -753,9 +751,6 @@ int ps_widget_heropanel_set_device(struct ps_widget *widget,struct ps_input_devi
     if (!name||(namec<1)) {
       name="Device";
       namec=6;
-    } else if (namec>PS_HEROPANEL_DEVICE_NAME_LIMIT) {
-      namec=PS_HEROPANEL_DEVICE_NAME_LIMIT;
-      while (namec&&((unsigned char)name[namec-1]<=0x20)) namec--;
     }
     if (ps_widget_label_set_text(ps_heropanel_get_devicelabel(widget),name,namec)<0) return -1;
   } else {

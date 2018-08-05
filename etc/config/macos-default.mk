@@ -46,3 +46,5 @@ remove-macos-preferences:;rm -rf ~/Library/Preferences/com.aksommerville.plunder
 
 INPUT_ICONS:=$(wildcard src/main/appicon.iconset/*)
 $(ICON_MAIN):$(INPUT_ICONS);$(PRECMD) iconutil -c icns -o $@ src/main/appicon.iconset
+
+sign-app:all;codesign -s '3rd Party Mac Developer Application: Andy Sommerville (4G7NZRMQYQ)' $(BUNDLE_MAIN)

@@ -5,6 +5,7 @@ General errors:
   ...investigated, can't find the problem
 - assemblepage: wizard's magic appeared near top-left corner...?
   ...investigated, can't reproduce
+- Must ship with keyboard pre-configured
   
 Raspi errors:
 
@@ -20,6 +21,7 @@ Windows errors:
 
 MacOS errors:
 - Input stuck "down". Bens Deutch, vampire, 1-player. Cleared up after pausing with other controller, blueprint:65
+- Certificate not working on Tim's machine.
 
 Actionable:
 - Full review of data

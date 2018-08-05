@@ -57,7 +57,6 @@ struct ps_sprite_seamonster {
   double dx,dy; // Calculated movement vector in SWIM phase, apply directly.
   struct ps_tentacle tentaclev[PS_SEAMONSTER_TENTACLE_LIMIT];
   int tentaclec;
-  int holec; // Count of HOLE tiles in grid; refresh if zero.
   int first_update; // To prevent DIVE sound from all sea monsters at screen start.
   int facedir;
 };
@@ -125,23 +124,23 @@ static int ps_seamonster_get_indexed_hole_cell(int *col,int *row,const struct ps
 
 static int ps_seamonster_select_swim_dst(struct ps_sprite *spr,struct ps_game *game) {
 
-  if (!SPR->holec) {
-    SPR->holec=ps_seamonster_count_grid_holes(game->grid);
-  }
+  int holec=ps_seamonster_count_grid_holes(game->grid);
 
-  if (SPR->holec>0) {
-    int holep=rand()%SPR->holec;
+  if (holec>0) {
+    int holep=rand()%holec;
     int col,row;
     if (ps_seamonster_get_indexed_hole_cell(&col,&row,game->grid,holep)<0) return -1;
     SPR->dstx=col*PS_TILESIZE+(PS_TILESIZE>>1);
     SPR->dsty=row*PS_TILESIZE+(PS_TILESIZE>>1);
   } else {
     ps_log(GAME,ERROR,"Sea monster in a grid with no HOLE cells.");
-    return -1;
+    SPR->dx=(rand()%1000)/1000.0;
+    SPR->dy=(rand()%1000)/1000.0;
+    return 0;
   }
 
-  double dx=SPR->dstx-spr->x;
-  double dy=SPR->dsty-spr->y;
+  double dx=SPR->dstx-(spr->x+0.1);
+  double dy=SPR->dsty-(spr->y+0.1);
   double distance=sqrt(dx*dx+dy*dy);
   if (distance>0.0) {
     SPR->dx=(dx*PS_SEAMONSTER_SWIM_SPEED)/distance;

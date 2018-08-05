@@ -198,7 +198,7 @@ static int ps_main_init(struct ps_userconfig *userconfig) {
   int randseed=time(0);
   ps_log(MAIN,INFO,"Random seed %d.",randseed);
   srand(randseed);
-
+  
   if (ps_video_init(userconfig)<0) return -1;
 
   if (ps_main_init_input(userconfig)<0) {

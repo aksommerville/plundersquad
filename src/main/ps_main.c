@@ -304,8 +304,15 @@ static int ps_main_update() {
   #endif
 
   if (ps_gui_is_active(ps_gui)) {
-    if (ps_gui_update(ps_gui)<0) return -1;
-    if (ps_userconfig_save_file(ps_gui_get_userconfig(ps_gui))<0) return -1; // It's OK to spam this; it has a dirty flag.
+    if (ps_gui_update(ps_gui)<0) {
+      ps_log(MAIN,ERROR,"Failure from ps_gui_update()! Aborting.");
+      return -1;
+    }
+    if (ps_userconfig_save_file(ps_gui_get_userconfig(ps_gui))<0) { // It's OK to spam this; it has a dirty flag.
+      ps_log(MAIN,ERROR,"Failed to save configuration.");
+      return -1; // TODO Does this really need to be fatal?
+    }
+    
   } else if (ps_game) {
     if (ps_game->paused) {
       if (ps_gui_load_page_pause(ps_gui)<0) return -1;
@@ -315,7 +322,10 @@ static int ps_main_update() {
     } else if (ps_game->finished) {
       if (ps_gui_load_page_gameover(ps_gui)<0) return -1;
     } else {
-      if (ps_game_update(ps_game)<0) return -1;
+      if (ps_game_update(ps_game)<0) {
+        ps_log(MAIN,ERROR,"Failure from ps_game_update()! Aborting.");
+        return -1;
+      }
     }
   }
 

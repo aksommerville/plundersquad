@@ -839,6 +839,21 @@ static int ps_game_update_stats(struct ps_game *game) {
   return 0;
 }
 
+/* When a sprite update fails, we might be able to recover.
+ */
+ 
+static int ps_game_react_to_sprite_update_error(struct ps_game *game,struct ps_sprite *spr) {
+  ps_log(GAME,ERROR,"Error updating '%s' sprite %p.",spr->type->name,spr);
+  if (ps_sprgrp_has_sprite(game->grpv+PS_SPRGRP_HERO,spr)) {
+    ps_log(GAME,ERROR,"...this is a hero sprite, we can't proceed. Cascading error...");
+    return -1;
+  } else {
+    ps_log(GAME,ERROR,"...killing sprite and moving on.");
+    if (ps_sprite_kill_later(spr,game)<0) return -1;
+  }
+  return 0;
+}
+
 /* Update.
  */
 
@@ -863,7 +878,11 @@ int ps_game_update(struct ps_game *game) {
   /* Update sprites. */
   struct ps_sprgrp *grp=game->grpv+PS_SPRGRP_UPDATE;
   int i=0; for (i=0;i<grp->sprc;i++) {
-    if (ps_sprite_update(grp->sprv[i],game)<0) return -1;
+    if (ps_sprite_update(grp->sprv[i],game)<0) {
+      if (ps_game_react_to_sprite_update_error(game,grp->sprv[i])<0) {
+        return -1;
+      }
+    }
   }
   
   /* Poll routine events and record stats. */

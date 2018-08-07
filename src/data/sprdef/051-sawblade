@@ -1,5 +1,6 @@
 type sawblade
 tileid 0x04bf
 grpmask VISIBLE UPDATE HEROHAZARD
+radius 6
 impassable SOLID HOLE LATCH
 difficulty 3

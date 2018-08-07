@@ -3,7 +3,7 @@
 
 /* Nonzero for normal production startup; the rest of this file will be ignored.
  */
-#define PS_PRODUCTION_STARTUP 1
+#define PS_PRODUCTION_STARTUP 0
 
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, IMMORTAL, BOMBER
@@ -17,14 +17,14 @@
 
 /* Parameters for NORMAL and SELECTED modes.
  */
-#define PS_TEST_DIFFICULTY 2
+#define PS_TEST_DIFFICULTY 9
 #define PS_TEST_LENGTH     3
 
 /* Parameters for SELECTED mode.
  * Must name at least one blueprint with a HERO POI.
  * Region may be <0 to select randomly.
  */
-#define PS_TEST_BLUEPRINTS  1
+#define PS_TEST_BLUEPRINTS  2,124,131
 #define PS_TEST_REGION      -1
 
 /* Parameters for ALL mode.
@@ -51,7 +51,7 @@ static int ps_setup_test_game(struct ps_game *game,struct ps_userconfig *config)
   int playerc=sizeof(plrdefidv)/sizeof(int);
   if (ps_game_set_player_count(game,playerc)<0) return -1;
   int i=0; for (;i<playerc;i++) {
-    if (ps_game_configure_player(game,1+i,plrdefidv[i],i,0)<0) return -1;
+    if (ps_game_configure_player(game,1+i,plrdefidv[i],7-i,0)<0) return -1;
   }
   if (ps_input_set_noninteractive_device_assignment()<0) return -1;
   

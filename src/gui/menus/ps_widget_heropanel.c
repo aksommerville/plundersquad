@@ -575,7 +575,8 @@ static int ps_heropanel_event_is_click_in(const struct ps_widget *widget,const s
     if (p<0) return 0;
     const struct ps_input_btncfg *btncfg=device->premap->btncfgv+p;
     if (btncfg->lo) return 0; // We only want button and button-like things.
-    if (value<btncfg->hi>>1) return 0; // For analogue buttons, use a 50% threshold.
+    if (btncfg->hi>2) return 0; // Some joysticks use 0..255 for two-way axes. Just ignore anything analogue.
+    if (!value) return 0;
     return 1; // OK, looks like he's pressing a button.
   }
   return 0;

@@ -143,18 +143,6 @@ static int _ps_sprite_measure(int *w,int *h,struct ps_widget *widget,int maxw,in
   return 0;
 }
 
-/* Pack.
- */
-
-static int _ps_sprite_pack(struct ps_widget *widget) {
-  int i=WIDGET->grp->sprc; while (i-->0) {
-    struct ps_sprite *sprite=WIDGET->grp->sprv[i];
-    sprite->x=widget->w>>1;
-    sprite->y=widget->h>>1;
-  }
-  return 0;
-}
-
 /* Update.
  */
 
@@ -192,7 +180,6 @@ const struct ps_widget_type ps_widget_type_sprite={
 
   .draw=_ps_sprite_draw,
   .measure=_ps_sprite_measure,
-  .pack=_ps_sprite_pack,
 
   .update=_ps_sprite_update,
 

@@ -1,8 +1,4 @@
 General errors:
-- Somehow hero was able to walk into water and die.
-  blueprint:170, wizard, with vampire and bomber
-  ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
-  ...investigated, can't find the problem
   
 Raspi errors:
 
@@ -12,8 +8,6 @@ Linux errors:
 Windows errors:
 - Freeze on startup, Windows:
   MSAUDIO:TRACE: ps_msaudio_init [src/opt/msaudio/ps_msaudio.c:89]
-- Toggling out of fullscreen, other windows don't repaint
-    ...This is not happening anymore on my Windows 10 box.
 - Input focus lost after switching window in fullscreen, I'm not sure what happened.
 
 MacOS errors:
@@ -29,7 +23,6 @@ Windows:
 - src/opt/mshid/ps_mshid_global.c:186:     * TODO Signed values in MS HID input. (tricky!)
 - src/opt/mswm/ps_mswm_graphics.c:25:  //TODO Assert OpenGL features.
 - Configurable audio buffer size?
-- Try GL2 build on craptop and work laptop. ... no and yes
 
 MacOS:
 
@@ -49,16 +42,11 @@ Optimization, cleanup, low priority:
 Ongoing, loosely-defined items:
 - Review dragoncharger with multiple real players.
 - Review award assignment with realistic data
-- Finish sound effects
-- Finish music
-- More background graphics
 
 Optional:
 - src/input/ps_input_report_reader.h:3: * TODO We don't support collection fields, like for HID keyboards. Should we? Our focus is joysticks.
 
 Blocked:
-- Final packaging
-- Normalize sound effects and music
 
 Rejected:
 - Scissor for sdraw blits. Only needed by editor.
@@ -93,3 +81,9 @@ Rejected:
   ...I think it's not supposed to, after some googling
 - Exit-awayward permaswitch didn't pick up... went back and forth again, then it did. ? (174, swordsman and witch)
   ...in retrospect, it's possible that one sprite was dead the first time.
+- Somehow hero was able to walk into water and die.
+  blueprint:170, wizard, with vampire and bomber
+  ps_sprite_hero_state.c:73:     if (!(SPR->state&(PS_HERO_STATE_FERRY|PS_HERO_STATE_PUMPKIN|PS_HERO_STATE_FLY)))
+  ...investigated, can't find the problem
+- [windows] Toggling out of fullscreen, other windows don't repaint
+    ...This is not happening anymore on my Windows 10 box.

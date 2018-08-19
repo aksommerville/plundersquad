@@ -18,6 +18,7 @@
 #include "video/ps_video.h"
 #include "res/ps_resmgr.h"
 
+#define PS_PAUSEPAGE_ENABLE_CHEAT_MENU 0
 #define PS_PAUSEPAGE_CHEAT_LIMIT 8
 #define PS_PAUSEPAGE_CHEAT_TIME  2000000
 #define PS_PAUSEPAGE_DEFAULT_THUMB_COLOR 0x206080ff
@@ -118,6 +119,8 @@ static int _ps_pausepage_pack(struct ps_widget *widget) {
   return 0;
 }
 
+#if PS_PAUSEPAGE_ENABLE_CHEAT_MENU
+
 /* Open the cheat menu.
  */
 
@@ -203,6 +206,8 @@ static int ps_pausepage_check_cheat_code(struct ps_widget *widget,int plrid,int 
   return 1;
 }
 
+#endif
+
 /* Input.
  */
 
@@ -212,8 +217,10 @@ static int _ps_pausepage_userinput(struct ps_widget *widget,int plrid,int btnid,
     //ps_log(GUI,DEBUG,"Discarding event %d.%d=%d due to WIDGET->playerid==%d",plrid,btnid,value,WIDGET->playerid);
     return 0;
   }
-  int err=ps_pausepage_check_cheat_code(widget,plrid,btnid,value);
-  if (err) return err;
+  #if PS_PAUSEPAGE_ENABLE_CHEAT_MENU
+    int err=ps_pausepage_check_cheat_code(widget,plrid,btnid,value);
+    if (err) return err;
+  #endif
   return ps_widget_userinput(widget->childv[0],plrid,btnid,value);
 }
 

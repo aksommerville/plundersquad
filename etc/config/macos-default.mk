@@ -48,3 +48,11 @@ INPUT_ICONS:=$(wildcard src/main/appicon.iconset/*)
 $(ICON_MAIN):$(INPUT_ICONS);$(PRECMD) iconutil -c icns -o $@ src/main/appicon.iconset
 
 sign-app:all;codesign -s '3rd Party Mac Developer Application: Andy Sommerville (4G7NZRMQYQ)' $(BUNDLE_MAIN)
+
+platform-release:sign-app; \
+  cd $(OUTDIR) ; \
+  rm -f plundersquad*.zip ; \
+  VERSION=$$(git tag -l --points-at HEAD) ; \
+  if [ -z "$$VERSION" ] ; then VERSION=$$(date +%Y%m%d-%H%M) ; fi ; \
+  zip -qr plundersquad-macos-$$VERSION.zip PlunderSquad.app || exit 1 ; \
+  echo "Built release package $(OUTDIR)/plundersquad-macos-$$VERSION.zip"

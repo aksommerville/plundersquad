@@ -11,3 +11,8 @@ edit:$(EXE_EDIT);$(CMD_EDIT) --resources=src/data $(POST_CMD_EDIT)
 edit-%:$(EXE_EDIT);$(CMD_EDIT) --resources=src/data $* $(POST_CMD_EDIT)
 
 clean:;rm -rf mid out
+
+export INPUTCFG
+export MAINCFG
+release:validate-release $(EXE_MAIN) platform-release
+validate-release:;etc/tool/validate-release.sh

@@ -38,9 +38,9 @@ while read KEY VALUE ; do
         exit 1
       ;;
   esac
-done <<<$(
+done <<<"$(
   sed -En 's/^ *([0-9a-zA-Z_.-]+) *= *([^#]+)$/\1 \2/p' $MAINCFG
-)
+)"
 
 PS_PRODUCTION_STARTUP=$(sed -En 's/^#define PS_PRODUCTION_STARTUP *([0-9])$/\1/p' src/main/ps_developer_setup.h)
 PS_PAUSEPAGE_ENABLE_CHEAT_MENU=$(sed -En 's/#define PS_PAUSEPAGE_ENABLE_CHEAT_MENU *([0-9])$/\1/p' src/gui/menus/ps_widget_pausepage.c)

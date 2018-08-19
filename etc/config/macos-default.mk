@@ -34,9 +34,9 @@ $(NIB_MAIN):src/main/Main.xib;$(PRECMD) ibtool --compile $@ $<
 $(PLIST_EDIT):src/edit/Info.plist;$(PRECMD) cp $< $@
 $(NIB_EDIT):src/edit/Main.xib;$(PRECMD) ibtool --compile $@ $<
 
-$(INPUTCFG_MAIN):etc/input.cfg;$(PRECMD) cp $< $@
-$(CFG_MAIN):etc/plundersquad.cfg;$(PRECMD) cp $< $@
 $(CFG_EDIT):etc/plundersquad.cfg;$(PRECMD) cp $< $@
+INPUTCFG:=$(INPUTCFG_MAIN)
+MAINCFG:=$(CFG_MAIN)
 
 CMD_MAIN:=open -W $(BUNDLE_MAIN) --args --reopen-tty=$$(tty) --chdir=$$(pwd)
 CMD_EDIT:=open -W $(BUNDLE_EDIT) --args --reopen-tty=$$(tty) --chdir=$$(pwd)

@@ -14,5 +14,5 @@ clean:;rm -rf mid out
 
 export INPUTCFG
 export MAINCFG
-release:validate-release $(EXE_MAIN) platform-release
+release:$(EXE_MAIN) validate-release platform-release
 validate-release:;etc/tool/validate-release.sh

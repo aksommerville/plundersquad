@@ -27,10 +27,4 @@ POST_CMD_MAIN:=$(RIDICULOUS_WORKAROUND_FOR_MSYS_CONSOLE)
 
 RELEASE_FILES:=$(subst $(OUTDIR)/,,$(EXE_MAIN) $(DATA_ARCHIVE) $(INPUTCFG) $(MAINCFG))
 
-platform-release:; \
-  cd $(OUTDIR) ; \
-  rm -f plundersquad*.zip ; \
-  VERSION=$$(git tag -l --points-at HEAD) ; \
-  if [ -z "$$VERSION" ] ; then VERSION=$$(date +%Y%m%d-%H%M) ; fi ; \
-  zip -qr plundersquad-mswin-$$VERSION.zip $(RELEASE_FILES) || exit 1 ; \
-  echo "Built release package $(OUTDIR)/plundersquad-mswin-$$VERSION.zip"
+platform-release:;PSExecutionPolicyPreference=Unrestricted powershell.exe etc/tool/mswin-release.ps1

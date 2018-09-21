@@ -8,12 +8,12 @@
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, IMMORTAL, BOMBER
  */
-#define PS_TEST_GAME_PARTY WIZARD,ARCHER,SWORDSMAN,NURSE,GADGETEER,VAMPIRE,BOMBER,IMMORTAL
+#define PS_TEST_GAME_PARTY ARCHER
 
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL
  */
-#define PS_TEST_GENERATOR_MODE NORMAL
+#define PS_TEST_GENERATOR_MODE SELECTED
 
 /* Parameters for NORMAL and SELECTED modes.
  */
@@ -23,9 +23,10 @@
 /* Parameters for SELECTED mode.
  * Must name at least one blueprint with a HERO POI.
  * Region may be <0 to select randomly.
+
  */
-#define PS_TEST_BLUEPRINTS  2,124,131
-#define PS_TEST_REGION      2
+#define PS_TEST_BLUEPRINTS  2,140
+#define PS_TEST_REGION      5
 
 /* Parameters for ALL mode.
  * (LO>HI) means extend to end of list.

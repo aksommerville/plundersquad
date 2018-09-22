@@ -5,6 +5,7 @@
  *
  * Children:
  *   [0] menu
+ *   [1] tshirt banner -- always exists, may be no-op
  */
 
 #include "ps.h"
@@ -18,13 +19,22 @@
 #include "input/ps_input.h"
 #include "os/ps_clockassist.h"
 #include "os/ps_userconfig.h"
+#include "res/ps_resmgr.h"
+#include "res/ps_restype.h"
 
 /* Refuse to submit or cancel for so long after construction (microseconds).
  * This does not prevent moving the cursor.
  */
 #define PS_SETUPPAGE_INITIAL_DELAY 500000
 
+// Very important that difficulty and length here agree with gameoverpage -- otherwise we might break a promise!
+#define PS_SETUPPAGE_TSHIRT_ID_NO      17 /* "Make it longer or harder." */
+#define PS_SETUPPAGE_TSHIRT_ID_YES     18 /* "You can win a t-shirt!" */
+#define PS_SETUPPAGE_TSHIRT_DIFFICULTY  5
+#define PS_SETUPPAGE_TSHIRT_LENGTH      3
+
 static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
+static int ps_setuppage_cb_difflen(struct ps_widget *slider,struct ps_widget *widget);
 
 /* Object definition.
  */
@@ -32,6 +42,7 @@ static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
 struct ps_widget_setuppage {
   struct ps_widget hdr;
   int64_t starttime;
+  int tshirt; // <0=uninitialized. We can't check at init, must defer to the first pack.
 };
 
 #define WIDGET ((struct ps_widget_setuppage*)widget)
@@ -50,6 +61,7 @@ static int _ps_setuppage_init(struct ps_widget *widget) {
 
   widget->bgrgba=0x4080c0ff;
   WIDGET->starttime=ps_time_now();
+  WIDGET->tshirt=-1;
 
   if (!(menu=ps_widget_spawn(widget,&ps_widget_type_menu))) return -1;
   if (!(menupacker=ps_widget_menu_get_packer(menu))) return -1;
@@ -62,6 +74,7 @@ static int _ps_setuppage_init(struct ps_widget *widget) {
   if (ps_widget_slider_set_text(child," Difficulty",-1)<0) return -1;
   if (ps_widget_slider_set_limits(child,PS_DIFFICULTY_MIN,PS_DIFFICULTY_MAX)<0) return -1;
   if (ps_widget_slider_set_value(child,PS_DIFFICULTY_DEFAULT)<0) return -1;
+  if (ps_widget_slider_set_callback(child,ps_callback(ps_setuppage_cb_difflen,0,widget))<0) return -1;
 
   if (!(child=ps_widget_spawn(menupacker,&ps_widget_type_slider))) return -1;
   child->bgrgba=0x40404080;
@@ -69,10 +82,13 @@ static int _ps_setuppage_init(struct ps_widget *widget) {
   if (ps_widget_slider_set_text(child,"     Length",-1)<0) return -1;
   if (ps_widget_slider_set_limits(child,PS_LENGTH_MIN,PS_LENGTH_MAX)<0) return -1;
   if (ps_widget_slider_set_value(child,PS_LENGTH_DEFAULT)<0) return -1;
+  if (ps_widget_slider_set_callback(child,ps_callback(ps_setuppage_cb_difflen,0,widget))<0) return -1;
   
   if (!ps_widget_menu_spawn_label(menu,"Return to player selection",-1)) return -1;
   if (!ps_widget_menu_spawn_label(menu,"Input config",-1)) return -1;
   if (!ps_widget_menu_spawn_label(menu,"Quit",4)) return -1;
+  
+  if (!(child=ps_widget_spawn(widget,&ps_widget_type_texture))) return -1;
   
   return 0;
 }
@@ -91,20 +107,67 @@ static struct ps_widget *ps_setuppage_get_menu(const struct ps_widget *widget) {
   return widget->childv[0];
 }
 
+/* Populate t-shirt banner.
+ */
+ 
+static int ps_setuppage_populate_tshirt_banner(struct ps_widget *widget) {
+  struct ps_widget *menu=ps_widget_menu_get_packer(widget->childv[0]);
+  struct ps_widget *banner=widget->childv[1];
+  if (!menu||(menu->childc<3)) return 0;
+  
+  int difficulty=ps_widget_slider_get_value(menu->childv[1]);
+  int length=ps_widget_slider_get_value(menu->childv[2]);
+  int imageid=PS_SETUPPAGE_TSHIRT_ID_NO;
+  if ((difficulty>=PS_SETUPPAGE_TSHIRT_DIFFICULTY)&&(length>=PS_SETUPPAGE_TSHIRT_LENGTH)) {
+    imageid=PS_SETUPPAGE_TSHIRT_ID_YES;
+  }
+  
+  struct ps_res_IMAGE *image=ps_res_get(PS_RESTYPE_IMAGE,imageid);
+  if (image) {
+    if (ps_widget_texture_set_texture(banner,image->texture)<0) {
+      ps_log(GUI,ERROR,"Failed to set t-shirt banner texture.");
+    }
+  }
+  return 0;
+}
+
 /* Pack.
  */
 
 static int _ps_setuppage_pack(struct ps_widget *widget) {
-  int i=0; for (;i<widget->childc;i++) {
-    struct ps_widget *child=widget->childv[i];
-    int chw,chh;
-    if (ps_widget_measure(&chw,&chh,child,widget->w,widget->h)<0) return -1;
+  if (widget->childc!=2) return -1;
+
+  /* Deferred check for "tshirt" mode. */
+  if (WIDGET->tshirt<0) {
+    WIDGET->tshirt=ps_userconfig_get_int(ps_widget_get_userconfig(widget),"tshirt",6);
+    if (WIDGET->tshirt>0) {
+      if (ps_setuppage_populate_tshirt_banner(widget)<0) return -1;
+    } else WIDGET->tshirt=0;
+  }
+  
+  /* Menu gets its desired size, dead center. */
+  struct ps_widget *child=widget->childv[0];
+  int chw,chh;
+  if (ps_widget_measure(&chw,&chh,child,widget->w,widget->h)<0) return -1;
+  child->x=(widget->w>>1)-(chw>>1);
+  child->y=(widget->h>>1)-(chh>>1);
+  child->w=chw;
+  child->h=chh;
+  if (ps_widget_pack(child)<0) return -1;
+  
+  /* T-shirt banner gets its desired size, centered above menu, if applicable. Otherwise zero it. */
+  child=widget->childv[1];
+  if (WIDGET->tshirt) {
+    if (ps_widget_measure(&chw,&chh,child,widget->w,widget->childv[0]->y)<0) return -1;
     child->x=(widget->w>>1)-(chw>>1);
-    child->y=(widget->h>>1)-(chh>>1);
+    child->y=(widget->childv[0]->y>>1)-(chh>>1);
     child->w=chw;
     child->h=chh;
-    if (ps_widget_pack(child)<0) return -1;
+  } else {
+    child->x=child->y=child->w=child->h=0;
   }
+  if (ps_widget_pack(child)<0) return -1;
+
   return 0;
 }
 
@@ -235,6 +298,16 @@ static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
   return 0;
 }
 
+/* Callback when difficulty or length slider changes.
+ */
+ 
+static int ps_setuppage_cb_difflen(struct ps_widget *slider,struct ps_widget *widget) {
+  if (WIDGET->tshirt<1) return 0;
+  if (widget->childc<2) return 0;
+  if (ps_setuppage_populate_tshirt_banner(widget)<0) return -1;
+  return 0;
+}
+
 /* Acquire initial settings.
  */
  
@@ -268,6 +341,10 @@ int ps_widget_setuppage_acquire_initial_settings(struct ps_widget *widget) {
       struct ps_widget *slider=menupacker->childv[2];
       if (ps_widget_slider_set_value(slider,length)<0) return -1;
     }
+  }
+  
+  if (WIDGET->tshirt>0) {
+    if (ps_setuppage_populate_tshirt_banner(widget)<0) return -1;
   }
   
   return 0;

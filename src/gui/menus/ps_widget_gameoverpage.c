@@ -3,6 +3,7 @@
  * Children:
  *  [0] report
  *  [1] menu
+ *  [2] tshirt banner
  */
 
 #include "ps.h"
@@ -15,9 +16,16 @@
 #include "os/ps_clockassist.h"
 #include "os/ps_userconfig.h"
 #include "game/ps_sound_effects.h"
+#include "res/ps_resmgr.h"
+#include "res/ps_restype.h"
 
 // (us) Must wait so long after construction before selecting from menu.
 #define PS_GAMEOVERPAGE_INITIAL_INPUT_SUPPRESSION_TIME (1*1000000)
+
+// Very important that difficulty and length here agree with setuppage -- otherwise we might break a promise!
+#define PS_GAMEOVERPAGE_TSHIRT_ID         19
+#define PS_GAMEOVERPAGE_TSHIRT_DIFFICULTY  5
+#define PS_GAMEOVERPAGE_TSHIRT_LENGTH      3
 
 static int ps_gameoverpage_cb_menu(struct ps_widget *menu,struct ps_widget *widget);
 
@@ -55,6 +63,9 @@ static int _ps_gameoverpage_init(struct ps_widget *widget) {
   struct ps_widget *item;
   if (!(item=ps_widget_menu_spawn_label(menu,"Main menu",9))) return -1;
   if (!(item=ps_widget_menu_spawn_label(menu,"Quit",4))) return -1;
+  
+  struct ps_widget *banner=ps_widget_spawn(widget,&ps_widget_type_texture);
+  if (!banner) return -1;
 
   return 0;
 }
@@ -65,7 +76,7 @@ static int _ps_gameoverpage_init(struct ps_widget *widget) {
 static int ps_gameoverpage_obj_validate(const struct ps_widget *widget) {
   if (!widget) return -1;
   if (widget->type!=&ps_widget_type_gameoverpage) return -1;
-  if (widget->childc!=2) return -1;
+  if (widget->childc!=3) return -1;
   return 0;
 }
 
@@ -77,6 +88,10 @@ static struct ps_widget *ps_gameoverpage_get_menu(const struct ps_widget *widget
   return widget->childv[1];
 }
 
+static struct ps_widget *ps_gameoverpage_get_banner(const struct ps_widget *widget) {
+  return widget->childv[2];
+}
+
 /* Pack.
  */
 
@@ -84,6 +99,7 @@ static int _ps_gameoverpage_pack(struct ps_widget *widget) {
   if (ps_gameoverpage_obj_validate(widget)<0) return -1;
   struct ps_widget *report=ps_gameoverpage_get_report(widget);
   struct ps_widget *menu=ps_gameoverpage_get_menu(widget);
+  struct ps_widget *banner=ps_gameoverpage_get_banner(widget);
   int chw,chh;
 
   /* Report centered in left half of screen. */
@@ -99,6 +115,13 @@ static int _ps_gameoverpage_pack(struct ps_widget *widget) {
   menu->y=(widget->h>>1)-(chh>>1);
   menu->w=chw;
   menu->h=chh;
+  
+  /* Banner centered in right half, whatever remains above menu. */
+  if (ps_widget_measure(&chw,&chh,banner,128,128)<0) return -1;
+  banner->x=(widget->w*3)/4-(chw>>1);
+  banner->y=(menu->y>>1)-(chh>>1);
+  banner->w=chw;
+  banner->h=chh;
   
   int i=0; for (;i<widget->childc;i++) {
     struct ps_widget *child=widget->childv[i];
@@ -196,7 +219,23 @@ static int ps_gameoverpage_cb_menu(struct ps_widget *menu,struct ps_widget *widg
 int ps_widget_gameoverpage_setup(struct ps_widget *widget,const struct ps_game *game) {
   if (ps_gameoverpage_obj_validate(widget)<0) return -1;
   if (!game) return -1;
+  
+  /* Generate report (left side of screen). */
   struct ps_widget *report=ps_gameoverpage_get_report(widget);
   if (ps_widget_report_generate(report,game)<0) return -1;
+  
+  /* Check for tshirt banner. */
+  if (ps_userconfig_get_int(ps_widget_get_userconfig(widget),"tshirt",6)>0) {
+    struct ps_widget *banner=ps_gameoverpage_get_banner(widget);
+    if ((game->difficulty>=PS_GAMEOVERPAGE_TSHIRT_DIFFICULTY)&&(game->length>=PS_GAMEOVERPAGE_TSHIRT_LENGTH)) {
+      struct ps_res_IMAGE *image=ps_res_get(PS_RESTYPE_IMAGE,PS_GAMEOVERPAGE_TSHIRT_ID);
+      if (image) {
+        if (ps_widget_texture_set_texture(banner,image->texture)<0) {
+          ps_log(GUI,ERROR,"Failed to set tshirt victory banner texture.");
+        }
+      }
+    }
+  }
+  
   return 0;
 }

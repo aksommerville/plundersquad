@@ -127,6 +127,8 @@ int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig) {
   BOOLEAN("soft-render",0)
   INTEGER("music",127,0,255)
   INTEGER("sound",255,0,255)
+  BOOLEAN("kiosk",0)
+  BOOLEAN("tshirt",0)
 
   #undef BOOLEAN
   #undef INTEGER

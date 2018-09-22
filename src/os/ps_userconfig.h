@@ -29,6 +29,8 @@ int ps_userconfig_ref(struct ps_userconfig *userconfig);
  *   BOOLEAN soft-render = 0
  *   INTEGER music = 255
  *   INTEGER sound = 255
+ *   BOOLEAN kiosk = 0 # don't allow quit or fullscreen toggle
+ *   BOOLEAN tshirt = 0 # promote free t-shirt (for GDEX kiosk)
  *
  * Other global command-line options which are not actually userconfig:
  *   PATH reopen-tty = ""

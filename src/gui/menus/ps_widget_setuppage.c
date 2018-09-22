@@ -17,6 +17,7 @@
 #include "game/ps_sound_effects.h"
 #include "input/ps_input.h"
 #include "os/ps_clockassist.h"
+#include "os/ps_userconfig.h"
 
 /* Refuse to submit or cancel for so long after construction (microseconds).
  * This does not prevent moving the cursor.
@@ -204,6 +205,21 @@ static int ps_setuppage_input_config(struct ps_widget *widget) {
   return ps_gui_load_page_inputcfg(ps_widget_get_gui(widget));
 }
 
+/* Quit.
+ */
+ 
+static int ps_setuppage_quit(struct ps_widget *widget) {
+  if (ps_setuppage_too_soon_to_leave(widget)) return 0;
+  struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
+  if (userconfig&&ps_userconfig_get_int(userconfig,"kiosk",5)) {
+    ps_log(GUI,INFO,"Ignoring quit request due to kiosk mode.");
+    PS_SFX_GUI_REJECT
+    return 0;
+  }
+  if (ps_input_request_termination()<0) return -1;
+  return 0;
+}
+
 /* Menu callback.
  */
  
@@ -214,10 +230,7 @@ static int ps_setuppage_cb_menu(struct ps_widget *menu,struct ps_widget *widget)
     case 2: break; // length
     case 3: return ps_setuppage_return_to_assemble(widget);
     case 4: return ps_setuppage_input_config(widget);
-    case 5: {
-        if (ps_setuppage_too_soon_to_leave(widget)) return 0;
-        return ps_input_request_termination();
-      } break;
+    case 5: return ps_setuppage_quit(widget);
   }
   return 0;
 }

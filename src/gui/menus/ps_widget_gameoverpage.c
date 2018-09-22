@@ -13,6 +13,8 @@
 #include "game/ps_game.h"
 #include "input/ps_input.h"
 #include "os/ps_clockassist.h"
+#include "os/ps_userconfig.h"
+#include "game/ps_sound_effects.h"
 
 // (us) Must wait so long after construction before selecting from menu.
 #define PS_GAMEOVERPAGE_INITIAL_INPUT_SUPPRESSION_TIME (1*1000000)
@@ -167,6 +169,12 @@ static int ps_gameoverpage_main_menu(struct ps_widget *widget) {
  */
 
 static int ps_gameoverpage_quit(struct ps_widget *widget) {
+  struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
+  if (userconfig&&ps_userconfig_get_int(userconfig,"kiosk",5)) {
+    ps_log(GUI,INFO,"Ignoring quit request due to kiosk mode.");
+    PS_SFX_GUI_REJECT
+    return 0;
+  }
   if (ps_input_request_termination()<0) return -1;
   return 0;
 }

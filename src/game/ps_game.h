@@ -66,7 +66,7 @@ struct ps_game {
   struct ps_dragoncharger *dragoncharger;
   struct ps_summoner *summoner;
   struct ps_switchboard *switchboard;
-  struct ps_gamelog *gamelog;
+  //struct ps_gamelog *gamelog;
   struct ps_score_store *score_store;
   
   struct ps_sprgrp grpv[PS_SPRGRP_COUNT];

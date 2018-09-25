@@ -12,7 +12,7 @@
 #include "ps_game_renderer.h"
 #include "ps_summoner.h"
 #include "ps_switchboard.h"
-#include "ps_gamelog.h"
+//#include "ps_gamelog.h"
 #include "ps_score_store.h"
 #include "ps_path.h"
 #include "game/sprites/ps_sprite_hero.h"
@@ -66,7 +66,7 @@ static int ps_game_initialize(struct ps_game *game,struct ps_userconfig *usercon
   if (!(game->switchboard=ps_switchboard_new())) return -1;
   if (ps_switchboard_set_callback(game->switchboard,ps_game_cb_switch,game)<0) return -1;
 
-  if (!(game->gamelog=ps_gamelog_new())) return -1;
+  //if (!(game->gamelog=ps_gamelog_new())) return -1;
 
   { const char *path=0;
     int pathc=ps_userconfig_peek_field_as_string(&path,userconfig,ps_userconfig_search_field(userconfig,"highscores",10));
@@ -96,7 +96,7 @@ void ps_game_del(struct ps_game *game) {
   int i;
   if (!game) return;
 
-  ps_gamelog_save(game->gamelog);
+  //ps_gamelog_save(game->gamelog);
 
   ps_physics_del(game->physics);
   ps_statusreport_del(game->statusreport);
@@ -105,7 +105,7 @@ void ps_game_del(struct ps_game *game) {
   ps_game_renderer_del(game->renderer);
   ps_summoner_del(game->summoner);
   ps_switchboard_del(game->switchboard);
-  ps_gamelog_del(game->gamelog);
+  //ps_gamelog_del(game->gamelog);
   ps_score_store_del(game->score_store);
 
   ps_scenario_del(game->scenario);
@@ -870,7 +870,7 @@ int ps_game_update(struct ps_game *game) {
   }
   
   /* Externalized game logic. */
-  ps_gamelog_tick(game->gamelog); // Ignore errors.
+  //ps_gamelog_tick(game->gamelog); // Ignore errors.
   if (ps_bloodhound_activator_update(game->bloodhound_activator,game)<0) return -1;
   if (ps_dragoncharger_update(game->dragoncharger,game)<0) return -1;
   if (ps_summoner_update(game->summoner,game)<0) return -1;
@@ -1509,7 +1509,7 @@ int ps_game_change_screen(struct ps_game *game,int x,int y,int mode) {
 
   /* Log the change. */
   int blueprintid=ps_game_get_current_blueprint_id(game);
-  ps_gamelog_blueprint_used(game->gamelog,blueprintid,game->playerc);
+  //ps_gamelog_blueprint_used(game->gamelog,blueprintid,game->playerc);
   ps_log(GAME,DEBUG,"Switch to grid (%d,%d), blueprint:%d, difficulty:%d",game->gridx,game->gridy,blueprintid,ps_game_assess_blueprint_difficulty(game,blueprintid));
   
   return 0;

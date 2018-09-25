@@ -8,7 +8,7 @@
 /* Declare the heroes you want. This also establishes the party size.
  * Available: SWORDSMAN, ARCHER, GADGETEER, NURSE, WIZARD, VAMPIRE, IMMORTAL, BOMBER
  */
-#define PS_TEST_GAME_PARTY ARCHER
+#define PS_TEST_GAME_PARTY IMMORTAL,WIZARD,NURSE
 
 /* Declare the scenario generator mode.
  * One of: NORMAL, SELECTED, ALL
@@ -25,8 +25,8 @@
  * Region may be <0 to select randomly.
 
  */
-#define PS_TEST_BLUEPRINTS  2,140
-#define PS_TEST_REGION      5
+#define PS_TEST_BLUEPRINTS  2,196,74
+#define PS_TEST_REGION      -1
 
 /* Parameters for ALL mode.
  * (LO>HI) means extend to end of list.

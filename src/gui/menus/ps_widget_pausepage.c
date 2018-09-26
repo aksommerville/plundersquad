@@ -13,6 +13,7 @@
 #include "game/ps_switchboard.h"
 #include "game/ps_player.h"
 #include "game/ps_plrdef.h"
+#include "game/ps_sound_effects.h"
 #include "os/ps_clockassist.h"
 #include "os/ps_userconfig.h"
 #include "video/ps_video.h"
@@ -306,10 +307,17 @@ static int ps_pausepage_menucb_audio(struct ps_widget *button,struct ps_widget *
  */
  
 static int ps_pausepage_menucb_fullscreen(struct ps_widget *button,struct ps_widget *widget) {
+  
+  struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
+  if (userconfig&&ps_userconfig_get_int(userconfig,"kiosk",5)) {
+    ps_log(GUI,INFO,"Ignoring fullscreen request due to kiosk mode.");
+    PS_SFX_GUI_REJECT
+    return 0;
+  }
+  
   int fullscreen=ps_video_toggle_fullscreen();
   if (fullscreen<0) return -1;
 
-  struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
   if (userconfig) {
     if (ps_userconfig_set_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"fullscreen",10),fullscreen)>=0) {
     }
@@ -322,6 +330,12 @@ static int ps_pausepage_menucb_fullscreen(struct ps_widget *button,struct ps_wid
  */
 
 static int ps_pausepage_menucb_quit(struct ps_widget *button,struct ps_widget *widget) {
+  struct ps_userconfig *userconfig=ps_widget_get_userconfig(widget);
+  if (userconfig&&ps_userconfig_get_int(userconfig,"kiosk",5)) {
+    ps_log(GUI,INFO,"Ignoring quit request due to kiosk mode.");
+    PS_SFX_GUI_REJECT
+    return 0;
+  }
   if (ps_input_request_termination()<0) return -1;
   return 0;
 }

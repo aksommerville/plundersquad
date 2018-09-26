@@ -14,6 +14,14 @@
 #define PS_TELEPORTER_ROLE_BELL    2
 #define PS_TELEPORTER_ROLE_ZAPPER  3
 
+/* I observed a glitch where the yak caused repeated uncontrolled teleportation.
+ * It eventually righted itself, and I'm pretty confident that it's a yak problem at heart.
+ * Never did fix that properly.
+ * But we can mitigate similar problems with a short debounce on the teleporter.
+ * Think of it as a sanity check.
+ */
+#define PS_TELEPORTER_DEBOUNCE_TIME 30
+
 struct ps_sprite *ps_teleffect_new(struct ps_game *game,double srcx,double srcy,double dstx,double dsty);
 
 /* Private sprite object.
@@ -27,6 +35,7 @@ struct ps_sprite_teleporter {
   int animtime;
   int animframe;
   int hold; // If nonzero, wait to become clear before teleporting anything.
+  int debounce;
   struct ps_sprite *owner_do_not_dereference;
 };
 
@@ -168,6 +177,7 @@ static int ps_teleporter_teleport(struct ps_sprite *spr,struct ps_game *game,str
   pumpkin->y=dst->y;
   DST->hold=1;
   if (ps_teleporter_create_visual_effect(game,spr->x,spr->y,dst->x,dst->y)<0) return -1;
+  SPR->debounce=PS_TELEPORTER_DEBOUNCE_TIME;
   return 0;
 }
 
@@ -175,6 +185,7 @@ static int ps_teleporter_teleport(struct ps_sprite *spr,struct ps_game *game,str
  */
 
 static int ps_teleporter_check_pumpkins(struct ps_sprite *spr,struct ps_game *game) {
+  if (SPR->debounce>0) SPR->debounce--;
   if (!SPR->active&&!SPR->hold) return 0;
 
   double west=spr->x-6.0;
@@ -191,7 +202,7 @@ static int ps_teleporter_check_pumpkins(struct ps_sprite *spr,struct ps_game *ga
     if (pumpkin->y<north) continue;
     if (pumpkin->y>south) continue;
     if (ps_sprites_collide(spr,pumpkin)) {
-      if (SPR->active) {
+      if (SPR->active&&!SPR->debounce) {
         if (ps_teleporter_teleport(spr,game,pumpkin)<0) return -1;
       }
       pumpkinc++;

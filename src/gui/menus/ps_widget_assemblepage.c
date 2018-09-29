@@ -13,6 +13,7 @@
 #include "gui/ps_gui.h"
 #include "game/ps_game.h"
 #include "input/ps_input_device.h"
+#include "input/ps_input.h"
 #include "video/ps_video.h"
 
 // Checking the ready state might be a little expensive, so only do it once per 15 frames.
@@ -256,6 +257,7 @@ static int ps_assemblepage_commit_to_game(struct ps_widget *widget) {
     return -1;
   }
 
+  if (ps_input_drop_device_assignments()<0) return -1;
   if (ps_game_set_player_count(game,playerc)<0) return -1;
   for (i=0;i<playerc;i++) {
     if (ps_game_configure_player(game,i+1,playerv[i].plrdefid,playerv[i].palette,playerv[i].device)<0) {

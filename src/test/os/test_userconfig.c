@@ -346,6 +346,8 @@ PS_TEST(test_defect_userconfig_assigns_sound_to_soft_render,userconfig) {
     "soft-render=false\n"
     "music=199\n"
     "sound=198\n"
+    "kiosk=0\n"
+    "tshirt=0\n"
     "highscores=\n"
   ,-1)
 

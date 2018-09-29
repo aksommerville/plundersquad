@@ -426,6 +426,14 @@ int ps_widget_pausepage_skin_for_player(struct ps_widget *widget) {
   if (!game) return 0;
   const struct ps_player *player=game->playerv[WIDGET->playerid-1];
   if (!player) return 0;
+  
+  /* Ensure that there is a plrdefid retrievable for this player.
+   * This is related to a bug where device-player assignments were not being wiped out.
+   * This fix should not be necessary, but if that root cause ever manifests again, this will gracefully prevent us from segfaulting later.
+   */
+  int plrdefid=ps_res_get_id_by_obj(PS_RESTYPE_PLRDEF,player->plrdef);
+  if (plrdefid<0) return 0;
+  
   ps_log(GUI,DEBUG,"Skinning pausepage for player %d.",WIDGET->playerid);
 
   /* Set my background color based on hero's body color. */
@@ -441,7 +449,7 @@ int ps_widget_pausepage_skin_for_player(struct ps_widget *widget) {
   struct ps_widget *sprite=ps_widget_spawn(widget,&ps_widget_type_sprite);
   if (!sprite) return -1;
   if (ps_widget_sprite_load_sprdef(sprite,1)<0) return -1;
-  if (ps_widget_sprite_set_plrdefid(sprite,ps_res_get_id_by_obj(PS_RESTYPE_PLRDEF,player->plrdef))<0) return -1;
+  if (ps_widget_sprite_set_plrdefid(sprite,plrdefid)<0) return -1;
   if (ps_widget_sprite_set_palette(sprite,player->palette)<0) return -1;
   if (ps_widget_sprite_set_action_walk_down(sprite)<0) return -1;
 

@@ -16,6 +16,24 @@ int ps_input_set_player_count(int playerc) {
   return 0;
 }
 
+/* Drop all device assignments.
+ */
+ 
+int ps_input_drop_device_assignments() {
+  int provideri=ps_input.providerc;
+  while (provideri-->0) {
+    struct ps_input_provider *provider=ps_input.providerv[provideri];
+    int devicei=provider->devc;
+    while (devicei-->0) {
+      struct ps_input_device *device=provider->devv[devicei];
+      if (device->map) {
+        device->map->plrid=0;
+      }
+    }
+  }
+  return 0;
+}
+
 /* Manual assignment for a single device.
  * Initial player configuration happens at the device level, before assignment.
  * When player selection is committed to the game, we have very conveniently each player and his device.

@@ -138,6 +138,22 @@ int ps_scenario_reallocate_screens(struct ps_scenario *scenario,int w,int h) {
   return 0;
 }
 
+/* Reset 'visited' flags.
+ */
+ 
+int ps_scenario_reset_visited(struct ps_scenario *scenario) {
+  if (!scenario) return -1;
+  if (!scenario->screenv) return 0;
+  int screenc=scenario->w*scenario->h;
+  struct ps_screen *screen=scenario->screenv;
+  for (;screenc-->0;screen++) {
+    if (screen->grid) {
+      screen->grid->visited=0;
+    }
+  }
+  return 0;
+}
+
 /* Encode one screen of scenario.
  */
 

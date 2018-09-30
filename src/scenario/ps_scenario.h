@@ -31,6 +31,9 @@ int ps_scenario_clear(struct ps_scenario *scenario);
 
 int ps_scenario_reallocate_screens(struct ps_scenario *scenario,int w,int h);
 
+// Set 'visited' of each grid to zero.
+int ps_scenario_reset_visited(struct ps_scenario *scenario);
+
 /* ===== Serial format =====
  * TODO There should probably be some version control in here, for both code and data.
  * TODO We probably also need to encode the generator criteria.

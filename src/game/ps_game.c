@@ -542,6 +542,7 @@ int ps_game_restart(struct ps_game *game) {
   game->finished=0;
   game->paused=0;
   if (ps_stats_clear(game->stats)<0) return -1;
+  if (ps_scenario_reset_visited(game->scenario)<0) return -1;
 
   memset(game->treasurev,0,sizeof(game->treasurev));
   game->treasurec=game->scenario->treasurec;

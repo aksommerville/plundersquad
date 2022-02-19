@@ -1,12 +1,12 @@
 CCWARN:=-Werror -Wimplicit -Wno-overflow
-CCINC:=-Isrc -I$(MIDDIR)
+CCINC:=-Isrc -I$(MIDDIR) -I/usr/include/libdrm
 
-CC:=gcc -c -MMD -O2 -m32 $(CCINC) $(CCWARN)
+CC:=gcc -c -MMD -O2 $(CCINC) $(CCWARN)
 OBJC:=
-LD:=gcc -m32 
-LDPOST:=-lz -lm -lasound -lpthread -lX11 -lGL
+LD:=gcc
+LDPOST:=-lz -lm -lasound -lpthread -ldrm -lgbm -lEGL -lGL
 
-OPT_ENABLE:=glx alsa evdev genioc
+OPT_ENABLE:=drm alsa evdev genioc
 
 PS_GLSL_VERSION:=120
 
@@ -17,5 +17,5 @@ platform-release:; \
   rm -f plundersquad*.zip ; \
   VERSION=$$(git tag -l --points-at HEAD) ; \
   if [ -z "$$VERSION" ] ; then VERSION=$$(date +%Y%m%d-%H%M) ; fi ; \
-  zip -qr plundersquad-linux-$$VERSION.zip $(RELEASE_FILES) || exit 1 ; \
-  echo "Built release package $(OUTDIR)/plundersquad-linux-$$VERSION.zip"
+  zip -qr plundersquad-linux-drm-$$VERSION.zip $(RELEASE_FILES) || exit 1 ; \
+  echo "Built release package $(OUTDIR)/plundersquad-linux-drm-$$VERSION.zip"

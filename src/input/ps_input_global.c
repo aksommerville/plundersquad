@@ -3,6 +3,10 @@
 #include "ps_input_provider.h"
 #include "ps_input_device.h"
 #include "gui/ps_gui.h"
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/poll.h>
 
 struct ps_input ps_input={0};
 
@@ -54,6 +58,21 @@ int ps_input_update() {
 
   if (ps_input.suppress_player_buttons>0) {
     ps_input.suppress_player_buttons--;
+  }
+  
+  // XXX A quick n dirty hack to quit on ENTER from stdin.
+  // This is worth keeping, but should be implemented as an input provider.
+  struct pollfd pollfd={.fd=STDIN_FILENO,.events=POLLIN};
+  if (poll(&pollfd,1,0)>0) {
+    if (pollfd.revents&POLLIN) {
+      char src[32];
+      int srcc=read(STDIN_FILENO,src,sizeof(src));
+      if ((srcc==1)&&(src[0]==0x0a)) {
+        fprintf(stderr,"ENTER on stdin: Quitting.\n");
+        ps_input.termination_requested=1;
+        return 0;
+      }
+    }
   }
 
   int i=0; for (;i<ps_input.providerc;i++) {

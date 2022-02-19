@@ -23,6 +23,8 @@
   #include "opt/macwm/ps_macwm.h"
 #elif PS_USE_bcm
   #include "opt/bcm/ps_bcm.h"
+#elif PS_USE_drm
+  #include "opt/drm/ps_drm.h"
 #elif PS_USE_glx
   #include "opt/glx/ps_glx.h"
 #elif PS_USE_mswm

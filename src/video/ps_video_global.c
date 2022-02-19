@@ -88,6 +88,13 @@ int ps_video_init(struct ps_userconfig *userconfig) {
       return -1;
     }
     
+  #elif PS_USE_drm
+    if (ps_drm_init()<0) {
+      ps_log(VIDEO,ERROR,"Failed to initialize Linux DRM video.");
+      ps_video_quit();
+      return -1;
+    }
+    
   #elif PS_USE_glx
     if (ps_glx_init(ps_video.winw,ps_video.winh,fullscreen,"Plunder Squad")<0) {
       ps_log(VIDEO,ERROR,"Failed to initialize X11/GLX video.");
@@ -152,6 +159,8 @@ void ps_video_quit() {
     ps_macwm_quit();
   #elif PS_USE_bcm
     ps_bcm_quit();
+  #elif PS_USE_drm
+    ps_drm_quit();
   #elif PS_USE_glx
     ps_glx_quit();
   #elif PS_USE_mswm
@@ -236,6 +245,8 @@ int ps_video_update() {
     if (ps_macwm_flush_video()<0) return -1;
   #elif PS_USE_bcm
     if (ps_bcm_swap()<0) return -1;
+  #elif PS_USE_drm
+    if (ps_drm_swap()<0) return -1;
   #elif PS_USE_glx
     if (ps_glx_swap()<0) return -1;
   #elif PS_USE_mswm

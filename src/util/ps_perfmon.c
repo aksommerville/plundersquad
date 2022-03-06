@@ -36,7 +36,7 @@ static void ps_perfmon_report_recent(const struct ps_perfmon *perfmon,int64_t no
       double rate=(perfmon->framec_recent*1000000.0)/elapsed;
       ps_log(CLOCK,DEBUG,
         "%lld frames in %d.%06d s: %.02f Hz",
-        perfmon->framec_recent,(int)(elapsed/1000000),(int)(elapsed%1000000),rate
+        (long long)perfmon->framec_recent,(int)(elapsed/1000000),(int)(elapsed%1000000),rate
       );
     }
   }
@@ -49,7 +49,7 @@ static void ps_perfmon_report_game(const struct ps_perfmon *perfmon) {
       double rate=(perfmon->framec*1000000.0)/elapsed;
       ps_log(CLOCK,INFO,
         "Average: %lld frames in %d.%06d s: %.02f Hz",
-        perfmon->framec,(int)(elapsed/1000000),(int)(elapsed%1000000),rate
+        (long long)perfmon->framec,(int)(elapsed/1000000),(int)(elapsed%1000000),rate
       );
     }
   }

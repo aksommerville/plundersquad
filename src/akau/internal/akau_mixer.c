@@ -256,7 +256,7 @@ static int akau_mixer_check_printer_progress(struct akau_mixer *mixer) {
   if (progress==AKAU_SONGPRINTER_PROGRESS_READY) {
     int64_t now=ps_time_now();
     int64_t elapsed=now-mixer->print_start_time;
-    ps_log(AUDIO,DEBUG,"%lld song print complete, elapsed %d.%06d",now,(int)(elapsed/1000000),(int)(elapsed%1000000));
+    ps_log(AUDIO,DEBUG,"%lld song print complete, elapsed %d.%06d",(long long)now,(int)(elapsed/1000000),(int)(elapsed%1000000));
     struct akau_ipcm *ipcm=akau_songprinter_get_ipcm(mixer->printer);
     if (!ipcm) return -1;
     if (akau_mixer_play_ipcm(mixer,ipcm,0xff,0,1,AKAU_INTENT_BGM)<0) return -1;
@@ -773,7 +773,7 @@ static int akau_mixer_register_song_for_printing(struct akau_mixer *mixer,struct
 
   /* Create a songprinter and begin printing. */
   mixer->print_start_time=ps_time_now();
-  ps_log(AUDIO,DEBUG,"%lld begin printing song",mixer->print_start_time);
+  ps_log(AUDIO,DEBUG,"%lld begin printing song",(long long)mixer->print_start_time);
   if (!(mixer->printer=akau_songprinter_new(song))) return -1;
   if (akau_songprinter_begin(mixer->printer)<0) return -1;
 

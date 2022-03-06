@@ -1,7 +1,12 @@
 CCWARN:=-Werror -Wimplicit -Wno-overflow
 CCINC:=-Isrc -I$(MIDDIR) -I/usr/include/libdrm
+CCDEF:=
 
-CC:=gcc -c -MMD -O2 $(CCINC) $(CCWARN)
+ifeq ($(shell uname -n),vcs)
+  CCDEF+=-DPS_ALSA_DEVICE='"hw:0,3"'
+endif
+
+CC:=gcc -c -MMD -O2 $(CCINC) $(CCWARN) $(CCDEF)
 OBJC:=
 LD:=gcc
 LDPOST:=-lz -lm -lasound -lpthread -ldrm -lgbm -lEGL -lGL

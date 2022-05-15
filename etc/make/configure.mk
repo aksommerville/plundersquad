@@ -6,6 +6,9 @@ ifndef PS_CONFIG
     UNAMEN:=$(shell uname -n)
     ifeq ($(UNAMEN),raspberrypi)
       PS_ARCH:=raspi
+    else ifeq ($(UNAMEN),vcs)
+      PS_ARCH:=linux
+      PS_CONFIG:=linux-drm
     else
       PS_ARCH:=linux
     endif
@@ -14,7 +17,9 @@ ifndef PS_CONFIG
   else
     $(error Unable to guess host architecture. Please update etc/configure.mk or set PS_CONFIG.)
   endif
-  PS_CONFIG:=$(PS_ARCH)-default
+  ifndef PS_CONFIG
+    PS_CONFIG:=$(PS_ARCH)-default
+  endif
 else
   PS_ARCH:=$(firstword $(subst -, ,$(PS_CONFIG)))
 endif

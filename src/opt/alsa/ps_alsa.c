@@ -85,19 +85,20 @@ int ps_alsa_init(int rate,int chanc,void (*cb)(int16_t *dst,int dstac)) {
   ps_alsa.chanc=chanc;
   const char *device=PS_ALSA_DEVICE;
 
-  if (snd_pcm_open(&ps_alsa.alsa,"default",SND_PCM_STREAM_PLAYBACK,0)<0) return -1;
+  if (snd_pcm_open(&ps_alsa.alsa,device,SND_PCM_STREAM_PLAYBACK,0)<0) return -1;
   if (snd_pcm_hw_params_malloc(&ps_alsa.hwparams)<0) return -1;
   if (snd_pcm_hw_params_any(ps_alsa.alsa,ps_alsa.hwparams)<0) return -1;
   if (snd_pcm_hw_params_set_access(ps_alsa.alsa,ps_alsa.hwparams,SND_PCM_ACCESS_RW_INTERLEAVED)<0) return -1;
   if (snd_pcm_hw_params_set_format(ps_alsa.alsa,ps_alsa.hwparams,SND_PCM_FORMAT_S16)<0) return -1;
   if (snd_pcm_hw_params_set_rate_near(ps_alsa.alsa,ps_alsa.hwparams,&rate,0)<0) return -1;
-  if (snd_pcm_hw_params_set_channels(ps_alsa.alsa,ps_alsa.hwparams,chanc)<0) return -1;
+  if (snd_pcm_hw_params_set_channels_near(ps_alsa.alsa,ps_alsa.hwparams,&chanc)<0) return -1;
   if (snd_pcm_hw_params_set_buffer_size(ps_alsa.alsa,ps_alsa.hwparams,PS_ALSA_BUFFER_SIZE)<0) return -1;
   if (snd_pcm_hw_params(ps_alsa.alsa,ps_alsa.hwparams)<0) return -1;
 
   if (snd_pcm_nonblock(ps_alsa.alsa,0)<0) return -1;
   if (snd_pcm_prepare(ps_alsa.alsa)<0) return -1;
   ps_alsa.rate=rate;
+  ps_alsa.chanc=chanc;
   ps_alsa.bufc=PS_ALSA_BUFFER_SIZE;
   ps_alsa.bufc_samples=PS_ALSA_BUFFER_SIZE*chanc;
   ps_alsa.cb=cb;

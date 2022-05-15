@@ -239,7 +239,7 @@ static void record_test_result(int repc,clock_t elapsed) {
   if (++iterationp>=REPORT_INTERVAL) {
     double average=((double)total_elapsed)/((double)drawc*CLOCKS_PER_SEC);
     int spritec=total_sprites/iterationp;
-    ps_log(MAIN,INFO,"%10lld %10lld %10d %.09f",drawc,(int64_t)total_elapsed,spritec,average);
+    ps_log(MAIN,INFO,"%10lld %10lld %10d %.09f",(long long)drawc,(long long)total_elapsed,spritec,average);
     iterationp=0;
     drawc=0;
     total_elapsed=0;

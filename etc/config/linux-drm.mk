@@ -1,4 +1,4 @@
-CCWARN:=-Werror -Wimplicit -Wno-overflow
+CCWARN:=-Werror -Wimplicit -Wno-overflow -Wno-unused-result
 CCINC:=-Isrc -I$(MIDDIR) -I/usr/include/libdrm
 CCDEF:=
 

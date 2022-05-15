@@ -72,11 +72,12 @@ static struct {
  * Grrr
  * Right after reading the event bits, we'll scratch certain ranges to pretend they don't exist.
  * This should cause stupid excess devices to not appear in the list.
+ * UPDATE 2022-05-15: The Atari VCS controller's aux buttons are in this range (139,158,172). Let them thru.
  */
 
 static void ps_evdev_eliminate_stupid_event_bits(struct ps_evdev_device *dev) {
   dev->keybit[14]=0; // 112..119 (KEY_MACRO..KEY_PAUSE)
-  memset(dev->keybit+16,0,6); // 128..175 (KEY_STOP..KEY_MOVE)
+  //memset(dev->keybit+16,0,6); // 128..175 (KEY_STOP..KEY_MOVE)
   memset(dev->keybit+25,0,7); // 200..255 (KEY_PLAYCD..BTN_MISC(excl))
 }
 

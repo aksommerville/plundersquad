@@ -5,7 +5,9 @@ ifndef PS_CONFIG
   else ifeq ($(UNAMES),Linux)
     UNAMEN:=$(shell uname -n)
     ifeq ($(UNAMEN),raspberrypi)
-      PS_ARCH:=raspi
+      #PS_ARCH:=raspi
+      PS_ARCH:=linux
+      PS_CONFIG:=linux-drm
     else ifeq ($(UNAMEN),vcs)
       PS_ARCH:=linux
       PS_CONFIG:=linux-drm

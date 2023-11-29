@@ -8,7 +8,7 @@ int drm_open_file() {
   //TODO we now may have a poller -- ps_drm.delegate.poller. Register the file there, and don't poll on our own.
 
   //TODO allow user to configure, somehow
-  const char *device_path="/dev/dri/card0";
+  const char *device_path="/dev/dri/card1";
   
   if ((ps_drm.fd=open(device_path,O_RDWR))<0) {
     fprintf(stderr,"%s: %m\n",device_path);

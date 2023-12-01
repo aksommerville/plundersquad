@@ -34,7 +34,8 @@ const char *akau_loglevel_repr(int loglevel);
 
 int akau_init(
   const struct akau_driver *driver,
-  void (*cb_log)(int loglevel,const char *msg,int msgc)
+  void (*cb_log)(int loglevel,const char *msg,int msgc),
+  const char *device,int rate,int chanc
 );
 
 void akau_quit();

@@ -35,7 +35,7 @@ PS_TEST(test_songprinter_synchronous,ignore,songprinter) {
   for (songid=1;songid<=7;songid++) {
 
   akau_quit();
-  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log))
+  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log,0,44100,2))
 
   ps_resmgr_quit();
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))
@@ -87,7 +87,7 @@ PS_TEST(test_songprinter_asynchronous,ignore,songprinter) {
   int songid=7;
 
   akau_quit();
-  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log))
+  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log,0,44100,2))
 
   ps_resmgr_quit();
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))

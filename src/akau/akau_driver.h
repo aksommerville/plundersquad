@@ -14,7 +14,7 @@
 typedef void (*akau_cb_fn)(int16_t *dst,int dstc);
 
 struct akau_driver {
-  int (*init)(int rate,int chanc,akau_cb_fn cb);
+  int (*init)(const char *device,int rate,int chanc,akau_cb_fn cb);
   void (*quit)();
   int (*lock)();
   int (*unlock)();

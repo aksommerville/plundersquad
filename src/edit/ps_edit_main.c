@@ -79,11 +79,11 @@ static int ps_edit_init(struct ps_userconfig *userconfig) {
   if (ps_input_load_configuration("etc/input.cfg")<0) return -1;
 
   #if PS_USE_akmacaudio
-    if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
+    if (akau_init(&akau_driver_akmacaudio,ps_log_akau,0,44100,2)<0) return -1;
   #elif PS_USE_alsa
-    if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
+    if (akau_init(&akau_driver_alsa,ps_log_akau,0,44100,2)<0) return -1;
   #elif PS_USE_msaudio
-    if (akau_init(&akau_driver_msaudio,ps_log_akau)<0) return -1;
+    if (akau_init(&akau_driver_msaudio,ps_log_akau,0,44100,2)<0) return -1;
   #endif
   if (akau_mixer_set_print_songs(akau_get_mixer(),0)<0) return -1;
   int bgm_level=ps_userconfig_get_field_as_int(userconfig,ps_userconfig_search_field(userconfig,"music",5));

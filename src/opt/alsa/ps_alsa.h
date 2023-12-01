@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-int ps_alsa_init(int rate,int chanc,void (*cb)(int16_t *dst,int dstc));
+int ps_alsa_init(const char *device,int rate,int chanc,void (*cb)(int16_t *dst,int dstc));
 void ps_alsa_quit();
 int ps_alsa_lock();
 int ps_alsa_unlock();

@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-int akmacaudio_init(int rate,int chanc,void (*cb)(int16_t *dst,int dstc));
+int akmacaudio_init(const char *dummy,int rate,int chanc,void (*cb)(int16_t *dst,int dstc));
 void akmacaudio_quit();
 
 int akmacaudio_lock();

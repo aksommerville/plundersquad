@@ -103,7 +103,7 @@ static DWORD WINAPI ps_msaudio_thread(LPVOID arg) {
  */
 
 int ps_msaudio_init(
-  int rate,int chanc,
+  const char *device,int rate,int chanc,
   void (*cb)(int16_t *dst,int dstc)
 ) {
   ps_log(MSAUDIO,TRACE,"ps_msaudio_init");

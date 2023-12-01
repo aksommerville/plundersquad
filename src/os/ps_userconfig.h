@@ -31,6 +31,10 @@ int ps_userconfig_ref(struct ps_userconfig *userconfig);
  *   INTEGER sound = 255
  *   BOOLEAN kiosk = 0 # don't allow quit or fullscreen toggle
  *   BOOLEAN tshirt = 0 # promote free t-shirt (for GDEX kiosk)
+ *   PATH video-device = ""
+ *   PATH audio-device = ""
+ *   INTEGER audio-rate = 44100
+ *   INTEGER audio-chanc = 2
  *
  * Other global command-line options which are not actually userconfig:
  *   PATH reopen-tty = ""

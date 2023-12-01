@@ -128,7 +128,7 @@ PS_TEST(print_song_to_wav,ignore) {
   int songid=1;
 
   akau_quit();
-  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log))
+  PS_ASSERT_CALL(akau_init(&AUDIODRIVER,ps_songprinter_test_log,0,44100,2))
 
   ps_resmgr_quit();
   PS_ASSERT_CALL(ps_resmgr_init("src/data",0))

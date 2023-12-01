@@ -37,7 +37,7 @@ static OSStatus akmacaudio_cb(
  */
  
 int akmacaudio_init(
-  int rate,int chanc,
+  const char *device,int rate,int chanc,
   void (*cb)(int16_t *dst,int dstc)
 ) {
   int err;

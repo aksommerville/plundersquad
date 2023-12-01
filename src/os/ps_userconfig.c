@@ -129,6 +129,10 @@ int ps_userconfig_declare_default_fields(struct ps_userconfig *userconfig) {
   INTEGER("sound",255,0,255)
   BOOLEAN("kiosk",0)
   BOOLEAN("tshirt",0)
+  PATH("video-device","")
+  PATH("audio-device","")
+  INTEGER("audio-rate",44100,200,200000)
+  INTEGER("audio-chanc",2,1,8)
 
   #undef BOOLEAN
   #undef INTEGER

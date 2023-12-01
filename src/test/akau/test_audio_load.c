@@ -63,7 +63,7 @@ PS_TEST(test_audio_load,ignore,functional) {
   srand(randseed);
 
   akau_quit();
-  PS_ASSERT_CALL(akau_init(driver,cb_akau_log))
+  PS_ASSERT_CALL(akau_init(driver,cb_akau_log,0,44100,2))
   PS_ASSERT_CALL(load_test_sounds())
   
   int repc=10000;

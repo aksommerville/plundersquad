@@ -56,7 +56,7 @@ PS_TEST(test_alsa_hang,functional,ignore) {
   while (bigrepc-->0) {
 
   ps_log(AUDIO,INFO,"ps_alsa_init...");
-  PS_ASSERT_CALL(ps_alsa_init(44100,1,cb_audio))
+  PS_ASSERT_CALL(ps_alsa_init(0,44100,1,cb_audio))
   ps_log(AUDIO,INFO,"ps_alsa_init ok");
   
   int repc=20+bigrepc*2;

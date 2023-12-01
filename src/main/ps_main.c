@@ -158,13 +158,16 @@ static void ps_log_akau(int level,const char *msg,int msgc) {
 static int ps_main_init_audio(struct ps_userconfig *userconfig) {
 
   #define PS_AKAU_ENABLE 1
+  const char *device=ps_userconfig_get_str(userconfig,"audio-device",-1);
+  int rate=ps_userconfig_get_int(userconfig,"audio-rate",-1);
+  int chanc=ps_userconfig_get_int(userconfig,"audio-chanc",-1);
   
   #if PS_USE_akmacaudio
-    if (akau_init(&akau_driver_akmacaudio,ps_log_akau)<0) return -1;
+    if (akau_init(&akau_driver_akmacaudio,ps_log_akau,device,rate,chanc)<0) return -1;
   #elif PS_USE_alsa
-    if (akau_init(&akau_driver_alsa,ps_log_akau)<0) return -1;
+    if (akau_init(&akau_driver_alsa,ps_log_akau,device,rate,chanc)<0) return -1;
   #elif PS_USE_msaudio
-    if (akau_init(&akau_driver_msaudio,ps_log_akau)<0) return -1;
+    if (akau_init(&akau_driver_msaudio,ps_log_akau,device,rate,chanc)<0) return -1;
   #else
     #undef PS_AKAU_ENABLE
     #define PS_AKAU_ENABLE 0

@@ -72,18 +72,15 @@ static void *ps_alsa_iothd(void *dummy) {
 /* Init.
  */
  
-#ifndef PS_ALSA_DEVICE
-  #define PS_ALSA_DEVICE "default"
-#endif
-
-int ps_alsa_init(int rate,int chanc,void (*cb)(int16_t *dst,int dstac)) {
+int ps_alsa_init(const char *device,int rate,int chanc,void (*cb)(int16_t *dst,int dstac)) {
   if (!cb) return -1;
   memset(&ps_alsa,0,sizeof(ps_alsa));
   ps_alsa.cb=cb;
 
   ps_alsa.rate=rate;
   ps_alsa.chanc=chanc;
-  const char *device=PS_ALSA_DEVICE;
+  if (!device||!device[0]) device="default";
+  fprintf(stderr,"ALSA pre init: %s %d %d\n",device,ps_alsa.rate,ps_alsa.chanc);
 
   if (snd_pcm_open(&ps_alsa.alsa,device,SND_PCM_STREAM_PLAYBACK,0)<0) return -1;
   if (snd_pcm_hw_params_malloc(&ps_alsa.hwparams)<0) return -1;

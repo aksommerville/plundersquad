@@ -28,7 +28,8 @@ static void akau_cb(int16_t *dst,int dstc) {
 
 int akau_init(
   const struct akau_driver *driver,
-  void (*cb_log)(int loglevel,const char *msg,int msgc)
+  void (*cb_log)(int loglevel,const char *msg,int msgc),
+  const char *device,int rate,int chanc
 ) {
   if (akau.init) return -1;
   
@@ -53,9 +54,15 @@ int akau_init(
     return -1;
   }
 
-  akau.rate=44100;
-  const int chanc=2; // Can change this to 1, just comment out one channel in akau_mixer.c:akau_mixer_update().
-  if (akau.driver.init(akau.rate,chanc,akau_cb)<0) {
+  if ((rate>=200)&&(rate<=200000)) akau.rate=rate;
+  else akau.rate=44100;
+  //const int chanc=2; // Can change this to 1, just comment out one channel in akau_mixer.c:akau_mixer_update().
+  if (chanc!=2) {
+    fprintf(stderr,"%s:%d: audio-chanc must be 2\n",__FILE__,__LINE__);
+    akau_quit();
+    return -1;
+  }
+  if (akau.driver.init(device,akau.rate,chanc,akau_cb)<0) {
     akau_quit();
     return -1;
   }

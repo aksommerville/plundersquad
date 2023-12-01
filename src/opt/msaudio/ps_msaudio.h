@@ -12,7 +12,7 @@
  * Samples, not frames or bytes.
  */
 int ps_msaudio_init(
-  int rate,int chanc,
+  const char *dummy,int rate,int chanc,
   void (*cb)(int16_t *dst,int dstc)
 );
 

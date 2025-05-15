@@ -11,6 +11,9 @@ ifndef PS_CONFIG
     else ifeq ($(UNAMEN),vcs)
       PS_ARCH:=linux
       PS_CONFIG:=linux-drm
+    else ifneq (,$(filter contop%,$(UNAMEN)))
+      PS_ARCH:=linux
+      PS_CONFIG:=linux-drm
     else
       PS_ARCH:=linux
     endif
